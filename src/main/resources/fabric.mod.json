@@ -19,11 +19,11 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.trainguy.betteranimations.BetterAnimations"
+      "com.trainguy.animationoverhaul.AnimationOverhaul"
     ]
   },
   "mixins": [
-    "betteranimations.mixins.json"
+    "animationoverhaul.mixins.json"
   ],
 
   "depends": {
