@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 
 public class AnimationOverhaul implements ModInitializer {
 
-	public static final String MODID = "betteranimations";
+	public static final String MODID = "animationoverhaul";
 	public static Logger LOGGER = LogManager.getLogger();
 
 	@Override

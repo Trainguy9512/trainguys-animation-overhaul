@@ -1,9 +1,22 @@
-# Fabric Example Mod
+# Trainguy's Animation Overhaul
 
-## Setup
+This repository is for various improvements I'm making to Minecraft's entity animations, all packed into one 1.17.1 Fabric mod. I try to comment my code the best I can, but if you have any questions, comments, or suggestions my DMs are always open on Discord (trainguy#9512).
 
-For setup instructions please see the [fabric wiki page](https://fabricmc.net/wiki/tutorial:setup) that relates to the IDE that you are using.
+## Current Progress
 
-## License
-
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+- Animations done so far:
+    - Nothing yet!
+- Animations currently being worked on:
+    - Player (this is the most complex one)
+- Animations planned to come next:
+    - Skeleton
+    - Zombie
+    - Zombified Piglin
+    - Piglin
+    - Enderman
+    
+## FAQ
+- What versions will this mod support?
+> For now, Fabric 1.17.1 and beyond. However, if there's a great enough demand for it I'll put the time into backporting to earlier versions aswell, depending on how different the model animation code is in previous versions.
+- Will this mod come to Forge?
+> I would like to, but only after I get substantial progress on the main Fabric version.
