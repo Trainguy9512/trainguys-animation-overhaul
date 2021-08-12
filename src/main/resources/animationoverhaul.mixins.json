@@ -3,10 +3,10 @@
   "minVersion": "0.8",
   "package": "com.trainguy.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_16",
-  "mixins": [
-    "MixinPlayerModel"
-  ],
+  "mixins": [],
   "client": [
+    "MixinGhastRenderer",
+    "MixinPlayerModel"
   ],
   "injectors": {
     "defaultRequire": 1
