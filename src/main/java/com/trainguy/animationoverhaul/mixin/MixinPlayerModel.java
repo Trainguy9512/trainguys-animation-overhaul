@@ -1,8 +1,13 @@
 package com.trainguy.animationoverhaul.mixin;
 
+import com.trainguy.animationoverhaul.access.LivingEntityAccess;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
@@ -19,51 +24,34 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.List;
-
 @Unique
+@Environment(EnvType.CLIENT)
 @Mixin(PlayerModel.class)
-public class MixinPlayerModel<T extends LivingEntity> extends HumanoidModel<T> {
-    @Shadow @Final private List<ModelPart> parts;
+public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidModel<T> {
     @Shadow @Final public ModelPart leftPants;
     @Shadow @Final public ModelPart rightPants;
     @Shadow @Final public ModelPart leftSleeve;
     @Shadow @Final public ModelPart rightSleeve;
     @Shadow @Final public ModelPart jacket;
     @Shadow @Final private ModelPart cloak;
-    private float tick = 0;
-    //private float crouchAmountLinear = 0;
-    //private float crouchAmount = 0;
-    //private float sprintAmountLinear = 0;
-    //private float sprintAmount = 0;
-    //private float directionShift = 0;
-    //private boolean movingForward = true;
 
     public MixinPlayerModel(ModelPart modelPart) {
         super(modelPart);
     }
 
-    // unused old code
-    private void tick(T livingEntity, float delta, float speed){
-        //this.crouchAmountLinear = this.crouching ? Math.min(this.crouchAmountLinear + 0.25F * delta, 1) : Math.max(this.crouchAmountLinear - 0.25F * delta, 0);
-        //this.crouchAmount = this.crouching ? Mth.sqrt(Mth.cos((float) (this.crouchAmountLinear * Math.PI * 0.5F - Math.PI * 0.5F))) : 1 - Mth.sqrt(Mth.cos((float) (this.crouchAmountLinear * Math.PI * 0.5F)));
-        //this.sprintAmountLinear = speed > 0.9 ? Math.min(this.sprintAmountLinear + 0.0625F * delta, 1) : Math.max(this.sprintAmountLinear - 0.125F * delta, 0);
-        //this.sprintAmount = speed > 0.9 ? Mth.sqrt(Mth.cos((float) (this.sprintAmountLinear * Math.PI * 0.5F - Math.PI * 0.5F))) : 1 - Mth.sqrt(Mth.cos((float) (this.sprintAmountLinear * Math.PI * 0.5F)));
-        //this.directionShift = !this.movingForward ? Math.min(this.directionShift + 0.25F * delta, 1) : Math.max(this.directionShift - 0.25F * delta, 0);
-    }
-
     @Inject(method = "setupAnim", at = @At("HEAD"), cancellable = true)
     private void animPlayerModel(T livingEntity, float f, float g, float h, float i, float j, CallbackInfo ci){
+        // TODO: Rewrite bow and crossbow logic
+
         // Make it so this only applies to player animations, not mobs that use player animations as a base.
         if(livingEntity.getType() != EntityType.PLAYER){
             super.setupAnim(livingEntity, f, g, h, i, j);
             return;
         }
-        float directionShift = 0;
-        float previousTick = this.tick;
-        this.tick = h;
-        float delta = this.tick - previousTick;
 
+        float directionShift = 0;
+
+        float delta = Minecraft.getInstance().getDeltaFrameTime();
         float tickDifference = (float) (h - Math.floor(h));
 
         // Slow down the limb speed if the entity is a baby
@@ -71,63 +59,64 @@ public class MixinPlayerModel<T extends LivingEntity> extends HumanoidModel<T> {
             f /= 2;
         }
 
-        // basically the way this works is i store different variables outlined below in the unused transforms of different
-        // model parts, because i can't think of any other ways to store variables like this per-entity. it stores it mostly in
-        // linear 0-1 float variables by moving the model part between 0.0 and 0.05 on the X axis which is visually undetectable.
-
-        // body.x           kneel               done
-        // hat.x            falling             done
-        // leftArm.x        L item/block        done
-        // rightArm.x       R item/block        done
-        // jacket.x         spear throw
-        // rightSleeve.x    bow pull            done
-        // leftSleeve.x     crossbow hold
-        // rightLeg.x       spyglass
-        // leftLeg.x        shield
-        // rightPants.x
+        // Right arm item/block arm pose
+        float entityRightArmItemPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("rightArmItemPoseAmount");
+        float currentRightArmItemPoseAmount = this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM ? Mth.clamp(entityRightArmItemPoseAmount + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(entityRightArmItemPoseAmount - 0.25F * delta, 0.0F, 1.0F);
+        float rightArmItemPoseAmount = Mth.sin(currentRightArmItemPoseAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("rightArmItemPoseAmount", currentRightArmItemPoseAmount);
 
         // Right arm item/block arm pose
-        this.rightArm.x = this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM ? Mth.clamp(this.rightArm.x + 0.0125F * delta, 0.0F - 5, 0.05F - 5) : Mth.clamp(this.rightArm.x - 0.0125F * delta, 0.0F - 5, 0.05F - 5);
-        float rightArmItemPoseAmount = Mth.sin(((this.rightArm.x + 5) * 20) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
-
-        // Left arm item/block arm pose
-        this.leftArm.x = this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM ? Mth.clamp(this.leftArm.x + 0.0125F * delta, 0.0F + 5, 0.05F + 5) : Mth.clamp(this.leftArm.x - 0.0125F * delta, 0.0F + 5, 0.05F + 5);
-        float leftArmItemPoseAmount = Mth.sin(((this.leftArm.x - 5) * 20) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        float entityLeftArmItemPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmItemPoseAmount");
+        float currentLeftArmItemPoseAmount = this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM ? Mth.clamp(entityLeftArmItemPoseAmount + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(entityLeftArmItemPoseAmount - 0.25F * delta, 0.0F, 1.0F);
+        float leftArmItemPoseAmount = Mth.sin(currentLeftArmItemPoseAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmItemPoseAmount", currentLeftArmItemPoseAmount);
 
         // Bow pull
         boolean usingBow = this.rightArmPose == ArmPose.BOW_AND_ARROW || this.leftArmPose == ArmPose.BOW_AND_ARROW;
-        this.rightSleeve.x = usingBow ? Mth.clamp(this.rightSleeve.x + 0.002F * delta, 0.0F - 5, 0.05F - 5) : Mth.clamp(this.rightSleeve.x - 0.005F * delta, 0.0F - 5, 0.05F - 5);
-        float bowLinear = (this.rightSleeve.x + 5) * 20;
-        float bowHoldingAmount = usingBow ? bowLinear < 0.25 ? Mth.sin(bowLinear * Mth.PI * 4 - Mth.PI * 0.5F) * 0.5F + 0.5F : 1 : bowLinear < 0.5 ? Mth.sin(bowLinear * Mth.PI * 2 - Mth.PI * 0.5F) * 0.5F + 0.5F : 1;
-        float bowPullAmount = usingBow ? (float) (Mth.cos(Mth.sqrt(bowLinear) * Mth.PI * 2) * -0.5 + 0.5) : bowLinear < 0.5 ? Mth.sin(bowLinear * Mth.PI * 2 - Mth.PI * 0.5F) * 0.5F + 0.5F : 1;
+        float entityBowPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmBowPoseAmount");
+        float currentBowPoseAmount = usingBow ? Mth.clamp(entityBowPoseAmount + 0.04F * delta, 0.0F, 1.0F) : Mth.clamp(entityBowPoseAmount - 0.1F * delta, 0.0F, 1.0F);
+        float bowHoldingAmount = usingBow ? currentBowPoseAmount < 0.25 ? Mth.sin(currentBowPoseAmount * Mth.PI * 4 - Mth.PI * 0.5F) * 0.5F + 0.5F : 1 : currentBowPoseAmount < 0.5 ? Mth.sin(currentBowPoseAmount * Mth.PI * 2 - Mth.PI * 0.5F) * 0.5F + 0.5F : 1;
+        float bowPullAmount = usingBow ? (float) (Mth.cos(Mth.sqrt(currentBowPoseAmount) * Mth.PI * 2) * -0.5 + 0.5) : currentBowPoseAmount < 0.5 ? Mth.sin(currentBowPoseAmount * Mth.PI * 2 - Mth.PI * 0.5F) * 0.5F + 0.5F : 1;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmBowPoseAmount", currentBowPoseAmount);
 
         // Crouch variable
-        this.head.x = livingEntity.isCrouching() ? Mth.clamp(this.head.x + 0.0125F * delta, 0.0F, 0.05F) : Mth.clamp(this.head.x - 0.0125F * delta, 0.0F, 0.05F);
-        //float crouchAmount = livingEntity.isCrouching() ? Mth.sqrt(Mth.cos((float) (this.head.x * 20 * Math.PI * 0.5F - Math.PI * 0.5F))) : 1 - Mth.sqrt(Mth.cos((float) (this.head.x * 20 * Math.PI * 0.5F)));
-        float crouchAmount = Mth.sin(((this.head.x) * 20) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;;
+        float entityCrouchAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
+        float currentEntityCrouchAmount = livingEntity.isCrouching() ? Mth.clamp(entityCrouchAmount + 0.125F, 0.0F, 1.0F) : Mth.clamp(entityCrouchAmount - 0.125F, 0.0F, 1.0F);
+        float crouchAmount = Mth.sin((currentEntityCrouchAmount) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("crouchAmount", currentEntityCrouchAmount);
 
         // Crossbow Holding
+        float entityCrossbowPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmCrossbowPoseAmount");
         boolean holdingOrChargingCrossbow = (livingEntity.getTicksUsingItem() > 0 && livingEntity.getUseItem().getUseAnimation() == UseAnim.CROSSBOW) || this.rightArmPose == ArmPose.CROSSBOW_HOLD || this.leftArmPose == ArmPose.CROSSBOW_HOLD;
         boolean holdingUnloadedCrossbow = (livingEntity.getTicksUsingItem() == 0 && ((livingEntity.getMainHandItem().getUseAnimation() == UseAnim.CROSSBOW && !CrossbowItem.isCharged(livingEntity.getMainHandItem())) || (livingEntity.getOffhandItem().getUseAnimation() == UseAnim.CROSSBOW && !CrossbowItem.isCharged(livingEntity.getOffhandItem()))));
-        this.leftSleeve.x = holdingOrChargingCrossbow ? Mth.clamp(this.leftSleeve.x + 0.0125F * delta, 0.0F + 5, 0.05F + 5) : holdingUnloadedCrossbow ? Mth.clamp(this.leftSleeve.x - 0.00625F * delta, 0.0F + 5, 0.05F + 5) : Mth.clamp(this.leftSleeve.x - 0.0125F * delta, 0.0F + 5, 0.05F + 5);
-        float crossbowHoldAmount = !holdingUnloadedCrossbow ? Mth.sin(((this.leftSleeve.x - 5) * 20) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F : Mth.sin(((this.leftSleeve.x - 5) * 20) * Mth.PI * 1.25F - Mth.PI * 0.5F) * 0.6F + 0.6F;
-
+        float currentCrossbowAmount = holdingOrChargingCrossbow ? Mth.clamp(entityCrossbowPoseAmount + 0.25F * delta, 0.0F, 1.0F) : holdingUnloadedCrossbow ? Mth.clamp(entityCrossbowPoseAmount - 0.125F * delta, 0.0F, 1.0F) : Mth.clamp(entityCrossbowPoseAmount - 0.25F * delta, 0.0F, 1.0F);
+        float crossbowHoldAmount = !holdingUnloadedCrossbow ? Mth.sin(currentCrossbowAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F : Mth.sin(currentCrossbowAmount * Mth.PI * 1.25F - Mth.PI * 0.5F) * 0.6F + 0.6F;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmCrossbowPoseAmount", currentCrossbowAmount);
 
         // Simple sprint
-        float sprintAmount = Mth.clamp(7.69F * (g - 0.87F), 0, 1);
+        float entitySprintAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("sprintAmount");
+        float currentSprintAmount = g > 0.9 ? Mth.clamp(entitySprintAmount + 0.0625F * delta, 0.0F, 1.0F) : Mth.clamp(entitySprintAmount - 0.125F * delta, 0.0F, 1.0F);
+        float sprintAmount = Mth.sin(currentSprintAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("sprintAmount", currentSprintAmount);
 
         // When the player hits the ground after being in the air, start the hit ground animation
-        if(this.hat.x > 0.0F && (livingEntity.isOnGround() || livingEntity.onClimbable())){
-            this.body.x = Mth.clamp(this.hat.x * 2, 0, 0.05F);
+        float entityInAirAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("inAirAmount");
+        float entityKneelAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("kneelAmount");
+        float currentKneelAmount;
+        if(entityInAirAmount > 0.0F && (livingEntity.isOnGround() || livingEntity.onClimbable())){
+            entityKneelAmount = Mth.clamp(entityInAirAmount * 2, 0.0F, 1.0F);
         }
         // Get the in air and kneel values
-        this.body.x = Mth.clamp(this.body.x - 0.004F * delta, 0.0F, 0.05F);
-        this.hat.x = !livingEntity.isOnGround() && !livingEntity.onClimbable() && !livingEntity.isSwimming() && !livingEntity.isPassenger() ? Mth.clamp(this.hat.x + 0.0025F * delta, 0.0F, 0.05F) : 0;
-        float inAirAmount = livingEntity.isOnGround() || livingEntity.onClimbable() || livingEntity.isSwimming() || livingEntity.isPassenger() ? 0 : Mth.clamp(this.hat.x * 20, 0, 1);
-        float kneelAmount = 2 - Mth.sqrt(Mth.cos((float) (this.body.x * 20 * Math.PI * 0.5F))) * 2;
+        currentKneelAmount = Mth.clamp(entityKneelAmount - 0.125F * delta, 0.0F, 1.0F);
+        float currentInAirAmount = !livingEntity.isOnGround() && !livingEntity.onClimbable() && !livingEntity.isSwimming() && !livingEntity.isPassenger() ? Mth.clamp(entityInAirAmount + 0.05F * delta, 0.0F, 1.0F) : 0;
+        float inAirAmount = livingEntity.isOnGround() || livingEntity.onClimbable() || livingEntity.isSwimming() || livingEntity.isPassenger() ? 0 : Mth.clamp(currentInAirAmount, 0, 1);
+        float kneelAmount = 2 - Mth.sqrt(Mth.cos((float) (currentKneelAmount * Math.PI * 0.5F))) * 2;
         sprintAmount *= (1 - inAirAmount);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("inAirAmount", currentInAirAmount);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("kneelAmount", currentKneelAmount);
 
         // Get the look angle and delta movement to determine whether the character is moving forwards or backwards
+        // TODO: this breaks when strafing, may need to re-evaluate my approach for this
         if(g > 0.1){
             if((livingEntity.getLookAngle().x > 0 && livingEntity.getDeltaMovement().x < 0) || (livingEntity.getLookAngle().x < 0 && livingEntity.getDeltaMovement().x > 0) || (livingEntity.getLookAngle().z > 0 && livingEntity.getDeltaMovement().z < 0) || (livingEntity.getLookAngle().z < 0 && livingEntity.getDeltaMovement().z > 0)){
                 directionShift = 1;
@@ -153,8 +142,8 @@ public class MixinPlayerModel<T extends LivingEntity> extends HumanoidModel<T> {
         float bodyBob = livingEntity.isOnGround() ? (float) ( ((Mth.abs(Mth.sin(f * limbMotionMultiplier - Mth.PI / 4) * 1) * -1 + 1F) * Mth.clamp(g, 0, 0.25) * 4 * (sprintAmount + 1))): 0;
         float rightLegLift = livingEntity.isOnGround() ? (float) ((Math.min(Mth.sin(f * limbMotionMultiplier + Mth.PI * directionShift) * -3, 0) + 1) * Mth.clamp(g, 0, 0.25) * 4): 0;
         float leftLegLift = livingEntity.isOnGround() ? (float) ((Math.min(Mth.sin(f * limbMotionMultiplier + Mth.PI + Mth.PI * directionShift) * -3, 0) + 1) * Mth.clamp(g, 0, 0.25) * 4): 0;
-        float limbRotation = (float) ((Mth.cos(f * limbMotionMultiplier)) * 1.1F * g) * (1 - inAirAmount);
-        float inverseLimbRotation = (float) ((Mth.cos(f * limbMotionMultiplier + Mth.PI)) * 1.1F * g) * (1 - inAirAmount);
+        float limbRotation = ((Mth.cos(f * limbMotionMultiplier)) * 1.1F * g) * (1 - inAirAmount);
+        float inverseLimbRotation = ((Mth.cos(f * limbMotionMultiplier + Mth.PI)) * 1.1F * g) * (1 - inAirAmount);
         float limbForwardMotion = Mth.cos(f * limbMotionMultiplier) * 2.0F * g * (1 - inAirAmount);
         float inverseLimbForwardMotion = Mth.cos(f * limbMotionMultiplier + Mth.PI) * 2.0F * g * (1 - inAirAmount);
 
@@ -294,6 +283,7 @@ public class MixinPlayerModel<T extends LivingEntity> extends HumanoidModel<T> {
             this.leftArm.yRot = Mth.lerp(bowHoldingAmount, this.leftArm.yRot,0.1F + this.head.yRot + 0.4F);
             this.rightArm.xRot = Mth.lerp(bowHoldingAmount, this.rightArm.xRot, -1.5707964F + this.head.xRot);
             this.leftArm.xRot = Mth.lerp(bowHoldingAmount, this.leftArm.xRot, -1.5707964F + this.head.xRot);
+            this.rightArm.zRot = Mth.lerp(bowHoldingAmount, this.rightArm.zRot, 0);
 
             this.leftArm.zRot = Mth.lerp(bowHoldingAmount, this.leftArm.zRot, this.head.xRot * 0.5F);
 
@@ -308,6 +298,7 @@ public class MixinPlayerModel<T extends LivingEntity> extends HumanoidModel<T> {
             this.leftArm.yRot = Mth.lerp(bowHoldingAmount, this.leftArm.yRot,0.1F + this.head.yRot);
             this.rightArm.xRot = Mth.lerp(bowHoldingAmount, this.rightArm.xRot, -1.5707964F + this.head.xRot);
             this.leftArm.xRot = Mth.lerp(bowHoldingAmount, this.leftArm.xRot, -1.5707964F + this.head.xRot);
+            this.leftArm.zRot = Mth.lerp(bowHoldingAmount, this.leftArm.zRot, 0);
 
             this.rightArm.zRot = Mth.lerp(bowHoldingAmount, this.rightArm.zRot, this.head.xRot * -0.5F);
 
@@ -333,6 +324,8 @@ public class MixinPlayerModel<T extends LivingEntity> extends HumanoidModel<T> {
         secondaryArm.yRot = Mth.lerp(crossbowHoldAmount, secondaryArm.yRot, (holdingCrossbowInRightHand ? 0.6F : -0.6F) + this.head.yRot);
         primaryArm.xRot = Mth.lerp(crossbowHoldAmount, primaryArm.xRot, -1.5707964F + this.head.xRot + 0.1F + crossbowArmBob);
         secondaryArm.xRot = Mth.lerp(crossbowHoldAmount, secondaryArm.xRot, -1.5F + this.head.xRot + crossbowArmBob);
+        primaryArm.zRot = Mth.lerp(crossbowHoldAmount, primaryArm.zRot, 0);
+        secondaryArm.zRot = Mth.lerp(crossbowHoldAmount, secondaryArm.zRot, this.head.xRot * (holdingCrossbowInRightHand ? 0.4F : -0.4F));
         // Crossbow pull logic
         if(holdingOrChargingCrossbow){
             if(livingEntity.getTicksUsingItem() > 0){
