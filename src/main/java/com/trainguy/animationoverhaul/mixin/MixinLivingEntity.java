@@ -13,6 +13,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public float kneelAmount;
     public float verticalMovementRotation;
     public float sprintAmount;
+    public float inWaterAmount;
 
     public float leftArmItemPoseAmount;
     public float rightArmItemPoseAmount;
@@ -38,6 +39,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "inAirAmount" -> inAirAmount;
             case "kneelAmount" -> kneelAmount;
             case "sprintAmount" -> sprintAmount;
+            case "inWaterAmount" -> inWaterAmount;
             case "verticalMovementRotation" -> verticalMovementRotation;
             case "leftArmItemPoseAmount" -> leftArmItemPoseAmount;
             case "rightArmItemPoseAmount" -> rightArmItemPoseAmount;
@@ -60,6 +62,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "inAirAmount" -> inAirAmount = newValue;
             case "kneelAmount" -> kneelAmount = newValue;
             case "sprintAmount" -> sprintAmount = newValue;
+            case "inWaterAmount" -> inWaterAmount = newValue;
             case "verticalMovementRotation" -> verticalMovementRotation = newValue;
             case "leftArmItemPoseAmount" -> leftArmItemPoseAmount = newValue;
             case "rightArmItemPoseAmount" -> rightArmItemPoseAmount = newValue;

@@ -7,8 +7,8 @@
   ],
   "client": [
     "MixinGhastRenderer",
-    "MixinPlayerModel",
-    "MixinLivingEntity"
+    "MixinLivingEntity",
+    "MixinPlayerModel"
   ],
   "injectors": {
     "defaultRequire": 1

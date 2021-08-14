@@ -42,6 +42,9 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     @Inject(method = "setupAnim", at = @At("HEAD"), cancellable = true)
     private void animPlayerModel(T livingEntity, float f, float g, float h, float i, float j, CallbackInfo ci){
         // TODO: Rewrite bow and crossbow logic
+        // TODO: Remove kneeling when hitting the ground- this is impossible to get working on servers and honestly looks too snappy
+        // TODO: Rework the flying and do it in a way that works on servers
+        // TODO: What's the deal with punching?
 
         // Make it so this only applies to player animations, not mobs that use player animations as a base.
         if(livingEntity.getType() != EntityType.PLAYER){
@@ -99,6 +102,14 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         float sprintAmount = Mth.sin(currentSprintAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
         ((LivingEntityAccess)livingEntity).setAnimationVariable("sprintAmount", currentSprintAmount);
 
+        // In water
+        float entityInWaterAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("inWaterAmount");
+        float currentInWaterAmount = Mth.clamp(entityInWaterAmount + (livingEntity.isUnderWater() ? 0.0625F : -0.0625F), 0, 1);
+        float inWaterAmount = Mth.sin((currentInWaterAmount) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("inWaterAmount", currentInWaterAmount);
+
+        /*
+
         // When the player hits the ground after being in the air, start the hit ground animation
         float entityInAirAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("inAirAmount");
         float entityKneelAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("kneelAmount");
@@ -108,12 +119,15 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         }
         // Get the in air and kneel values
         currentKneelAmount = Mth.clamp(entityKneelAmount - 0.125F * delta, 0.0F, 1.0F);
-        float currentInAirAmount = !livingEntity.isOnGround() && !livingEntity.onClimbable() && !livingEntity.isSwimming() && !livingEntity.isPassenger() ? Mth.clamp(entityInAirAmount + 0.05F * delta, 0.0F, 1.0F) : 0;
-        float inAirAmount = livingEntity.isOnGround() || livingEntity.onClimbable() || livingEntity.isSwimming() || livingEntity.isPassenger() ? 0 : Mth.clamp(currentInAirAmount, 0, 1);
+        boolean isInAir = (livingEntity.fallDistance > 0 || (livingEntity.getDeltaMovement().y == 0 && !livingEntity.isOnGround())) && !livingEntity.onClimbable() && !livingEntity.isSwimming() && !livingEntity.isPassenger();
+        float currentInAirAmount = isInAir ? Mth.clamp(entityInAirAmount + 0.05F * delta, 0.0F, 1.0F) : Mth.clamp(entityInAirAmount - 0.25F * delta, 0.0F, 1.0F);
+        float inAirAmount = Mth.clamp(currentInAirAmount, 0, 1);
         float kneelAmount = 2 - Mth.sqrt(Mth.cos((float) (currentKneelAmount * Math.PI * 0.5F))) * 2;
         sprintAmount *= (1 - inAirAmount);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("inAirAmount", currentInAirAmount);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("kneelAmount", currentKneelAmount);
+
+         */
 
         // Get the look angle and delta movement to determine whether the character is moving forwards or backwards
         // TODO: this breaks when strafing, may need to re-evaluate my approach for this
@@ -140,12 +154,12 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         // Math for main movements
         float bodyBob = livingEntity.isOnGround() ? (float) ( ((Mth.abs(Mth.sin(f * limbMotionMultiplier - Mth.PI / 4) * 1) * -1 + 1F) * Mth.clamp(g, 0, 0.25) * 4 * (sprintAmount + 1))): 0;
-        float rightLegLift = livingEntity.isOnGround() ? (float) ((Math.min(Mth.sin(f * limbMotionMultiplier + Mth.PI * directionShift) * -3, 0) + 1) * Mth.clamp(g, 0, 0.25) * 4): 0;
-        float leftLegLift = livingEntity.isOnGround() ? (float) ((Math.min(Mth.sin(f * limbMotionMultiplier + Mth.PI + Mth.PI * directionShift) * -3, 0) + 1) * Mth.clamp(g, 0, 0.25) * 4): 0;
-        float limbRotation = ((Mth.cos(f * limbMotionMultiplier)) * 1.1F * g) * (1 - inAirAmount);
-        float inverseLimbRotation = ((Mth.cos(f * limbMotionMultiplier + Mth.PI)) * 1.1F * g) * (1 - inAirAmount);
-        float limbForwardMotion = Mth.cos(f * limbMotionMultiplier) * 2.0F * g * (1 - inAirAmount);
-        float inverseLimbForwardMotion = Mth.cos(f * limbMotionMultiplier + Mth.PI) * 2.0F * g * (1 - inAirAmount);
+        float rightLegLift = livingEntity.isOnGround() ? (float) ((Math.min(Mth.sin(f * limbMotionMultiplier + Mth.PI * directionShift) * -3, 0) + 1) * Mth.clamp(g, 0, 0.25) * 4) * (1 - inWaterAmount): 0;
+        float leftLegLift = livingEntity.isOnGround() ? (float) ((Math.min(Mth.sin(f * limbMotionMultiplier + Mth.PI + Mth.PI * directionShift) * -3, 0) + 1) * Mth.clamp(g, 0, 0.25) * 4) * (1 - inWaterAmount): 0;
+        float limbRotation = ((Mth.cos(f * limbMotionMultiplier)) * 1.1F * g) * (1 - inWaterAmount);
+        float inverseLimbRotation = ((Mth.cos(f * limbMotionMultiplier + Mth.PI)) * 1.1F * g) * (1 - inWaterAmount);
+        float limbForwardMotion = Mth.cos(f * limbMotionMultiplier) * 2.0F * g * (1 - inWaterAmount);
+        float inverseLimbForwardMotion = Mth.cos(f * limbMotionMultiplier + Mth.PI) * 2.0F * g * (1 - inWaterAmount);
 
         // Main movements
         this.leftArm.z = limbForwardMotion * sprintAmount * 2 * (1 - leftArmItemPoseAmount) * (1 - crossbowHoldAmount);
@@ -205,15 +219,18 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         }
 
         // In air post process
-        this.leftLeg.z += ((Math.cos(h * limbMotionMultiplier * 0.75) * 2) - 1) * inAirAmount * Mth.clamp(1 - g * 0.5F, 0, 1);
-        this.leftLeg.xRot += ((Math.cos(h * limbMotionMultiplier * 0.75 - Mth.PI / 4)) * 0.5) * inAirAmount * Mth.clamp(1 - g * 0.5F, 0, 1);
-        this.rightLeg.z += ((Math.cos(h * limbMotionMultiplier * 0.75 - Mth.PI) * 2) - 1) * inAirAmount * Mth.clamp(1 - g * 0.5F, 0, 1);
-        this.rightLeg.xRot += ((Math.cos(h * limbMotionMultiplier * 0.75 - Mth.PI / 4 - Mth.PI)) * 0.5) * inAirAmount * Mth.clamp(1 - g * 0.5F, 0, 1);
+        this.leftLeg.z += ((Math.cos(h * limbMotionMultiplier * 0.5) * 2) - 1) * inWaterAmount;
+        this.leftLeg.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 4)) * 0.5) * inWaterAmount;
+        this.rightLeg.z += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI) * 2) - 1) * inWaterAmount;
+        this.rightLeg.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 4 - Mth.PI)) * 0.5) * inWaterAmount;
 
-        this.leftArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.75 - Mth.PI)) * 0.5) * inAirAmount * Mth.clamp(1 - g * 0.5F, 0, 1);
-        this.leftArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.75 + Mth.PI / 2 - Mth.PI)) * 0.25F - 0.25F) * inAirAmount) * Mth.clamp(1 - g * 0.5F, 0, 1);
-        this.rightArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.75)) * 0.5) * inAirAmount * Mth.clamp(1 - g * 0.5F, 0, 1);
-        this.rightArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.75 - Mth.PI / 2)) * 0.25F + 0.25F) * inAirAmount) * Mth.clamp(1 - g * 0.5F, 0, 1);
+        this.leftArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI)) * 0.5) * inWaterAmount;
+        this.leftArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.5 + Mth.PI / 2 - Mth.PI)) * 0.5F - 0.5F) * inWaterAmount);
+        this.rightArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5)) * 0.5) * inWaterAmount;
+        this.rightArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 2)) * 0.5F + 0.5F) * inWaterAmount);
+
+        /*
+        Old code that was part of the creative flying animation
 
         this.leftArm.xRot += 1 * g * inAirAmount;
         this.rightArm.xRot += 1 * g * inAirAmount;
@@ -224,8 +241,12 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         this.rightLeg.z += 7 * g * inAirAmount;
         this.leftLeg.y += -2 * g * inAirAmount;
         this.rightLeg.y += -2 * g * inAirAmount;
+         */
 
         // Kneel post process
+        /*
+        Old code for the ground impact kneel
+
         this.leftLeg.y += 2 * kneelAmount;
         this.leftLeg.z += -4 * kneelAmount;
         this.leftLeg.xRot += 0.5 * kneelAmount;
@@ -243,6 +264,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         this.rightArm.zRot += 0.25F * kneelAmount;
         this.head.y += 2 * kneelAmount;
         this.head.z += -3 * kneelAmount;
+         */
 
         // Right arm pose post process
         this.rightArm.xRot += -0.2F * rightArmItemPoseAmount;
@@ -251,6 +273,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         this.leftArm.xRot += -0.2F * leftArmItemPoseAmount;
 
         // Attack Animation Post Process
+        this.body.yRot = 0;
         if(this.attackTime > 0){
             // Get the selected arm
             HumanoidArm humanoidArm = livingEntity.getMainArm();
@@ -343,47 +366,13 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // debug
         //System.out.println(CrossbowItem.getChargeDuration(livingEntity.getUseItem()));
 
-        // Hat layer parent
-        this.hat.y = this.head.y;
-        this.hat.z = this.head.z;
-        this.hat.xRot = this.head.xRot;
-        this.hat.yRot = this.head.yRot;
-        this.hat.zRot = this.head.zRot;
-
-        // Jacket layer parent
-        this.jacket.y = this.body.y;
-        this.jacket.z = this.body.z;
-        this.jacket.xRot = this.body.xRot;
-        this.jacket.yRot = this.body.yRot;
-        this.jacket.zRot = this.body.zRot;
-
-        // Right Sleeve layer parent
-        this.rightSleeve.y = this.rightArm.y;
-        this.rightSleeve.z = this.rightArm.z;
-        this.rightSleeve.xRot = this.rightArm.xRot;
-        this.rightSleeve.yRot = this.rightArm.yRot;
-        this.rightSleeve.zRot = this.rightArm.zRot;
-
-        // Left Sleeve layer parent
-        this.leftSleeve.y = this.leftArm.y;
-        this.leftSleeve.z = this.leftArm.z;
-        this.leftSleeve.xRot = this.leftArm.xRot;
-        this.leftSleeve.yRot = this.leftArm.yRot;
-        this.leftSleeve.zRot = this.leftArm.zRot;
-
-        // Right Pants layer parent
-        this.rightPants.y = this.rightLeg.y;
-        this.rightPants.z = this.rightLeg.z;
-        this.rightPants.xRot = this.rightLeg.xRot;
-        this.rightPants.yRot = this.rightLeg.yRot;
-        this.rightPants.zRot = this.rightLeg.zRot;
-
-        // Left Pants layer parent
-        this.leftPants.y = this.leftLeg.y;
-        this.leftPants.z = this.leftLeg.z;
-        this.leftPants.xRot = this.leftLeg.xRot;
-        this.leftPants.yRot = this.leftLeg.yRot;
-        this.leftPants.zRot = this.leftLeg.zRot;
+        // Parent the second layer to the main meshes
+        this.hat.copyFrom(this.head);
+        this.jacket.copyFrom(this.body);
+        this.leftPants.copyFrom(this.leftLeg);
+        this.rightPants.copyFrom(this.rightLeg);
+        this.leftSleeve.copyFrom(this.leftArm);
+        this.rightSleeve.copyFrom(this.rightArm);
 
         if (livingEntity.getItemBySlot(EquipmentSlot.CHEST).isEmpty()) {
             if (livingEntity.isCrouching()) {
