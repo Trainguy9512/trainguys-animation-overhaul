@@ -44,7 +44,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // TODO: Rewrite bow and crossbow logic
         // TODO: Remove kneeling when hitting the ground- this is impossible to get working on servers and honestly looks too snappy
         // TODO: Rework the flying and do it in a way that works on servers
-        // TODO: What's the deal with punching?
 
         // Make it so this only applies to player animations, not mobs that use player animations as a base.
         if(livingEntity.getType() != EntityType.PLAYER){
@@ -62,16 +61,23 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             f /= 2;
         }
 
+        // Idle animation
+        float entityIdleAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("idleAmount");
+        boolean isIdle = g <= 0.01 && livingEntity.getDeltaMovement().y < 0.1 && livingEntity.getDeltaMovement().y > -0.1 && !livingEntity.isSleeping() && !livingEntity.isPassenger();
+        float currentIdleAmount = Mth.clamp(entityIdleAmount + (isIdle ? 0.05F * delta : -0.125F * delta), 0, 1);
+        float idleWeight = Mth.sin(currentIdleAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("idleAmount", currentIdleAmount);
+
         // Right arm item/block arm pose
         float entityRightArmItemPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("rightArmItemPoseAmount");
         float currentRightArmItemPoseAmount = this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM ? Mth.clamp(entityRightArmItemPoseAmount + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(entityRightArmItemPoseAmount - 0.25F * delta, 0.0F, 1.0F);
-        float rightArmItemPoseAmount = Mth.sin(currentRightArmItemPoseAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        float rightArmItemPoseWeight = Mth.sin(currentRightArmItemPoseAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
         ((LivingEntityAccess)livingEntity).setAnimationVariable("rightArmItemPoseAmount", currentRightArmItemPoseAmount);
 
         // Right arm item/block arm pose
         float entityLeftArmItemPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmItemPoseAmount");
         float currentLeftArmItemPoseAmount = this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM ? Mth.clamp(entityLeftArmItemPoseAmount + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(entityLeftArmItemPoseAmount - 0.25F * delta, 0.0F, 1.0F);
-        float leftArmItemPoseAmount = Mth.sin(currentLeftArmItemPoseAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        float leftArmItemPoseWeight = Mth.sin(currentLeftArmItemPoseAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
         ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmItemPoseAmount", currentLeftArmItemPoseAmount);
 
         // Bow pull
@@ -85,7 +91,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // Crouch variable
         float entityCrouchAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
         float currentEntityCrouchAmount = livingEntity.isCrouching() ? Mth.clamp(entityCrouchAmount + 0.125F, 0.0F, 1.0F) : Mth.clamp(entityCrouchAmount - 0.125F, 0.0F, 1.0F);
-        float crouchAmount = Mth.sin((currentEntityCrouchAmount) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        float crouchWeight = Mth.sin((currentEntityCrouchAmount) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
         ((LivingEntityAccess)livingEntity).setAnimationVariable("crouchAmount", currentEntityCrouchAmount);
 
         // Crossbow Holding
@@ -99,13 +105,13 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // Simple sprint
         float entitySprintAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("sprintAmount");
         float currentSprintAmount = g > 0.9 ? Mth.clamp(entitySprintAmount + 0.0625F * delta, 0.0F, 1.0F) : Mth.clamp(entitySprintAmount - 0.125F * delta, 0.0F, 1.0F);
-        float sprintAmount = Mth.sin(currentSprintAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        float sprintWeight = Mth.sin(currentSprintAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
         ((LivingEntityAccess)livingEntity).setAnimationVariable("sprintAmount", currentSprintAmount);
 
         // In water
         float entityInWaterAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("inWaterAmount");
         float currentInWaterAmount = Mth.clamp(entityInWaterAmount + (livingEntity.isUnderWater() ? 0.0625F : -0.0625F), 0, 1);
-        float inWaterAmount = Mth.sin((currentInWaterAmount) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        float inWaterWeight = Mth.sin((currentInWaterAmount) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
         ((LivingEntityAccess)livingEntity).setAnimationVariable("inWaterAmount", currentInWaterAmount);
 
         /*
@@ -144,7 +150,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // 0.87 walking
         // 1.0 running
 
-        float limbMotionMultiplier = 0.6662F;
+        float limbMotionMultiplier = 0.6662F * 0.9F;
         float headRotationMultiplier = 0.017453292F;
         // f = distance total
         // g = is moving lerp
@@ -153,61 +159,61 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // j = x head rot
 
         // Math for main movements
-        float bodyBob = livingEntity.isOnGround() ? (float) ( ((Mth.abs(Mth.sin(f * limbMotionMultiplier - Mth.PI / 4) * 1) * -1 + 1F) * Mth.clamp(g, 0, 0.25) * 4 * (sprintAmount + 1))): 0;
-        float rightLegLift = livingEntity.isOnGround() ? (float) ((Math.min(Mth.sin(f * limbMotionMultiplier + Mth.PI * directionShift) * -3, 0) + 1) * Mth.clamp(g, 0, 0.25) * 4) * (1 - inWaterAmount): 0;
-        float leftLegLift = livingEntity.isOnGround() ? (float) ((Math.min(Mth.sin(f * limbMotionMultiplier + Mth.PI + Mth.PI * directionShift) * -3, 0) + 1) * Mth.clamp(g, 0, 0.25) * 4) * (1 - inWaterAmount): 0;
-        float limbRotation = ((Mth.cos(f * limbMotionMultiplier)) * 1.1F * g) * (1 - inWaterAmount);
-        float inverseLimbRotation = ((Mth.cos(f * limbMotionMultiplier + Mth.PI)) * 1.1F * g) * (1 - inWaterAmount);
-        float limbForwardMotion = Mth.cos(f * limbMotionMultiplier) * 2.0F * g * (1 - inWaterAmount);
-        float inverseLimbForwardMotion = Mth.cos(f * limbMotionMultiplier + Mth.PI) * 2.0F * g * (1 - inWaterAmount);
+        float bodyBob = livingEntity.isOnGround() ? (float) ( ((Mth.abs(Mth.sin(f * limbMotionMultiplier - Mth.PI / 4) * 1) * -1 + 1F) * Mth.clamp(g, 0, 0.25) * 4 * (sprintWeight + 1))): 0;
+        float rightLegLift = livingEntity.isOnGround() ? (float) ((Math.min(Mth.sin(f * limbMotionMultiplier + Mth.PI * directionShift) * -3, 0) + 1) * Mth.clamp(g, 0, 0.25) * 4) * (1 - inWaterWeight): 0;
+        float leftLegLift = livingEntity.isOnGround() ? (float) ((Math.min(Mth.sin(f * limbMotionMultiplier + Mth.PI + Mth.PI * directionShift) * -3, 0) + 1) * Mth.clamp(g, 0, 0.25) * 4) * (1 - inWaterWeight): 0;
+        float limbRotation = ((Mth.cos(f * limbMotionMultiplier)) * 1.1F * g) * (1 - inWaterWeight);
+        float inverseLimbRotation = ((Mth.cos(f * limbMotionMultiplier + Mth.PI)) * 1.1F * g) * (1 - inWaterWeight);
+        float limbForwardMotion = Mth.cos(f * limbMotionMultiplier) * 2.0F * g * (1 - inWaterWeight);
+        float inverseLimbForwardMotion = Mth.cos(f * limbMotionMultiplier + Mth.PI) * 2.0F * g * (1 - inWaterWeight);
 
         // Main movements
-        this.leftArm.z = limbForwardMotion * sprintAmount * 2 * (1 - leftArmItemPoseAmount) * (1 - crossbowHoldAmount);
+        this.leftArm.z = limbForwardMotion * sprintWeight * 1.5F * (1 - leftArmItemPoseWeight) * (1 - crossbowHoldAmount);
         this.leftArm.y = bodyBob + 2;
-        this.leftArm.xRot = limbRotation * (1 - leftArmItemPoseAmount * 0.75F) - (0.25F * leftArmItemPoseAmount * g);
+        this.leftArm.xRot = limbRotation * (1 - leftArmItemPoseWeight * 0.75F) - (0.25F * leftArmItemPoseWeight * g);
         this.leftArm.yRot = 0;
-        this.rightArm.z = inverseLimbForwardMotion * sprintAmount * 2 * (1 - rightArmItemPoseAmount) * (1 - crossbowHoldAmount);
+        this.rightArm.z = inverseLimbForwardMotion * sprintWeight * 1.5F * (1 - rightArmItemPoseWeight) * (1 - crossbowHoldAmount);
         this.rightArm.y = bodyBob + 2;
-        this.rightArm.xRot = inverseLimbRotation * (1 - rightArmItemPoseAmount * 0.75F) - (0.25F * rightArmItemPoseAmount * g);
+        this.rightArm.xRot = inverseLimbRotation * (1 - rightArmItemPoseWeight * 0.75F) - (0.25F * rightArmItemPoseWeight * g);
         this.rightArm.yRot = 0;
         this.head.y = bodyBob;
         this.head.xRot = j * headRotationMultiplier;
         this.head.yRot = i * headRotationMultiplier;
         this.body.y = bodyBob;
-        this.rightLeg.z = limbForwardMotion * sprintAmount;
+        this.rightLeg.z = limbForwardMotion * sprintWeight * 0.75F;
         this.rightLeg.y = rightLegLift + 12;
         this.rightLeg.xRot = limbRotation;
-        this.leftLeg.z = inverseLimbForwardMotion * sprintAmount;
+        this.leftLeg.z = inverseLimbForwardMotion * sprintWeight * 0.75F;
         this.leftLeg.y = leftLegLift + 12;
         this.leftLeg.xRot = inverseLimbRotation;
 
         // Neck post process
-        this.head.z = j * -0.05F * (1 - crouchAmount);
-        this.body.z = j * -0.05F * (1 - crouchAmount);
-        this.rightArm.z += j * -0.05F * (1 - crouchAmount);
-        this.leftArm.z += j * -0.05F * (1 - crouchAmount);
-        this.body.xRot = j * headRotationMultiplier * 0.25F * (1 - crouchAmount);
+        this.head.z = j * -0.05F * (1 - crouchWeight);
+        this.body.z = j * -0.05F * (1 - crouchWeight);
+        this.rightArm.z += j * -0.05F * (1 - crouchWeight);
+        this.leftArm.z += j * -0.05F * (1 - crouchWeight);
+        this.body.xRot = j * headRotationMultiplier * 0.25F * (1 - crouchWeight);
 
         // Running post process
-        this.head.z += -3.0F * sprintAmount;
-        this.body.z += -3.0F * sprintAmount;
-        this.rightArm.z += -3.0F * sprintAmount;
-        this.leftArm.z += -3.0F * sprintAmount;
-        this.body.xRot += 0.25F * sprintAmount;
+        this.head.z += -3.0F * sprintWeight;
+        this.body.z += -3.0F * sprintWeight;
+        this.rightArm.z += -3.0F * sprintWeight;
+        this.leftArm.z += -3.0F * sprintWeight;
+        this.body.xRot += 0.25F * sprintWeight;
 
         // Crouch post process
-        if(crouchAmount > 0){
-            this.body.xRot += 0.5F * crouchAmount;
-            this.rightArm.xRot += 0.4F * crouchAmount;
-            this.leftArm.xRot += 0.4F * crouchAmount;
-            this.rightLeg.z += 3.9F * crouchAmount + 0.1F;
-            this.leftLeg.z += 3.9F * crouchAmount + 0.1F;
-            this.rightLeg.y += 0.2F * crouchAmount;
-            this.leftLeg.y += 0.2F * crouchAmount;
-            this.head.y += 4.2F * crouchAmount;
-            this.body.y += 3.2F * crouchAmount;
-            this.leftArm.y += 3.2F * crouchAmount;
-            this.rightArm.y += 3.2F * crouchAmount;
+        if(crouchWeight > 0){
+            this.body.xRot += 0.5F * crouchWeight;
+            this.rightArm.xRot += 0.4F * crouchWeight;
+            this.leftArm.xRot += 0.4F * crouchWeight;
+            this.rightLeg.z += 3.9F * crouchWeight + 0.1F;
+            this.leftLeg.z += 3.9F * crouchWeight + 0.1F;
+            this.rightLeg.y += 0.2F * crouchWeight;
+            this.leftLeg.y += 0.2F * crouchWeight;
+            this.head.y += 4.2F * crouchWeight;
+            this.body.y += 3.2F * crouchWeight;
+            this.leftArm.y += 3.2F * crouchWeight;
+            this.rightArm.y += 3.2F * crouchWeight;
         }
         if(this.crouching){
             this.rightLeg.y -= 2.0F;
@@ -219,15 +225,15 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         }
 
         // In air post process
-        this.leftLeg.z += ((Math.cos(h * limbMotionMultiplier * 0.5) * 2) - 1) * inWaterAmount;
-        this.leftLeg.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 4)) * 0.5) * inWaterAmount;
-        this.rightLeg.z += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI) * 2) - 1) * inWaterAmount;
-        this.rightLeg.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 4 - Mth.PI)) * 0.5) * inWaterAmount;
+        this.leftLeg.z += ((Math.cos(h * limbMotionMultiplier * 0.5) * 2) - 1) * inWaterWeight;
+        this.leftLeg.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 4)) * 0.5) * inWaterWeight;
+        this.rightLeg.z += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI) * 2) - 1) * inWaterWeight;
+        this.rightLeg.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 4 - Mth.PI)) * 0.5) * inWaterWeight;
 
-        this.leftArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI)) * 0.5) * inWaterAmount;
-        this.leftArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.5 + Mth.PI / 2 - Mth.PI)) * 0.5F - 0.5F) * inWaterAmount);
-        this.rightArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5)) * 0.5) * inWaterAmount;
-        this.rightArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 2)) * 0.5F + 0.5F) * inWaterAmount);
+        this.leftArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI)) * 0.5) * inWaterWeight;
+        this.leftArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.5 + Mth.PI / 2 - Mth.PI)) * 0.5F - 0.5F) * inWaterWeight);
+        this.rightArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5)) * 0.5) * inWaterWeight;
+        this.rightArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 2)) * 0.5F + 0.5F) * inWaterWeight);
 
         /*
         Old code that was part of the creative flying animation
@@ -266,11 +272,23 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         this.head.z += -3 * kneelAmount;
          */
 
+        // Idle animation post process
+        float idleBreathingZMovement = (Mth.sin(h * Mth.PI / 24) * -0.25F - (1 / 4.0F));
+        this.body.xRot += (Mth.sin(h * Mth.PI / 24) * 0.0625 * (1 / 3F) + (0.0625 / 3)) * idleWeight;
+        this.body.z += idleBreathingZMovement * idleWeight;
+        this.head.z += idleBreathingZMovement * idleWeight;
+        this.rightArm.z += idleBreathingZMovement * idleWeight;
+        this.rightArm.y += (Mth.sin(h * Mth.PI / 24 - (Mth.PI / 2)) * 0.125) * idleWeight;
+        this.rightArm.zRot += (Mth.sin(h * Mth.PI / 24 - (Mth.PI / 3)) * -0.0625 + 0.0625) * idleWeight;
+        this.leftArm.z += idleBreathingZMovement * idleWeight;
+        this.leftArm.y += (Mth.sin(h * Mth.PI / 24 - (Mth.PI / 2)) * 0.125) * idleWeight;
+        this.leftArm.zRot += (Mth.sin(h * Mth.PI / 24 - (Mth.PI / 3)) * 0.0625 - 0.0625) * idleWeight;
+
         // Right arm pose post process
-        this.rightArm.xRot += -0.2F * rightArmItemPoseAmount;
+        this.rightArm.xRot += -0.2F * rightArmItemPoseWeight;
 
         // Left arm pose post process
-        this.leftArm.xRot += -0.2F * leftArmItemPoseAmount;
+        this.leftArm.xRot += -0.2F * leftArmItemPoseWeight;
 
         // Attack Animation Post Process
         this.body.yRot = 0;
@@ -280,7 +298,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             humanoidArm = livingEntity.swingingArm == InteractionHand.MAIN_HAND ? humanoidArm : humanoidArm.getOpposite();
             ModelPart attackArmPart = humanoidArm == HumanoidArm.LEFT ? this.leftArm : this.rightArm;
 
-            this.body.yRot = Mth.sin(Mth.sqrt(this.attackTime) * 6.2831855F) * 0.2F;
+            this.body.yRot += Mth.sin(Mth.sqrt(this.attackTime) * 6.2831855F) * 0.2F;
             // Transform the arm using attack time, which starts at 0 and goes up to 1
             attackArmPart.xRot += (Mth.cos((float) (Math.sqrt(this.attackTime) * Mth.PI * 2)) * -0.5F + 0.5F) * (Mth.clamp(this.head.xRot, -1, 0) - 1);
             attackArmPart.yRot += (Mth.cos((float) (Math.sqrt(this.attackTime) * Mth.PI * 3)) * -0.5F + 0.5F - this.attackTime) * 0.5F;

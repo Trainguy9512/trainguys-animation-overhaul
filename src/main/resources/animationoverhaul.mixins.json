@@ -4,6 +4,7 @@
   "package": "com.trainguy.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "MixinPlayerRenderer"
   ],
   "client": [
     "MixinGhastRenderer",

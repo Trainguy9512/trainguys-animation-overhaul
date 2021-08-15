@@ -9,8 +9,7 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(LivingEntity.class)
 public abstract class MixinLivingEntity implements LivingEntityAccess {
     public float crouchAmount;
-    public float inAirAmount;
-    public float kneelAmount;
+    public float idleAmount;
     public float verticalMovementRotation;
     public float sprintAmount;
     public float inWaterAmount;
@@ -36,8 +35,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public float getAnimationVariable(String variableType){
         return switch (variableType) {
             case "crouchAmount" -> crouchAmount;
-            case "inAirAmount" -> inAirAmount;
-            case "kneelAmount" -> kneelAmount;
+            case "idleAmount" -> idleAmount;
             case "sprintAmount" -> sprintAmount;
             case "inWaterAmount" -> inWaterAmount;
             case "verticalMovementRotation" -> verticalMovementRotation;
@@ -59,8 +57,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public void setAnimationVariable(String variableType, float newValue){
         switch (variableType) {
             case "crouchAmount" -> crouchAmount = newValue;
-            case "inAirAmount" -> inAirAmount = newValue;
-            case "kneelAmount" -> kneelAmount = newValue;
+            case "idleAmount" -> idleAmount = newValue;
             case "sprintAmount" -> sprintAmount = newValue;
             case "inWaterAmount" -> inWaterAmount = newValue;
             case "verticalMovementRotation" -> verticalMovementRotation = newValue;
