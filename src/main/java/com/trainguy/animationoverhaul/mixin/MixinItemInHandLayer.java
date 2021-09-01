@@ -34,6 +34,7 @@ public class MixinItemInHandLayer {
     private void transformItemInHand(LivingEntity livingEntity, ItemStack itemStack, ItemTransforms.TransformType transformType, HumanoidArm humanoidArm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
 
         HumanoidArm swingingArm = livingEntity.getMainArm();
+        HumanoidArm interactionArm = livingEntity.getUsedItemHand() == InteractionHand.MAIN_HAND ? livingEntity.getMainArm() == HumanoidArm.RIGHT ? HumanoidArm.RIGHT : HumanoidArm.LEFT : livingEntity.getMainArm() != HumanoidArm.RIGHT ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
         swingingArm = livingEntity.swingingArm == InteractionHand.MAIN_HAND ? swingingArm : swingingArm.getOpposite();
 
         if(itemStack.getItem().toString().contains("sword") && swingingArm == humanoidArm){
@@ -44,6 +45,13 @@ public class MixinItemInHandLayer {
             poseStack.mulPose(Vector3f.YP.rotationDegrees(90 * entityAttackWeight));
             poseStack.mulPose(Vector3f.XP.rotationDegrees(10 * entityAttackWeight));
             poseStack.translate(0.125 * entityAttackWeight, 0.125 * entityAttackWeight, -0.125 * entityAttackWeight);
+        }
+        float entityEatingAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("eatingAmount");
+        if(entityEatingAmount > 0 && interactionArm == humanoidArm){
+            float eatingAmount = Mth.sin(entityEatingAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+            poseStack.mulPose(Vector3f.XP.rotationDegrees(70 * eatingAmount));
+            poseStack.mulPose(Vector3f.ZP.rotationDegrees((humanoidArm == HumanoidArm.RIGHT ? 20 : -20) * eatingAmount));
+            poseStack.translate((humanoidArm == HumanoidArm.RIGHT ? -0.15 : 0.15) * eatingAmount, -0.125 * eatingAmount, -0.0625 * eatingAmount);
         }
     }
 }

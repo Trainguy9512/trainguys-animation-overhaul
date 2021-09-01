@@ -18,13 +18,15 @@ import java.util.List;
 public abstract class MixinLivingEntity implements LivingEntityAccess {
     public String songName;
     public boolean songPlaying;
-    public BlockPos songOrigin;
+    public BlockPos songOrigin = new BlockPos(0, 0, 0);
 
     public float crouchAmount;
     public float verticalMovementRotation;
     public float sprintAmount;
     public float inWaterAmount;
     public float eatingAmount;
+
+    public float minecartRidingAmount;
 
     public float dancingAmount;
     public float dancingFrequency;
@@ -60,6 +62,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "dancingFrequency" -> dancingFrequency;
             case "crouchAmount" -> crouchAmount;
             case "idleAmount" -> idleAmount;
+            case "minecartRidingAmount" -> minecartRidingAmount;
             case "battleIdleAmount" -> battleIdleAmount;
             case "sprintAmount" -> sprintAmount;
             case "inWaterAmount" -> inWaterAmount;
@@ -88,6 +91,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "dancingFrequency" -> dancingFrequency = newValue;
             case "crouchAmount" -> crouchAmount = newValue;
             case "idleAmount" -> idleAmount = newValue;
+            case "minecartRidingAmount" -> minecartRidingAmount = newValue;
             case "battleIdleAmount" -> battleIdleAmount = newValue;
             case "sprintAmount" -> sprintAmount = newValue;
             case "eatingAmount" -> eatingAmount = newValue;
@@ -114,6 +118,22 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public void setRecordPlayerNearbyValues(String songName, boolean songPlaying, BlockPos songOrigin){
         if(songPlaying){
             this.songName = songName;
+            this.dancingFrequency = switch(songName){
+                case "music_disc_13" -> 1F;
+                case "music_disc_cat" -> 1F;
+                case "music_disc_blocks" -> 1F;
+                case "music_disc_chirp" -> 1F;
+                case "music_disc_far" -> 1F;
+                case "music_disc_mall" -> 1F;
+                case "music_disc_mellohi" -> 1F;
+                case "music_disc_stal" -> 1F;
+                case "music_disc_strad" -> 1F;
+                case "music_disc_ward" -> 1F;
+                case "music_disc_11" -> 1F;
+                case "music_disc_wait" -> 1F;
+                case "music_disc_pigstep" -> 1F;
+                default -> throw new IllegalStateException("Unexpected song name value: " + songName);
+            };
         }
         this.songPlaying = songPlaying;
         this.songOrigin = songOrigin;

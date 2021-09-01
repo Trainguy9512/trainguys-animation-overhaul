@@ -4,12 +4,14 @@
   "package": "com.trainguy.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "MixinItemInHandLayer",
-    ,
-    "MixinLevelRenderer"
+    "MixinBellRenderer"
   ],
   "client": [
+    "MixinBlockEntity",
+    "MixinChestRenderer",
     "MixinGhastRenderer",
+    "MixinItemInHandLayer",
+    "MixinLevelRenderer",
     "MixinLivingEntity",
     "MixinPlayerModel",
     "MixinPlayerRenderer"
