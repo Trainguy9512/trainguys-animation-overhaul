@@ -25,6 +25,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public float sprintAmount;
     public float inWaterAmount;
     public float eatingAmount;
+    public float directionAmount;
 
     public float minecartRidingAmount;
 
@@ -62,6 +63,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "dancingFrequency" -> dancingFrequency;
             case "crouchAmount" -> crouchAmount;
             case "idleAmount" -> idleAmount;
+            case "directionAmount" -> directionAmount;
             case "minecartRidingAmount" -> minecartRidingAmount;
             case "battleIdleAmount" -> battleIdleAmount;
             case "sprintAmount" -> sprintAmount;
@@ -91,6 +93,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "dancingFrequency" -> dancingFrequency = newValue;
             case "crouchAmount" -> crouchAmount = newValue;
             case "idleAmount" -> idleAmount = newValue;
+            case "directionAmount" -> directionAmount = newValue;
             case "minecartRidingAmount" -> minecartRidingAmount = newValue;
             case "battleIdleAmount" -> battleIdleAmount = newValue;
             case "sprintAmount" -> sprintAmount = newValue;

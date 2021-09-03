@@ -2,6 +2,7 @@ package com.trainguy.animationoverhaul.mixin;
 
 import com.sun.jna.platform.win32.WinBase;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
+import com.trainguy.animationoverhaul.util.AnimCurveUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -56,7 +57,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     @Inject(method = "setupAnim", at = @At("HEAD"), cancellable = true)
     private void animPlayerModel(T livingEntity, float f, float g, float h, float i, float j, CallbackInfo ci){
         // TODO: Rewrite bow and crossbow logic
-        // TODO: Remove kneeling when hitting the ground- this is impossible to get working on servers and honestly looks too snappy
         // TODO: Rework the flying and do it in a way that works on servers
 
         // Fix hand animations
@@ -143,13 +143,13 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // Right arm item/block arm pose
         float entityRightArmItemPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("rightArmItemPoseAmount");
         float currentRightArmItemPoseAmount = this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM ? Mth.clamp(entityRightArmItemPoseAmount + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(entityRightArmItemPoseAmount - 0.25F * delta, 0.0F, 1.0F);
-        float rightArmItemPoseWeight = Mth.sin(currentRightArmItemPoseAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        float rightArmItemPoseWeight = AnimCurveUtils.LinearToEaseCondition(currentRightArmItemPoseAmount, this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("rightArmItemPoseAmount", currentRightArmItemPoseAmount);
 
         // Right arm item/block arm pose
         float entityLeftArmItemPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmItemPoseAmount");
         float currentLeftArmItemPoseAmount = this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM ? Mth.clamp(entityLeftArmItemPoseAmount + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(entityLeftArmItemPoseAmount - 0.25F * delta, 0.0F, 1.0F);
-        float leftArmItemPoseWeight = Mth.sin(currentLeftArmItemPoseAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        float leftArmItemPoseWeight = AnimCurveUtils.LinearToEaseCondition(currentLeftArmItemPoseAmount, this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmItemPoseAmount", currentLeftArmItemPoseAmount);
 
         // Bow pull
@@ -186,36 +186,22 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         float inWaterWeight = Mth.sin((currentInWaterAmount) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
         ((LivingEntityAccess)livingEntity).setAnimationVariable("inWaterAmount", currentInWaterAmount);
 
-        /*
-
-        // When the player hits the ground after being in the air, start the hit ground animation
-        float entityInAirAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("inAirAmount");
-        float entityKneelAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("kneelAmount");
-        float currentKneelAmount;
-        if(entityInAirAmount > 0.0F && (livingEntity.isOnGround() || livingEntity.onClimbable())){
-            entityKneelAmount = Mth.clamp(entityInAirAmount * 2, 0.0F, 1.0F);
-        }
-        // Get the in air and kneel values
-        currentKneelAmount = Mth.clamp(entityKneelAmount - 0.125F * delta, 0.0F, 1.0F);
-        boolean isInAir = (livingEntity.fallDistance > 0 || (livingEntity.getDeltaMovement().y == 0 && !livingEntity.isOnGround())) && !livingEntity.onClimbable() && !livingEntity.isSwimming() && !livingEntity.isPassenger();
-        float currentInAirAmount = isInAir ? Mth.clamp(entityInAirAmount + 0.05F * delta, 0.0F, 1.0F) : Mth.clamp(entityInAirAmount - 0.25F * delta, 0.0F, 1.0F);
-        float inAirAmount = Mth.clamp(currentInAirAmount, 0, 1);
-        float kneelAmount = 2 - Mth.sqrt(Mth.cos((float) (currentKneelAmount * Math.PI * 0.5F))) * 2;
-        sprintAmount *= (1 - inAirAmount);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("inAirAmount", currentInAirAmount);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("kneelAmount", currentKneelAmount);
-
-         */
-
-        // Get the look angle and delta movement to determine whether the character is moving forwards or backwards
-        // TODO: this breaks when strafing, may need to re-evaluate my approach for this
-        if(g > 0.1){
-            if((livingEntity.getLookAngle().x > 0 && livingEntity.getDeltaMovement().x < 0) || (livingEntity.getLookAngle().x < 0 && livingEntity.getDeltaMovement().x > 0) || (livingEntity.getLookAngle().z > 0 && livingEntity.getDeltaMovement().z < 0) || (livingEntity.getLookAngle().z < 0 && livingEntity.getDeltaMovement().z > 0)){
-                directionShift = 1;
+        float entityDirectionShift = ((LivingEntityAccess)livingEntity).getAnimationVariable("directionAmount");
+        float moveAngleX = -Mth.sin(livingEntity.yBodyRot * Mth.PI / 180);
+        float moveAngleZ = Mth.cos(livingEntity.yBodyRot * Mth.PI / 180);
+        //System.out.println(moveAngleZ + ", " + livingEntity.getLookAngle().z);
+        if(g > 0.01){
+            if(     (moveAngleX > 0 && livingEntity.getDeltaMovement().x < 0) ||
+                    (moveAngleX < 0 && livingEntity.getDeltaMovement().x > 0) ||
+                    (moveAngleZ > 0 && livingEntity.getDeltaMovement().z < 0) ||
+                    (moveAngleZ < 0 && livingEntity.getDeltaMovement().z > 0)){
+                entityDirectionShift = Mth.clamp(entityDirectionShift + 0.25F * delta, 0, 1);
             } else {
-                directionShift = 0;
+                entityDirectionShift = Mth.clamp(entityDirectionShift - 0.25F * delta, 0, 1);;
             }
         }
+        directionShift = entityDirectionShift;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("directionAmount", entityDirectionShift);
 
         //tick(livingEntity, delta, g);
         // 0.25 crouching

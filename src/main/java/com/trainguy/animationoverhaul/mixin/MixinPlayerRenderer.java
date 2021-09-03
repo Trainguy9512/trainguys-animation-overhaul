@@ -20,7 +20,7 @@ public class MixinPlayerRenderer {
         float j = Mth.lerp(f, abstractClientPlayer.yHeadRotO, abstractClientPlayer.yHeadRot);
         float k = j - h;
         //TODO: this shouldn't be lerped based on speed, there should be a separate variable to ensure a smooth transition!
-        poseStack.mulPose(Vector3f.ZP.rotationDegrees(Mth.lerp(Mth.clamp(abstractClientPlayer.animationSpeed * 10 - 9, 0, 1), 0, k / -4)));
+        //poseStack.mulPose(Vector3f.ZP.rotationDegrees(Mth.lerp(Mth.clamp(abstractClientPlayer.animationSpeed * 10 - 9, 0, 1), 0, k / -4)));
 
         boolean isRidingInMinecart = abstractClientPlayer.isPassenger() && abstractClientPlayer.getRootVehicle().getType() == EntityType.MINECART;
         if(isRidingInMinecart){

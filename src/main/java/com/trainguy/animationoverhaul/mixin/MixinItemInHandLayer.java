@@ -3,6 +3,7 @@ package com.trainguy.animationoverhaul.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
+import com.trainguy.animationoverhaul.util.AnimCurveUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.util.sat4j.core.Vec;
@@ -40,7 +41,7 @@ public class MixinItemInHandLayer {
         if(itemStack.getItem().toString().contains("sword") && swingingArm == humanoidArm){
             float entityAttackAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("attackAmount");
             float inOutSine = Mth.sin(entityAttackAmount * Mth.PI * 4 - Mth.PI / 2) * 0.5F + 0.5F;
-            float entityAttackWeight = entityAttackAmount < 1 - 0.25 ? entityAttackAmount < 0.25 ? inOutSine : 1 : inOutSine;
+            float entityAttackWeight = AnimCurveUtils.LinearToEaseInOutWeight(entityAttackAmount, 2);
             poseStack.mulPose(Vector3f.XP.rotationDegrees(-90 * entityAttackWeight));
             poseStack.mulPose(Vector3f.YP.rotationDegrees(90 * entityAttackWeight));
             poseStack.mulPose(Vector3f.XP.rotationDegrees(10 * entityAttackWeight));
