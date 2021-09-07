@@ -38,7 +38,9 @@ public class MixinItemInHandLayer {
         HumanoidArm interactionArm = livingEntity.getUsedItemHand() == InteractionHand.MAIN_HAND ? livingEntity.getMainArm() == HumanoidArm.RIGHT ? HumanoidArm.RIGHT : HumanoidArm.LEFT : livingEntity.getMainArm() != HumanoidArm.RIGHT ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
         swingingArm = livingEntity.swingingArm == InteractionHand.MAIN_HAND ? swingingArm : swingingArm.getOpposite();
 
-        if(itemStack.getItem().toString().contains("sword") && swingingArm == humanoidArm){
+        float entityAttackIndex = ((LivingEntityAccess)livingEntity).getAnimationVariable("attackIndex");
+
+        if(itemStack.getItem().toString().contains("sword") && swingingArm == humanoidArm && entityAttackIndex == 1){
             float entityAttackAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("attackAmount");
             float inOutSine = Mth.sin(entityAttackAmount * Mth.PI * 4 - Mth.PI / 2) * 0.5F + 0.5F;
             float entityAttackWeight = AnimCurveUtils.LinearToEaseInOutWeight(entityAttackAmount, 2);

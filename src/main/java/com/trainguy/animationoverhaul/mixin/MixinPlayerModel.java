@@ -16,6 +16,7 @@ import net.minecraft.client.sounds.WeighedSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.commands.SetBlockCommand;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
@@ -24,6 +25,7 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BottleItem;
 import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.block.JukeboxBlock;
 import org.spongepowered.asm.mixin.Final;
@@ -104,24 +106,26 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         // Attack timer
         float entityAttackAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("attackAmount");
-        float entityUseAlternateAttack = ((LivingEntityAccess)livingEntity).getAnimationVariable("useAlternateAttack");
+        float entityAttackIndex = ((LivingEntityAccess)livingEntity).getAnimationVariable("attackIndex");
         float currentAttackAmount = this.attackTime < 0.1 && this.attackTime > 0 && entityAttackAmount > 0.1F ? 0 : entityAttackAmount;
-        entityUseAlternateAttack = currentAttackAmount == 0 && entityAttackAmount < 0.95F ? 1 - entityUseAlternateAttack : entityUseAlternateAttack;
 
         if(currentAttackAmount == 0){
             if(g < 0.9 && livingEntity.isOnGround()){
                 System.out.println("swipe!");
+                entityAttackIndex = 1;
             } else if(livingEntity.fallDistance > 0){
                 System.out.println("critical!");
+                entityAttackIndex = 2;
             } else {
                 System.out.println("smack!");
+                entityAttackIndex = 0;
             }
             // TODO: determine whether you're in combat or you're just right clicking something with the item
         }
 
-        currentAttackAmount = Math.min(currentAttackAmount + 0.125F * delta, 1);
+        currentAttackAmount = Math.min(currentAttackAmount + 0.1F * delta, 1);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("attackAmount", currentAttackAmount);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("useAlternateAttack", entityUseAlternateAttack);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("attackIndex", entityAttackIndex);
 
         // Dancing weight
         boolean songPlaying = ((LivingEntityAccess)livingEntity).getIsSongPlaying();
@@ -480,29 +484,61 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         if(currentAttackAmount > 0){
             HumanoidArm humanoidArm = livingEntity.getMainArm();
             humanoidArm = livingEntity.swingingArm == InteractionHand.MAIN_HAND ? humanoidArm : humanoidArm.getOpposite();
+
             ModelPart attackArmPart = humanoidArm == HumanoidArm.LEFT ? this.leftArm : this.rightArm;
             ModelPart attackOffArmPart = humanoidArm == HumanoidArm.RIGHT ? this.leftArm : this.rightArm;
+            ModelPart attackLegPart = humanoidArm == HumanoidArm.LEFT ? this.leftLeg : this.rightLeg;
+            ModelPart attackOffLegPart = humanoidArm == HumanoidArm.RIGHT ? this.leftLeg : this.rightLeg;
 
-            float entityAttackWeight = currentAttackAmount < 1 - 0.25 ? currentAttackAmount < 0.25 ? Mth.sin(currentAttackAmount * Mth.PI * 2 - Mth.PI * 2) : 1 : Mth.sin(currentAttackAmount * Mth.PI * 2 - Mth.PI * 1);
-            float entityAttackEastOut = Mth.sqrt(Mth.sin(currentAttackAmount * Mth.PI - Mth.PI/3F) > 0 ? Mth.sin(currentAttackAmount * Mth.PI - Mth.PI/3F) : 0);
-            float entityAttackSwordRaise = Mth.sin(currentAttackAmount * Mth.PI);
+            float attackWeight = AnimCurveUtils.LinearToEaseInOutWeight(currentAttackAmount, 2);
+            float attackWave = AnimCurveUtils.LinearToEaseInOutWeight(currentAttackAmount, 1);
+            float attackSwipeMotion = Mth.sqrt(Mth.sin(currentAttackAmount * Mth.PI - Mth.PI/3F) > 0 ? Mth.sqrt(Mth.sin(currentAttackAmount * Mth.PI - Mth.PI / 3)) : 0);
+            float attackSwordRaise = Mth.sin(currentAttackAmount * Mth.PI);
 
-            if(livingEntity.getItemInHand(InteractionHand.MAIN_HAND).getItem().toString().contains("sword")){
-                attackArmPart.xRot = Mth.lerp(entityAttackWeight * entityAttackSwordRaise, attackArmPart.xRot, -1.5F + this.head.xRot);
-                attackArmPart.yRot = Mth.lerp(entityAttackWeight, attackArmPart.yRot, Mth.lerp(entityAttackEastOut, 1F, -1.5F));
-                attackArmPart.z += Mth.lerp(entityAttackEastOut, 2F, -3F) * entityAttackWeight;
-                attackOffArmPart.z += Mth.lerp(entityAttackEastOut, -1F, 1F) * entityAttackWeight;
-                this.body.yRot = Mth.lerp(entityAttackWeight, this.body.yRot, Mth.lerp(entityAttackEastOut, 0.25F, -0.5F));
-            } else {
-                this.body.yRot += Mth.sin(Mth.sqrt(this.attackTime) * 6.2831855F) * 0.2F;
-                // Transform the arm using attack time, which starts at 0 and goes up to 1
-                attackArmPart.xRot += (Mth.cos((float) (Math.sqrt(this.attackTime) * Mth.PI * 2)) * -0.5F + 0.5F) * (Mth.clamp(this.head.xRot, -1, 0) - 1);
-                attackArmPart.yRot += (Mth.cos((float) (Math.sqrt(this.attackTime) * Mth.PI * 3)) * -0.5F + 0.5F - this.attackTime) * 0.5F;
+            boolean attackingWithRightArm = attackArmPart == this.rightArm;
+            boolean attackingWithSword = livingEntity.getItemInHand(InteractionHand.MAIN_HAND).getItem().toString().contains("sword");
+            boolean attackingWithAxe = livingEntity.getItemInHand(InteractionHand.MAIN_HAND).getItem().toString().contains("axe");
+            boolean attackingWithTrident = livingEntity.getItemInHand(InteractionHand.MAIN_HAND).getItem().toString().contains("trident");
 
-                if (humanoidArm == HumanoidArm.LEFT) {
-                    this.body.yRot *= -1.0F;
-                    attackArmPart.yRot *= -1.0F;
+            if(attackingWithSword && entityAttackIndex == 1){
+                attackArmPart.xRot = Mth.lerp(attackWeight, attackArmPart.xRot, -1.5F + this.head.xRot);
+                attackArmPart.yRot = Mth.lerp(attackWeight, attackArmPart.yRot, attackingWithRightArm ? Mth.lerp(attackSwipeMotion, 1F, -1.5F) : Mth.lerp(attackSwipeMotion, -1F, 1.5F));
+                attackArmPart.z += Mth.lerp(attackSwipeMotion, 2F, -3F) * attackWeight;
+                attackOffArmPart.xRot += Mth.lerp(attackSwipeMotion, 0, 0.25F) * attackWeight;
+                attackOffArmPart.zRot += Mth.lerp(attackSwipeMotion, 0, attackingWithRightArm ? -0.25F : 0.25F) * attackWeight;
+                attackOffArmPart.z += Mth.lerp(attackSwipeMotion, -1F, 2F) * attackWeight;
+                this.body.yRot = Mth.lerp(attackWeight, this.body.yRot, Mth.lerp(attackSwipeMotion, 0.125F, -0.25F)) * (attackingWithRightArm ? 1 : -1);
+                for(ModelPart part : partListBody){
+                    part.z += Mth.lerp(attackSwipeMotion, 0, -2) * attackWeight;
                 }
+                attackLegPart.z += Mth.lerp(attackSwipeMotion, 0, -4) * attackWeight;
+                attackLegPart.xRot += Mth.lerp(attackSwipeMotion, 0, Mth.HALF_PI * -0.125F) * attackWeight;
+            } else if((attackingWithSword || attackingWithAxe) && entityAttackIndex == 2){
+                attackArmPart.xRot = Mth.lerp(attackWeight, attackArmPart.xRot, Mth.lerp(attackSwipeMotion, Mth.HALF_PI * -1.25F, Mth.HALF_PI * 0.5F));
+                attackArmPart.zRot = Mth.lerp(attackWeight, attackArmPart.zRot, Mth.lerp(currentAttackAmount, attackingWithRightArm ? -0.75F : 0.75F, attackingWithRightArm ? 0.25F : -0.25F));
+                attackArmPart.y += Mth.lerp(attackSwipeMotion, -2, 1) * attackWeight;
+                attackArmPart.z += Mth.lerp(attackWave, 0, -3) * attackWeight;
+                attackOffArmPart.xRot += Mth.lerp(attackSwipeMotion, 0, 0.25F) * attackWeight;
+                attackOffArmPart.zRot += Mth.lerp(attackSwipeMotion, 0, attackingWithRightArm ? -0.25F : 0.25F) * attackWeight;
+                this.body.xRot += Mth.lerp(attackSwipeMotion, Mth.HALF_PI * -0.0625F, Mth.HALF_PI * 0.125F) * attackWeight;
+                this.body.yRot += Mth.lerp(attackSwipeMotion, Mth.HALF_PI * -0.125F, 0.25F) * attackWeight * (attackingWithRightArm ? -1 : 1);
+                for(ModelPart part : partListBody){
+                    part.z += Mth.lerp(attackSwipeMotion, 2, -4) * attackWeight;
+                }
+            } else {
+                float fastAttackAmount = Mth.clamp(currentAttackAmount * 1.5F, 0, 1);
+                this.body.yRot += Mth.sin(Mth.sqrt(fastAttackAmount) * Mth.PI * 2) * 0.2F * (attackingWithRightArm ? 1 : -1);
+                attackArmPart.z += Mth.sin(Mth.sqrt(fastAttackAmount) * Mth.PI * 2) * (attackingWithRightArm ? 1 : -1);
+                attackOffArmPart.z += Mth.sin(Mth.sqrt(fastAttackAmount) * Mth.PI * 2) * (attackingWithRightArm ? -1 : 1);
+
+                attackLegPart.z += Mth.sin(Mth.sqrt(fastAttackAmount) * Mth.PI * 2) * (attackingWithRightArm ? 1 : -1) * 0.5F;
+                attackOffLegPart.z += Mth.sin(Mth.sqrt(fastAttackAmount) * Mth.PI * 2) * (attackingWithRightArm ? -1 : 1) * 0.5F;
+                attackLegPart.xRot += Mth.sin(Mth.sqrt(fastAttackAmount) * Mth.PI * 2) * (attackingWithRightArm ? 1 : -1) * Mth.HALF_PI * -0.025F;
+                attackOffLegPart.xRot += Mth.sin(Mth.sqrt(fastAttackAmount) * Mth.PI * 2) * (attackingWithRightArm ? -1 : 1) * Mth.HALF_PI * -0.025F;
+                // Transform the arm using attack time, which starts at 0 and goes up to 1
+
+                attackArmPart.xRot += (Mth.cos((float) (Math.sqrt(fastAttackAmount) * Mth.PI * 2)) * -0.5F + 0.5F) * (Mth.clamp(this.head.xRot, -1, 0) - 1.5);
+                attackArmPart.yRot += (Mth.cos((float) (Math.sqrt(fastAttackAmount) * Mth.PI * 3)) * -0.5F + 0.5F - fastAttackAmount) * 0.5F * (attackingWithRightArm ? 1 : -1);
             }
         }
 

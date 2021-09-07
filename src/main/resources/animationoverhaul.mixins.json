@@ -4,7 +4,9 @@
   "package": "com.trainguy.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "MixinBellRenderer"
+    "MixinAbstractMinecart",
+    "MixinBellRenderer",
+    "MixinMinecartRenderer"
   ],
   "client": [
     "MixinBlockEntity",
