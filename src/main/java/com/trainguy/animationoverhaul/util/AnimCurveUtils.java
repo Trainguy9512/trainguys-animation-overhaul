@@ -12,4 +12,7 @@ public class AnimCurveUtils {
     public static float LinearToEaseCondition(float x, boolean bl){
         return bl ? Mth.sqrt(Mth.sin(x * Mth.PI / 2)) : 1 - Mth.sqrt(Mth.sin(x * Mth.PI / 2 + Mth.PI / 2));
     }
+    public static float LinearToInOutFollowThrough(float x){
+        return Mth.sin(Mth.PI * x * 2);
+    }
 }

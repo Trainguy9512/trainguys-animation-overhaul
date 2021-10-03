@@ -50,8 +50,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public float leftArmCrossbowPoseAmount;
     public float rightArmCrossbowPoseAmount;
 
-    public float leftArmShieldPoseAmount;
-    public float rightArmShieldPoseAmount;
+    public float shieldPoseAmount;
 
     public float leftArmSpyglassPoseAmount;
     public float rightArmSpyglassPoseAmount;
@@ -79,8 +78,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "rightArmSpearPoseAmount" -> rightArmSpearPoseAmount;
             case "leftArmCrossbowPoseAmount" -> leftArmCrossbowPoseAmount;
             case "rightArmCrossbowPoseAmount" -> rightArmCrossbowPoseAmount;
-            case "leftArmShieldPoseAmount" -> leftArmShieldPoseAmount;
-            case "rightArmShieldPoseAmount" -> rightArmShieldPoseAmount;
+            case "shieldPoseAmount" -> shieldPoseAmount;
             case "leftArmSpyglassPoseAmount" -> leftArmSpyglassPoseAmount;
             case "rightArmSpyglassPoseAmount" -> rightArmSpyglassPoseAmount;
             default -> 0;
@@ -109,8 +107,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "rightArmSpearPoseAmount" -> rightArmSpearPoseAmount = newValue;
             case "leftArmCrossbowPoseAmount" -> leftArmCrossbowPoseAmount = newValue;
             case "rightArmCrossbowPoseAmount" -> rightArmCrossbowPoseAmount = newValue;
-            case "leftArmShieldPoseAmount" -> leftArmShieldPoseAmount = newValue;
-            case "rightArmShieldPoseAmount" -> rightArmShieldPoseAmount = newValue;
+            case "shieldPoseAmount" -> shieldPoseAmount = newValue;
             case "leftArmSpyglassPoseAmount" -> leftArmSpyglassPoseAmount = newValue;
             case "rightArmSpyglassPoseAmount" -> rightArmSpyglassPoseAmount = newValue;
             default -> System.out.println("Invalid variable type: " + variableType);

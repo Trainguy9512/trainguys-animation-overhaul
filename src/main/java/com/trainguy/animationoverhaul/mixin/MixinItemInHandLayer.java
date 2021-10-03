@@ -21,6 +21,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
@@ -42,8 +43,9 @@ public class MixinItemInHandLayer {
 
         if(itemStack.getItem().toString().contains("sword") && swingingArm == humanoidArm && entityAttackIndex == 1){
             float entityAttackAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("attackAmount");
+            float entityShieldPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("shieldPoseAmount");
             float inOutSine = Mth.sin(entityAttackAmount * Mth.PI * 4 - Mth.PI / 2) * 0.5F + 0.5F;
-            float entityAttackWeight = AnimCurveUtils.LinearToEaseInOutWeight(entityAttackAmount, 2);
+            float entityAttackWeight = AnimCurveUtils.LinearToEaseInOutWeight(entityAttackAmount, 2) * (1 - entityShieldPoseAmount);
             poseStack.mulPose(Vector3f.XP.rotationDegrees(-90 * entityAttackWeight));
             poseStack.mulPose(Vector3f.YP.rotationDegrees(90 * entityAttackWeight));
             poseStack.mulPose(Vector3f.XP.rotationDegrees(10 * entityAttackWeight));
@@ -55,6 +57,34 @@ public class MixinItemInHandLayer {
             poseStack.mulPose(Vector3f.XP.rotationDegrees(70 * eatingAmount));
             poseStack.mulPose(Vector3f.ZP.rotationDegrees((humanoidArm == HumanoidArm.RIGHT ? 20 : -20) * eatingAmount));
             poseStack.translate((humanoidArm == HumanoidArm.RIGHT ? -0.15 : 0.15) * eatingAmount, -0.125 * eatingAmount, -0.0625 * eatingAmount);
+        }
+        if(itemStack.getItem() == Items.SHIELD && livingEntity.isUsingItem() && interactionArm == humanoidArm){
+
+            if(humanoidArm == HumanoidArm.LEFT){
+                poseStack.translate(-1.45F / 16F, 0.35F / 16F, 1.5F / 16F);
+                poseStack.mulPose(Vector3f.YP.rotationDegrees(45));
+                poseStack.mulPose(Vector3f.XP.rotationDegrees(-45));
+            }
+            if(humanoidArm == HumanoidArm.RIGHT){
+                poseStack.translate(1.0F / 16F, -0.35F / 16F, 0);
+                poseStack.mulPose(Vector3f.YP.rotationDegrees(-45));
+                poseStack.mulPose(Vector3f.XP.rotationDegrees(-45));
+            }
+        }
+
+        float entityShieldPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("shieldPoseAmount");
+        if(entityShieldPoseAmount > 0 && itemStack.getItem() == Items.SHIELD){
+            float shieldPoseAmount = AnimCurveUtils.LinearToEaseInOut(entityShieldPoseAmount);
+            if(humanoidArm == HumanoidArm.LEFT){
+                poseStack.mulPose(Vector3f.XP.rotationDegrees(45 * shieldPoseAmount));
+                poseStack.mulPose(Vector3f.YP.rotationDegrees(-45 * shieldPoseAmount));
+                poseStack.translate(1.45F / 16F * shieldPoseAmount, -0.35F / 16F * shieldPoseAmount, -1.5F / 16F * shieldPoseAmount);
+            }
+            if(humanoidArm == HumanoidArm.RIGHT){
+                poseStack.mulPose(Vector3f.XP.rotationDegrees(45 * shieldPoseAmount));
+                poseStack.mulPose(Vector3f.YP.rotationDegrees(45 * shieldPoseAmount));
+                poseStack.translate(-1.0F / 16F * shieldPoseAmount, 0.35F / 16F * shieldPoseAmount, 0);
+            }
         }
     }
 }
