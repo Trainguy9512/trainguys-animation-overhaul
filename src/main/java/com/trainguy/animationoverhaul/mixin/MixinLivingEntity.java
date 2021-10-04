@@ -2,20 +2,26 @@ package com.trainguy.animationoverhaul.mixin;
 
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
+import java.util.Map;
 
 @Unique
 @Mixin(LivingEntity.class)
 public abstract class MixinLivingEntity implements LivingEntityAccess {
+    @Shadow public abstract Iterable<ItemStack> getArmorSlots();
+
     public String songName;
     public boolean songPlaying;
     public BlockPos songOrigin = new BlockPos(0, 0, 0);
@@ -24,6 +30,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public float verticalMovementRotation;
     public float sprintAmount;
     public float inWaterAmount;
+    public float underWaterAmount;
     public float eatingAmount;
     public float directionAmount;
 
@@ -37,6 +44,8 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
 
     public float attackAmount = 1;
     public float attackIndex;
+
+    public float armorEquipAmount = 0;
 
     public float leftArmItemPoseAmount;
     public float rightArmItemPoseAmount;
@@ -55,6 +64,8 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public float leftArmSpyglassPoseAmount;
     public float rightArmSpyglassPoseAmount;
 
+    public String equippedArmor = "";
+
     public float getAnimationVariable(String variableType){
         return switch (variableType) {
             case "dancingAmount" -> dancingAmount;
@@ -66,9 +77,11 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "battleIdleAmount" -> battleIdleAmount;
             case "sprintAmount" -> sprintAmount;
             case "inWaterAmount" -> inWaterAmount;
+            case "underWaterAmount" -> underWaterAmount;
             case "eatingAmount" -> eatingAmount;
             case "attackAmount" -> attackAmount;
             case "attackIndex" -> attackIndex;
+            case "armorEquipAmount" -> armorEquipAmount;
             case "verticalMovementRotation" -> verticalMovementRotation;
             case "leftArmItemPoseAmount" -> leftArmItemPoseAmount;
             case "rightArmItemPoseAmount" -> rightArmItemPoseAmount;
@@ -96,8 +109,10 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "sprintAmount" -> sprintAmount = newValue;
             case "eatingAmount" -> eatingAmount = newValue;
             case "inWaterAmount" -> inWaterAmount = newValue;
+            case "underWaterAmount" -> underWaterAmount = newValue;
             case "attackAmount" -> attackAmount = newValue;
             case "attackIndex" -> attackIndex = newValue;
+            case "armorEquipAmount" -> armorEquipAmount = newValue;
             case "verticalMovementRotation" -> verticalMovementRotation = newValue;
             case "leftArmItemPoseAmount" -> leftArmItemPoseAmount = newValue;
             case "rightArmItemPoseAmount" -> rightArmItemPoseAmount = newValue;
@@ -146,5 +161,12 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     }
     public String getSongName(){
         return this.songName;
+    }
+
+    public void setEquippedArmor(String currentArmor){
+        this.equippedArmor = currentArmor;
+    }
+    public String getPreviousEquippedArmor(){
+        return this.equippedArmor;
     }
 }

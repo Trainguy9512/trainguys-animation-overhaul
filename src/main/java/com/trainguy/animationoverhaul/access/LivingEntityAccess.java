@@ -1,6 +1,7 @@
 package com.trainguy.animationoverhaul.access;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
 
 public interface LivingEntityAccess {
     float getAnimationVariable(String animationVariable);
@@ -9,4 +10,6 @@ public interface LivingEntityAccess {
     boolean getIsSongPlaying();
     BlockPos getSongOrigin();
     String getSongName();
+    String getPreviousEquippedArmor();
+    void setEquippedArmor(String currentArmor);
 }

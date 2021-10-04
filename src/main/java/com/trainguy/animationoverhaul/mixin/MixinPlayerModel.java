@@ -6,6 +6,8 @@ import com.trainguy.animationoverhaul.util.AnimCurveUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
@@ -23,6 +25,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.JukeboxBlock;
 import org.spongepowered.asm.mixin.Final;
@@ -69,10 +72,19 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             return;
         }
 
-        float directionShift = 0;
+        float currentDirectionShift = 0;
 
         float delta = Minecraft.getInstance().getDeltaFrameTime();
         float tickDifference = (float) (h - Math.floor(h));
+
+        // Fix inventory player animations having too much influence over transitions
+        // nevermind this doesn't work :(
+        //float bodyRot = Mth.rotLerp(tickDifference, livingEntity.yBodyRotO, livingEntity.yBodyRot);
+        //float headRot = Mth.rotLerp(tickDifference, livingEntity.yHeadRotO, livingEntity.yHeadRot);
+        //float finalHeadRot = headRot - bodyRot;
+        //if(finalHeadRot != i){
+            //delta *= 0;
+        //}
 
         // Slow down the limb speed if the entity is a baby
         if(livingEntity.isBaby()){
@@ -81,13 +93,13 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         // Minecart sitting
         boolean isRidingInMinecart = livingEntity.isPassenger() && livingEntity.getRootVehicle().getType() == EntityType.MINECART;
-        float entityMinecartRidingAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("minecartRidingAmount");
-        float currentMinecartRidingAmount = Mth.clamp(entityMinecartRidingAmount + (isRidingInMinecart ? 0.125F * delta : -1), 0, 1);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("minecartRidingAmount", currentMinecartRidingAmount);
+        float previousMinecartRidingTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("minecartRidingAmount");
+        float currentMinecartRidingTimer = Mth.clamp(previousMinecartRidingTimer + (isRidingInMinecart ? 0.125F * delta : -1), 0, 1);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("minecartRidingAmount", currentMinecartRidingTimer);
 
         // Eating weight
         List<Item> drinkableItems = Arrays.asList(Items.HONEY_BOTTLE, Items.POTION, Items.MILK_BUCKET);
-        float entityEatingAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("eatingAmount");
+        float previousEatingTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("eatingAmount");
         boolean isEating = livingEntity.getUseItem().isEdible() && livingEntity.getTicksUsingItem() != 0;
         boolean isHoldingDrinkableItem = false;
         for(Item item : drinkableItems){
@@ -96,103 +108,119 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
                 isEating = livingEntity.getTicksUsingItem() != 0;
             }
         }
-        float currentEatingAmount = Mth.clamp(entityEatingAmount + (isEating ? 0.125F * delta : -0.125F * delta), 0, 1);
-        float eatingAmount = Mth.sin(currentEatingAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("eatingAmount", currentEatingAmount);
+        float currentEatingTimer = Mth.clamp(previousEatingTimer + (isEating ? 0.125F * delta : -0.125F * delta), 0, 1);
+        float eatingWeight = AnimCurveUtils.LinearToEaseInOut(currentEatingTimer);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("eatingAmount", currentEatingTimer);
 
         // Shield pose weight
-        float entityShieldPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("shieldPoseAmount");
+        float previousShieldPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("shieldPoseAmount");
         boolean isHoldingShield = livingEntity.getUseItem().getItem() == Items.SHIELD && livingEntity.isUsingItem();
-        float currentShieldPoseAmount = Mth.clamp(entityShieldPoseAmount + (isHoldingShield ? 0.1875F * delta : -0.1875F * delta), 0, 1);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("shieldPoseAmount", currentShieldPoseAmount);
+        float currentShieldPoseTimer = Mth.clamp(previousShieldPoseTimer + (isHoldingShield ? 0.1875F * delta : -0.1875F * delta), 0, 1);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("shieldPoseAmount", currentShieldPoseTimer);
 
         // Attack timer
-        float entityAttackAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("attackAmount");
-        float entityAttackIndex = ((LivingEntityAccess)livingEntity).getAnimationVariable("attackIndex");
-        float currentAttackAmount = this.attackTime < 0.5 && this.attackTime > 0 && entityAttackAmount > 0.3F ? 0 : entityAttackAmount;
+        float previousAttackTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("attackAmount");
+        float previousAttackIndex = ((LivingEntityAccess)livingEntity).getAnimationVariable("attackIndex");
+        float currentAttackTimer = this.attackTime < 0.5 && this.attackTime > 0 && previousAttackTimer > 0.3F ? 0 : previousAttackTimer;
 
-        if(currentAttackAmount == 0){
+        if(currentAttackTimer == 0){
             if(g < 0.9 && livingEntity.isOnGround()){
                 //System.out.println("swipe!");
-                entityAttackIndex = 1;
+                previousAttackIndex = 1;
             } else if(livingEntity.fallDistance > 0){
                 //System.out.println("critical!");
-                entityAttackIndex = 2;
+                previousAttackIndex = 2;
             } else {
                 //System.out.println("smack!");
-                entityAttackIndex = 0;
+                previousAttackIndex = 0;
             }
         }
 
-        currentAttackAmount = Math.min(currentAttackAmount + 0.1F * delta, 1);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("attackAmount", currentAttackAmount);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("attackIndex", entityAttackIndex);
+        currentAttackTimer = Math.min(currentAttackTimer + 0.1F * delta, 1);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("attackAmount", currentAttackTimer);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("attackIndex", previousAttackIndex);
+
+        // Armor equip variable
+        String currentEquippedArmor = livingEntity.getArmorSlots().toString();
+        String previousEquippedArmor = ((LivingEntityAccess)livingEntity).getPreviousEquippedArmor();
+
+        float previousArmorChangeTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("armorEquipAmount");
+        float currentArmorChangeTimer = !previousEquippedArmor.equals(currentEquippedArmor) ? 1 : previousArmorChangeTimer;
+        if(!previousEquippedArmor.equals(currentEquippedArmor)){
+            ((LivingEntityAccess)livingEntity).setEquippedArmor(currentEquippedArmor);
+        }
+        currentArmorChangeTimer = Math.max(currentArmorChangeTimer - 0.125F * delta, 0);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("armorEquipAmount", currentArmorChangeTimer);
 
         // Dancing weight
         boolean songPlaying = ((LivingEntityAccess)livingEntity).getIsSongPlaying();
         BlockPos songOrigin = ((LivingEntityAccess)livingEntity).getSongOrigin();
         String songName = ((LivingEntityAccess)livingEntity).getSongName();
-        float entityDancingAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("dancingAmount");
-        float entityDancingFrequency = ((LivingEntityAccess)livingEntity).getAnimationVariable("dancingFrequency");
-        float currentDancingAmount = Mth.clamp(entityDancingAmount + (livingEntity.blockPosition().distManhattan(new Vec3i(songOrigin.getX(), songOrigin.getY(), songOrigin.getZ())) < 10 && songPlaying && !crouching ? 0.125F * delta : -0.125F * delta), 0, 1);
-        float dancingAmount = Mth.sin(currentDancingAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("dancingAmount", currentDancingAmount);
+        float previousDancingTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("dancingAmount");
+        float previousDancingFrequency = ((LivingEntityAccess)livingEntity).getAnimationVariable("dancingFrequency");
+        float currentDancingTimer = Mth.clamp(previousDancingTimer + (livingEntity.blockPosition().distManhattan(new Vec3i(songOrigin.getX(), songOrigin.getY(), songOrigin.getZ())) < 10 && songPlaying && !crouching ? 0.125F * delta : -0.125F * delta), 0, 1);
+        float dancingWeight = Mth.sin(currentDancingTimer * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("dancingAmount", currentDancingTimer);
 
         // Idle weight
-        float entityIdleAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("idleAmount");
+        float previousIdleTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("idleAmount");
         boolean isIdle = g <= 0.05 && livingEntity.getDeltaMovement().y < 0.1 && livingEntity.getDeltaMovement().y > -0.1 && !livingEntity.isSleeping() && !livingEntity.isPassenger();
-        float currentIdleAmount = Mth.clamp(entityIdleAmount + (isIdle ? 0.125F * delta : -0.25F * delta), 0, 1);
-        float idleWeight = Mth.sin(currentIdleAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("idleAmount", currentIdleAmount);
+        float currentIdleTimer = Mth.clamp(previousIdleTimer + (isIdle ? 0.125F * delta : -0.25F * delta), 0, 1);
+        float idleWeight = Mth.sin(currentIdleTimer * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("idleAmount", currentIdleTimer);
 
         // Right arm item/block arm pose
-        float entityRightArmItemPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("rightArmItemPoseAmount");
-        float currentRightArmItemPoseAmount = this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM ? Mth.clamp(entityRightArmItemPoseAmount + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(entityRightArmItemPoseAmount - 0.25F * delta, 0.0F, 1.0F);
-        float rightArmItemPoseWeight = AnimCurveUtils.LinearToEaseCondition(currentRightArmItemPoseAmount, this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("rightArmItemPoseAmount", currentRightArmItemPoseAmount);
+        float previousRightArmItemPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("rightArmItemPoseAmount");
+        float currentRightArmItemPoseTimer = this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM ? Mth.clamp(previousRightArmItemPoseTimer + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(previousRightArmItemPoseTimer - 0.25F * delta, 0.0F, 1.0F);
+        float rightArmItemPoseWeight = AnimCurveUtils.LinearToEaseCondition(currentRightArmItemPoseTimer, this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("rightArmItemPoseAmount", currentRightArmItemPoseTimer);
 
         // Right arm item/block arm pose
-        float entityLeftArmItemPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmItemPoseAmount");
-        float currentLeftArmItemPoseAmount = this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM ? Mth.clamp(entityLeftArmItemPoseAmount + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(entityLeftArmItemPoseAmount - 0.25F * delta, 0.0F, 1.0F);
-        float leftArmItemPoseWeight = AnimCurveUtils.LinearToEaseCondition(currentLeftArmItemPoseAmount, this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmItemPoseAmount", currentLeftArmItemPoseAmount);
+        float previousLeftArmItemPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmItemPoseAmount");
+        float currentLeftArmItemPoseTimer = this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM ? Mth.clamp(previousLeftArmItemPoseTimer + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(previousLeftArmItemPoseTimer - 0.25F * delta, 0.0F, 1.0F);
+        float leftArmItemPoseWeight = AnimCurveUtils.LinearToEaseCondition(currentLeftArmItemPoseTimer, this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmItemPoseAmount", currentLeftArmItemPoseTimer);
 
         // Bow pull
         boolean usingBow = this.rightArmPose == ArmPose.BOW_AND_ARROW || this.leftArmPose == ArmPose.BOW_AND_ARROW;
-        float entityBowPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmBowPoseAmount");
-        float entityBowPullAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("rightArmBowPoseAmount");
-        float currentBowPoseAmount = Mth.clamp(entityBowPoseAmount + (usingBow ? 0.1F : -0.1F) * delta, 0, 1);
-        float currentBowPullAmount = Mth.clamp(entityBowPullAmount + (usingBow ? 0.085F : -6F) * delta, 0, 1);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmBowPoseAmount", currentBowPoseAmount);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("rightArmBowPoseAmount", currentBowPullAmount);
+        float previousBowPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmBowPoseAmount");
+        float previousBowPullTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("rightArmBowPoseAmount");
+        float currentBowPoseTimer = Mth.clamp(previousBowPoseTimer + (usingBow ? 0.1F : -0.1F) * delta, 0, 1);
+        float currentBowPullTimer = Mth.clamp(previousBowPullTimer + (usingBow ? 0.06F : -6F) * delta, 0, 1);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmBowPoseAmount", currentBowPoseTimer);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("rightArmBowPoseAmount", currentBowPullTimer);
 
         // Crouch variable
         float entityCrouchAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
-        float currentEntityCrouchAmount = livingEntity.isCrouching() ? Mth.clamp(entityCrouchAmount + 0.125F, 0.0F, 1.0F) : Mth.clamp(entityCrouchAmount - 0.125F, 0.0F, 1.0F);
-        float crouchWeight = Mth.sin((currentEntityCrouchAmount) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
+        float currentEntityCrouchAmount = livingEntity.isCrouching() ? Mth.clamp(entityCrouchAmount + 0.1F, 0.0F, 1.0F) : Mth.clamp(entityCrouchAmount - 0.1F, 0.0F, 1.0F);
+        float crouchWeight = AnimCurveUtils.LinearToEaseCondition(currentEntityCrouchAmount, livingEntity.isCrouching());
         ((LivingEntityAccess)livingEntity).setAnimationVariable("crouchAmount", currentEntityCrouchAmount);
 
         // Crossbow Holding
-        float entityCrossbowPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmCrossbowPoseAmount");
+        float previousCrossbowPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmCrossbowPoseAmount");
         boolean holdingOrChargingCrossbow = (livingEntity.getTicksUsingItem() > 0 && livingEntity.getUseItem().getUseAnimation() == UseAnim.CROSSBOW) || this.rightArmPose == ArmPose.CROSSBOW_HOLD || this.leftArmPose == ArmPose.CROSSBOW_HOLD;
         boolean holdingUnloadedCrossbow = (livingEntity.getTicksUsingItem() == 0 && ((livingEntity.getMainHandItem().getUseAnimation() == UseAnim.CROSSBOW && !CrossbowItem.isCharged(livingEntity.getMainHandItem())) || (livingEntity.getOffhandItem().getUseAnimation() == UseAnim.CROSSBOW && !CrossbowItem.isCharged(livingEntity.getOffhandItem()))));
-        float currentCrossbowAmount = holdingOrChargingCrossbow ? Mth.clamp(entityCrossbowPoseAmount + 0.25F * delta, 0.0F, 1.0F) : holdingUnloadedCrossbow ? Mth.clamp(entityCrossbowPoseAmount - 0.125F * delta, 0.0F, 1.0F) : Mth.clamp(entityCrossbowPoseAmount - 0.25F * delta, 0.0F, 1.0F);
-        float crossbowHoldAmount = !holdingUnloadedCrossbow ? Mth.sin(currentCrossbowAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F : Mth.sin(currentCrossbowAmount * Mth.PI * 1.25F - Mth.PI * 0.5F) * 0.6F + 0.6F;
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmCrossbowPoseAmount", currentCrossbowAmount);
+        float currentCrossbowPoseTimer = holdingOrChargingCrossbow ? Mth.clamp(previousCrossbowPoseTimer + 0.25F * delta, 0.0F, 1.0F) : holdingUnloadedCrossbow ? Mth.clamp(previousCrossbowPoseTimer - 0.125F * delta, 0.0F, 1.0F) : Mth.clamp(previousCrossbowPoseTimer - 0.25F * delta, 0.0F, 1.0F);
+        float crossbowHoldWeight = !holdingUnloadedCrossbow ? Mth.sin(currentCrossbowPoseTimer * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F : Mth.sin(currentCrossbowPoseTimer * Mth.PI * 1.25F - Mth.PI * 0.5F) * 0.6F + 0.6F;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmCrossbowPoseAmount", currentCrossbowPoseTimer);
 
         // Simple sprint
-        float entitySprintAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("sprintAmount");
-        float currentSprintAmount = g > 0.9 ? Mth.clamp(entitySprintAmount + 0.0625F * delta, 0.0F, 1.0F) : Mth.clamp(entitySprintAmount - 0.125F * delta, 0.0F, 1.0F);
-        float sprintWeight = Mth.sin(currentSprintAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("sprintAmount", currentSprintAmount);
+        float previousSprintTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("sprintAmount");
+        float currentSprintTimer = g > 0.9 ? Mth.clamp(previousSprintTimer + 0.0625F * delta, 0.0F, 1.0F) : Mth.clamp(previousSprintTimer - 0.125F * delta, 0.0F, 1.0F);
+        float sprintWeight = AnimCurveUtils.LinearToEaseInOut(currentSprintTimer);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("sprintAmount", currentSprintTimer);
 
         // In water
-        float entityInWaterAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("inWaterAmount");
-        float currentInWaterAmount = Mth.clamp(entityInWaterAmount + (livingEntity.isUnderWater() ? 0.0625F : -0.0625F), 0, 1);
-        float inWaterWeight = Mth.sin((currentInWaterAmount) * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("inWaterAmount", currentInWaterAmount);
+        float previousInWaterTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("inWaterAmount");
+        float previousUnderWaterTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("underWaterAmount");
+        float currentInWaterTimer = Mth.clamp(previousInWaterTimer + (livingEntity.isInWater() && !livingEntity.isOnGround() ? 0.0625F : -0.0625F), 0, 1);
+        float currentUnderWaterTimer = Mth.clamp(previousUnderWaterTimer + (livingEntity.isUnderWater() && !livingEntity.isOnGround() ? 0.0625F : -0.0625F), 0, 1);
+        float inWaterWeight = AnimCurveUtils.LinearToEaseInOut(currentInWaterTimer);
+        float underWaterWeight = AnimCurveUtils.LinearToEaseInOut(currentUnderWaterTimer) * 0.9F + 0.1F * inWaterWeight;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("inWaterAmount", currentInWaterTimer);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("underWaterAmount", currentUnderWaterTimer);
 
-        float entityDirectionShift = ((LivingEntityAccess)livingEntity).getAnimationVariable("directionAmount");
+        float previousDirectionShift = ((LivingEntityAccess)livingEntity).getAnimationVariable("directionAmount");
         float moveAngleX = -Mth.sin(livingEntity.yBodyRot * Mth.PI / 180);
         float moveAngleZ = Mth.cos(livingEntity.yBodyRot * Mth.PI / 180);
 
@@ -201,13 +229,13 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
                     (moveAngleX <= 0 && livingEntity.getDeltaMovement().x > 0 + 0.02 + g * 0.03) ||
                     (moveAngleZ >= 0 && livingEntity.getDeltaMovement().z < 0 - 0.02 - g * 0.03) ||
                     (moveAngleZ <= 0 && livingEntity.getDeltaMovement().z > 0 + 0.02 + g * 0.03)){
-                entityDirectionShift = Mth.clamp(entityDirectionShift + 0.25F * delta, 0, 1);
+                previousDirectionShift = Mth.clamp(previousDirectionShift + 0.25F * delta, 0, 1);
             } else {
-                entityDirectionShift = Mth.clamp(entityDirectionShift - 0.25F * delta, 0, 1);;
+                previousDirectionShift = Mth.clamp(previousDirectionShift - 0.25F * delta, 0, 1);;
             }
         }
-        directionShift = entityDirectionShift;
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("directionAmount", entityDirectionShift);
+        currentDirectionShift = previousDirectionShift;
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("directionAmount", previousDirectionShift);
 
         //tick(livingEntity, delta, g);
         // 0.25 crouching
@@ -252,14 +280,16 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         //float inverseLimbForwardMotion = Mth.cos(f * limbMotionMultiplier + Mth.PI) * 2.0F * g * (1 - inWaterWeight);
 
         // New Math
-        float directionTransitionAbs = Mth.abs(2 * directionShift - 1);
+        float directionTransitionAbs = Mth.abs(2 * currentDirectionShift - 1);
         float bodyBob = livingEntity.isOnGround() ? (float) ((Mth.abs(Mth.sin(f * limbMotionMultiplier - Mth.PI / 4) * 1) * -1 + 1F) * Mth.clamp(g, 0, 0.25) * 4 * (sprintWeight + 1)) : 0;
-        float limbSwingLinear = (Mth.abs(((((f * limbMotionMultiplier) % (Mth.PI * 2)) / Mth.PI / 2) - 0.5F) * 2) * 2 - 1) * Mth.lerp(directionShift, 1, -1);
+        float limbSwingLinear = (Mth.abs(((((f * limbMotionMultiplier) % (Mth.PI * 2)) / Mth.PI / 2) - 0.5F) * 2) * 2 - 1) * Mth.lerp(currentDirectionShift, 1, -1);
         float limbSwingLinearWeight = AnimCurveUtils.LinearToEaseInOutWeight(limbSwingLinear * 0.5F + 0.5F, 1);
-        float limbSwingCosCurve = Mth.cos(f * limbMotionMultiplier) * Mth.lerp(directionShift, 1, -1);
-        float limbSwingCubicCosCurve = (float) Math.pow(Mth.cos(f * limbMotionMultiplier) * Mth.lerp(directionShift, 1, -1), 1/3F);
+        float limbSwingCosCurve = Mth.cos(f * limbMotionMultiplier) * Mth.lerp(currentDirectionShift, 1, -1);
+        float limbSwingCubicCosCurve = (float) Math.pow(Mth.cos(f * limbMotionMultiplier) * Mth.lerp(currentDirectionShift, 1, -1), 1/3F);
         float limbSwingSinCurve = Mth.sin(f * limbMotionMultiplier);
         float additiveSine = Mth.sin(2 * f * limbMotionMultiplier - Mth.PI / 2) * 0.5F + 0.5F;
+
+        float walkRunCancellation = 1 - inWaterWeight;
 
         float clampedG = Mth.clamp(g * 3, 0, 1);
 
@@ -281,22 +311,22 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         // Body bob (walking)
         for(ModelPart part : partListBody){
-            part.y += bodyBob;
+            part.y += bodyBob * walkRunCancellation;
         }
 
         // Leg transformations
-        this.rightLeg.xRot += Mth.lerp(sprintWeight, rightLegRotationWalking, rightLegRotationWalking * 1.5F) * clampedG * directionTransitionAbs;
-        this.rightLeg.y += Mth.lerp(sprintWeight, rightLegYTranslation, rightLegYTranslation * 1.25F) * clampedG * directionTransitionAbs;
-        this.rightLeg.z += Mth.lerp(sprintWeight, rightLegZTranslation, rightLegZTranslation * 1.25F) * clampedG * directionTransitionAbs;
-        this.leftLeg.xRot += Mth.lerp(sprintWeight, leftLegRotationWalking, leftLegRotationWalking * 1.5F) * clampedG * directionTransitionAbs;
-        this.leftLeg.y += Mth.lerp(sprintWeight, leftLegYTranslation, leftLegYTranslation * 1.25F) * clampedG * directionTransitionAbs;
-        this.leftLeg.z += Mth.lerp(sprintWeight, leftLegZTranslation, leftLegZTranslation * 1.25F) * clampedG * directionTransitionAbs;
+        this.rightLeg.xRot += Mth.lerp(sprintWeight, rightLegRotationWalking, rightLegRotationWalking * 1.5F) * clampedG * directionTransitionAbs * walkRunCancellation;
+        this.rightLeg.y += Mth.lerp(sprintWeight, rightLegYTranslation, rightLegYTranslation * 1.25F) * clampedG * directionTransitionAbs * walkRunCancellation;
+        this.rightLeg.z += Mth.lerp(sprintWeight, rightLegZTranslation, rightLegZTranslation * 1.25F) * clampedG * directionTransitionAbs * walkRunCancellation;
+        this.leftLeg.xRot += Mth.lerp(sprintWeight, leftLegRotationWalking, leftLegRotationWalking * 1.5F) * clampedG * directionTransitionAbs * walkRunCancellation;
+        this.leftLeg.y += Mth.lerp(sprintWeight, leftLegYTranslation, leftLegYTranslation * 1.25F) * clampedG * directionTransitionAbs * walkRunCancellation;
+        this.leftLeg.z += Mth.lerp(sprintWeight, leftLegZTranslation, leftLegZTranslation * 1.25F) * clampedG * directionTransitionAbs * walkRunCancellation;
 
         // Arm transformations
-        this.rightArm.xRot += Mth.lerp(sprintWeight, rightArmRotation, rightArmRotation * 1.5F)  * g;
-        this.rightArm.z += Mth.lerp(sprintWeight, rightArmZTranslation, rightArmZTranslation * 1.5F) * g;
-        this.leftArm.xRot += Mth.lerp(sprintWeight, leftArmRotation, leftArmRotation * 1.5F) * g;
-        this.leftArm.z += Mth.lerp(sprintWeight, leftArmZTranslation, leftArmZTranslation * 1.5F) * g;
+        this.rightArm.xRot += Mth.lerp(sprintWeight, rightArmRotation, rightArmRotation * 1.5F)  * g * walkRunCancellation;
+        this.rightArm.z += Mth.lerp(sprintWeight, rightArmZTranslation, rightArmZTranslation * 1.5F) * g * walkRunCancellation;
+        this.leftArm.xRot += Mth.lerp(sprintWeight, leftArmRotation, leftArmRotation * 1.5F) * g * walkRunCancellation;
+        this.leftArm.z += Mth.lerp(sprintWeight, leftArmZTranslation, leftArmZTranslation * 1.5F) * g * walkRunCancellation;
 
         /*
 
@@ -366,16 +396,16 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             this.rightArm.y -= 2.0F;
         }
 
-        // In air post process
+        // In water post process
         this.leftLeg.z += ((Math.cos(h * limbMotionMultiplier * 0.5) * 2) - 1) * inWaterWeight;
         this.leftLeg.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 4)) * 0.5) * inWaterWeight;
         this.rightLeg.z += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI) * 2) - 1) * inWaterWeight;
         this.rightLeg.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 4 - Mth.PI)) * 0.5) * inWaterWeight;
 
-        this.leftArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI)) * 0.5) * inWaterWeight;
-        this.leftArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.5 + Mth.PI / 2 - Mth.PI)) * 0.5F - 0.5F) * inWaterWeight);
-        this.rightArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5)) * 0.5) * inWaterWeight;
-        this.rightArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 2)) * 0.5F + 0.5F) * inWaterWeight);
+        this.leftArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI)) * 0.5) * underWaterWeight;
+        this.leftArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.5 + Mth.PI / 2 - Mth.PI)) * 0.5F - 0.5F) * underWaterWeight);
+        this.rightArm.xRot += ((Math.cos(h * limbMotionMultiplier * 0.5)) * 0.5) * underWaterWeight;
+        this.rightArm.zRot = (float) (((Math.cos(h * limbMotionMultiplier * 0.5 - Mth.PI / 2)) * 0.5F + 0.5F) * underWaterWeight);
 
         /*
         Old code that was part of the creative flying animation
@@ -417,38 +447,38 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         // Dancing animation post process
 
-        dancingAmount *= idleWeight;
-        idleWeight *= 1 - dancingAmount;
+        dancingWeight *= idleWeight;
+        idleWeight *= 1 - dancingWeight;
 
-        float dancingDirectionCurve = Mth.sin((h / 10 * Mth.PI / 2 + Mth.PI / 4) * entityDancingFrequency);
+        float dancingDirectionCurve = Mth.sin((h / 10 * Mth.PI / 2 + Mth.PI / 4) * previousDancingFrequency);
         for(ModelPart part : partListBody){
-            part.y += (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * entityDancingFrequency) * 0.5F + 0.5F) * 1.5F * dancingAmount;
-            part.x += dancingDirectionCurve * 1 * dancingAmount;
+            part.y += (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * previousDancingFrequency) * 0.5F + 0.5F) * 1.5F * dancingWeight;
+            part.x += dancingDirectionCurve * 1 * dancingWeight;
         }
-        this.body.yRot += dancingDirectionCurve * 0.4 * dancingAmount;
-        this.body.zRot += dancingDirectionCurve * 0.1 * dancingAmount;
+        this.body.yRot += dancingDirectionCurve * 0.4 * dancingWeight;
+        this.body.zRot += dancingDirectionCurve * 0.1 * dancingWeight;
         for(ModelPart part : partListLegs){
-            part.x += dancingDirectionCurve * -0.5 * dancingAmount;
-            part.zRot += dancingDirectionCurve * -0.0625 * dancingAmount;
+            part.x += dancingDirectionCurve * -0.5 * dancingWeight;
+            part.zRot += dancingDirectionCurve * -0.0625 * dancingWeight;
         }
 
-        this.rightLeg.xRot += (dancingDirectionCurve > 0 ? -dancingDirectionCurve * 0.5F : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * entityDancingFrequency) * 0.5F + 0.5F) * 0.1) * dancingAmount;
-        this.rightLeg.yRot += (dancingDirectionCurve > 0 ? dancingDirectionCurve * 0.5F : dancingDirectionCurve * 0.125F) * dancingAmount;
-        this.rightLeg.zRot += (dancingDirectionCurve > 0 ? dancingDirectionCurve * 0.125F : 0) * dancingAmount;
-        this.rightLeg.z += (dancingDirectionCurve > 0 ? 0 : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * entityDancingFrequency) * 0.5F + 0.5F) * -1) * dancingAmount;
-        this.rightLeg.y += (dancingDirectionCurve > 0 ? (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * entityDancingFrequency) * 0.5F + 0.5F) * 2 + -dancingDirectionCurve * 1 : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * entityDancingFrequency) * 0.5F + 0.5F) * 0.2) * dancingAmount;
-        this.leftLeg.xRot += (dancingDirectionCurve < 0 ? dancingDirectionCurve * 0.5F : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * entityDancingFrequency) * 0.5F + 0.5F) * 0.1) * dancingAmount;
-        this.leftLeg.yRot += (dancingDirectionCurve < 0 ? dancingDirectionCurve * 0.5F : dancingDirectionCurve * 0.125F) * dancingAmount;
-        this.leftLeg.zRot += (dancingDirectionCurve < 0 ? dancingDirectionCurve * 0.125F : 0) * dancingAmount;
-        this.leftLeg.z += (dancingDirectionCurve < 0 ? 0 : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * entityDancingFrequency) * 0.5F + 0.5F) * -1) * dancingAmount;
-        this.leftLeg.y += (dancingDirectionCurve < 0 ? (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * entityDancingFrequency) * 0.5F + 0.5F) * 2 + dancingDirectionCurve * 1 : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * entityDancingFrequency) * 0.5F + 0.5F) * 0.2) * dancingAmount;
+        this.rightLeg.xRot += (dancingDirectionCurve > 0 ? -dancingDirectionCurve * 0.5F : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * previousDancingFrequency) * 0.5F + 0.5F) * 0.1) * dancingWeight;
+        this.rightLeg.yRot += (dancingDirectionCurve > 0 ? dancingDirectionCurve * 0.5F : dancingDirectionCurve * 0.125F) * dancingWeight;
+        this.rightLeg.zRot += (dancingDirectionCurve > 0 ? dancingDirectionCurve * 0.125F : 0) * dancingWeight;
+        this.rightLeg.z += (dancingDirectionCurve > 0 ? 0 : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * previousDancingFrequency) * 0.5F + 0.5F) * -1) * dancingWeight;
+        this.rightLeg.y += (dancingDirectionCurve > 0 ? (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * previousDancingFrequency) * 0.5F + 0.5F) * 2 + -dancingDirectionCurve * 1 : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * previousDancingFrequency) * 0.5F + 0.5F) * 0.2) * dancingWeight;
+        this.leftLeg.xRot += (dancingDirectionCurve < 0 ? dancingDirectionCurve * 0.5F : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * previousDancingFrequency) * 0.5F + 0.5F) * 0.1) * dancingWeight;
+        this.leftLeg.yRot += (dancingDirectionCurve < 0 ? dancingDirectionCurve * 0.5F : dancingDirectionCurve * 0.125F) * dancingWeight;
+        this.leftLeg.zRot += (dancingDirectionCurve < 0 ? dancingDirectionCurve * 0.125F : 0) * dancingWeight;
+        this.leftLeg.z += (dancingDirectionCurve < 0 ? 0 : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * previousDancingFrequency) * 0.5F + 0.5F) * -1) * dancingWeight;
+        this.leftLeg.y += (dancingDirectionCurve < 0 ? (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * previousDancingFrequency) * 0.5F + 0.5F) * 2 + dancingDirectionCurve * 1 : (Mth.sin((h * Mth.PI / 5 + Mth.PI / 2) * previousDancingFrequency) * 0.5F + 0.5F) * 0.2) * dancingWeight;
 
-        this.rightArm.xRot += (-3 + (Mth.sin((h * Mth.PI / 5) * entityDancingFrequency) * 0.5F + 0.5F) * 0.25) * dancingAmount;
-        this.rightArm.zRot += -0.25 * dancingAmount;
-        this.rightArm.z += dancingDirectionCurve * 2 * dancingAmount;
-        this.leftArm.xRot += (-3 + (Mth.sin((h * Mth.PI / 5) * entityDancingFrequency) * 0.5F + 0.5F) * 0.25) * dancingAmount;
-        this.leftArm.zRot += 0.25 * dancingAmount;
-        this.leftArm.z += dancingDirectionCurve * -2 * dancingAmount;
+        this.rightArm.xRot += (-3 + (Mth.sin((h * Mth.PI / 5) * previousDancingFrequency) * 0.5F + 0.5F) * 0.25) * dancingWeight;
+        this.rightArm.zRot += -0.25 * dancingWeight;
+        this.rightArm.z += dancingDirectionCurve * 2 * dancingWeight;
+        this.leftArm.xRot += (-3 + (Mth.sin((h * Mth.PI / 5) * previousDancingFrequency) * 0.5F + 0.5F) * 0.25) * dancingWeight;
+        this.leftArm.zRot += 0.25 * dancingWeight;
+        this.leftArm.z += dancingDirectionCurve * -2 * dancingWeight;
 
         // Minecart riding base pose overwrite
         if(isRidingInMinecart){
@@ -460,8 +490,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             this.rightLeg.x = -2;
 
             // Math
-            float sittingIntoMinecartAmount = Mth.sin(currentMinecartRidingAmount * currentMinecartRidingAmount * 2) * 1.1F;
-            float minecartRidingAmountInOutSine = Mth.sin(currentMinecartRidingAmount * Mth.PI - Mth.PI / 2) * 0.5F + 0.5F;
+            float sittingIntoMinecartAmount = Mth.sin(currentMinecartRidingTimer * currentMinecartRidingTimer * 2) * 1.1F;
+            float minecartRidingAmountInOutSine = Mth.sin(currentMinecartRidingTimer * Mth.PI - Mth.PI / 2) * 0.5F + 0.5F;
 
             // Sitting down
             for(ModelPart part : partListBody){
@@ -521,6 +551,24 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             part.xRot += Mth.sin(h * Mth.PI / 60 + Mth.PI / 2) * -0.03125F * idleWeight;
         }
 
+        // Armor equip post process
+        if(currentArmorChangeTimer > 0){
+            float armorChangePrimaryMovement = AnimCurveUtils.LinearToInOutFollowThroughDecay(Mth.clamp((1 - currentArmorChangeTimer) * 1.25F, 0, 1));
+            float armorChangeSecondaryMovement = AnimCurveUtils.LinearToInOutFollowThroughDecay(Mth.clamp((1 - currentArmorChangeTimer) * 1.25F - 0.25F, 0, 1));
+            for(ModelPart part : partListBody){
+                part.y += armorChangePrimaryMovement;
+            }
+            for(ModelPart part : partListArms){
+                part.y += armorChangePrimaryMovement;
+            }
+            this.head.xRot += armorChangeSecondaryMovement * Mth.HALF_PI / 8;
+            for(ModelPart part : partListLegs){
+                if(armorChangePrimaryMovement > 0){
+                    part.z += -1.5 * armorChangePrimaryMovement;
+                    part.xRot += armorChangePrimaryMovement * Mth.HALF_PI / 8;
+                }
+            }
+        }
 
         // Right arm pose post process
         this.rightArm.xRot += -0.2F * rightArmItemPoseWeight;
@@ -530,21 +578,21 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         // Eating animation post process
         if(isHoldingDrinkableItem){
-            useArmPart.xRot = Mth.lerp(eatingAmount, useArmPart.xRot, Mth.sin((float) (Math.pow(h % 8, 3) * Mth.PI / 512)) * -0.1F - 1.8F + this.head.xRot);
-            useArmPart.yRot = Mth.lerp(eatingAmount, useArmPart.yRot, (interactionArm == HumanoidArm.RIGHT ? -0.25F : 0.25F) + this.head.yRot * 0.5F);
-            this.head.xRot += (Mth.sin((float) (Math.pow(h % 8, 3) * Mth.PI / 512)) * -0.1F - 0.3F) * eatingAmount;
+            useArmPart.xRot = Mth.lerp(eatingWeight, useArmPart.xRot, Mth.sin((float) (Math.pow(h % 8, 3) * Mth.PI / 512)) * -0.1F - 1.8F + this.head.xRot);
+            useArmPart.yRot = Mth.lerp(eatingWeight, useArmPart.yRot, (interactionArm == HumanoidArm.RIGHT ? -0.25F : 0.25F) + this.head.yRot * 0.5F);
+            this.head.xRot += (Mth.sin((float) (Math.pow(h % 8, 3) * Mth.PI / 512)) * -0.1F - 0.3F) * eatingWeight;
         } else {
-            useArmPart.xRot = Mth.lerp(eatingAmount, useArmPart.xRot, Mth.abs(Mth.sin(h * Mth.PI / 4)) * 0.3F - 1.5F + this.head.xRot);
-            useArmPart.yRot = Mth.lerp(eatingAmount, useArmPart.yRot, (interactionArm == HumanoidArm.RIGHT ? -0.25F : 0.25F) + this.head.yRot * 0.5F);
-            this.head.xRot += (Mth.abs(Mth.sin(h * Mth.PI / 4 + Mth.PI / 2)) * 0.5F + 0.5F) * 0.25F * eatingAmount;
+            useArmPart.xRot = Mth.lerp(eatingWeight, useArmPart.xRot, Mth.abs(Mth.sin(h * Mth.PI / 4)) * 0.3F - 1.5F + this.head.xRot);
+            useArmPart.yRot = Mth.lerp(eatingWeight, useArmPart.yRot, (interactionArm == HumanoidArm.RIGHT ? -0.25F : 0.25F) + this.head.yRot * 0.5F);
+            this.head.xRot += (Mth.abs(Mth.sin(h * Mth.PI / 4 + Mth.PI / 2)) * 0.5F + 0.5F) * 0.25F * eatingWeight;
         }
 
         // Shield pose post process
         boolean isLeftHanded = livingEntity.getMainArm() == HumanoidArm.LEFT;
-        if(currentShieldPoseAmount > 0){
-            float shieldPoseEaseInOut = AnimCurveUtils.LinearToEaseInOut(currentShieldPoseAmount);
-            float shieldPoseRaise = AnimCurveUtils.LinearToEaseInOutWeight(currentShieldPoseAmount, 1);
-            float shieldPoseFollowThrough = AnimCurveUtils.LinearToInOutFollowThrough(currentShieldPoseAmount);
+        if(currentShieldPoseTimer > 0){
+            float shieldPoseEaseInOut = AnimCurveUtils.LinearToEaseInOut(currentShieldPoseTimer);
+            float shieldPoseRaise = AnimCurveUtils.LinearToEaseInOutWeight(currentShieldPoseTimer, 1);
+            float shieldPoseFollowThrough = AnimCurveUtils.LinearToInOutFollowThrough(currentShieldPoseTimer);
 
             boolean usingShieldInLeftHand = (livingEntity.getUsedItemHand() == InteractionHand.MAIN_HAND) == isLeftHanded;
 
@@ -582,7 +630,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         }
 
         // Attack animation post process
-        if(currentAttackAmount > 0){
+        if(currentAttackTimer > 0){
             HumanoidArm humanoidArm = livingEntity.getMainArm();
             humanoidArm = livingEntity.swingingArm == InteractionHand.MAIN_HAND ? humanoidArm : humanoidArm.getOpposite();
 
@@ -591,17 +639,17 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             ModelPart attackLegPart = humanoidArm == HumanoidArm.LEFT ? this.leftLeg : this.rightLeg;
             ModelPart attackOffLegPart = humanoidArm == HumanoidArm.RIGHT ? this.leftLeg : this.rightLeg;
 
-            float attackWeight = AnimCurveUtils.LinearToEaseInOutWeight(currentAttackAmount, 2) * (1 - currentShieldPoseAmount);
-            float attackWave = AnimCurveUtils.LinearToEaseInOutWeight(currentAttackAmount, 1);
-            float attackSwipeMotion = Mth.sqrt(Mth.sin(currentAttackAmount * Mth.PI - Mth.PI/3F) > 0 ? Mth.sqrt(Mth.sin(currentAttackAmount * Mth.PI - Mth.PI / 3)) : 0);
-            float attackSwordRaise = Mth.sin(currentAttackAmount * Mth.PI);
+            float attackWeight = AnimCurveUtils.LinearToEaseInOutWeight(currentAttackTimer, 2) * (1 - currentShieldPoseTimer);
+            float attackWave = AnimCurveUtils.LinearToEaseInOutWeight(currentAttackTimer, 1);
+            float attackSwipeMotion = Mth.sqrt(Mth.sin(currentAttackTimer * Mth.PI - Mth.PI/3F) > 0 ? Mth.sqrt(Mth.sin(currentAttackTimer * Mth.PI - Mth.PI / 3)) : 0);
+            float attackSwordRaise = Mth.sin(currentAttackTimer * Mth.PI);
 
             boolean attackingWithRightArm = attackArmPart == this.rightArm;
             boolean attackingWithSword = livingEntity.getItemInHand(InteractionHand.MAIN_HAND).getItem().toString().contains("sword");
             boolean attackingWithAxe = livingEntity.getItemInHand(InteractionHand.MAIN_HAND).getItem().toString().contains("axe");
             boolean attackingWithTrident = livingEntity.getItemInHand(InteractionHand.MAIN_HAND).getItem().toString().contains("trident");
 
-            if(attackingWithSword && entityAttackIndex == 1){
+            if(attackingWithSword && previousAttackIndex == 1){
                 // Sword sweep attack
                 attackArmPart.xRot = Mth.lerp(attackWeight, attackArmPart.xRot, -1.5F + this.head.xRot);
                 attackArmPart.yRot = Mth.lerp(attackWeight, attackArmPart.yRot, attackingWithRightArm ? Mth.lerp(attackSwipeMotion, 1F, -1.5F) : Mth.lerp(attackSwipeMotion, -1F, 1.5F));
@@ -615,10 +663,10 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
                 }
                 attackLegPart.z += Mth.lerp(attackSwipeMotion, 0, -4) * attackWeight;
                 attackLegPart.xRot += Mth.lerp(attackSwipeMotion, 0, Mth.HALF_PI * -0.125F) * attackWeight;
-            } else if((attackingWithSword || attackingWithAxe) && entityAttackIndex == 2){
+            } else if((attackingWithSword || attackingWithAxe) && previousAttackIndex == 2){
                 // Sword and axe critical hit
                 attackArmPart.xRot = Mth.lerp(attackWeight, attackArmPart.xRot, Mth.lerp(attackSwipeMotion, Mth.HALF_PI * -1.25F, Mth.HALF_PI * 0.5F));
-                attackArmPart.zRot = Mth.lerp(attackWeight, attackArmPart.zRot, Mth.lerp(currentAttackAmount, 0, attackingWithRightArm ? 0.25F : -0.25F));
+                attackArmPart.zRot = Mth.lerp(attackWeight, attackArmPart.zRot, Mth.lerp(currentAttackTimer, 0, attackingWithRightArm ? 0.25F : -0.25F));
                 attackArmPart.y += Mth.lerp(attackSwipeMotion, -3, 2) * attackWeight;
                 attackArmPart.z += Mth.lerp(attackWave, 0, -3) * attackWeight;
                 attackOffArmPart.xRot += Mth.lerp(attackSwipeMotion, 0, 0.25F) * attackWeight;
@@ -630,7 +678,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
                     part.z += Mth.lerp(attackSwipeMotion, 2, -4) * attackWeight;
                 }
             } else {
-                float fastAttackAmount = Mth.clamp(currentAttackAmount * 1.5F, 0, 1);
+                float fastAttackAmount = Mth.clamp(currentAttackTimer * 1.5F, 0, 1);
                 this.body.yRot += Mth.sin(Mth.sqrt(fastAttackAmount) * Mth.PI * 2) * 0.2F * (attackingWithRightArm ? 1 : -1);
                 attackArmPart.z += Mth.sin(Mth.sqrt(fastAttackAmount) * Mth.PI * 2) * (attackingWithRightArm ? -1 : 1);
                 attackOffArmPart.z += Mth.sin(Mth.sqrt(fastAttackAmount) * Mth.PI * 2) * (attackingWithRightArm ? 1 : -1);
@@ -670,7 +718,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // Determine which hand should be used as the dominant hand for the bow animation
 
         // Only do the caculations if it's needed to
-        if(currentBowPoseAmount > 0 || entityBowPullAmount > 0){
+        if(currentBowPoseTimer > 0 || previousBowPullTimer > 0){
             // Variables
             boolean holdingBowInRightHand = !isLeftHanded ? livingEntity.getMainHandItem().getUseAnimation() == UseAnim.BOW : livingEntity.getOffhandItem().getUseAnimation() == UseAnim.BOW;
             boolean holdingBowInLeftHand = isLeftHanded ? livingEntity.getMainHandItem().getUseAnimation() == UseAnim.BOW : livingEntity.getOffhandItem().getUseAnimation() == UseAnim.BOW;
@@ -678,9 +726,9 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
                 holdingBowInRightHand = !isLeftHanded;
             }
 
-            float bowPoseAmount = AnimCurveUtils.LinearToEaseInOut(Mth.clamp(usingBow ? currentBowPoseAmount * 1.5F - 0.5F : currentBowPoseAmount * 1.5F, 0, 1));
-            float bowPrePoseAmount = AnimCurveUtils.LinearToEaseInOut(Mth.clamp(currentBowPoseAmount * 1.75F, 0, 1));
-            float bowPullAmount = AnimCurveUtils.LinearToEaseInOutWeight(currentBowPullAmount, 1);
+            float bowPoseAmount = AnimCurveUtils.LinearToEaseInOut(Mth.clamp(usingBow ? currentBowPoseTimer * 1.5F - 0.5F : currentBowPoseTimer * 1.5F, 0, 1));
+            float bowPrePoseAmount = AnimCurveUtils.LinearToEaseInOut(Mth.clamp(currentBowPoseTimer * 1.75F, 0, 1));
+            float bowPullAmount = AnimCurveUtils.LinearToEaseInOutWeight(currentBowPullTimer, 1);
             float bowHandednessReverser = (holdingBowInRightHand ? 1 : -1);
 
             ModelPart bowMainArm = holdingBowInRightHand ? this.rightArm : this.leftArm;
@@ -715,9 +763,9 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
             // Firing knockback
             if(!usingBow){
-                float armMovementAmount = AnimCurveUtils.LinearToEaseInOutWeight(Mth.clamp(currentBowPoseAmount * 2F - 1.25F, 0, 1), 1);
-                float bodyMovementAmount = AnimCurveUtils.LinearToEaseInOutWeight(Mth.clamp(currentBowPoseAmount * 2F - 1F, 0, 1), 1);
-                float headMovementAmount = AnimCurveUtils.LinearToEaseInOutWeight(Mth.clamp(currentBowPoseAmount * 2F - 0.9F, 0, 1), 1);
+                float armMovementAmount = AnimCurveUtils.LinearToEaseInOutWeight(Mth.clamp(currentBowPoseTimer * 2F - 1.25F, 0, 1), 1);
+                float bodyMovementAmount = AnimCurveUtils.LinearToEaseInOutWeight(Mth.clamp(currentBowPoseTimer * 2F - 1F, 0, 1), 1);
+                float headMovementAmount = AnimCurveUtils.LinearToEaseInOutWeight(Mth.clamp(currentBowPoseTimer * 2F - 0.9F, 0, 1), 1);
 
                 for(ModelPart part : partListBody){
                     part.x += 2 * bodyMovementAmount * bowHandednessReverser;
@@ -774,17 +822,17 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         float crossbowArmBob = livingEntity.isOnGround() ? (Mth.abs(Mth.cos(f * limbMotionMultiplier + Mth.PI / 2)) * 0.125F * g) * -1 : 0;
         ModelPart primaryArm = holdingCrossbowInRightHand ? this.rightArm : this.leftArm;
         ModelPart secondaryArm = holdingCrossbowInRightHand ? this.leftArm : this.rightArm;
-        primaryArm.yRot = Mth.lerp(crossbowHoldAmount, primaryArm.yRot, (holdingCrossbowInRightHand ? -0.3F : 0.3F) + this.head.yRot);
-        secondaryArm.yRot = Mth.lerp(crossbowHoldAmount, secondaryArm.yRot, (holdingCrossbowInRightHand ? 0.6F : -0.6F) + this.head.yRot);
-        primaryArm.xRot = Mth.lerp(crossbowHoldAmount, primaryArm.xRot, -1.5707964F + this.head.xRot + 0.1F + crossbowArmBob);
-        secondaryArm.xRot = Mth.lerp(crossbowHoldAmount, secondaryArm.xRot, -1.5F + this.head.xRot + crossbowArmBob);
-        primaryArm.zRot = Mth.lerp(crossbowHoldAmount, primaryArm.zRot, 0);
-        secondaryArm.zRot = Mth.lerp(crossbowHoldAmount, secondaryArm.zRot, this.head.xRot * (holdingCrossbowInRightHand ? 0.4F : -0.4F));
+        primaryArm.yRot = Mth.lerp(crossbowHoldWeight, primaryArm.yRot, (holdingCrossbowInRightHand ? -0.3F : 0.3F) + this.head.yRot);
+        secondaryArm.yRot = Mth.lerp(crossbowHoldWeight, secondaryArm.yRot, (holdingCrossbowInRightHand ? 0.6F : -0.6F) + this.head.yRot);
+        primaryArm.xRot = Mth.lerp(crossbowHoldWeight, primaryArm.xRot, -1.5707964F + this.head.xRot + 0.1F + crossbowArmBob);
+        secondaryArm.xRot = Mth.lerp(crossbowHoldWeight, secondaryArm.xRot, -1.5F + this.head.xRot + crossbowArmBob);
+        primaryArm.zRot = Mth.lerp(crossbowHoldWeight, primaryArm.zRot, 0);
+        secondaryArm.zRot = Mth.lerp(crossbowHoldWeight, secondaryArm.zRot, this.head.xRot * (holdingCrossbowInRightHand ? 0.4F : -0.4F));
         // Crossbow pull logic
         if(holdingOrChargingCrossbow){
             if(livingEntity.getTicksUsingItem() > 0){
                 float crossbowPullProgress = Mth.clamp(((float)livingEntity.getTicksUsingItem() + tickDifference) / CrossbowItem.getChargeDuration(livingEntity.getUseItem()), 0, 1);
-                float crossbowPullCurve = (crossbowPullProgress < 0.75F ? 1 : Mth.sin(crossbowPullProgress * Mth.PI * 4 - Mth.PI / 2) * 0.5F + 0.5F) * crossbowHoldAmount;
+                float crossbowPullCurve = (crossbowPullProgress < 0.75F ? 1 : Mth.sin(crossbowPullProgress * Mth.PI * 4 - Mth.PI / 2) * 0.5F + 0.5F) * crossbowHoldWeight;
 
                 primaryArm.yRot = Mth.lerp(crossbowPullCurve, primaryArm.yRot, holdingCrossbowInRightHand ? -0.8F : 0.8F);
                 primaryArm.xRot = Mth.lerp(crossbowPullCurve, primaryArm.xRot, -0.97079635F);
@@ -793,9 +841,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
                 secondaryArm.xRot = Mth.lerp(crossbowPullCurve, secondaryArm.xRot, Mth.lerp(crossbowPullProgress, primaryArm.xRot, -1.5707964F));
             }
         }
-
-        // debug
-        //System.out.println(CrossbowItem.getChargeDuration(livingEntity.getUseItem()));
 
         // Parent the second layer to the main meshes
         this.hat.copyFrom(this.head);

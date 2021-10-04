@@ -15,4 +15,10 @@ public class AnimCurveUtils {
     public static float LinearToInOutFollowThrough(float x){
         return Mth.sin(Mth.PI * x * 2);
     }
+    public static float LinearToBounce(float x){
+        return Mth.sin(Mth.PI * x);
+    }
+    public static float LinearToInOutFollowThroughDecay(float x){
+        return Mth.sin(Mth.PI * x * 2) * (1 - x);
+    }
 }

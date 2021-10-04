@@ -4,17 +4,17 @@
   "package": "com.trainguy.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "MixinAbstractMinecart",
-    "MixinBellRenderer",
-    "MixinMinecartRenderer"
   ],
   "client": [
+    "MixinAbstractMinecart",
+    "MixinBellRenderer",
     "MixinBlockEntity",
     "MixinChestRenderer",
     "MixinGhastRenderer",
     "MixinItemInHandLayer",
     "MixinLevelRenderer",
     "MixinLivingEntity",
+    "MixinMinecartRenderer",
     "MixinPlayerModel",
     "MixinPlayerRenderer"
   ],
