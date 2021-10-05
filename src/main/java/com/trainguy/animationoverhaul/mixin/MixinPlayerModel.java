@@ -28,10 +28,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.JukeboxBlock;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -39,7 +36,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Arrays;
 import java.util.List;
 
-@Unique
 @Environment(EnvType.CLIENT)
 @Mixin(PlayerModel.class)
 public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidModel<T> {
@@ -56,8 +52,11 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         super(modelPart);
     }
 
-    @Inject(method = "setupAnim", at = @At("HEAD"), cancellable = true)
-    private void animPlayerModel(T livingEntity, float f, float g, float h, float i, float j, CallbackInfo ci){
+    /**
+     * @author James Pelter
+     */
+    @Overwrite
+    public void setupAnim(T livingEntity, float f, float g, float h, float i, float j){
         // TODO: Rewrite bow and crossbow logic
         // TODO: Rework the flying and do it in a way that works on servers
 
@@ -183,18 +182,24 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         // Bow pull
         boolean usingBow = this.rightArmPose == ArmPose.BOW_AND_ARROW || this.leftArmPose == ArmPose.BOW_AND_ARROW;
-        float previousBowPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmBowPoseAmount");
-        float previousBowPullTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("rightArmBowPoseAmount");
+        float previousBowPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("bowPoseAmount");
+        float previousBowPullTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("bowPullAmount");
         float currentBowPoseTimer = Mth.clamp(previousBowPoseTimer + (usingBow ? 0.1F : -0.1F) * delta, 0, 1);
         float currentBowPullTimer = Mth.clamp(previousBowPullTimer + (usingBow ? 0.06F : -6F) * delta, 0, 1);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmBowPoseAmount", currentBowPoseTimer);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("rightArmBowPoseAmount", currentBowPullTimer);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("bowPoseAmount", currentBowPoseTimer);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("bowPullAmount", currentBowPullTimer);
 
         // Crouch variable
-        float entityCrouchAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
-        float currentEntityCrouchAmount = livingEntity.isCrouching() ? Mth.clamp(entityCrouchAmount + 0.1F, 0.0F, 1.0F) : Mth.clamp(entityCrouchAmount - 0.1F, 0.0F, 1.0F);
-        float crouchWeight = AnimCurveUtils.LinearToEaseCondition(currentEntityCrouchAmount, livingEntity.isCrouching());
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("crouchAmount", currentEntityCrouchAmount);
+        float previousCrouchTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
+        float currentCrouchTimer = livingEntity.isCrouching() ? Mth.clamp(previousCrouchTimer + 0.1F, 0.0F, 1.0F) : Mth.clamp(previousCrouchTimer - 0.1F, 0.0F, 1.0F);
+        float crouchWeight = AnimCurveUtils.LinearToEaseCondition(currentCrouchTimer, livingEntity.isCrouching());
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("crouchAmount", currentCrouchTimer);
+
+        // Spear (Trident) pose variable
+        float previousSpearPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("spearPoseAmount");
+        boolean usingSpear = this.leftArmPose == ArmPose.THROW_SPEAR || this.rightArmPose == ArmPose.THROW_SPEAR;
+        float currentSpearPoseTimer = Mth.clamp(previousSpearPoseTimer + (usingSpear ? 0.0625F : -0.125F) * delta, 0, 1);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("spearPoseAmount", currentSpearPoseTimer);
 
         // Crossbow Holding
         float previousCrossbowPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmCrossbowPoseAmount");
@@ -564,7 +569,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             this.head.xRot += armorChangeSecondaryMovement * Mth.HALF_PI / 8;
             for(ModelPart part : partListLegs){
                 if(armorChangePrimaryMovement > 0){
-                    part.z += -1.5 * armorChangePrimaryMovement;
+                    part.z += -2 * armorChangePrimaryMovement;
                     part.xRot += armorChangePrimaryMovement * Mth.HALF_PI / 8;
                 }
             }
@@ -715,9 +720,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         */
 
         // Bow pull post process
-        // Determine which hand should be used as the dominant hand for the bow animation
-
-        // Only do the caculations if it's needed to
         if(currentBowPoseTimer > 0 || previousBowPullTimer > 0){
             // Variables
             boolean holdingBowInRightHand = !isLeftHanded ? livingEntity.getMainHandItem().getUseAnimation() == UseAnim.BOW : livingEntity.getOffhandItem().getUseAnimation() == UseAnim.BOW;
@@ -811,6 +813,58 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         }
          */
 
+        // Spear throw post process
+        if(currentSpearPoseTimer > 0){
+            boolean holdingSpearInRightHand = !isLeftHanded ? livingEntity.getMainHandItem().getUseAnimation() == UseAnim.SPEAR : livingEntity.getOffhandItem().getUseAnimation() == UseAnim.SPEAR;
+            boolean holdingSpearInLeftHand = isLeftHanded ? livingEntity.getMainHandItem().getUseAnimation() == UseAnim.SPEAR : livingEntity.getOffhandItem().getUseAnimation() == UseAnim.SPEAR;
+            if(holdingSpearInRightHand && holdingSpearInLeftHand){
+                holdingSpearInRightHand = !isLeftHanded;
+            }
+
+            ModelPart spearMainArm = holdingSpearInRightHand ? this.rightArm : this.leftArm;
+            ModelPart spearOffArm = !holdingSpearInRightHand ? this.rightArm : this.leftArm;
+            ModelPart spearMainLeg = holdingSpearInRightHand ? this.rightLeg : this.leftLeg;
+            ModelPart spearOffLeg = !holdingSpearInRightHand ? this.rightLeg : this.leftLeg;
+            float spearHandednessReverser = holdingSpearInRightHand ? 1 : -1;
+
+            float spearRaiseCurve = AnimCurveUtils.LinearToEaseInOut(currentSpearPoseTimer);
+            float spearThrowCurve = (float) Math.pow(AnimCurveUtils.LinearToEaseCondition(currentSpearPoseTimer, false), 2);
+            float mainArmRotation = usingSpear ? spearRaiseCurve : spearThrowCurve;
+            float mainArmPosition = Mth.lerp(mainArmRotation, -2, 3) * (currentSpearPoseTimer < 0.5 ? AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 2) : 1);
+
+            // TODO: Go back and clean this up with a smoother curve. You can do better than this >:(
+
+            float bodyThrowForwardCurve = (Mth.sqrt(Mth.sin(currentSpearPoseTimer * Mth.PI * 0.7F + 0.3F * Mth.PI)) * -1.1F + 1F) * (currentSpearPoseTimer < 0.5 ? AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 2) : 1);
+            float bodyPositionCurve = usingSpear ? spearRaiseCurve : bodyThrowForwardCurve;
+            float bodyLiftCurve = AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 1);
+
+            spearMainArm.z += mainArmPosition;
+            spearMainArm.xRot = Mth.lerp(mainArmRotation, spearMainArm.xRot, Mth.HALF_PI * -2.1F);
+            spearMainArm.zRot -= spearRaiseCurve * Mth.HALF_PI / 6 * spearHandednessReverser;
+            spearOffArm.xRot += spearRaiseCurve * Mth.HALF_PI / 6;
+            spearOffArm.yRot += spearRaiseCurve * Mth.HALF_PI / -5 * spearHandednessReverser;
+            spearOffArm.zRot += spearRaiseCurve * Mth.HALF_PI / -7 * spearHandednessReverser;
+            spearMainLeg.y += usingSpear ? AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 1) * -2 : 0;
+            spearMainLeg.z += bodyPositionCurve * 6;
+            spearMainLeg.xRot += bodyPositionCurve * Mth.HALF_PI / 6;
+            spearOffLeg.z += bodyPositionCurve * 3.5;
+            spearOffLeg.xRot += bodyPositionCurve * Mth.HALF_PI / -6;
+
+            this.body.yRot += bodyPositionCurve * Mth.HALF_PI / 10 * spearHandednessReverser;
+            this.body.xRot += bodyPositionCurve * Mth.HALF_PI / -10;
+            this.body.zRot += bodyPositionCurve * Mth.HALF_PI / -30 * spearHandednessReverser;
+            for(ModelPart part : partListBody){
+                part.z += bodyPositionCurve * 6;
+                if(!usingSpear){
+                    part.z += AnimCurveUtils.LinearToEaseCondition(currentSpearPoseTimer * 2, true) * -4 * AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 2);
+                    part.y += AnimCurveUtils.LinearToInOutFollowThrough(1 - currentSpearPoseTimer) * -0.5 * AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 2);
+                } else {
+                    part.y += bodyLiftCurve * -0.5;
+                }
+            }
+            this.body.xRot += !usingSpear ? AnimCurveUtils.LinearToEaseCondition(currentSpearPoseTimer * 2, true) * Mth.HALF_PI / 5 * AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 2) : 0;
+        }
+
         // Crossbow hold post process
         // Determine which hand should be used as the dominant hand for the bow animation
         boolean holdingCrossbowInRightHand = !isLeftHanded ? livingEntity.getMainHandItem().getUseAnimation() == UseAnim.CROSSBOW : livingEntity.getOffhandItem().getUseAnimation() == UseAnim.CROSSBOW;
@@ -865,7 +919,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             this.cloak.z = -1.1F;
             this.cloak.y = -0.85F;
         }
-        ci.cancel();
     }
 
     public void initPartTransforms(List<ModelPart> parts){

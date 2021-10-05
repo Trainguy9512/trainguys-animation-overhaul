@@ -50,11 +50,10 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public float leftArmItemPoseAmount;
     public float rightArmItemPoseAmount;
 
-    public float leftArmBowPoseAmount;
-    public float rightArmBowPoseAmount;
+    public float bowPoseAmount;
+    public float bowPullAmount;
 
-    public float leftArmSpearPoseAmount;
-    public float rightArmSpearPoseAmount;
+    public float spearPoseAmount;
 
     public float leftArmCrossbowPoseAmount;
     public float rightArmCrossbowPoseAmount;
@@ -85,10 +84,9 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "verticalMovementRotation" -> verticalMovementRotation;
             case "leftArmItemPoseAmount" -> leftArmItemPoseAmount;
             case "rightArmItemPoseAmount" -> rightArmItemPoseAmount;
-            case "leftArmBowPoseAmount" -> leftArmBowPoseAmount;
-            case "rightArmBowPoseAmount" -> rightArmBowPoseAmount;
-            case "leftArmSpearPoseAmount" -> leftArmSpearPoseAmount;
-            case "rightArmSpearPoseAmount" -> rightArmSpearPoseAmount;
+            case "bowPoseAmount" -> bowPoseAmount;
+            case "bowPullAmount" -> bowPullAmount;
+            case "spearPoseAmount" -> spearPoseAmount;
             case "leftArmCrossbowPoseAmount" -> leftArmCrossbowPoseAmount;
             case "rightArmCrossbowPoseAmount" -> rightArmCrossbowPoseAmount;
             case "shieldPoseAmount" -> shieldPoseAmount;
@@ -116,10 +114,9 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
             case "verticalMovementRotation" -> verticalMovementRotation = newValue;
             case "leftArmItemPoseAmount" -> leftArmItemPoseAmount = newValue;
             case "rightArmItemPoseAmount" -> rightArmItemPoseAmount = newValue;
-            case "leftArmBowPoseAmount" -> leftArmBowPoseAmount = newValue;
-            case "rightArmBowPoseAmount" -> rightArmBowPoseAmount = newValue;
-            case "leftArmSpearPoseAmount" -> leftArmSpearPoseAmount = newValue;
-            case "rightArmSpearPoseAmount" -> rightArmSpearPoseAmount = newValue;
+            case "bowPoseAmount" -> bowPoseAmount = newValue;
+            case "bowPullAmount" -> bowPullAmount = newValue;
+            case "spearPoseAmount" -> spearPoseAmount = newValue;
             case "leftArmCrossbowPoseAmount" -> leftArmCrossbowPoseAmount = newValue;
             case "rightArmCrossbowPoseAmount" -> rightArmCrossbowPoseAmount = newValue;
             case "shieldPoseAmount" -> shieldPoseAmount = newValue;

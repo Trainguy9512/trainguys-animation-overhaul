@@ -44,7 +44,7 @@ public class MixinPlayerRenderer {
         }
 
         boolean usingBow = abstractClientPlayer.getUseItem().getItem() == Items.BOW;
-        float bowAmount = ((LivingEntityAccess)abstractClientPlayer).getAnimationVariable("leftArmBowPoseAmount");
+        float bowAmount = ((LivingEntityAccess)abstractClientPlayer).getAnimationVariable("bowPoseAmount");
         float bowPoseAmount = AnimCurveUtils.LinearToEaseInOut(Mth.clamp(usingBow ? bowAmount * 1.5F - 0.5F : bowAmount * 1.5F, 0, 1));
         poseStack.mulPose(Vector3f.YP.rotationDegrees((differenceRot + (holdingBowInRightHand ? -70 : 70)) * bowPoseAmount));
 

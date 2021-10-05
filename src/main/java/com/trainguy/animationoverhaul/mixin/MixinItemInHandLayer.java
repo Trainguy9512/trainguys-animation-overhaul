@@ -58,6 +58,10 @@ public class MixinItemInHandLayer {
             poseStack.mulPose(Vector3f.ZP.rotationDegrees((humanoidArm == HumanoidArm.RIGHT ? 20 : -20) * eatingAmount));
             poseStack.translate((humanoidArm == HumanoidArm.RIGHT ? -0.15 : 0.15) * eatingAmount, -0.125 * eatingAmount, -0.0625 * eatingAmount);
         }
+        /*
+
+        No longer needed!
+
         if(itemStack.getItem() == Items.SHIELD && livingEntity.isUsingItem() && interactionArm == humanoidArm){
 
             if(humanoidArm == HumanoidArm.LEFT){
@@ -71,9 +75,11 @@ public class MixinItemInHandLayer {
                 poseStack.mulPose(Vector3f.XP.rotationDegrees(-45));
             }
         }
+        */
 
+        float handednessReverser = humanoidArm == HumanoidArm.RIGHT ? 1 : -1;
         float entityShieldPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("shieldPoseAmount");
-        if(entityShieldPoseAmount > 0 && itemStack.getItem() == Items.SHIELD){
+        if(entityShieldPoseAmount > 0 && itemStack.getItem() == Items.SHIELD && interactionArm == humanoidArm){
             float shieldPoseAmount = AnimCurveUtils.LinearToEaseInOut(entityShieldPoseAmount);
             if(humanoidArm == HumanoidArm.LEFT){
                 poseStack.mulPose(Vector3f.XP.rotationDegrees(45 * shieldPoseAmount));
@@ -85,6 +91,12 @@ public class MixinItemInHandLayer {
                 poseStack.mulPose(Vector3f.YP.rotationDegrees(45 * shieldPoseAmount));
                 poseStack.translate(-1.0F / 16F * shieldPoseAmount, 0.35F / 16F * shieldPoseAmount, 0);
             }
+        }
+
+        float spearPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("spearPoseAmount");
+        if(spearPoseTimer > 0 && itemStack.getItem() == Items.TRIDENT && interactionArm == humanoidArm){
+            float spearSpinWeight = AnimCurveUtils.LinearToEaseInOut(Mth.clamp(2.5F * spearPoseTimer - 0.75F, 0, 1));
+            poseStack.mulPose(Vector3f.ZP.rotationDegrees(spearSpinWeight * -180 * handednessReverser));
         }
     }
 }
