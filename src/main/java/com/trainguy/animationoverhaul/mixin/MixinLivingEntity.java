@@ -1,6 +1,7 @@
 package com.trainguy.animationoverhaul.mixin;
 
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
+import com.trainguy.animationoverhaul.commands.CommandModifyParameter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;

@@ -1,5 +1,6 @@
 package com.trainguy.animationoverhaul.access;
 
+import com.trainguy.animationoverhaul.commands.CommandModifyParameter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 
