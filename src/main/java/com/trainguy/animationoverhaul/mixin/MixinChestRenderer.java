@@ -76,7 +76,15 @@ public class MixinChestRenderer<T extends BlockEntity & LidBlockEntity> implemen
 
     private static final float SHAKE_DURATION = 8f;
 
-    private static final Timeline<Float> closeAnimation =
+private static final Timeline<Float> openAnimation =
+        Timeline.floatTimeline()
+                .addKeyframe(0, 0f)
+                .addKeyframe(17, -95f, new Easing.CubicBezier(0.33f, 0.5f, 0.67f, 1f))
+                .addKeyframe(25, -85f, new Easing.CubicBezier(0.43f, 0f, 0.67f, 1f))
+                .addKeyframe(30, -92f, new Easing.CubicBezier(0.43f, 0f, 0.725f, 1f))
+                .addKeyframe(33, -90f, new Easing.CubicBezier(0.33f, 0f, 0.67f, 1f));
+
+private static final Timeline<Float> closeAnimation =
         Timeline.floatTimeline()
                 .addKeyframe(0, -90f)
                 .addKeyframe(18, 0f, new Easing.CubicBezier(0.53495f, 0f, 0.6833f, 0.333f))
@@ -177,9 +185,7 @@ public class MixinChestRenderer<T extends BlockEntity & LidBlockEntity> implemen
     }
 
     private float getChestLidOpenRotation(float openAmount) {
-        return (Mth.sin(
-                (float) (6 * Math.pow(openAmount, 3))
-        ) * (Mth.sin(openAmount * Mth.PI / 2 + Mth.PI) + 1) + Mth.sin(openAmount * Mth.PI / 2)) * -Mth.HALF_PI;
+        return openAnimation.getValueAt(openAmount) / 180f * Mth.PI;
     }
 
     private float getChestLidCloseRotation(float openAmount) {
