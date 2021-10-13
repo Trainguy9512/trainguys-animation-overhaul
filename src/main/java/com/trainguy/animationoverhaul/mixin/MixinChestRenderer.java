@@ -4,6 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Vector3f;
 import com.trainguy.animationoverhaul.access.BlockEntityAccess;
+import com.trainguy.animationoverhaul.util.Easing;
+import com.trainguy.animationoverhaul.util.timeline.Timeline;
 import it.unimi.dsi.fastutil.floats.Float2FloatFunction;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import net.minecraft.client.Minecraft;
@@ -28,6 +30,8 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+
+import java.util.logging.Logger;
 
 @Mixin(ChestRenderer.class)
 public class MixinChestRenderer<T extends BlockEntity & LidBlockEntity> implements BlockEntityRenderer<T> {
@@ -71,6 +75,15 @@ public class MixinChestRenderer<T extends BlockEntity & LidBlockEntity> implemen
     private ModelPart bottom;
 
     private static final float SHAKE_DURATION = 8f;
+
+    private static final Timeline<Float> closeAnimation =
+        Timeline.floatTimeline()
+                .addKeyframe(0, -90f)
+                .addKeyframe(18, 0f, new Easing.CubicBezier(0.53495f, 0f, 0.6833f, 0.333f))
+                .addKeyframe(23, -12.3f, new Easing.CubicBezier(0.33f, 0.5f, 0.67f, 1f))
+                .addKeyframe(27, 0f, new Easing.CubicBezier(0.33f, 0f, 0.67f, 0.5f))
+                .addKeyframe(31, -4.2f, new Easing.CubicBezier(0.33f, 0.5f, 0.67f, 1f))
+                .addKeyframe(34, 0f, new Easing.CubicBezier(0.33f, 0f, 0.67f, 0.5f));
 
     /**
      * @author Trainguy
@@ -170,7 +183,7 @@ public class MixinChestRenderer<T extends BlockEntity & LidBlockEntity> implemen
     }
 
     private float getChestLidCloseRotation(float openAmount) {
-        return (Mth.abs(Mth.sin((float) (Math.pow(openAmount, 1 / 2F) * 1.7F * Mth.PI))) * (Mth.sin(openAmount * Mth.PI / 2 - Mth.PI / 2) + 1) * 1.25F) * -Mth.HALF_PI;
+        return closeAnimation.getValueAt(1 - openAmount) / 180f * Mth.PI;
     }
 
     private void render(T blockEntity, PoseStack poseStack, VertexConsumer vertexConsumer, ModelPart lid, ModelPart lock, ModelPart bottom, float f, int i, int j) {
