@@ -1,33 +1,22 @@
 package com.trainguy.animationoverhaul.mixin;
 
-import com.sun.jna.platform.win32.WinBase;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.util.AnimCurveUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.client.sounds.MusicManager;
-import net.minecraft.client.sounds.SoundEventListener;
-import net.minecraft.client.sounds.WeighedSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.commands.SetBlockCommand;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraft.world.level.block.JukeboxBlock;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -114,7 +103,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             }
         }
         float currentEatingTimer = Mth.clamp(previousEatingTimer + (isEating ? 0.125F * delta : -0.125F * delta), 0, 1);
-        float eatingWeight = AnimCurveUtils.LinearToEaseInOut(currentEatingTimer);
+        float eatingWeight = AnimCurveUtils.linearToEaseInOutQuadratic(currentEatingTimer);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("eatingAmount", currentEatingTimer);
 
         // Shield pose weight
@@ -177,13 +166,13 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // Right arm item/block arm pose
         float previousRightArmItemPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("rightArmItemPoseAmount");
         float currentRightArmItemPoseTimer = this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM ? Mth.clamp(previousRightArmItemPoseTimer + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(previousRightArmItemPoseTimer - 0.25F * delta, 0.0F, 1.0F);
-        float rightArmItemPoseWeight = AnimCurveUtils.LinearToEaseCondition(currentRightArmItemPoseTimer, this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM);
+        float rightArmItemPoseWeight = AnimCurveUtils.linearToEaseCondition(currentRightArmItemPoseTimer, this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("rightArmItemPoseAmount", currentRightArmItemPoseTimer);
 
         // Right arm item/block arm pose
         float previousLeftArmItemPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("leftArmItemPoseAmount");
         float currentLeftArmItemPoseTimer = this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM ? Mth.clamp(previousLeftArmItemPoseTimer + 0.25F * delta, 0.0F, 1.0F) : Mth.clamp(previousLeftArmItemPoseTimer - 0.25F * delta, 0.0F, 1.0F);
-        float leftArmItemPoseWeight = AnimCurveUtils.LinearToEaseCondition(currentLeftArmItemPoseTimer, this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM);
+        float leftArmItemPoseWeight = AnimCurveUtils.linearToEaseCondition(currentLeftArmItemPoseTimer, this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmItemPoseAmount", currentLeftArmItemPoseTimer);
 
         // Bow pull
@@ -198,7 +187,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // Crouch variable
         float previousCrouchTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
         float currentCrouchTimer = livingEntity.isCrouching() ? Mth.clamp(previousCrouchTimer + 0.1F, 0.0F, 1.0F) : Mth.clamp(previousCrouchTimer - 0.1F, 0.0F, 1.0F);
-        float crouchWeight = AnimCurveUtils.LinearToEaseCondition(currentCrouchTimer, livingEntity.isCrouching());
+        float crouchWeight = AnimCurveUtils.linearToEaseCondition(currentCrouchTimer, livingEntity.isCrouching());
         ((LivingEntityAccess)livingEntity).setAnimationVariable("crouchAmount", currentCrouchTimer);
 
         // Spear (Trident) pose variable
@@ -218,7 +207,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // Simple sprint
         float previousSprintTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("sprintAmount");
         float currentSprintTimer = movementSpeed > 0.9 ? Mth.clamp(previousSprintTimer + 0.0625F * delta, 0.0F, 1.0F) : Mth.clamp(previousSprintTimer - 0.125F * delta, 0.0F, 1.0F);
-        float sprintWeight = AnimCurveUtils.LinearToEaseInOut(currentSprintTimer);
+        float sprintWeight = AnimCurveUtils.linearToEaseInOutQuadratic(currentSprintTimer);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("sprintAmount", currentSprintTimer);
 
         // In water
@@ -226,8 +215,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         float previousUnderWaterTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("underWaterAmount");
         float currentInWaterTimer = Mth.clamp(previousInWaterTimer + (livingEntity.isInWater() && !livingEntity.isOnGround() ? 0.0625F : -0.0625F), 0, 1);
         float currentUnderWaterTimer = Mth.clamp(previousUnderWaterTimer + (livingEntity.isUnderWater() && !livingEntity.isOnGround() ? 0.0625F : -0.0625F), 0, 1);
-        float inWaterWeight = AnimCurveUtils.LinearToEaseInOut(currentInWaterTimer);
-        float underWaterWeight = AnimCurveUtils.LinearToEaseInOut(currentUnderWaterTimer) * 0.9F + 0.1F * inWaterWeight;
+        float inWaterWeight = AnimCurveUtils.linearToEaseInOutQuadratic(currentInWaterTimer);
+        float underWaterWeight = AnimCurveUtils.linearToEaseInOutQuadratic(currentUnderWaterTimer) * 0.9F + 0.1F * inWaterWeight;
         ((LivingEntityAccess)livingEntity).setAnimationVariable("inWaterAmount", currentInWaterTimer);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("underWaterAmount", currentUnderWaterTimer);
 
@@ -289,7 +278,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         float directionTransitionAbs = Mth.abs(2 * currentDirectionShift - 1);
         float bodyBob = livingEntity.isOnGround() ? (float) ((Mth.abs(Mth.sin(distanceMoved * limbMotionMultiplier - Mth.PI / 4) * 1) * -1 + 1F) * Mth.clamp(movementSpeed, 0, 0.25) * 4 * (sprintWeight + 1)) : 0;
         float limbSwingLinear = (Mth.abs(((((distanceMoved * limbMotionMultiplier) % (Mth.PI * 2)) / Mth.PI / 2) - 0.5F) * 2) * 2 - 1) * Mth.lerp(currentDirectionShift, 1, -1);
-        float limbSwingLinearWeight = AnimCurveUtils.LinearToEaseInOutWeight(limbSwingLinear * 0.5F + 0.5F, 1);
+        float limbSwingLinearWeight = AnimCurveUtils.linearToEaseInOutWeight(limbSwingLinear * 0.5F + 0.5F, 1);
         float limbSwingCosCurve = Mth.cos(distanceMoved * limbMotionMultiplier) * Mth.lerp(currentDirectionShift, 1, -1);
         float limbSwingCubicCosCurve = (float) Math.pow(Mth.cos(distanceMoved * limbMotionMultiplier) * Mth.lerp(currentDirectionShift, 1, -1), 1/3F);
         float limbSwingSinCurve = Mth.sin(distanceMoved * limbMotionMultiplier);
@@ -300,6 +289,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         float clampedG = Mth.clamp(movementSpeed * 3, 0, 1);
 
         float rightLegRotationWalking = limbSwingSinCurve < 0 ? (limbSwingLinear * Mth.HALF_PI * 1 / 3F) : (limbSwingCosCurve * Mth.HALF_PI * 1 / 3F + (((limbSwingLinear * 0.5F + 0.5F)) * limbSwingLinearWeight) * Mth.HALF_PI * 1 / 2F);
+        float rightLegRotationRunning = limbSwingSinCurve < 0 ? (limbSwingLinear * Mth.HALF_PI * 1 / 3F) : (limbSwingCosCurve * Mth.HALF_PI * 1 / 3F + (((limbSwingLinear * 0.5F + 0.5F)) * limbSwingLinearWeight) * Mth.HALF_PI * 1 / 2F);
         float rightLegYTranslation = limbSwingSinCurve < 0 ? 0 : (additiveSine * -2);
         float rightLegZTranslation = limbSwingSinCurve < 0 ? (limbSwingCosCurve * 1.5F) : (limbSwingCosCurve * 1.5F - additiveSine * 3);
         float leftLegRotationWalking = limbSwingSinCurve > 0 ? (-limbSwingLinear * Mth.HALF_PI * 1 / 3F) : (-limbSwingCosCurve * Mth.HALF_PI * 1 / 3F + ((1 - (limbSwingLinear * 0.5F + 0.5F)) * limbSwingLinearWeight) * Mth.HALF_PI * 1 / 2F);
@@ -559,8 +549,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         // Armor equip post process
         if(currentArmorChangeTimer > 0){
-            float armorChangePrimaryMovement = AnimCurveUtils.LinearToInOutFollowThroughDecay(Mth.clamp((1 - currentArmorChangeTimer) * 1.25F, 0, 1));
-            float armorChangeSecondaryMovement = AnimCurveUtils.LinearToInOutFollowThroughDecay(Mth.clamp((1 - currentArmorChangeTimer) * 1.25F - 0.25F, 0, 1));
+            float armorChangePrimaryMovement = AnimCurveUtils.linearToInOutFollowThroughDecay(Mth.clamp((1 - currentArmorChangeTimer) * 1.25F, 0, 1));
+            float armorChangeSecondaryMovement = AnimCurveUtils.linearToInOutFollowThroughDecay(Mth.clamp((1 - currentArmorChangeTimer) * 1.25F - 0.25F, 0, 1));
             for(ModelPart part : partListBody){
                 part.y += armorChangePrimaryMovement;
             }
@@ -596,9 +586,9 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // Shield pose post process
         boolean isLeftHanded = livingEntity.getMainArm() == HumanoidArm.LEFT;
         if(currentShieldPoseTimer > 0){
-            float shieldPoseEaseInOut = AnimCurveUtils.LinearToEaseInOut(currentShieldPoseTimer);
-            float shieldPoseRaise = AnimCurveUtils.LinearToEaseInOutWeight(currentShieldPoseTimer, 1);
-            float shieldPoseFollowThrough = AnimCurveUtils.LinearToInOutFollowThrough(currentShieldPoseTimer);
+            float shieldPoseEaseInOut = AnimCurveUtils.linearToEaseInOutQuadratic(currentShieldPoseTimer);
+            float shieldPoseRaise = AnimCurveUtils.linearToEaseInOutWeight(currentShieldPoseTimer, 1);
+            float shieldPoseFollowThrough = AnimCurveUtils.linearToInOutInQuadratic(currentShieldPoseTimer);
 
             boolean usingShieldInLeftHand = (livingEntity.getUsedItemHand() == InteractionHand.MAIN_HAND) == isLeftHanded;
 
@@ -645,8 +635,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             ModelPart attackLegPart = humanoidArm == HumanoidArm.LEFT ? this.leftLeg : this.rightLeg;
             ModelPart attackOffLegPart = humanoidArm == HumanoidArm.RIGHT ? this.leftLeg : this.rightLeg;
 
-            float attackWeight = AnimCurveUtils.LinearToEaseInOutWeight(currentAttackTimer, 2) * (1 - currentShieldPoseTimer);
-            float attackWave = AnimCurveUtils.LinearToEaseInOutWeight(currentAttackTimer, 1);
+            float attackWeight = AnimCurveUtils.linearToEaseInOutWeight(currentAttackTimer, 2) * (1 - currentShieldPoseTimer);
+            float attackWave = AnimCurveUtils.linearToEaseInOutWeight(currentAttackTimer, 1);
             float attackSwipeMotion = Mth.sqrt(Mth.sin(currentAttackTimer * Mth.PI - Mth.PI/3F) > 0 ? Mth.sqrt(Mth.sin(currentAttackTimer * Mth.PI - Mth.PI / 3)) : 0);
             float attackSwordRaise = Mth.sin(currentAttackTimer * Mth.PI);
 
@@ -729,9 +719,9 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
                 holdingBowInRightHand = !isLeftHanded;
             }
 
-            float bowPoseAmount = AnimCurveUtils.LinearToEaseInOut(Mth.clamp(usingBow ? currentBowPoseTimer * 1.5F - 0.5F : currentBowPoseTimer * 1.5F, 0, 1));
-            float bowPrePoseAmount = AnimCurveUtils.LinearToEaseInOut(Mth.clamp(currentBowPoseTimer * 1.75F, 0, 1));
-            float bowPullAmount = AnimCurveUtils.LinearToEaseInOutWeight(currentBowPullTimer, 1);
+            float bowPoseAmount = AnimCurveUtils.linearToEaseInOutQuadratic(Mth.clamp(usingBow ? currentBowPoseTimer * 1.5F - 0.5F : currentBowPoseTimer * 1.5F, 0, 1));
+            float bowPrePoseAmount = AnimCurveUtils.linearToEaseInOutQuadratic(Mth.clamp(currentBowPoseTimer * 1.75F, 0, 1));
+            float bowPullAmount = AnimCurveUtils.linearToEaseInOutWeight(currentBowPullTimer, 1);
             float bowHandednessReverser = (holdingBowInRightHand ? 1 : -1);
 
             ModelPart bowMainArm = holdingBowInRightHand ? this.rightArm : this.leftArm;
@@ -766,9 +756,9 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
             // Firing knockback
             if(!usingBow){
-                float armMovementAmount = AnimCurveUtils.LinearToEaseInOutWeight(Mth.clamp(currentBowPoseTimer * 2F - 1.25F, 0, 1), 1);
-                float bodyMovementAmount = AnimCurveUtils.LinearToEaseInOutWeight(Mth.clamp(currentBowPoseTimer * 2F - 1F, 0, 1), 1);
-                float headMovementAmount = AnimCurveUtils.LinearToEaseInOutWeight(Mth.clamp(currentBowPoseTimer * 2F - 0.9F, 0, 1), 1);
+                float armMovementAmount = AnimCurveUtils.linearToEaseInOutWeight(Mth.clamp(currentBowPoseTimer * 2F - 1.25F, 0, 1), 1);
+                float bodyMovementAmount = AnimCurveUtils.linearToEaseInOutWeight(Mth.clamp(currentBowPoseTimer * 2F - 1F, 0, 1), 1);
+                float headMovementAmount = AnimCurveUtils.linearToEaseInOutWeight(Mth.clamp(currentBowPoseTimer * 2F - 0.9F, 0, 1), 1);
 
                 for(ModelPart part : partListBody){
                     part.x += 2 * bodyMovementAmount * bowHandednessReverser;
@@ -828,16 +818,16 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             ModelPart spearOffLeg = !holdingSpearInRightHand ? this.rightLeg : this.leftLeg;
             float spearHandednessReverser = holdingSpearInRightHand ? 1 : -1;
 
-            float spearRaiseCurve = AnimCurveUtils.LinearToEaseInOut(currentSpearPoseTimer);
-            float spearThrowCurve = (float) Math.pow(AnimCurveUtils.LinearToEaseCondition(currentSpearPoseTimer, false), 2);
+            float spearRaiseCurve = AnimCurveUtils.linearToEaseInOutQuadratic(currentSpearPoseTimer);
+            float spearThrowCurve = (float) Math.pow(AnimCurveUtils.linearToEaseCondition(currentSpearPoseTimer, false), 2);
             float mainArmRotation = usingSpear ? spearRaiseCurve : spearThrowCurve;
-            float mainArmPosition = Mth.lerp(mainArmRotation, -2, 3) * (currentSpearPoseTimer < 0.5 ? AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 2) : 1);
+            float mainArmPosition = Mth.lerp(mainArmRotation, -2, 3) * (currentSpearPoseTimer < 0.5 ? AnimCurveUtils.linearToEaseInOutWeight(currentSpearPoseTimer, 2) : 1);
 
-            float bodyThrowForwardCurve = AnimCurveUtils.LinearToEaseInOut(Mth.clamp(currentSpearPoseTimer * 1.25F - 0.25F, 0, 1)) - AnimCurveUtils.LinearToEaseInOutWeight(Mth.clamp(currentSpearPoseTimer * 1.25F - 0.25F, 0, 1), 1) * 0.75F;
-            float bodyThrowForwardSecondaryCurve = AnimCurveUtils.LinearToEaseInOut(currentSpearPoseTimer) - AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 1) * 0.5F;
+            float bodyThrowForwardCurve = AnimCurveUtils.linearToEaseInOutQuadratic(Mth.clamp(currentSpearPoseTimer * 1.25F - 0.25F, 0, 1)) - AnimCurveUtils.linearToEaseInOutWeight(Mth.clamp(currentSpearPoseTimer * 1.25F - 0.25F, 0, 1), 1) * 0.75F;
+            float bodyThrowForwardSecondaryCurve = AnimCurveUtils.linearToEaseInOutQuadratic(currentSpearPoseTimer) - AnimCurveUtils.linearToEaseInOutWeight(currentSpearPoseTimer, 1) * 0.5F;
             float bodyPositionCurve = usingSpear ? spearRaiseCurve : bodyThrowForwardCurve;
             float bodySecondaryPositionCurve = usingSpear ? spearRaiseCurve : bodyThrowForwardSecondaryCurve;
-            float bodyLiftCurve = AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 1);
+            float bodyLiftCurve = AnimCurveUtils.linearToEaseInOutWeight(currentSpearPoseTimer, 1);
 
             spearMainArm.z += mainArmPosition;
             spearMainArm.xRot -= mainArmRotation * Mth.HALF_PI * 2.4F;
@@ -845,7 +835,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             spearOffArm.xRot += bodySecondaryPositionCurve * Mth.HALF_PI * -0.9F;
             spearOffArm.yRot += spearRaiseCurve * Mth.HALF_PI * -0.2F * spearHandednessReverser;
             spearOffArm.zRot += spearRaiseCurve * Mth.HALF_PI * -0.2F * spearHandednessReverser;
-            spearMainLeg.y += usingSpear ? AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 1) * -2 : AnimCurveUtils.LinearToEaseInOutWeight(Mth.clamp(currentSpearPoseTimer * 2 - 1, 0, 1), 1) * -1;
+            spearMainLeg.y += usingSpear ? AnimCurveUtils.linearToEaseInOutWeight(currentSpearPoseTimer, 1) * -2 : AnimCurveUtils.linearToEaseInOutWeight(Mth.clamp(currentSpearPoseTimer * 2 - 1, 0, 1), 1) * -1;
             spearMainLeg.z += (usingSpear ? spearRaiseCurve : bodyThrowForwardSecondaryCurve) * 6;
             spearMainLeg.xRot += (usingSpear ? spearRaiseCurve : bodyThrowForwardSecondaryCurve) * Mth.HALF_PI / 6;
             spearOffLeg.z += (usingSpear ? spearRaiseCurve : bodyThrowForwardSecondaryCurve) * 3.5;
@@ -857,7 +847,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             for(ModelPart part : partListBody){
                 part.z += bodyPositionCurve * 6;
                 if(!usingSpear){
-                    part.y += AnimCurveUtils.LinearToInOutFollowThrough(1 - currentSpearPoseTimer) * -0.5 * AnimCurveUtils.LinearToEaseInOutWeight(currentSpearPoseTimer, 2);
+                    part.y += AnimCurveUtils.linearToInOutInQuadratic(1 - currentSpearPoseTimer) * -0.5 * AnimCurveUtils.linearToEaseInOutWeight(currentSpearPoseTimer, 2);
                 } else {
                     part.y += bodyLiftCurve * -0.5;
                 }

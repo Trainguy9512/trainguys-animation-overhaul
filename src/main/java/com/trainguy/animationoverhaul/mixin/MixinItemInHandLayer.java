@@ -6,16 +6,9 @@ import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.util.AnimCurveUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.loader.util.sat4j.core.Vec;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.ArmedModel;
-import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
@@ -23,7 +16,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -45,7 +37,7 @@ public class MixinItemInHandLayer {
             float entityAttackAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("attackAmount");
             float entityShieldPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("shieldPoseAmount");
             float inOutSine = Mth.sin(entityAttackAmount * Mth.PI * 4 - Mth.PI / 2) * 0.5F + 0.5F;
-            float entityAttackWeight = AnimCurveUtils.LinearToEaseInOutWeight(entityAttackAmount, 2) * (1 - entityShieldPoseAmount);
+            float entityAttackWeight = AnimCurveUtils.linearToEaseInOutWeight(entityAttackAmount, 2) * (1 - entityShieldPoseAmount);
             poseStack.mulPose(Vector3f.XP.rotationDegrees(-90 * entityAttackWeight));
             poseStack.mulPose(Vector3f.YP.rotationDegrees(90 * entityAttackWeight));
             poseStack.mulPose(Vector3f.XP.rotationDegrees(10 * entityAttackWeight));
@@ -80,7 +72,7 @@ public class MixinItemInHandLayer {
         float handednessReverser = humanoidArm == HumanoidArm.RIGHT ? 1 : -1;
         float entityShieldPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationVariable("shieldPoseAmount");
         if(entityShieldPoseAmount > 0 && itemStack.getItem() == Items.SHIELD && interactionArm == humanoidArm){
-            float shieldPoseAmount = AnimCurveUtils.LinearToEaseInOut(entityShieldPoseAmount);
+            float shieldPoseAmount = AnimCurveUtils.linearToEaseInOutQuadratic(entityShieldPoseAmount);
             if(humanoidArm == HumanoidArm.LEFT){
                 poseStack.mulPose(Vector3f.XP.rotationDegrees(45 * shieldPoseAmount));
                 poseStack.mulPose(Vector3f.YP.rotationDegrees(-45 * shieldPoseAmount));
@@ -95,7 +87,7 @@ public class MixinItemInHandLayer {
 
         float spearPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("spearPoseAmount");
         if(spearPoseTimer > 0 && itemStack.getItem() == Items.TRIDENT && interactionArm == humanoidArm){
-            float spearSpinWeight = AnimCurveUtils.LinearToEaseInOut(Mth.clamp(2.5F * spearPoseTimer - 0.75F, 0, 1));
+            float spearSpinWeight = AnimCurveUtils.linearToEaseInOutQuadratic(Mth.clamp(2.5F * spearPoseTimer - 0.75F, 0, 1));
             poseStack.mulPose(Vector3f.ZP.rotationDegrees(spearSpinWeight * -180 * handednessReverser));
         }
     }

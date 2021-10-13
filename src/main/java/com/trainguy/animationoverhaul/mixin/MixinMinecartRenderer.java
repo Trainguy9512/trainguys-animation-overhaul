@@ -2,7 +2,6 @@ package com.trainguy.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Vector3f;
 import com.trainguy.animationoverhaul.access.AbstractMinecartAccess;
 import com.trainguy.animationoverhaul.util.AnimCurveUtils;
@@ -11,24 +10,15 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.MinecartRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
-import net.minecraft.world.level.block.BaseRailBlock;
-import net.minecraft.world.level.block.RailBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.RailShape;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -108,7 +98,7 @@ public abstract class MixinMinecartRenderer<T extends AbstractMinecart> extends 
             minecartTrackBumpAmount = 1;
         }
         ((AbstractMinecartAccess)abstractMinecart).setAnimationVariable("trackBumpAmount", minecartTrackBumpAmount);
-        minecartTrackBumpAmount = AnimCurveUtils.LinearToEaseInOutWeight(minecartTrackBumpAmount, 2) + 0.2F;
+        minecartTrackBumpAmount = AnimCurveUtils.linearToEaseInOutWeight(minecartTrackBumpAmount, 2) + 0.2F;
         minecartTrackBumpAmount *= minecartSpeedWeight;
 
         float tickFrame = abstractMinecart.tickCount + g;

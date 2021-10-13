@@ -2,6 +2,8 @@ package com.trainguy.animationoverhaul;
 
 import com.mojang.brigadier.LiteralMessage;
 import com.trainguy.animationoverhaul.commands.DebugCommands;
+import com.trainguy.animationoverhaul.util.AnimCurve;
+import com.trainguy.animationoverhaul.util.CubicBezier;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.command.v1.ClientCommandManager;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
@@ -17,6 +19,30 @@ public class AnimationOverhaul implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {if (!dedicated) {DebugCommands.registerDebugCommands(dispatcher);}});
+		//CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {if (!dedicated) {DebugCommands.registerDebugCommands(dispatcher);}});
+		AnimCurve animCurve = new AnimCurve(3);
+		//CubicBezier bezier = new CubicBezier(0, 0, 1, 1F);
+		CubicBezier bezier = new CubicBezier(0.34F, 0, 0.06F, 1);
+		System.out.println(
+				"\n" +
+				animCurve.setValue(0).oscillate(3, 0.1F).getValue() + "\n" +
+				animCurve.setValue(1F).oscillate(3, 0.1F).getValue() + "\n" +
+				animCurve.setValue(2F).oscillate(3, 0.1F).getValue() + "\n" +
+				animCurve.setValue(3F).oscillate(3, 0.1F).getValue() + "\n" +
+				"repeat" + "\n" +
+				animCurve.setValue(0).repeat(1).getValue() + "\n" +
+				animCurve.setValue(0.25F).repeat(1).getValue() + "\n" +
+				animCurve.setValue(0.5F).repeat(1).getValue() + "\n" +
+				animCurve.setValue(0.75F).repeat(1).getValue() + "\n" +
+				animCurve.setValue(1F).repeat(1).getValue() + "\n" +
+				animCurve.setValue(1.25F).repeat(1).getValue() + "\n" +
+				"bezier" + "\n" +
+				bezier.getValue(0) + "\n" +
+				bezier.getValue(0.25F) + "\n" +
+				bezier.getValue(0.5F) + "\n" +
+				bezier.getValue(0.75F) + "\n" +
+				bezier.getValue(1) + "\n"
+		);
+
 	}
 }

@@ -32,7 +32,7 @@ public class CommandModifyParameter {
     public static int run(CommandContext<CommandSourceStack> context, Collection<? extends Entity> targetedEntities, CommandModifyParameter.Parameter parameter, float value, boolean clear) throws CommandSyntaxException {
         for(Entity entity : targetedEntities){
             if(entity.isAlive()){
-                ((LivingEntityAccess)entity).setDebugValues(parameter, value, clear);
+                //((LivingEntityAccess)entity).setDebugValues(parameter, value, clear);
             }
         }
         if(clear){
