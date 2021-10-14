@@ -130,50 +130,50 @@ public abstract class Easing {
             return new CubicBezier(0.37F, 0, 0.63F, 1);
         }
         public static CubicBezier bezierInSine(){
-            return new CubicBezier(0.12F, 0, 0.39F, 1);
+            return new CubicBezier(0.12F, 0, 0.39F, 0);
         }
         public static CubicBezier bezierOutSine(){
-            return new CubicBezier(0.61F, 0, 0.88F, 1);
+            return new CubicBezier(0.61F, 1, 0.88F, 1);
         }
 
         public static CubicBezier bezierInOutQuad(){
             return new CubicBezier(0.45F, 0, 0.55F, 1);
         }
         public static CubicBezier bezierInQuad(){
-            return new CubicBezier(0.11F, 0, 0.5F, 1);
+            return new CubicBezier(0.11F, 0, 0.5F, 0);
         }
         public static CubicBezier bezierOutQuad(){
-            return new CubicBezier(0.5F, 0, 0.89F, 1);
+            return new CubicBezier(0.5F, 1, 0.89F, 1);
         }
 
         public static CubicBezier bezierInOutCubic(){
             return new CubicBezier(0.65F, 0, 0.35F, 1);
         }
         public static CubicBezier bezierInCubic(){
-            return new CubicBezier(0.32F, 0, 0.67F, 1);
+            return new CubicBezier(0.32F, 0, 0.67F, 0);
         }
         public static CubicBezier bezierOutCubic(){
-            return new CubicBezier(0.33F, 0, 0.68F, 1);
+            return new CubicBezier(0.33F, 1, 0.68F, 1);
         }
 
         public static CubicBezier bezierInOutQuart(){
             return new CubicBezier(0.76F, 0, 0.24F, 1);
         }
         public static CubicBezier bezierInQuart(){
-            return new CubicBezier(0.5F, 0, 0.75F, 1);
+            return new CubicBezier(0.5F, 0, 0.75F, 0);
         }
         public static CubicBezier bezierOutQuart(){
-            return new CubicBezier(0.25F, 0, 0.5F, 1);
+            return new CubicBezier(0.25F, 1, 0.5F, 1);
         }
 
         public static CubicBezier bezierInOutQuint(){
             return new CubicBezier(0.83F, 0, 0.17F, 1);
         }
         public static CubicBezier bezierInQuint(){
-            return new CubicBezier(0.64F, 0, 0.78F, 1);
+            return new CubicBezier(0.64F, 0, 0.78F, 0);
         }
         public static CubicBezier bezierOutQuint(){
-            return new CubicBezier(0.22F, 0, 0.36F, 1);
+            return new CubicBezier(0.22F, 1, 0.36F, 1);
         }
 
         public static CubicBezier bezierInOutCirc(){

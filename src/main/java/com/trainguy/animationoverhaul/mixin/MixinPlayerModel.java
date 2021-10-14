@@ -38,20 +38,15 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     @Shadow @Final public ModelPart jacket;
     @Shadow @Final private ModelPart cloak;
 
-    private final List<ModelPart> partListAll = Arrays.asList(this.rightArm, this.leftArm, this.body, this.head, this.rightLeg, this.leftLeg);
-    private final List<ModelPart> partListBody = Arrays.asList(this.rightArm, this.leftArm, this.body, this.head);
-    private final List<ModelPart> partListArms = Arrays.asList(this.rightArm, this.leftArm);
-    private final List<ModelPart> partListLegs = Arrays.asList(this.rightLeg, this.leftLeg);
-
     private static final Timeline<Float> crouchDownAnimation =
             Timeline.floatTimeline()
                     .addKeyframe(0, 0F)
-                    .addKeyframe(1, 1F, Easing.CubicBezier.bezierOutCubic());
+                    .addKeyframe(1, 1F, new Easing.CubicBezier(0.4F, 1.52F, 0.74F, 1));
 
     private static final Timeline<Float> crouchUpAnimation =
             Timeline.floatTimeline()
                     .addKeyframe(0, 0F)
-                    .addKeyframe(1, 1F, Easing.CubicBezier.bezierInCubic());
+                    .addKeyframe(1, 1F, Easing.CubicBezier.bezierInOutCubic());
 
     public MixinPlayerModel(ModelPart modelPart) {
         super(modelPart);
@@ -83,13 +78,42 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         setupVariables(livingEntity, delta, movementSpeed);
         setupBasePose(livingEntity, (float) Math.toRadians(headXRot), (float) Math.toRadians(headYRot));
 
-
-
         ci.cancel();
     }
 
-    public void initPartTransforms(){
-        for(ModelPart part : partListAll){
+    private List<ModelPart> getPartListAll(){
+        return Arrays.asList(this.rightArm, this.leftArm, this.body, this.head, this.rightLeg, this.leftLeg);
+    }
+    private List<ModelPart> getPartListBody(){
+        return Arrays.asList(this.rightArm, this.leftArm, this.body, this.head);
+    }
+    private List<ModelPart> getPartListArms(){
+        return Arrays.asList(this.rightArm, this.leftArm);
+    }
+    private List<ModelPart> getPartListLegs(){
+        return Arrays.asList(this.rightLeg, this.leftLeg);
+    }
+
+    private float getCrouchWeight(T livingEntity){
+        float crouchTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
+        return livingEntity.isCrouching() ? crouchDownAnimation.getValueAt(crouchTimer) : crouchUpAnimation.getValueAt(crouchTimer);
+    }
+
+    private void setupBasePose(T livingEntity, float headXRot, float headYRot){
+        initPartTransforms();
+
+        float crouchWeight = getCrouchWeight(livingEntity);
+
+        this.head.xRot = headXRot;
+        this.head.yRot = headYRot;
+        for(ModelPart part : getPartListBody()){
+            part.z += (float) Math.toDegrees(headXRot) * -0.05F * (1 - crouchWeight);
+        }
+        this.body.xRot = headXRot * 0.25F * (1 - crouchWeight);
+    }
+
+    private void initPartTransforms(){
+        for(ModelPart part : getPartListAll()){
             part.setPos(0, 0, 0);
             part.setRotation(0, 0, 0);
         }
@@ -197,7 +221,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         // Crouch variable
         float previousCrouchTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
-        float currentCrouchTimer = livingEntity.isCrouching() ? Mth.clamp(previousCrouchTimer + 0.1F, 0.0F, 1.0F) : Mth.clamp(previousCrouchTimer - 0.1F, 0.0F, 1.0F);
+        float currentCrouchTimer = Mth.clamp(previousCrouchTimer + (livingEntity.isCrouching() ? 0.25F : -0.3F) * delta, 0, 1);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("crouchAmount", currentCrouchTimer);
 
         // Spear (Trident) pose variable
@@ -245,22 +269,5 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         }
         float currentDirectionShift = previousDirectionShift;
         ((LivingEntityAccess)livingEntity).setAnimationVariable("directionAmount", previousDirectionShift);
-    }
-
-    private float getCrouchWeight(T livingEntity){
-        float crouchTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
-        return livingEntity.isCrouching() ? crouchDownAnimation.getValueAt(crouchTimer) : crouchUpAnimation.getValueAt(crouchTimer);
-    }
-
-    private void setupBasePose(T livingEntity, float headXRot, float headYRot){
-        initPartTransforms();
-
-        float crouchWeight = getCrouchWeight(livingEntity);
-
-        this.head.z = (float) Math.toDegrees(headXRot) * -0.05F * (1 - crouchWeight);
-        this.body.z = (float) Math.toDegrees(headXRot) * -0.05F * (1 - crouchWeight);
-        this.rightArm.z += (float) Math.toDegrees(headXRot) * -0.05F * (1 - crouchWeight);
-        this.leftArm.z += (float) Math.toDegrees(headXRot) * -0.05F * (1 - crouchWeight);
-        this.body.xRot = headXRot * 0.25F * (1 - crouchWeight);
     }
 }
