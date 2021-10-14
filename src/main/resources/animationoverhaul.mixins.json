@@ -18,6 +18,7 @@
     "MixinMinecartRenderer",
     "MixinPlayerModel",
     "MixinPlayerRenderer",
+    "MixinPhantomModel"
   ],
   "injectors": {
     "defaultRequire": 1
