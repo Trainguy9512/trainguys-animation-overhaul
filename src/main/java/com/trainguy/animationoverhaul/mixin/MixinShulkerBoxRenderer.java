@@ -67,7 +67,7 @@ public class MixinShulkerBoxRenderer {
 
         float openAmountEased = this.openEasing.ease(openAmount);
 
-        // will be bumped to somewhere between 1280 and 270   by the continuous rotation
+        // will be bumped to somewhere between 1280 and 270 by the continuous rotation
         float openRotation = 180f * openAmountEased * 0.017453292F;
 
         float lidOpenHeight = Mth.lerp(openAmountEased, 24f, 16f);
