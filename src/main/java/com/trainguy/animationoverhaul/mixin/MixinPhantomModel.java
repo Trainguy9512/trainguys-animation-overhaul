@@ -39,25 +39,18 @@ public class MixinPhantomModel<T extends Phantom> {
     private ModelPart tailTip;
 
 
-    private static final Timeline<Float> wingBaseAnimation = Timeline.floatTimeline()
-            .addKeyframe(0.0f, -0.27925267815589905f)
-            .addKeyframe(25.0f, 0.27925267815589905f, new Easing.CubicBezier(0.3620256805419922f, 0.0f, 0.41991233825683594f, 1.0f))
-            .addKeyframe(60.0f, -0.27925267815589905f, new Easing.CubicBezier(0.33333336966378346f, -0.0f, 0.6666666303362165f, 1.0f));
+    private static final Timeline<Float> wingBaseAnimation =Timeline.floatTimeline()
+            .addKeyframe(0.0f, -0.3698377013206482f)
+            .addKeyframe(25.0f, 0.3319567143917084f, new Easing.CubicBezier(0.3620256805419922f, 0.0f, 0.3892283630371094f, 0.9190726741231952f))
+            .addKeyframe(98.0f, -0.3698377013206482f, new Easing.CubicBezier(0.35406494140625f, -0.13698785980974518f, 0.3826091191540026f, 1.0f))
+            ;
 
 
     private static final Timeline<Float> wingTipAnimation = Timeline.floatTimeline()
-            .addKeyframe(0.0f, -0.15242473781108856f)
-            .addKeyframe(14.0f, -0.39576929807662964f, new Easing.CubicBezier(0.2262556893484933f, 0.6213717372019372f, 0.6666667120797294f, 1.0f))
-            .addKeyframe(34.0f, 0.09340483695268631f, new Easing.CubicBezier(0.33333330154418944f, 0.0f, 0.8417762756347656f, 0.7785819695767815f))
-            .addKeyframe(47.0f, 0.1707504242658615f, new Easing.CubicBezier(0.17936295729417068f, 1.0318473417537886f, 0.7163332425631009f, 1.9879443980622955f))
-            .addKeyframe(59.0f, -0.15242473781108856f, new Easing.CubicBezier(0.26340484619140625f, 0.20266712553966684f, 0.7642974853515625f, 0.8272092784563276f));
-
-    private static final Timeline<Float> wingTipTiltAnimation = Timeline.floatTimeline()
-            .addKeyframe(0.0f, -0.15242473781108856f)
-            .addKeyframe(14.0f, -0.39576929807662964f, new Easing.CubicBezier(0.2262556893484933f, 0.6213717372019372f, 0.6666667120797294f, 1.0f))
-            .addKeyframe(34.0f, 0.09340483695268631f, new Easing.CubicBezier(0.33333330154418944f, 0.0f, 0.8417762756347656f, 0.7785819695767815f))
-            .addKeyframe(47.0f, 0.1707504242658615f, new Easing.CubicBezier(0.17936295729417068f, 1.0318473417537886f, 0.7163332425631009f, 1.9879443980622955f))
-            .addKeyframe(59.0f, -0.15242473781108856f, new Easing.CubicBezier(0.26340484619140625f, 0.20266712553966684f, 0.7642974853515625f, 0.8272092784563276f))
+            .addKeyframe(0.0f, -0.05195769667625427f)
+            .addKeyframe(12.0f, -0.32330122590065f, new Easing.CubicBezier(0.3401377995808919f, 0.14794764902559954f, 0.6338165203730265f, 0.8812431231162363f))
+            .addKeyframe(48.0f, 0.16422587633132935f, new Easing.CubicBezier(0.2930042478773329f, -0.15866308406630236f, 0.44386185540093315f, 0.7251273099718529f))
+            .addKeyframe(99.0f, -0.05195769667625427f, new Easing.CubicBezier(0.4333316578584559f, -0.6842472832264279f, 0.9405667174096201f, 0.8838679502398498f))
             ;
 
     /**
@@ -69,11 +62,9 @@ public class MixinPhantomModel<T extends Phantom> {
 
         this.leftWingBase.zRot = wingBaseAnimation.getValueAt((k / 4.5f) % 1);
         this.leftWingTip.zRot = wingTipAnimation.getValueAt((k / 4.5f) % 1);
-        this.leftWingTip.xRot = -wingTipTiltAnimation.getValueAt((k / 4.5f) % 1) * 0.75f;
 
         this.rightWingBase.zRot = -this.leftWingBase.zRot;
         this.rightWingTip.zRot = -this.leftWingTip.zRot;
-        this.rightWingTip.xRot = this.leftWingTip.xRot;
         this.tailBase.xRot = -(5.0F + Mth.cos(k * 2.0F) * 5.0F) * 0.017453292F;
         this.tailTip.xRot = -(5.0F + Mth.cos(k * 2.0F) * 5.0F) * 0.017453292F;
     }
