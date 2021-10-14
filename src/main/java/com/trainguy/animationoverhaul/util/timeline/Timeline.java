@@ -15,13 +15,13 @@ public class Timeline<T> {
         var firstKeyframe = keyframes.floorEntry(time);
         var secondKeyframe = keyframes.ceilingEntry(time);
 
-        //same frame
-        if (firstKeyframe.getKey().equals(secondKeyframe.getKey()))
-            return firstKeyframe.getValue().getValue();
-
         if (firstKeyframe == null)
             return secondKeyframe.getValue().getValue();
         if (secondKeyframe == null)
+            return firstKeyframe.getValue().getValue();
+
+        //same frame
+        if (firstKeyframe.getKey().equals(secondKeyframe.getKey()))
             return firstKeyframe.getValue().getValue();
 
 
