@@ -11,8 +11,10 @@ public class AnimCurve {
     }
 
     public AnimCurve oscillate(float period, float offset){
-        this.time = 1 - (Math.abs(getRepeatValue(this.time, period, offset) - 0.5F) * 2F);
-        this.isIncreasing = Math.sin(this.time * Mth.PI * 2 - offset * Mth.PI * 2) > 0;
+        float repeatValue = getRepeatValue(this.time, period, offset);
+        this.time = 1 - (Math.abs(repeatValue - 0.5F) * 2F);
+        this.isIncreasing = repeatValue < 0.5;
+        //System.out.println(this.time + " " + isIncreasing);
         return this;
     }
 
@@ -41,6 +43,28 @@ public class AnimCurve {
         return this;
     }
 
+    /*
+    public AnimCurve applyCurve(CubicBezier bezier){
+        this.time = bezier.getValue(this.time);
+        return this;
+    }
+
+    public AnimCurve applyCurve(CubicBezier bezier1, CubicBezier bezier2){
+        //this.time = this.time < 0.5 ? bezier1.getValue(this.time * 2) * 0.5F : bezier2.getValue(this.time * 2 - 1) * 0.5F + 0.5F;
+        return this;
+    }
+
+    public AnimCurve applyOscillateCurve(CubicBezier increasingBezier, CubicBezier decreasingBezier){
+        if(isIncreasing){
+            this.time = increasingBezier.getValue(this.time);
+        } else {
+            this.time = decreasingBezier.getValue(this.time);
+        }
+        return this;
+    }
+
+     */
+
     public AnimCurve setValue(float value){
         this.time = value;
         return this;
@@ -50,7 +74,7 @@ public class AnimCurve {
         return this.time;
     }
 
-    private float getRepeatValue(float time, float period, float offset){
-        return ((time - offset * period) % period) / period;
+    private static float getRepeatValue(float time, float period, float offset){
+        return ((time + offset * period) % period) / period;
     }
 }

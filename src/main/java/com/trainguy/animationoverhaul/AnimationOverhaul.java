@@ -1,14 +1,6 @@
 package com.trainguy.animationoverhaul;
 
-import com.mojang.brigadier.LiteralMessage;
-import com.trainguy.animationoverhaul.commands.DebugCommands;
-import com.trainguy.animationoverhaul.util.AnimCurve;
-import com.trainguy.animationoverhaul.util.CubicBezier;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.command.v1.ClientCommandManager;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,6 +12,12 @@ public class AnimationOverhaul implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		//CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {if (!dedicated) {DebugCommands.registerDebugCommands(dispatcher);}});
+
+
+		/*
+
+		bezier debug stuff
+
 		AnimCurve animCurve = new AnimCurve(3);
 		//CubicBezier bezier = new CubicBezier(0, 0, 1, 1F);
 		CubicBezier bezier = new CubicBezier(0.34F, 0, 0.06F, 1);
@@ -43,6 +41,8 @@ public class AnimationOverhaul implements ModInitializer {
 				bezier.getValue(0.75F) + "\n" +
 				bezier.getValue(1) + "\n"
 		);
+
+		 */
 
 	}
 }

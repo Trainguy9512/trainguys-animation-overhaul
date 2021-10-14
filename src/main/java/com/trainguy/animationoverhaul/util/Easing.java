@@ -118,6 +118,73 @@ public abstract class Easing {
         public float ease(float time) {
             return solve(time, 0.01f);
         }
+
+        public static CubicBezier getInverseBezier(float p1x, float p1y, float p2x, float p2y){
+            return new CubicBezier(1 - p2x, 1 - p2y, 1 - p1x, 1 - p1y);
+        }
+
+        // Preset cubic beziers
+        // https://easings.net/
+
+        public static CubicBezier bezierInOutSine(){
+            return new CubicBezier(0.37F, 0, 0.63F, 1);
+        }
+        public static CubicBezier bezierInSine(){
+            return new CubicBezier(0.12F, 0, 0.39F, 1);
+        }
+        public static CubicBezier bezierOutSine(){
+            return new CubicBezier(0.61F, 0, 0.88F, 1);
+        }
+
+        public static CubicBezier bezierInOutQuad(){
+            return new CubicBezier(0.45F, 0, 0.55F, 1);
+        }
+        public static CubicBezier bezierInQuad(){
+            return new CubicBezier(0.11F, 0, 0.5F, 1);
+        }
+        public static CubicBezier bezierOutQuad(){
+            return new CubicBezier(0.5F, 0, 0.89F, 1);
+        }
+
+        public static CubicBezier bezierInOutCubic(){
+            return new CubicBezier(0.65F, 0, 0.35F, 1);
+        }
+        public static CubicBezier bezierInCubic(){
+            return new CubicBezier(0.32F, 0, 0.67F, 1);
+        }
+        public static CubicBezier bezierOutCubic(){
+            return new CubicBezier(0.33F, 0, 0.68F, 1);
+        }
+
+        public static CubicBezier bezierInOutQuart(){
+            return new CubicBezier(0.76F, 0, 0.24F, 1);
+        }
+        public static CubicBezier bezierInQuart(){
+            return new CubicBezier(0.5F, 0, 0.75F, 1);
+        }
+        public static CubicBezier bezierOutQuart(){
+            return new CubicBezier(0.25F, 0, 0.5F, 1);
+        }
+
+        public static CubicBezier bezierInOutQuint(){
+            return new CubicBezier(0.83F, 0, 0.17F, 1);
+        }
+        public static CubicBezier bezierInQuint(){
+            return new CubicBezier(0.64F, 0, 0.78F, 1);
+        }
+        public static CubicBezier bezierOutQuint(){
+            return new CubicBezier(0.22F, 0, 0.36F, 1);
+        }
+
+        public static CubicBezier bezierInOutCirc(){
+            return new CubicBezier(0.85F, 0, 0.15F, 1);
+        }
+        public static CubicBezier bezierInCirc(){
+            return new CubicBezier(0.55F, 0, 1F, 0.45F);
+        }
+        public static CubicBezier bezierOutCirc(){
+            return new CubicBezier(0F, 0.55F, 0.45F, 1);
+        }
     }
 
 }
