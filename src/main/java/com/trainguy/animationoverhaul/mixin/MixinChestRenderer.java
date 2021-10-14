@@ -100,12 +100,21 @@ private static final Timeline<Float> closeAnimation =
     public void render(T blockEntity, float f, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, int brightness) {
         Level level = blockEntity.getLevel();
 
+        //timer
+        float previousTimer = ((BlockEntityAccess)blockEntity).getAnimationVariable("timer");
+        float timer = previousTimer + Minecraft.getInstance().getDeltaFrameTime();
+        ((BlockEntityAccess)blockEntity).setAnimationVariable("timer", timer);
+
+
         BlockState blockState = level != null ? blockEntity.getBlockState() : Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, Direction.SOUTH);
         Block block = blockState.getBlock();
+
 
         if (block instanceof AbstractChestBlock<?> abstractChestBlock) {
             ChestType chestType = blockState.hasProperty(ChestBlock.TYPE) ? blockState.getValue(ChestBlock.TYPE) : ChestType.SINGLE;
             boolean isDoubleChest = chestType != ChestType.SINGLE;
+
+            System.out.println();
 
             poseStack.pushPose();
 

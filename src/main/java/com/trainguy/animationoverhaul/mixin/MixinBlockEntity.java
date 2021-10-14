@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(BlockEntity.class)
 public class MixinBlockEntity implements BlockEntityAccess {
+    public float timer;
     public float chestOpenProgress;
     public float chestCloseProgress;
     public float chestShakeProgress = 1;
@@ -15,6 +16,7 @@ public class MixinBlockEntity implements BlockEntityAccess {
 
     public float getAnimationVariable(String variableType){
         return switch (variableType) {
+            case "timer" -> timer;
             case "chestOpenProgress" -> chestOpenProgress;
             case "chestCloseProgress" -> chestCloseProgress;
             case "chestShakeProgress" -> chestShakeProgress;
@@ -25,6 +27,7 @@ public class MixinBlockEntity implements BlockEntityAccess {
     }
     public void setAnimationVariable(String variableType, float newValue){
         switch (variableType) {
+            case "timer" -> timer = newValue;
             case "chestOpenProgress" -> chestOpenProgress = newValue;
             case "chestCloseProgress" -> chestCloseProgress = newValue;
             case "chestShakeProgress" -> chestShakeProgress = newValue;

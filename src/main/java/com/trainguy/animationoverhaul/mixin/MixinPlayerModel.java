@@ -78,6 +78,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         setupVariables(livingEntity, delta, movementSpeed);
         setupBasePose(livingEntity, (float) Math.toRadians(headXRot), (float) Math.toRadians(headYRot));
 
+        addCrouchPoseLayer(livingEntity);
+
         ci.cancel();
     }
 
@@ -99,6 +101,28 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         return livingEntity.isCrouching() ? crouchDownAnimation.getValueAt(crouchTimer) : crouchUpAnimation.getValueAt(crouchTimer);
     }
 
+    private void addCrouchPoseLayer(T livingEntity){
+        float crouchWeight = getCrouchWeight(livingEntity);
+        if(crouchWeight > 0){
+            this.body.xRot += 0.5F * crouchWeight;
+            this.rightArm.xRot += 0.4F * crouchWeight;
+            this.leftArm.xRot += 0.4F * crouchWeight;
+            this.rightLeg.z += 3.9F * crouchWeight + 0.1F;
+            this.leftLeg.z += 3.9F * crouchWeight + 0.1F;
+            this.rightLeg.y += 0.2F * crouchWeight;
+            this.leftLeg.y += 0.2F * crouchWeight;
+            this.head.y += 4.2F * crouchWeight;
+            this.body.y += 3.2F * crouchWeight;
+            this.leftArm.y += 3.2F * crouchWeight;
+            this.rightArm.y += 3.2F * crouchWeight;
+        }
+        if(livingEntity.isCrouching()){
+            for(ModelPart part : getPartListAll()){
+                part.y -= 2;
+            }
+        }
+    }
+
     private void setupBasePose(T livingEntity, float headXRot, float headYRot){
         initPartTransforms();
 
@@ -106,6 +130,9 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         this.head.xRot = headXRot;
         this.head.yRot = headYRot;
+        if(crouchWeight < 1){
+
+        }
         for(ModelPart part : getPartListBody()){
             part.z += (float) Math.toDegrees(headXRot) * -0.05F * (1 - crouchWeight);
         }
