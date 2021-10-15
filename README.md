@@ -6,7 +6,6 @@ This repository is for various improvements I'm making to Minecraft's entity ani
 ## Current Progress
 
 - Animations done so far:
-    - Nothing yet!
     - Shulker Box
     - Phantom
   
