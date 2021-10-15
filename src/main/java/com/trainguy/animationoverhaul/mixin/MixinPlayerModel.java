@@ -38,15 +38,11 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     @Shadow @Final public ModelPart jacket;
     @Shadow @Final private ModelPart cloak;
 
-    private static final Timeline<Float> crouchDownAnimation =
+    private static final Timeline<Float> crouchWeightAnimation =
             Timeline.floatTimeline()
                     .addKeyframe(0, 0F)
-                    .addKeyframe(1, 1F, new Easing.CubicBezier(0.4F, 1.52F, 0.74F, 1));
-
-    private static final Timeline<Float> crouchUpAnimation =
-            Timeline.floatTimeline()
-                    .addKeyframe(0, 0F)
-                    .addKeyframe(1, 1F, Easing.CubicBezier.bezierInOutCubic());
+                    .addKeyframe(1, 1F, Easing.CubicBezier.bezierOutCubic())
+                    .addKeyframe(2, 0F, Easing.CubicBezier.bezierOutCubic());
 
     public MixinPlayerModel(ModelPart modelPart) {
         super(modelPart);
@@ -75,11 +71,15 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             distanceMoved /= 2;
         }
 
+        // Initial setup
         setupVariables(livingEntity, delta, movementSpeed);
         setupBasePose(livingEntity, (float) Math.toRadians(headXRot), (float) Math.toRadians(headYRot));
 
+        // Animation / pose layers
         addCrouchPoseLayer(livingEntity);
 
+        // Final stuff
+        parentSecondLayerToModel();
         ci.cancel();
     }
 
@@ -98,7 +98,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
     private float getCrouchWeight(T livingEntity){
         float crouchTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
-        return livingEntity.isCrouching() ? crouchDownAnimation.getValueAt(crouchTimer) : crouchUpAnimation.getValueAt(crouchTimer);
+        return livingEntity.isCrouching() ? crouchWeightAnimation.getValueAt(crouchTimer * 0.5F) : crouchWeightAnimation.getValueAt(crouchTimer * -0.5F + 1);
     }
 
     private void addCrouchPoseLayer(T livingEntity){
@@ -152,6 +152,16 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         this.leftLeg.y = 12;
         this.rightLeg.x = -1.95F;
         this.rightLeg.y = 12;
+    }
+
+    private void parentSecondLayerToModel(){
+        // Parent the second layer to the main meshes
+        this.hat.copyFrom(this.head);
+        this.jacket.copyFrom(this.body);
+        this.leftPants.copyFrom(this.leftLeg);
+        this.rightPants.copyFrom(this.rightLeg);
+        this.leftSleeve.copyFrom(this.leftArm);
+        this.rightSleeve.copyFrom(this.rightArm);
     }
 
     private void setupVariables(T livingEntity, float delta, float movementSpeed){

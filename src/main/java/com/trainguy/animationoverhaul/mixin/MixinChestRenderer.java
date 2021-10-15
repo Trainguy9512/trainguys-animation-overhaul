@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.DoubleBlockCombiner.NeighborCombineResult;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LidBlockEntity;
+import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import org.spongepowered.asm.mixin.Final;
