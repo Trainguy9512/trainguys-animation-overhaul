@@ -1,3 +1,4 @@
+
 # Trainguy's Animation Overhaul
 
 This repository is for various improvements I'm making to Minecraft's entity animations, all packed into one 1.17.1 Fabric mod. I try to comment my code the best I can, but if you have any questions, comments, or suggestions my DMs are always open on Discord (trainguy#9512).
@@ -6,8 +7,13 @@ This repository is for various improvements I'm making to Minecraft's entity ani
 
 - Animations done so far:
     - Nothing yet!
+    - Shulker Box
+    - Phantom
+  
 - Animations currently being worked on:
     - Player (this is the most complex one)
+    - Chest
+    
 - Animations planned to come next:
     - Skeleton
     - Zombie
