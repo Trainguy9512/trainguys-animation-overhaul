@@ -40,47 +40,40 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     @Shadow @Final public ModelPart jacket;
     @Shadow @Final private ModelPart cloak;
 
-    private static final Timeline<Float> crouchWeightAnimation =
-            Timeline.floatTimeline()
-                    .addKeyframe(0, 0F)
-                    .addKeyframe(1, 1F, Easing.CubicBezier.bezierOutCubic())
-                    .addKeyframe(2, 0F, Easing.CubicBezier.bezierOutCubic());
+    private static final Timeline<Float> crouchWeightAnimation = Timeline.floatTimeline()
+            .addKeyframe(0, 0F)
+            .addKeyframe(1, 1F, Easing.CubicBezier.bezierOutCubic())
+            .addKeyframe(2, 0F, Easing.CubicBezier.bezierOutCubic());
 
-    private static final Timeline<Float> sprintWeightAnimation =
-            Timeline.floatTimeline()
-                    .addKeyframe(0, 0F)
-                    .addKeyframe(1, 1F, Easing.CubicBezier.bezierInOutQuad());
+    private static final Timeline<Float> sprintWeightAnimation = Timeline.floatTimeline()
+            .addKeyframe(0, 0F)
+            .addKeyframe(1, 1F, Easing.CubicBezier.bezierInOutQuad());
 
-    private static final Timeline<Float> walkLegForwardMovementAnimation =
-            Timeline.floatTimeline()
-                    .addKeyframe(0, -1.5F)
-                    .addKeyframe(12, 1F, new Easing.CubicBezier(0.54F,0.23F,0.52F,1))
-                    .addKeyframe(20, -1.5F, new Easing.CubicBezier(0.48F,0,0.29F,1.64F));
+    private static final Timeline<Float> walkLegForwardMovementAnimation = Timeline.floatTimeline()
+            .addKeyframe(0, -1.5F)
+            .addKeyframe(12, 1F, new Easing.CubicBezier(0.54F,0.23F,0.52F,1))
+            .addKeyframe(20, -1.5F, new Easing.CubicBezier(0.48F,0,0.29F,1.64F));
 
-    private static final Timeline<Float> walkLegLiftMovementAnimation =
-            Timeline.floatTimeline()
-                    .addKeyframe(0, 0F)
-                    .addKeyframe(12, 0F, new Easing.Linear())
-                    .addKeyframe(16, -2F, new Easing.CubicBezier(0.23F, 0, 0.52F, 1))
-                    .addKeyframe(20, 0F, Easing.CubicBezier.bezierInOutQuad());
+    private static final Timeline<Float> walkLegLiftMovementAnimation = Timeline.floatTimeline()
+            .addKeyframe(0, 0F)
+            .addKeyframe(12, 0F, new Easing.Linear())
+            .addKeyframe(16, -2F, new Easing.CubicBezier(0.23F, 0, 0.52F, 1))
+            .addKeyframe(20, 0F, Easing.CubicBezier.bezierInOutQuad());
 
-    private static final Timeline<Float> walkLegRotationAnimation =
-            Timeline.floatTimeline()
-                    .addKeyframe(0, Mth.HALF_PI * -(2/5F))
-                    .addKeyframe(12, Mth.HALF_PI * (2/5F), new Easing.CubicBezier(0.34F, 0, 0.72F, 1))
-                    .addKeyframe(20, Mth.HALF_PI * -(2/5F), new Easing.CubicBezier(0.5F,0,0.66F,1));
+    private static final Timeline<Float> walkLegRotationAnimation = Timeline.floatTimeline()
+            .addKeyframe(0, Mth.HALF_PI * -(2/5F))
+            .addKeyframe(12, Mth.HALF_PI * (2/5F), new Easing.CubicBezier(0.34F, 0, 0.72F, 1))
+            .addKeyframe(20, Mth.HALF_PI * -(2/5F), new Easing.CubicBezier(0.5F,0,0.66F,1));
 
-    private static final Timeline<Float> walkBodyLiftMovementAnimation =
-            Timeline.floatTimeline()
-                    .addKeyframe(0, 0.5F)
-                    .addKeyframe(5, -0.5F, new Easing.CubicBezier(0.3F, 0, 0.3F, 1))
-                    .addKeyframe(10, 0.5F, new Easing.CubicBezier(0.7F, 0, 0.7F, 1));
+    private static final Timeline<Float> walkBodyLiftMovementAnimation = Timeline.floatTimeline()
+            .addKeyframe(0, 0.5F)
+            .addKeyframe(5, -0.5F, new Easing.CubicBezier(0.3F, 0, 0.3F, 1))
+            .addKeyframe(10, 0.5F, new Easing.CubicBezier(0.7F, 0, 0.7F, 1));
 
-    private static final Timeline<Float> walkArmSwingAnimation =
-            Timeline.floatTimeline()
-                    .addKeyframe(0, 1F)
-                    .addKeyframe(10, -1F, Easing.CubicBezier.bezierInOutQuad())
-                    .addKeyframe(20, 1F, Easing.CubicBezier.bezierInOutQuad());
+    private static final Timeline<Float> walkArmSwingAnimation = Timeline.floatTimeline()
+            .addKeyframe(0, 1F)
+            .addKeyframe(10, -1F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(20, 1F, Easing.CubicBezier.bezierInOutQuad());
 
     public MixinPlayerModel(ModelPart modelPart) {
         super(modelPart);
@@ -135,6 +128,11 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         return Arrays.asList(this.rightLeg, this.leftLeg);
     }
 
+    private float getDirectionShift(T livingEntity){
+        float directionShift = ((LivingEntityAccess)livingEntity).getAnimationVariable("directionShift");
+        return Easing.CubicBezier.bezierInOutQuad().ease(directionShift);
+    }
+
     private float getCrouchWeight(T livingEntity){
         float crouchTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchTimer");
         return livingEntity.isCrouching() ? crouchWeightAnimation.getValueAt(crouchTimer * 0.5F) : crouchWeightAnimation.getValueAt(crouchTimer * -0.5F + 1);
@@ -152,20 +150,23 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             float rightLegWalkTimer = new TimerProcessor(distanceMoved).repeat(10, 0.5F).getValue();
             float bodyLiftTimer = new TimerProcessor(distanceMoved).repeat(5, 0.3F).getValue();
 
+            float directionShift = getDirectionShift(livingEntity);
+            float directionShiftMultiplier = Mth.lerp(directionShift, 1, -1);
+            float directionShiftArmMultiplier = Mth.lerp(directionShift, 1, -0.3F);
             float walkingWeight = (1 - sprintWeight) * Math.min(movementSpeed * 3, 1);
             float walkingWeightAffectedBySpeed = (1 - sprintWeight) * Math.min(movementSpeed * 2, 1);
 
-            float leftLegRotation = walkLegRotationAnimation.getValueAt(leftLegWalkTimer) * walkingWeightAffectedBySpeed;
-            float leftLegForwardMovement = walkLegForwardMovementAnimation.getValueAt(leftLegWalkTimer) * walkingWeightAffectedBySpeed;
+            float leftLegRotation = walkLegRotationAnimation.getValueAt(leftLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
+            float leftLegForwardMovement = walkLegForwardMovementAnimation.getValueAt(leftLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
             float leftLegLiftMovement = walkLegLiftMovementAnimation.getValueAt(leftLegWalkTimer) * walkingWeight;
-            float rightLegRotation = walkLegRotationAnimation.getValueAt(rightLegWalkTimer) * walkingWeightAffectedBySpeed;
-            float rightLegForwardMovement = walkLegForwardMovementAnimation.getValueAt(rightLegWalkTimer) * walkingWeightAffectedBySpeed;
+            float rightLegRotation = walkLegRotationAnimation.getValueAt(rightLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
+            float rightLegForwardMovement = walkLegForwardMovementAnimation.getValueAt(rightLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
             float rightLegLiftMovement = walkLegLiftMovementAnimation.getValueAt(rightLegWalkTimer) * walkingWeight;
             float bodyLiftMovement = walkBodyLiftMovementAnimation.getValueAt(bodyLiftTimer) * walkingWeight;
-            float leftArmRotation = walkArmSwingAnimation.getValueAt(leftLegWalkTimer) * (Mth.HALF_PI * 2 / 5F) * walkingWeightAffectedBySpeed;
-            float leftArmForwardMovement = walkArmSwingAnimation.getValueAt(leftLegWalkTimer) * 1 * walkingWeightAffectedBySpeed;
-            float rightArmRotation = walkArmSwingAnimation.getValueAt(rightLegWalkTimer) * (Mth.HALF_PI * 2 / 5F) * walkingWeightAffectedBySpeed;
-            float rightArmForwardMovement = walkArmSwingAnimation.getValueAt(rightLegWalkTimer) * 1 * walkingWeightAffectedBySpeed;
+            float leftArmRotation = walkArmSwingAnimation.getValueAt(leftLegWalkTimer) * (Mth.HALF_PI * 2 / 5F) * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
+            float leftArmForwardMovement = walkArmSwingAnimation.getValueAt(leftLegWalkTimer) * 1 * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
+            float rightArmRotation = walkArmSwingAnimation.getValueAt(rightLegWalkTimer) * (Mth.HALF_PI * 2 / 5F) * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
+            float rightArmForwardMovement = walkArmSwingAnimation.getValueAt(rightLegWalkTimer) * 1 * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
 
             this.leftLeg.xRot += leftLegRotation;
             this.leftLeg.z += leftLegForwardMovement;
@@ -374,21 +375,23 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         ((LivingEntityAccess)livingEntity).setAnimationVariable("inWaterAmount", currentInWaterTimer);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("underWaterAmount", currentUnderWaterTimer);
 
-        float previousDirectionShift = ((LivingEntityAccess)livingEntity).getAnimationVariable("directionAmount");
+        float previousDirectionShift = ((LivingEntityAccess)livingEntity).getAnimationVariable("directionShift");
         float moveAngleX = -Mth.sin(livingEntity.yBodyRot * Mth.PI / 180);
         float moveAngleZ = Mth.cos(livingEntity.yBodyRot * Mth.PI / 180);
 
         if(movementSpeed > 0.01){
-            if(     (moveAngleX >= 0 && livingEntity.getDeltaMovement().x < 0 - 0.02 - movementSpeed * 0.03) ||
+            if(
+                    (moveAngleX >= 0 && livingEntity.getDeltaMovement().x < 0 - 0.02 - movementSpeed * 0.03) ||
                     (moveAngleX <= 0 && livingEntity.getDeltaMovement().x > 0 + 0.02 + movementSpeed * 0.03) ||
                     (moveAngleZ >= 0 && livingEntity.getDeltaMovement().z < 0 - 0.02 - movementSpeed * 0.03) ||
-                    (moveAngleZ <= 0 && livingEntity.getDeltaMovement().z > 0 + 0.02 + movementSpeed * 0.03)){
-                previousDirectionShift = Mth.clamp(previousDirectionShift + 0.25F * delta, 0, 1);
+                    (moveAngleZ <= 0 && livingEntity.getDeltaMovement().z > 0 + 0.02 + movementSpeed * 0.03)
+            ){
+                previousDirectionShift = Mth.clamp(previousDirectionShift + 0.125F * delta, 0, 1);
             } else {
-                previousDirectionShift = Mth.clamp(previousDirectionShift - 0.25F * delta, 0, 1);;
+                previousDirectionShift = Mth.clamp(previousDirectionShift - 0.125F * delta, 0, 1);;
             }
         }
         float currentDirectionShift = previousDirectionShift;
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("directionAmount", previousDirectionShift);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("directionShift", previousDirectionShift);
     }
 }

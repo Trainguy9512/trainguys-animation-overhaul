@@ -228,7 +228,7 @@ public abstract class MixinPlayerModelOld<T extends LivingEntity> extends Humano
         ((LivingEntityAccess)livingEntity).setAnimationVariable("inWaterAmount", currentInWaterTimer);
         ((LivingEntityAccess)livingEntity).setAnimationVariable("underWaterAmount", currentUnderWaterTimer);
 
-        float previousDirectionShift = ((LivingEntityAccess)livingEntity).getAnimationVariable("directionAmount");
+        float previousDirectionShift = ((LivingEntityAccess)livingEntity).getAnimationVariable("directionShift");
         float moveAngleX = -Mth.sin(livingEntity.yBodyRot * Mth.PI / 180);
         float moveAngleZ = Mth.cos(livingEntity.yBodyRot * Mth.PI / 180);
 
@@ -243,7 +243,7 @@ public abstract class MixinPlayerModelOld<T extends LivingEntity> extends Humano
             }
         }
         currentDirectionShift = previousDirectionShift;
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("directionAmount", previousDirectionShift);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("directionShift", previousDirectionShift);
 
         //tick(livingEntity, delta, g);
         // 0.25 crouching
