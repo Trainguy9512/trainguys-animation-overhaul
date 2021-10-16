@@ -27,9 +27,9 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public boolean songPlaying;
     public BlockPos songOrigin = new BlockPos(0, 0, 0);
 
-    public float crouchAmount;
+    public float crouchTimer;
     public float verticalMovementRotation;
-    public float sprintAmount;
+    public float sprintTimer;
     public float inWaterAmount;
     public float underWaterAmount;
     public float eatingAmount;
@@ -70,12 +70,12 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
         return switch (variableType) {
             case "dancingAmount" -> dancingAmount;
             case "dancingFrequency" -> dancingFrequency;
-            case "crouchAmount" -> crouchAmount;
+            case "crouchTimer" -> crouchTimer;
             case "idleAmount" -> idleAmount;
             case "directionAmount" -> directionAmount;
             case "minecartRidingAmount" -> minecartRidingAmount;
             case "battleIdleAmount" -> battleIdleAmount;
-            case "sprintAmount" -> sprintAmount;
+            case "sprintTimer" -> sprintTimer;
             case "inWaterAmount" -> inWaterAmount;
             case "underWaterAmount" -> underWaterAmount;
             case "eatingAmount" -> eatingAmount;
@@ -100,12 +100,12 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
         switch (variableType) {
             case "dancingAmount" -> dancingAmount = newValue;
             case "dancingFrequency" -> dancingFrequency = newValue;
-            case "crouchAmount" -> crouchAmount = newValue;
+            case "crouchTimer" -> crouchTimer = newValue;
             case "idleAmount" -> idleAmount = newValue;
             case "directionAmount" -> directionAmount = newValue;
             case "minecartRidingAmount" -> minecartRidingAmount = newValue;
             case "battleIdleAmount" -> battleIdleAmount = newValue;
-            case "sprintAmount" -> sprintAmount = newValue;
+            case "sprintTimer" -> sprintTimer = newValue;
             case "eatingAmount" -> eatingAmount = newValue;
             case "inWaterAmount" -> inWaterAmount = newValue;
             case "underWaterAmount" -> underWaterAmount = newValue;

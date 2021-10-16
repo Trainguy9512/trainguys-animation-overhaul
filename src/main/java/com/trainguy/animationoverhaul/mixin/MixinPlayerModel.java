@@ -1,9 +1,9 @@
 package com.trainguy.animationoverhaul.mixin;
 
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
-import com.trainguy.animationoverhaul.util.AnimCurve;
 import com.trainguy.animationoverhaul.util.AnimCurveUtils;
 import com.trainguy.animationoverhaul.util.Easing;
+import com.trainguy.animationoverhaul.util.TimerProcessor;
 import com.trainguy.animationoverhaul.util.timeline.Timeline;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -11,18 +11,20 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.CubeDeformation;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Arrays;
@@ -43,6 +45,42 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
                     .addKeyframe(0, 0F)
                     .addKeyframe(1, 1F, Easing.CubicBezier.bezierOutCubic())
                     .addKeyframe(2, 0F, Easing.CubicBezier.bezierOutCubic());
+
+    private static final Timeline<Float> sprintWeightAnimation =
+            Timeline.floatTimeline()
+                    .addKeyframe(0, 0F)
+                    .addKeyframe(1, 1F, Easing.CubicBezier.bezierInOutQuad());
+
+    private static final Timeline<Float> walkLegForwardMovementAnimation =
+            Timeline.floatTimeline()
+                    .addKeyframe(0, -1.5F)
+                    .addKeyframe(12, 1F, new Easing.CubicBezier(0.54F,0.23F,0.52F,1))
+                    .addKeyframe(20, -1.5F, new Easing.CubicBezier(0.48F,0,0.29F,1.64F));
+
+    private static final Timeline<Float> walkLegLiftMovementAnimation =
+            Timeline.floatTimeline()
+                    .addKeyframe(0, 0F)
+                    .addKeyframe(12, 0F, new Easing.Linear())
+                    .addKeyframe(16, -2F, new Easing.CubicBezier(0.23F, 0, 0.52F, 1))
+                    .addKeyframe(20, 0F, Easing.CubicBezier.bezierInOutQuad());
+
+    private static final Timeline<Float> walkLegRotationAnimation =
+            Timeline.floatTimeline()
+                    .addKeyframe(0, Mth.HALF_PI * -(2/5F))
+                    .addKeyframe(12, Mth.HALF_PI * (2/5F), new Easing.CubicBezier(0.34F, 0, 0.72F, 1))
+                    .addKeyframe(20, Mth.HALF_PI * -(2/5F), new Easing.CubicBezier(0.5F,0,0.66F,1));
+
+    private static final Timeline<Float> walkBodyLiftMovementAnimation =
+            Timeline.floatTimeline()
+                    .addKeyframe(0, 0.5F)
+                    .addKeyframe(5, -0.5F, new Easing.CubicBezier(0.3F, 0, 0.3F, 1))
+                    .addKeyframe(10, 0.5F, new Easing.CubicBezier(0.7F, 0, 0.7F, 1));
+
+    private static final Timeline<Float> walkArmSwingAnimation =
+            Timeline.floatTimeline()
+                    .addKeyframe(0, 1F)
+                    .addKeyframe(10, -1F, Easing.CubicBezier.bezierInOutQuad())
+                    .addKeyframe(20, 1F, Easing.CubicBezier.bezierInOutQuad());
 
     public MixinPlayerModel(ModelPart modelPart) {
         super(modelPart);
@@ -76,6 +114,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         setupBasePose(livingEntity, (float) Math.toRadians(headXRot), (float) Math.toRadians(headYRot));
 
         // Animation / pose layers
+        addWalkPoseLayer(livingEntity, distanceMoved, movementSpeed);
         addCrouchPoseLayer(livingEntity);
 
         // Final stuff
@@ -97,8 +136,53 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     }
 
     private float getCrouchWeight(T livingEntity){
-        float crouchTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
+        float crouchTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchTimer");
         return livingEntity.isCrouching() ? crouchWeightAnimation.getValueAt(crouchTimer * 0.5F) : crouchWeightAnimation.getValueAt(crouchTimer * -0.5F + 1);
+    }
+
+    private float getSprintWeight(T livingEntity){
+        float sprintTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("sprintTimer");
+        return sprintWeightAnimation.getValueAt(sprintTimer);
+    }
+
+    private void addWalkPoseLayer(T livingEntity, float distanceMoved, float movementSpeed){
+        float sprintWeight = getSprintWeight(livingEntity);
+        if(sprintWeight < 1){
+            float leftLegWalkTimer = new TimerProcessor(distanceMoved).repeat(10, 0).getValue();
+            float rightLegWalkTimer = new TimerProcessor(distanceMoved).repeat(10, 0.5F).getValue();
+            float bodyLiftTimer = new TimerProcessor(distanceMoved).repeat(5, 0.3F).getValue();
+
+            float walkingWeight = (1 - sprintWeight) * Math.min(movementSpeed * 3, 1);
+            float walkingWeightAffectedBySpeed = (1 - sprintWeight) * Math.min(movementSpeed * 2, 1);
+
+            float leftLegRotation = walkLegRotationAnimation.getValueAt(leftLegWalkTimer) * walkingWeightAffectedBySpeed;
+            float leftLegForwardMovement = walkLegForwardMovementAnimation.getValueAt(leftLegWalkTimer) * walkingWeightAffectedBySpeed;
+            float leftLegLiftMovement = walkLegLiftMovementAnimation.getValueAt(leftLegWalkTimer) * walkingWeight;
+            float rightLegRotation = walkLegRotationAnimation.getValueAt(rightLegWalkTimer) * walkingWeightAffectedBySpeed;
+            float rightLegForwardMovement = walkLegForwardMovementAnimation.getValueAt(rightLegWalkTimer) * walkingWeightAffectedBySpeed;
+            float rightLegLiftMovement = walkLegLiftMovementAnimation.getValueAt(rightLegWalkTimer) * walkingWeight;
+            float bodyLiftMovement = walkBodyLiftMovementAnimation.getValueAt(bodyLiftTimer) * walkingWeight;
+            float leftArmRotation = walkArmSwingAnimation.getValueAt(leftLegWalkTimer) * (Mth.HALF_PI * 2 / 5F) * walkingWeightAffectedBySpeed;
+            float leftArmForwardMovement = walkArmSwingAnimation.getValueAt(leftLegWalkTimer) * 1 * walkingWeightAffectedBySpeed;
+            float rightArmRotation = walkArmSwingAnimation.getValueAt(rightLegWalkTimer) * (Mth.HALF_PI * 2 / 5F) * walkingWeightAffectedBySpeed;
+            float rightArmForwardMovement = walkArmSwingAnimation.getValueAt(rightLegWalkTimer) * 1 * walkingWeightAffectedBySpeed;
+
+            this.leftLeg.xRot += leftLegRotation;
+            this.leftLeg.z += leftLegForwardMovement;
+            this.leftLeg.y += leftLegLiftMovement;
+            this.rightLeg.xRot += rightLegRotation;
+            this.rightLeg.z += rightLegForwardMovement;
+            this.rightLeg.y += rightLegLiftMovement;
+            this.leftArm.xRot += leftArmRotation;
+            this.leftArm.z += leftArmForwardMovement;
+            this.rightArm.xRot += rightArmRotation;
+            this.rightArm.z += rightArmForwardMovement;
+
+            for(ModelPart part : getPartListBody()){
+                part.y += bodyLiftMovement;
+            }
+        }
+
     }
 
     private void addCrouchPoseLayer(T livingEntity){
@@ -257,9 +341,9 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         ((LivingEntityAccess)livingEntity).setAnimationVariable("bowPullAmount", currentBowPullTimer);
 
         // Crouch variable
-        float previousCrouchTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchAmount");
+        float previousCrouchTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("crouchTimer");
         float currentCrouchTimer = Mth.clamp(previousCrouchTimer + (livingEntity.isCrouching() ? 0.25F : -0.3F) * delta, 0, 1);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("crouchAmount", currentCrouchTimer);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("crouchTimer", currentCrouchTimer);
 
         // Spear (Trident) pose variable
         float previousSpearPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("spearPoseAmount");
@@ -275,10 +359,10 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         ((LivingEntityAccess)livingEntity).setAnimationVariable("leftArmCrossbowPoseAmount", currentCrossbowPoseTimer);
 
         // Simple sprint
-        float previousSprintTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("sprintAmount");
-        float currentSprintTimer = movementSpeed > 0.9 ? Mth.clamp(previousSprintTimer + 0.0625F * delta, 0.0F, 1.0F) : Mth.clamp(previousSprintTimer - 0.125F * delta, 0.0F, 1.0F);
+        float previousSprintTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("sprintTimer");
+        float currentSprintTimer = Mth.clamp(previousSprintTimer + (movementSpeed > 0.9 ? 0.0625F : -0.125F) * delta, 0, 1);
         float sprintWeight = AnimCurveUtils.linearToEaseInOutQuadratic(currentSprintTimer);
-        ((LivingEntityAccess)livingEntity).setAnimationVariable("sprintAmount", currentSprintTimer);
+        ((LivingEntityAccess)livingEntity).setAnimationVariable("sprintTimer", currentSprintTimer);
 
         // In water
         float previousInWaterTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("inWaterAmount");

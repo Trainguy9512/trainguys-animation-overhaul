@@ -115,8 +115,6 @@ private static final Timeline<Float> closeAnimation =
             ChestType chestType = blockState.hasProperty(ChestBlock.TYPE) ? blockState.getValue(ChestBlock.TYPE) : ChestType.SINGLE;
             boolean isDoubleChest = chestType != ChestType.SINGLE;
 
-            System.out.println();
-
             poseStack.pushPose();
 
             float rotY = (blockState.getValue(ChestBlock.FACING)).toYRot();
