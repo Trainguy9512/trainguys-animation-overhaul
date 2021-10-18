@@ -11,14 +11,15 @@
     "MixinBlockEntity",
     "MixinChestRenderer",
     "MixinGhastRenderer",
-    "MixinShulkerBoxRenderer",
     "MixinItemInHandLayer",
     "MixinLevelRenderer",
     "MixinLivingEntity",
     "MixinMinecartRenderer",
+    "MixinPhantomModel",
     "MixinPlayerModel",
     "MixinPlayerRenderer",
-    "MixinPhantomModel"
+    "MixinShulkerBoxRenderer",
+    "MixinElytraLayer"
   ],
   "injectors": {
     "defaultRequire": 1
