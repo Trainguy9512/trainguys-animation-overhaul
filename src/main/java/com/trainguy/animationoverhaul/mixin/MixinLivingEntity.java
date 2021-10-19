@@ -2,7 +2,9 @@ package com.trainguy.animationoverhaul.mixin;
 
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.commands.CommandModifyParameter;
+import com.trainguy.animationoverhaul.util.LivingEntityAnimParams;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -15,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,9 +26,16 @@ import java.util.Map;
 public abstract class MixinLivingEntity implements LivingEntityAccess {
     @Shadow public abstract Iterable<ItemStack> getArmorSlots();
 
+    @Shadow public abstract void animateHurt();
+
+    private LivingEntityAnimParams animationParameters;
+    private HashMap<String, Float> animationTimers = new HashMap<String, Float>();
+
+
     public String songName;
     public boolean songPlaying;
     public BlockPos songOrigin = new BlockPos(0, 0, 0);
+
 
     public float crouchTimer;
     public float verticalMovementRotation;
@@ -64,7 +74,10 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public float leftArmSpyglassPoseAmount;
     public float rightArmSpyglassPoseAmount;
 
+
     public String equippedArmor = "";
+
+    //TODO: replace this junk with hash maps! they are better !
 
     public float getAnimationVariable(String variableType){
         return switch (variableType) {
@@ -166,5 +179,29 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     }
     public String getPreviousEquippedArmor(){
         return this.equippedArmor;
+    }
+
+    public void setAnimationParamaters(float animationPosition, float animationSpeed, float tickAtFrame, float tickDifference, float delta, float headYRot, float headXRot){
+        this.animationParameters = new LivingEntityAnimParams(animationPosition, animationSpeed, tickAtFrame, tickDifference, delta, headYRot, headXRot);
+    }
+    public LivingEntityAnimParams getAnimationParameters(){
+        return this.animationParameters;
+    }
+    public void incrementAnimationTimer(String identifier, boolean isIncreasing, float increment, float decrement){
+        incrementAnimationTimer(identifier, isIncreasing, increment, decrement, 0, 1);
+    }
+    public void incrementAnimationTimer(String identifier, boolean isIncreasing, float increment, float decrement, float min, float max){
+        float previousTimerValue = getAnimationTimer(identifier);
+        float delta = animationParameters.getDelta();
+        setAnimationTimer(identifier, Mth.clamp(previousTimerValue + (isIncreasing ? increment * delta : decrement * delta), min, max));
+    }
+    public void setAnimationTimer(String identifier, float value){
+        animationTimers.put(identifier, value);
+    }
+    public float getAnimationTimer(String identifier){
+        if(!animationTimers.containsKey(identifier)){
+            animationTimers.put(identifier, 0F);
+        }
+        return animationTimers.get(identifier);
     }
 }
