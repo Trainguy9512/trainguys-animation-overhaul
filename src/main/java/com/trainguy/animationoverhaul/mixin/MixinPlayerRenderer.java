@@ -3,7 +3,7 @@ package com.trainguy.animationoverhaul.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
-import com.trainguy.animationoverhaul.util.AnimCurveUtils;
+import com.trainguy.animationoverhaul.util.Easing;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.util.Mth;
@@ -34,8 +34,8 @@ public class MixinPlayerRenderer {
         }
         boolean usingBow = abstractClientPlayer.getUseItem().getItem() == Items.BOW;
 
-        float bowAmount = ((LivingEntityAccess)abstractClientPlayer).getAnimationVariable("bowPoseAmount");
-        float bowPoseAmount = AnimCurveUtils.linearToEaseInOutQuadratic(Mth.clamp(usingBow ? bowAmount * 1.5F - 0.5F : bowAmount * 1.5F, 0, 1));
+        float bowAmount = ((LivingEntityAccess)abstractClientPlayer).getAnimationTimer("bow_pose");
+        float bowPoseAmount = Easing.CubicBezier.bezierInOutQuad().ease(Mth.clamp(usingBow ? bowAmount * 1.5F - 0.5F : bowAmount * 1.5F, 0, 1));
         poseStack.mulPose(Vector3f.YP.rotationDegrees((differenceRot + (holdingBowInRightHand ? -70 : 70)) * bowPoseAmount));
 
         // Riding in minecart stuff
@@ -53,7 +53,7 @@ public class MixinPlayerRenderer {
                 poseStack.translate(0.0D, -1, 0);
             }
             poseStack.mulPose(Vector3f.XP.rotationDegrees(oldBodyRotationX));
-            float smoothSwimAmount = AnimCurveUtils.linearToEaseInOutQuadratic(swimAmount);
+            float smoothSwimAmount = Easing.CubicBezier.bezierInOutQuad().ease(swimAmount);
             float bodyRotationX = Mth.lerp(smoothSwimAmount, 0.0F, staticBodyRotationX);
             poseStack.mulPose(Vector3f.XP.rotationDegrees(-bodyRotationX));
             poseStack.translate(0.0D, 1 * smoothSwimAmount, 0F * smoothSwimAmount);

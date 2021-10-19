@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Vector3f;
 import com.trainguy.animationoverhaul.access.AbstractMinecartAccess;
-import com.trainguy.animationoverhaul.util.AnimCurveUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -12,7 +11,6 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MinecartRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.level.block.RenderShape;
@@ -39,6 +37,8 @@ public abstract class MixinMinecartRenderer<T extends AbstractMinecart> extends 
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     public void renderOverride(T abstractMinecart, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
+        //TODO: come back and fix this mess! i made it a while back, and it still has old stuff! not to mention all the spaghetti code that is minecart rendering... sheesh
+
         super.render(abstractMinecart, f, g, poseStack, multiBufferSource, i);
         poseStack.pushPose();
         long l = (long)abstractMinecart.getId() * 493286711L;
@@ -99,7 +99,7 @@ public abstract class MixinMinecartRenderer<T extends AbstractMinecart> extends 
             minecartTrackBumpAmount = 1;
         }
         ((AbstractMinecartAccess)abstractMinecart).setAnimationVariable("trackBumpAmount", minecartTrackBumpAmount);
-        minecartTrackBumpAmount = AnimCurveUtils.linearToEaseInOutWeight(minecartTrackBumpAmount, 2) + 0.2F;
+        //minecartTrackBumpAmount = AnimCurveUtils.linearToEaseInOutWeight(minecartTrackBumpAmount, 2) + 0.2F;
         minecartTrackBumpAmount *= minecartSpeedWeight;
 
         float tickFrame = abstractMinecart.tickCount + g;

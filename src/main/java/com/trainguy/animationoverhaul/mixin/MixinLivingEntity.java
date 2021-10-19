@@ -24,126 +24,30 @@ import java.util.Map;
 @Unique
 @Mixin(LivingEntity.class)
 public abstract class MixinLivingEntity implements LivingEntityAccess {
-    @Shadow public abstract Iterable<ItemStack> getArmorSlots();
-
-    @Shadow public abstract void animateHurt();
 
     private LivingEntityAnimParams animationParameters;
     private HashMap<String, Float> animationTimers = new HashMap<String, Float>();
 
 
-    public String songName;
-    public boolean songPlaying;
-    public BlockPos songOrigin = new BlockPos(0, 0, 0);
+    private String songName;
+    private boolean songPlaying;
+    private BlockPos songOrigin = new BlockPos(0, 0, 0);
 
+    private String equippedArmor = "";
 
-    public float crouchTimer;
-    public float verticalMovementRotation;
-    public float sprintTimer;
-    public float inWaterAmount;
-    public float underWaterAmount;
-    public float eatingAmount;
-    public float directionShift;
-
-    public float minecartRidingAmount;
-
-    public float dancingAmount;
-    public float dancingFrequency;
-
-    public float idleAmount = 1;
-    public float battleIdleAmount;
-
-    public float attackAmount = 1;
-    public float attackIndex;
-
-    public float armorEquipAmount = 0;
-
-    public float leftArmItemPoseAmount;
-    public float rightArmItemPoseAmount;
-
-    public float bowPoseAmount;
-    public float bowPullAmount;
-
-    public float spearPoseAmount;
-
-    public float leftArmCrossbowPoseAmount;
-    public float rightArmCrossbowPoseAmount;
-
-    public float shieldPoseAmount;
-
-    public float leftArmSpyglassPoseAmount;
-    public float rightArmSpyglassPoseAmount;
-
-
-    public String equippedArmor = "";
-
-    //TODO: replace this junk with hash maps! they are better !
-
+    /*
     public float getAnimationVariable(String variableType){
-        return switch (variableType) {
-            case "dancingAmount" -> dancingAmount;
-            case "dancingFrequency" -> dancingFrequency;
-            case "crouchTimer" -> crouchTimer;
-            case "idleAmount" -> idleAmount;
-            case "directionShift" -> directionShift;
-            case "minecartRidingAmount" -> minecartRidingAmount;
-            case "battleIdleAmount" -> battleIdleAmount;
-            case "sprintTimer" -> sprintTimer;
-            case "inWaterAmount" -> inWaterAmount;
-            case "underWaterAmount" -> underWaterAmount;
-            case "eatingAmount" -> eatingAmount;
-            case "attackAmount" -> attackAmount;
-            case "attackIndex" -> attackIndex;
-            case "armorEquipAmount" -> armorEquipAmount;
-            case "verticalMovementRotation" -> verticalMovementRotation;
-            case "leftArmItemPoseAmount" -> leftArmItemPoseAmount;
-            case "rightArmItemPoseAmount" -> rightArmItemPoseAmount;
-            case "bowPoseAmount" -> bowPoseAmount;
-            case "bowPullAmount" -> bowPullAmount;
-            case "spearPoseAmount" -> spearPoseAmount;
-            case "leftArmCrossbowPoseAmount" -> leftArmCrossbowPoseAmount;
-            case "rightArmCrossbowPoseAmount" -> rightArmCrossbowPoseAmount;
-            case "shieldPoseAmount" -> shieldPoseAmount;
-            case "leftArmSpyglassPoseAmount" -> leftArmSpyglassPoseAmount;
-            case "rightArmSpyglassPoseAmount" -> rightArmSpyglassPoseAmount;
-            default -> 0;
-        };
+        return 4F;
     }
     public void setAnimationVariable(String variableType, float newValue){
-        switch (variableType) {
-            case "dancingAmount" -> dancingAmount = newValue;
-            case "dancingFrequency" -> dancingFrequency = newValue;
-            case "crouchTimer" -> crouchTimer = newValue;
-            case "idleAmount" -> idleAmount = newValue;
-            case "directionShift" -> directionShift = newValue;
-            case "minecartRidingAmount" -> minecartRidingAmount = newValue;
-            case "battleIdleAmount" -> battleIdleAmount = newValue;
-            case "sprintTimer" -> sprintTimer = newValue;
-            case "eatingAmount" -> eatingAmount = newValue;
-            case "inWaterAmount" -> inWaterAmount = newValue;
-            case "underWaterAmount" -> underWaterAmount = newValue;
-            case "attackAmount" -> attackAmount = newValue;
-            case "attackIndex" -> attackIndex = newValue;
-            case "armorEquipAmount" -> armorEquipAmount = newValue;
-            case "verticalMovementRotation" -> verticalMovementRotation = newValue;
-            case "leftArmItemPoseAmount" -> leftArmItemPoseAmount = newValue;
-            case "rightArmItemPoseAmount" -> rightArmItemPoseAmount = newValue;
-            case "bowPoseAmount" -> bowPoseAmount = newValue;
-            case "bowPullAmount" -> bowPullAmount = newValue;
-            case "spearPoseAmount" -> spearPoseAmount = newValue;
-            case "leftArmCrossbowPoseAmount" -> leftArmCrossbowPoseAmount = newValue;
-            case "rightArmCrossbowPoseAmount" -> rightArmCrossbowPoseAmount = newValue;
-            case "shieldPoseAmount" -> shieldPoseAmount = newValue;
-            case "leftArmSpyglassPoseAmount" -> leftArmSpyglassPoseAmount = newValue;
-            case "rightArmSpyglassPoseAmount" -> rightArmSpyglassPoseAmount = newValue;
-            default -> System.out.println("Invalid variable type: " + variableType);
-        }
     }
+
+     */
 
     public void setRecordPlayerNearbyValues(String songName, boolean songPlaying, BlockPos songOrigin){
         if(songPlaying){
             this.songName = songName;
-            this.dancingFrequency = switch(songName){
+            float frequency = switch(songName){
                 case "music_disc_13" -> 1F;
                 case "music_disc_cat" -> 1F;
                 case "music_disc_blocks" -> 1F;
@@ -159,6 +63,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
                 case "music_disc_pigstep" -> 1F;
                 default -> throw new IllegalStateException("Unexpected song name value: " + songName);
             };
+            setAnimationTimer("dance_frequency", frequency);
         }
         this.songPlaying = songPlaying;
         this.songOrigin = songOrigin;
@@ -173,7 +78,6 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     public String getSongName(){
         return this.songName;
     }
-
     public void setEquippedArmor(String currentArmor){
         this.equippedArmor = currentArmor;
     }
@@ -181,12 +85,15 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
         return this.equippedArmor;
     }
 
+    // Animation parameters
     public void setAnimationParamaters(float animationPosition, float animationSpeed, float tickAtFrame, float tickDifference, float delta, float headYRot, float headXRot){
         this.animationParameters = new LivingEntityAnimParams(animationPosition, animationSpeed, tickAtFrame, tickDifference, delta, headYRot, headXRot);
     }
     public LivingEntityAnimParams getAnimationParameters(){
         return this.animationParameters;
     }
+
+    // Animation timers
     public void incrementAnimationTimer(String identifier, boolean isIncreasing, float increment, float decrement){
         incrementAnimationTimer(identifier, isIncreasing, increment, decrement, 0, 1);
     }

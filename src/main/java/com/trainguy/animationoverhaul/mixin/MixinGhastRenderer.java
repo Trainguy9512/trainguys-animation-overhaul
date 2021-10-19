@@ -45,9 +45,9 @@ public class MixinGhastRenderer {
         poseStack.mulPose(Vector3f.ZP.rotationDegrees(Mth.sin((ghast.tickCount + f) / 20) * 10));
         poseStack.scale(4.5F, 4.5F, 4.5F);
 
-        float currentVerticalMovementRotation = ((LivingEntityAccess)ghast).getAnimationVariable("verticalMovementRotation");
+        float currentVerticalMovementRotation = ((LivingEntityAccess)ghast).getAnimationTimer("vertical_movement_rotation");
         currentVerticalMovementRotation = ghast.getDeltaMovement().y >= 0 ? Mth.clamp(currentVerticalMovementRotation - 2 * delta, -25, 25) : Mth.clamp(currentVerticalMovementRotation + 2 * delta, -25, 25);
-        ((LivingEntityAccess)ghast).setAnimationVariable("verticalMovementRotation", currentVerticalMovementRotation);
+        ((LivingEntityAccess)ghast).setAnimationTimer("vertical_movement_rotation", currentVerticalMovementRotation);
         poseStack.mulPose(Vector3f.XP.rotationDegrees(currentVerticalMovementRotation));
 
         ci.cancel();

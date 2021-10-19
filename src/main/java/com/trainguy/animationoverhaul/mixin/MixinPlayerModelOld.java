@@ -1,25 +1,11 @@
 package com.trainguy.animationoverhaul.mixin;
 
-import com.trainguy.animationoverhaul.access.LivingEntityAccess;
-import com.trainguy.animationoverhaul.util.AnimCurveUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
-import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.CrossbowItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.UseAnim;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -33,6 +19,7 @@ import java.util.List;
 @Environment(EnvType.CLIENT)
 @Mixin(PlayerModel.class)
 public abstract class MixinPlayerModelOld<T extends LivingEntity> extends HumanoidModel<T> {
+
     @Shadow @Final public ModelPart leftPants;
     @Shadow @Final public ModelPart rightPants;
     @Shadow @Final public ModelPart leftSleeve;
@@ -54,6 +41,7 @@ public abstract class MixinPlayerModelOld<T extends LivingEntity> extends Humano
      */
     @Inject(method = "setupAnim", at = @At("HEAD"), cancellable = true)
     public void setupAnim(T livingEntity, float distanceMoved, float movementSpeed, float tickFrame, float headYRot, float headXRot, CallbackInfo ci){
+        /*
         // TODO: Rewrite crossbow logic
         // TODO: Rework the flying and do it in a way that works on servers
 
@@ -92,7 +80,6 @@ public abstract class MixinPlayerModelOld<T extends LivingEntity> extends Humano
         if(livingEntity.isBaby()){
             distanceMoved /= 2;
         }
-
         // Minecart sitting
         boolean isRidingInMinecart = livingEntity.isPassenger() && livingEntity.getRootVehicle().getType() == EntityType.MINECART;
         float previousMinecartRidingTimer = ((LivingEntityAccess)livingEntity).getAnimationVariable("minecartRidingAmount");
@@ -357,9 +344,6 @@ public abstract class MixinPlayerModelOld<T extends LivingEntity> extends Humano
         this.leftLeg.yRot = 0;
         this.leftLeg.zRot = 0;
 
-         */
-
-        // Neck post process
         this.head.z = headXRot * -0.05F * (1 - crouchWeight);
         this.body.z = headXRot * -0.05F * (1 - crouchWeight);
         this.rightArm.z += headXRot * -0.05F * (1 - crouchWeight);
@@ -442,7 +426,6 @@ public abstract class MixinPlayerModelOld<T extends LivingEntity> extends Humano
         this.rightArm.zRot += 0.25F * kneelAmount;
         this.head.y += 2 * kneelAmount;
         this.head.z += -3 * kneelAmount;
-         */
 
 
         // Dancing animation post process
@@ -712,7 +695,6 @@ public abstract class MixinPlayerModelOld<T extends LivingEntity> extends Humano
                 attackArmPart.yRot *= -1.0F;
             }
         }
-        */
 
         // Bow pull post process
         if(currentBowPoseTimer > 0 || previousBowPullTimer > 0){
@@ -806,7 +788,6 @@ public abstract class MixinPlayerModelOld<T extends LivingEntity> extends Humano
                 this.leftArm.yRot += Mth.lerp(bowPullAmount, 0, 0.25F);
             }
         }
-         */
 
         // Spear throw post process
         if(currentSpearPoseTimer > 0){
@@ -920,5 +901,9 @@ public abstract class MixinPlayerModelOld<T extends LivingEntity> extends Humano
             part.setPos(0, 0, 0);
             part.setRotation(0, 0, 0);
         }
+
+         */
     }
+
+
 }

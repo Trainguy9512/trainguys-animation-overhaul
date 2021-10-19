@@ -38,6 +38,7 @@ public class MixinCapeLayer extends RenderLayer<AbstractClientPlayer, PlayerMode
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, AbstractClientPlayer abstractClientPlayer, float f, float g, float h, float j, float k, float l) {
         ItemStack itemStack = abstractClientPlayer.getItemBySlot(EquipmentSlot.CHEST);
         if (!itemStack.is(Items.ELYTRA)) {
+            // Debug renderer for testing capes
             poseStack.pushPose();
             poseStack.translate(0.0D, 0.0D, 0.125D);
             double d = Mth.lerp((double)h, abstractClientPlayer.xCloakO, abstractClientPlayer.xCloak) - Mth.lerp((double)h, abstractClientPlayer.xo, abstractClientPlayer.getX());
