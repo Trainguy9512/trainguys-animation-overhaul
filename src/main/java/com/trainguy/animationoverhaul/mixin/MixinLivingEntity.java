@@ -1,5 +1,6 @@
 package com.trainguy.animationoverhaul.mixin;
 
+import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.commands.CommandModifyParameter;
 import com.trainguy.animationoverhaul.util.LivingEntityAnimParams;
@@ -26,7 +27,6 @@ import java.util.Map;
 public abstract class MixinLivingEntity implements LivingEntityAccess {
 
     private LivingEntityAnimParams animationParameters;
-    private HashMap<String, Float> animationTimers = new HashMap<String, Float>();
 
 
     private String songName;
@@ -63,7 +63,7 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
                 case "music_disc_pigstep" -> 1F;
                 default -> throw new IllegalStateException("Unexpected song name value: " + songName);
             };
-            setAnimationTimer("dance_frequency", frequency);
+            ((EntityAccess)this).setAnimationTimer("dance_frequency", frequency);
         }
         this.songPlaying = songPlaying;
         this.songOrigin = songOrigin;
@@ -91,24 +91,5 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     }
     public LivingEntityAnimParams getAnimationParameters(){
         return this.animationParameters;
-    }
-
-    // Animation timers
-    public void incrementAnimationTimer(String identifier, boolean isIncreasing, float increment, float decrement){
-        incrementAnimationTimer(identifier, isIncreasing, increment, decrement, 0, 1);
-    }
-    public void incrementAnimationTimer(String identifier, boolean isIncreasing, float increment, float decrement, float min, float max){
-        float previousTimerValue = getAnimationTimer(identifier);
-        float delta = animationParameters.getDelta();
-        setAnimationTimer(identifier, Mth.clamp(previousTimerValue + (isIncreasing ? increment * delta : decrement * delta), min, max));
-    }
-    public void setAnimationTimer(String identifier, float value){
-        animationTimers.put(identifier, value);
-    }
-    public float getAnimationTimer(String identifier){
-        if(!animationTimers.containsKey(identifier)){
-            animationTimers.put(identifier, 0F);
-        }
-        return animationTimers.get(identifier);
     }
 }

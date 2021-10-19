@@ -2,6 +2,7 @@ package com.trainguy.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
+import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.GhastRenderer;
@@ -45,9 +46,9 @@ public class MixinGhastRenderer {
         poseStack.mulPose(Vector3f.ZP.rotationDegrees(Mth.sin((ghast.tickCount + f) / 20) * 10));
         poseStack.scale(4.5F, 4.5F, 4.5F);
 
-        float currentVerticalMovementRotation = ((LivingEntityAccess)ghast).getAnimationTimer("vertical_movement_rotation");
+        float currentVerticalMovementRotation = ((EntityAccess)ghast).getAnimationTimer("vertical_movement_rotation");
         currentVerticalMovementRotation = ghast.getDeltaMovement().y >= 0 ? Mth.clamp(currentVerticalMovementRotation - 2 * delta, -25, 25) : Mth.clamp(currentVerticalMovementRotation + 2 * delta, -25, 25);
-        ((LivingEntityAccess)ghast).setAnimationTimer("vertical_movement_rotation", currentVerticalMovementRotation);
+        ((EntityAccess)ghast).setAnimationTimer("vertical_movement_rotation", currentVerticalMovementRotation);
         poseStack.mulPose(Vector3f.XP.rotationDegrees(currentVerticalMovementRotation));
 
         ci.cancel();

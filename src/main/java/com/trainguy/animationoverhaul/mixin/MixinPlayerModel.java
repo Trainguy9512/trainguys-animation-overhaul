@@ -1,5 +1,6 @@
 package com.trainguy.animationoverhaul.mixin;
 
+import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.util.Easing;
 import com.trainguy.animationoverhaul.util.LivingEntityAnimParams;
@@ -157,17 +158,17 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     }
 
     private float getDirectionShift(T livingEntity){
-        float directionShift = ((LivingEntityAccess)livingEntity).getAnimationTimer("direction_shift");
+        float directionShift = ((EntityAccess)livingEntity).getAnimationTimer("direction_shift");
         return Easing.CubicBezier.bezierInOutQuad().ease(directionShift);
     }
 
     private float getCrouchWeight(T livingEntity){
-        float crouchTimer = ((LivingEntityAccess)livingEntity).getAnimationTimer("crouch");
+        float crouchTimer = ((EntityAccess)livingEntity).getAnimationTimer("crouch");
         return livingEntity.isCrouching() ? crouchWeightAnimation.getValueAt(crouchTimer * 0.5F) : crouchWeightAnimation.getValueAt(crouchTimer * -0.5F + 1);
     }
 
     private float getSprintWeight(T livingEntity){
-        float sprintTimer = ((LivingEntityAccess)livingEntity).getAnimationTimer("sprint");
+        float sprintTimer = ((EntityAccess)livingEntity).getAnimationTimer("sprint");
         return Easing.CubicBezier.bezierInOutQuad().ease(sprintTimer);
     }
 
@@ -347,7 +348,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         // Minecart sitting
         boolean isRidingInMinecart = livingEntity.isPassenger() && livingEntity.getRootVehicle().getType() == EntityType.MINECART;
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("sitting_into_minecart", isRidingInMinecart, 0.125F, -10);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("sitting_into_minecart", isRidingInMinecart, 0.125F, -10);
 
         // Eating/Drinking weight
         List<Item> drinkableItems = Arrays.asList(Items.HONEY_BOTTLE, Items.POTION, Items.MILK_BUCKET);
@@ -358,17 +359,17 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
                 isDrinking = livingEntity.getTicksUsingItem() != 0;
             }
         }
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("eating", isEating, 0.125F, -0.125F);
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("drinking", isDrinking, 0.125F, -0.125F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("eating", isEating, 0.125F, -0.125F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("drinking", isDrinking, 0.125F, -0.125F);
 
         // Shield pose weight
         boolean isUsingShield = livingEntity.getUseItem().getItem() == Items.SHIELD && livingEntity.isUsingItem();
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("shield_block", isUsingShield, 0.1875F, -0.1875F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("shield_block", isUsingShield, 0.1875F, -0.1875F);
 
         // Attack timer
         // the fun one :)
-        float previousAttackTimer = ((LivingEntityAccess)livingEntity).getAnimationTimer("attack_progress");
-        float previousAttackIndex = ((LivingEntityAccess)livingEntity).getAnimationTimer("attack_index");
+        float previousAttackTimer = ((EntityAccess)livingEntity).getAnimationTimer("attack_progress");
+        float previousAttackIndex = ((EntityAccess)livingEntity).getAnimationTimer("attack_index");
         float currentAttackTimer = this.attackTime < 0.5 && this.attackTime > 0 && previousAttackTimer > 0.3F ? 0 : previousAttackTimer;
 
         if(currentAttackTimer == 0){
@@ -385,65 +386,65 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         }
 
         currentAttackTimer = Math.min(currentAttackTimer + 0.1F * delta, 1);
-        ((LivingEntityAccess)livingEntity).setAnimationTimer("attack_progress", currentAttackTimer);
-        ((LivingEntityAccess)livingEntity).setAnimationTimer("attack_index", previousAttackIndex);
+        ((EntityAccess)livingEntity).setAnimationTimer("attack_progress", currentAttackTimer);
+        ((EntityAccess)livingEntity).setAnimationTimer("attack_index", previousAttackIndex);
 
         // Armor equip variable
         String currentEquippedArmor = livingEntity.getArmorSlots().toString();
         String previousEquippedArmor = ((LivingEntityAccess)livingEntity).getPreviousEquippedArmor();
 
-        float previousArmorChangeTimer = ((LivingEntityAccess)livingEntity).getAnimationTimer("armor_equip_progress");
+        float previousArmorChangeTimer = ((EntityAccess)livingEntity).getAnimationTimer("armor_equip_progress");
         float currentArmorChangeTimer = !previousEquippedArmor.equals(currentEquippedArmor) ? 1 : previousArmorChangeTimer;
         if(!previousEquippedArmor.equals(currentEquippedArmor)){
             ((LivingEntityAccess)livingEntity).setEquippedArmor(currentEquippedArmor);
         }
         currentArmorChangeTimer = Math.max(currentArmorChangeTimer - 0.125F * delta, 0);
-        ((LivingEntityAccess)livingEntity).setAnimationTimer("armor_equip_progress", currentArmorChangeTimer);
+        ((EntityAccess)livingEntity).setAnimationTimer("armor_equip_progress", currentArmorChangeTimer);
 
         // Dancing weight
         boolean songPlaying = ((LivingEntityAccess)livingEntity).getIsSongPlaying();
         BlockPos songOrigin = ((LivingEntityAccess)livingEntity).getSongOrigin();
-        float previousDancingTimer = ((LivingEntityAccess)livingEntity).getAnimationTimer("dancing_weight");
+        float previousDancingTimer = ((EntityAccess)livingEntity).getAnimationTimer("dancing_weight");
         float currentDancingTimer = Mth.clamp(previousDancingTimer + (livingEntity.blockPosition().distManhattan(new Vec3i(songOrigin.getX(), songOrigin.getY(), songOrigin.getZ())) < 10 && songPlaying && !crouching ? 0.125F * delta : -0.125F * delta), 0, 1);
-        ((LivingEntityAccess)livingEntity).setAnimationTimer("dancing_weight", currentDancingTimer);
+        ((EntityAccess)livingEntity).setAnimationTimer("dancing_weight", currentDancingTimer);
 
         // Idle weight
         boolean isIdle = animationSpeed <= 0.05 && livingEntity.getDeltaMovement().y < 0.1 && livingEntity.getDeltaMovement().y > -0.1 && !livingEntity.isSleeping() && !livingEntity.isPassenger();
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("idle_standing", isIdle, 0.125F, -0.25F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("idle_standing", isIdle, 0.125F, -0.25F);
 
         // Holding item or block in hand
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("holding_item_right", this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM, 0.25F, -0.25F);
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("holding_item_left", this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM, 0.25F, -0.25F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("holding_item_right", this.rightArmPose == ArmPose.BLOCK || this.rightArmPose == ArmPose.ITEM, 0.25F, -0.25F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("holding_item_left", this.leftArmPose == ArmPose.BLOCK || this.leftArmPose == ArmPose.ITEM, 0.25F, -0.25F);
 
         // Bow pull
         boolean usingBow = this.rightArmPose == ArmPose.BOW_AND_ARROW || this.leftArmPose == ArmPose.BOW_AND_ARROW;
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("bow_pose", usingBow, 0.1F, -0.1F);
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("bow_pull", usingBow, 0.06F, -6F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("bow_pose", usingBow, 0.1F, -0.1F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("bow_pull", usingBow, 0.06F, -6F);
 
         // Crouch variable
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("crouch", livingEntity.isCrouching(), 0.25F, -0.3F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("crouch", livingEntity.isCrouching(), 0.25F, -0.3F);
 
         // Spear (Trident) pose variable
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("spear", this.leftArmPose == ArmPose.THROW_SPEAR || this.rightArmPose == ArmPose.THROW_SPEAR, 0.0625F, -0.125F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("spear", this.leftArmPose == ArmPose.THROW_SPEAR || this.rightArmPose == ArmPose.THROW_SPEAR, 0.0625F, -0.125F);
 
         // Crossbow Holding
         // TODO: redo this when revisiting crossbow animations
-        float previousCrossbowPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationTimer("crossbow");
+        float previousCrossbowPoseTimer = ((EntityAccess)livingEntity).getAnimationTimer("crossbow");
         boolean holdingOrChargingCrossbow = (livingEntity.getTicksUsingItem() > 0 && livingEntity.getUseItem().getUseAnimation() == UseAnim.CROSSBOW) || this.rightArmPose == ArmPose.CROSSBOW_HOLD || this.leftArmPose == ArmPose.CROSSBOW_HOLD;
         boolean holdingUnloadedCrossbow = (livingEntity.getTicksUsingItem() == 0 && ((livingEntity.getMainHandItem().getUseAnimation() == UseAnim.CROSSBOW && !CrossbowItem.isCharged(livingEntity.getMainHandItem())) || (livingEntity.getOffhandItem().getUseAnimation() == UseAnim.CROSSBOW && !CrossbowItem.isCharged(livingEntity.getOffhandItem()))));
         float currentCrossbowPoseTimer = holdingOrChargingCrossbow ? Mth.clamp(previousCrossbowPoseTimer + 0.25F * delta, 0.0F, 1.0F) : holdingUnloadedCrossbow ? Mth.clamp(previousCrossbowPoseTimer - 0.125F * delta, 0.0F, 1.0F) : Mth.clamp(previousCrossbowPoseTimer - 0.25F * delta, 0.0F, 1.0F);
-        ((LivingEntityAccess)livingEntity).setAnimationTimer("crossbow", currentCrossbowPoseTimer);
+        ((EntityAccess)livingEntity).setAnimationTimer("crossbow", currentCrossbowPoseTimer);
 
         // Simpler sprint :)
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("sprint", animationSpeed > 0.9, 0.0625F, -0.125F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("sprint", animationSpeed > 0.9, 0.0625F, -0.125F);
 
         // In water
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("wading_in_water", livingEntity.isInWater() && !livingEntity.isOnGround(), 0.0625F, -0.0625F);
-        ((LivingEntityAccess)livingEntity).incrementAnimationTimer("wading_under_water", livingEntity.isUnderWater() && !livingEntity.isOnGround(), 0.0625F, -0.0625F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("wading_in_water", livingEntity.isInWater() && !livingEntity.isOnGround(), 0.0625F, -0.0625F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("wading_under_water", livingEntity.isUnderWater() && !livingEntity.isOnGround(), 0.0625F, -0.0625F);
         //float inWaterWeight = AnimCurveUtils.linearToEaseInOutQuadratic(currentInWaterTimer);
         //float underWaterWeight = AnimCurveUtils.linearToEaseInOutQuadratic(currentUnderWaterTimer) * 0.9F + 0.1F * inWaterWeight;
 
-        float previousDirectionShift = ((LivingEntityAccess)livingEntity).getAnimationTimer("direction_shift");
+        float previousDirectionShift = ((EntityAccess)livingEntity).getAnimationTimer("direction_shift");
         float moveAngleX = -Mth.sin(livingEntity.yBodyRot * Mth.PI / 180);
         float moveAngleZ = Mth.cos(livingEntity.yBodyRot * Mth.PI / 180);
 
@@ -459,6 +460,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
                 previousDirectionShift = Mth.clamp(previousDirectionShift - 0.125F * delta, 0, 1);;
             }
         }
-        ((LivingEntityAccess)livingEntity).setAnimationTimer("direction_shift", previousDirectionShift);
+        ((EntityAccess)livingEntity).setAnimationTimer("direction_shift", previousDirectionShift);
     }
 }

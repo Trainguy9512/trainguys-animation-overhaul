@@ -3,7 +3,7 @@ package com.trainguy.animationoverhaul.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Vector3f;
-import com.trainguy.animationoverhaul.access.AbstractMinecartAccess;
+import com.trainguy.animationoverhaul.access.EntityAccess;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -88,17 +88,17 @@ public abstract class MixinMinecartRenderer<T extends AbstractMinecart> extends 
         float delta = Minecraft.getInstance().getDeltaFrameTime();
         float currentTickMinecartSpeed = (Mth.abs((float) (abstractMinecart.getX() - abstractMinecart.xOld)) + Mth.abs((float) (abstractMinecart.getZ() - abstractMinecart.zOld))) * 2.5F;
 
-        float minecartSpeedWeight = ((AbstractMinecartAccess)abstractMinecart).getAnimationVariable("minecartSpeed");
+        float minecartSpeedWeight = ((EntityAccess)abstractMinecart).getAnimationTimer("minecart_speed");
         minecartSpeedWeight = minecartSpeedWeight == currentTickMinecartSpeed ? minecartSpeedWeight : currentTickMinecartSpeed < minecartSpeedWeight ? Math.max(currentTickMinecartSpeed, minecartSpeedWeight - 0.25F * delta) : Math.min(currentTickMinecartSpeed, minecartSpeedWeight + 0.25F * delta);
-        ((AbstractMinecartAccess)abstractMinecart).setAnimationVariable("minecartSpeed", minecartSpeedWeight);
+        ((EntityAccess)abstractMinecart).setAnimationTimer("minecart_speed", minecartSpeedWeight);
 
-        float minecartTrackBumpAmount = ((AbstractMinecartAccess)abstractMinecart).getAnimationVariable("trackBumpAmount");
+        float minecartTrackBumpAmount = ((EntityAccess)abstractMinecart).getAnimationTimer("track_bump_amount");
         minecartTrackBumpAmount = Mth.clamp(minecartTrackBumpAmount - 0.05F * delta, 0, 1);
         Random posRandom = new Random(Mth.floor(d) + Mth.floor(m));
         if((posRandom.nextInt(10) == 0 || abstractMinecart.getPosOffs(d, e - 1, m, -0.30000001192092896D) == null) && minecartTrackBumpAmount == 0){
             minecartTrackBumpAmount = 1;
         }
-        ((AbstractMinecartAccess)abstractMinecart).setAnimationVariable("trackBumpAmount", minecartTrackBumpAmount);
+        ((EntityAccess)abstractMinecart).setAnimationTimer("track_bump_amount", minecartTrackBumpAmount);
         //minecartTrackBumpAmount = AnimCurveUtils.linearToEaseInOutWeight(minecartTrackBumpAmount, 2) + 0.2F;
         minecartTrackBumpAmount *= minecartSpeedWeight;
 

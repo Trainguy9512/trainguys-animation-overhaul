@@ -2,6 +2,7 @@ package com.trainguy.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
+import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.util.Easing;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -34,7 +35,7 @@ public class MixinPlayerRenderer {
         }
         boolean usingBow = abstractClientPlayer.getUseItem().getItem() == Items.BOW;
 
-        float bowAmount = ((LivingEntityAccess)abstractClientPlayer).getAnimationTimer("bow_pose");
+        float bowAmount = ((EntityAccess)abstractClientPlayer).getAnimationTimer("bow_pose");
         float bowPoseAmount = Easing.CubicBezier.bezierInOutQuad().ease(Mth.clamp(usingBow ? bowAmount * 1.5F - 0.5F : bowAmount * 1.5F, 0, 1));
         poseStack.mulPose(Vector3f.YP.rotationDegrees((differenceRot + (holdingBowInRightHand ? -70 : 70)) * bowPoseAmount));
 

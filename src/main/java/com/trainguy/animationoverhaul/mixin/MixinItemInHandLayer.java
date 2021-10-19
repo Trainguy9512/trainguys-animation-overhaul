@@ -2,6 +2,7 @@ package com.trainguy.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
+import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.util.Easing;
 import net.fabricmc.api.EnvType;
@@ -31,12 +32,12 @@ public class MixinItemInHandLayer {
         HumanoidArm interactionArm = livingEntity.getUsedItemHand() == InteractionHand.MAIN_HAND ? livingEntity.getMainArm() == HumanoidArm.RIGHT ? HumanoidArm.RIGHT : HumanoidArm.LEFT : livingEntity.getMainArm() != HumanoidArm.RIGHT ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
         swingingArm = livingEntity.swingingArm == InteractionHand.MAIN_HAND ? swingingArm : swingingArm.getOpposite();
 
-        float entityAttackIndex = ((LivingEntityAccess)livingEntity).getAnimationTimer("attack_index");
+        float entityAttackIndex = ((EntityAccess)livingEntity).getAnimationTimer("attack_index");
 
         // TODO: Revisit this and implement more methods into CubicBezier regarding weight!
         if(itemStack.getItem().toString().contains("sword") && swingingArm == humanoidArm && entityAttackIndex == 1){
-            float entityAttackAmount = ((LivingEntityAccess)livingEntity).getAnimationTimer("attack_progress");
-            float entityShieldPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationTimer("shield_block");
+            float entityAttackAmount = ((EntityAccess)livingEntity).getAnimationTimer("attack_progress");
+            float entityShieldPoseAmount = ((EntityAccess)livingEntity).getAnimationTimer("shield_block");
             float inOutSine = Mth.sin(entityAttackAmount * Mth.PI * 4 - Mth.PI / 2) * 0.5F + 0.5F;
             //float entityAttackWeight = AnimCurveUtils.linearToEaseInOutWeight(entityAttackAmount, 2) * (1 - entityShieldPoseAmount);
             float entityAttackWeight = entityAttackAmount;
@@ -45,7 +46,7 @@ public class MixinItemInHandLayer {
             poseStack.mulPose(Vector3f.XP.rotationDegrees(10 * entityAttackWeight));
             poseStack.translate(0.125 * entityAttackWeight, 0.125 * entityAttackWeight, -0.125 * entityAttackWeight);
         }
-        float entityEatingAmount = ((LivingEntityAccess)livingEntity).getAnimationTimer("eating");
+        float entityEatingAmount = ((EntityAccess)livingEntity).getAnimationTimer("eating");
         if(entityEatingAmount > 0 && interactionArm == humanoidArm){
             float eatingAmount = Mth.sin(entityEatingAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
             poseStack.mulPose(Vector3f.XP.rotationDegrees(70 * eatingAmount));
@@ -72,7 +73,7 @@ public class MixinItemInHandLayer {
         */
 
         float handednessReverser = humanoidArm == HumanoidArm.RIGHT ? 1 : -1;
-        float entityShieldPoseAmount = ((LivingEntityAccess)livingEntity).getAnimationTimer("shield_block");
+        float entityShieldPoseAmount = ((EntityAccess)livingEntity).getAnimationTimer("shield_block");
         if(entityShieldPoseAmount > 0 && itemStack.getItem() == Items.SHIELD && interactionArm == humanoidArm){
             float shieldPoseAmount = Easing.CubicBezier.bezierInOutQuad().ease(entityShieldPoseAmount);
             if(humanoidArm == HumanoidArm.LEFT){
@@ -87,7 +88,7 @@ public class MixinItemInHandLayer {
             }
         }
 
-        float spearPoseTimer = ((LivingEntityAccess)livingEntity).getAnimationTimer("spear");
+        float spearPoseTimer = ((EntityAccess)livingEntity).getAnimationTimer("spear");
         if(spearPoseTimer > 0 && itemStack.getItem() == Items.TRIDENT && interactionArm == humanoidArm){
             float spearSpinWeight = Easing.CubicBezier.bezierInOutQuad().ease(Mth.clamp(2.5F * spearPoseTimer - 0.75F, 0, 1));
             poseStack.mulPose(Vector3f.ZP.rotationDegrees(spearSpinWeight * -180 * handednessReverser));

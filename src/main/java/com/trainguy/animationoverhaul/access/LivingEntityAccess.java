@@ -17,8 +17,4 @@ public interface LivingEntityAccess {
 
     void setAnimationParamaters(float animationPosition, float animationSpeed, float tickAtFrame, float tickDifference, float delta, float headYRot, float headXRot);
     LivingEntityAnimParams getAnimationParameters();
-    void incrementAnimationTimer(String identifier, boolean isIncreasing, float increment, float decrement);
-    void incrementAnimationTimer(String identifier, boolean isIncreasing, float increment, float decrement, float min, float max);
-    void setAnimationTimer(String identifier, float value);
-    float getAnimationTimer(String identifier);
 }
