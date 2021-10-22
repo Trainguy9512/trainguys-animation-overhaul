@@ -6,6 +6,6 @@ import net.minecraft.commands.CommandSourceStack;
 
 public class DebugCommands {
     public static void registerDebugCommands(CommandDispatcher<CommandSourceStack> dispatcher){
-        //CommandModifyParameter.register(dispatcher);
+        CommandModifyParameter.register(dispatcher);
     }
 }

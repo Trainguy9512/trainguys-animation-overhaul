@@ -1,4 +1,4 @@
-package com.trainguy.animationoverhaul.mixin;
+package com.trainguy.animationoverhaul.mixin.animations.part;
 
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
@@ -11,11 +11,13 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -110,6 +112,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     @Inject(method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V", at = @At("HEAD"), cancellable = true)
     public void setupAnim(T livingEntity, float animationPosition, float animationSpeed, float tickFrame, float headYRot, float headXRot, CallbackInfo ci){
 
+        // TODO: look back into making an inventory player animation!
+
         // Disable hand animations
         if(headXRot == 0.0F){
             return;
@@ -122,8 +126,12 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             return;
         }
 
+        // Don't adjust the normal timers if the inventory model is being animated, use separate timers for separate animations
+        if(getAnimationParameters(livingEntity).getLightInt() != 15728881){
+            adjustTimers(livingEntity);
+        }
+
         // Initial setup
-        setupVariables(livingEntity);
         setupBasePose(livingEntity);
 
         // Locomotion pose layers
@@ -131,9 +139,13 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         addSprintPoseLayer(livingEntity);
         addCrouchPoseLayer(livingEntity);
 
+        // TODO: creative flying, swimming, fall flying, redo crouching, crawling, wading in water, riding in boat, sleeping
+
         // Idle pose layers
+        // TODO: idling normally, idling while flying, idling underwater, idling sleeping, idle battle pose?
 
         // Item interaction pose layers
+        // TODO: holding item, using bow, using crossbow, using shield, using spyglass, eating and drinking, throwing trident, equipping armor
 
         // Final stuff
         parentSecondLayerToModel();
@@ -176,6 +188,11 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         return Easing.CubicBezier.bezierOutQuad().ease(livingEntity.getSwimAmount(getAnimationParameters(livingEntity).getTickDifference()));
     }
 
+    private float getCreativeFlyingWeight(T livingEntity){
+        float creativeFlyWeight = ((EntityAccess) livingEntity).getAnimationTimer("creative_flying");
+        return Easing.CubicBezier.bezierInOutQuad().ease(creativeFlyWeight);
+    }
+
     private float getFallFlyingWeight(T livingEntity){
         float fallFlyingTicks = livingEntity.getFallFlyingTicks() + getAnimationParameters(livingEntity).getTickDifference();
         return Easing.CubicBezier.bezierInOutQuad().ease(Mth.clamp(fallFlyingTicks * fallFlyingTicks / 100F, 0, 1));
@@ -183,7 +200,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
     private void addWalkPoseLayer(T livingEntity){
         float sprintWeight = getSprintWeight(livingEntity);
-        float swimmingOrFallFlyingWeight = (1 - getSwimWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity));
+        float walkCancelWeight = (1 - getSwimWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * (1 - getCreativeFlyingWeight(livingEntity));
         if(sprintWeight < 1){
             float animationPosition = getAnimationParameters(livingEntity).getAnimationPosition();
             float animationSpeed = getAnimationParameters(livingEntity).getAnimationSpeed();
@@ -195,8 +212,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             float directionShift = getDirectionShift(livingEntity);
             float directionShiftMultiplier = Mth.lerp(directionShift, 1, -1);
             float directionShiftArmMultiplier = Mth.lerp(directionShift, 1, -0.3F);
-            float walkingWeight = swimmingOrFallFlyingWeight * (1 - sprintWeight) * Math.min(animationSpeed * 3, 1);
-            float walkingWeightAffectedBySpeed = swimmingOrFallFlyingWeight * (1 - sprintWeight) * Math.min(animationSpeed * 2, 1);
+            float walkingWeight = walkCancelWeight * (1 - sprintWeight) * Math.min(animationSpeed * 3, 1);
+            float walkingWeightAffectedBySpeed = walkCancelWeight * (1 - sprintWeight) * Math.min(animationSpeed * 2, 1);
 
             float leftLegRotation = walkLegRotationAnimation.getValueAt(leftLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
             float leftLegForwardMovement = walkLegForwardMovementAnimation.getValueAt(leftLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
@@ -230,8 +247,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     private void addSprintPoseLayer(T livingEntity){
         float animationSpeed = getAnimationParameters(livingEntity).getAnimationSpeed();
         float sprintWeight = getSprintWeight(livingEntity) * animationSpeed;
-        float swimmingOrFallFlyingWeight = (1 - getSwimWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity));
-        sprintWeight *= swimmingOrFallFlyingWeight;
+        float sprintCancelWeight = (1 - getSwimWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * (1 - getCreativeFlyingWeight(livingEntity));
+        sprintWeight *= sprintCancelWeight;
         if(sprintWeight > 0){
             float animationPosition = getAnimationParameters(livingEntity).getAnimationPosition();
 
@@ -341,7 +358,43 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         this.rightSleeve.copyFrom(this.rightArm);
     }
 
-    private void setupVariables(T livingEntity){
+    private void adjustTimers(T livingEntity){
+        AbstractClientPlayer abstractClientPlayer = ((AbstractClientPlayer)livingEntity);
+        float roughEntitySpeed = (float) (Math.abs(livingEntity.getDeltaMovement().x) + Math.abs(livingEntity.getDeltaMovement().z));
+        float animationSpeed = getAnimationParameters(livingEntity).getAnimationSpeed();
+        float delta = getAnimationParameters(livingEntity).getDelta();
+
+        // Direction shift
+        float previousDirectionShift = ((EntityAccess)livingEntity).getAnimationTimer("direction_shift");
+        float moveAngleX = -Mth.sin(livingEntity.yBodyRot * Mth.PI / 180);
+        float moveAngleZ = Mth.cos(livingEntity.yBodyRot * Mth.PI / 180);
+
+        if(animationSpeed > 0.01){
+            if(
+                    (moveAngleX >= 0 && livingEntity.getDeltaMovement().x < 0 - 0.02 - animationSpeed * 0.03) ||
+                            (moveAngleX <= 0 && livingEntity.getDeltaMovement().x > 0 + 0.02 + animationSpeed * 0.03) ||
+                            (moveAngleZ >= 0 && livingEntity.getDeltaMovement().z < 0 - 0.02 - animationSpeed * 0.03) ||
+                            (moveAngleZ <= 0 && livingEntity.getDeltaMovement().z > 0 + 0.02 + animationSpeed * 0.03)
+            ){
+                previousDirectionShift = Mth.clamp(previousDirectionShift + 0.125F * delta, 0, 1);
+            } else {
+                previousDirectionShift = Mth.clamp(previousDirectionShift - 0.125F * delta, 0, 1);;
+            }
+        }
+        ((EntityAccess)livingEntity).setAnimationTimer("direction_shift", previousDirectionShift);
+        // Crouch and sprint
+        ((EntityAccess)livingEntity).incrementAnimationTimer("crouch", livingEntity.isCrouching(), 0.25F, -0.3F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("sprint", animationSpeed > 0.9, 0.0625F, -0.125F);
+        // Creative flying
+        ((EntityAccess) livingEntity).incrementAnimationTimer("creative_flying", abstractClientPlayer.getAbilities().flying, 20, -20);
+        ((EntityAccess) livingEntity).incrementAnimationTimer("creative_fast_flying", roughEntitySpeed > 0.7, 20, -20);
+        ((EntityAccess) livingEntity).incrementAnimationTimer("creative_flying_up", livingEntity.getDeltaMovement().y > 0.1F, 10, -10);
+        ((EntityAccess) livingEntity).incrementAnimationTimer("creative_flying_down", livingEntity.getDeltaMovement().y < -0.1F, 10, -10);
+    }
+
+    // UNUSED
+
+    private void adjustTimersOld(T livingEntity){
 
         float delta = getAnimationParameters(livingEntity).getDelta();
         float animationSpeed = getAnimationParameters(livingEntity).getAnimationSpeed();

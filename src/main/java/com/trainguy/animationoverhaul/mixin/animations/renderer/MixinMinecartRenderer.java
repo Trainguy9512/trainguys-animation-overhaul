@@ -1,4 +1,4 @@
-package com.trainguy.animationoverhaul.mixin;
+package com.trainguy.animationoverhaul.mixin.animations.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;

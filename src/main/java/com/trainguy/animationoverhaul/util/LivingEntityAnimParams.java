@@ -9,8 +9,9 @@ public class LivingEntityAnimParams {
     private final float delta;
     private final float headYRot;
     private final float headXRot;
+    private final int lightInt;
 
-    public LivingEntityAnimParams(float animationPosition, float animationSpeed, float tickAtFrame, float tickDifference, float delta, float headYRot, float headXRot){
+    public LivingEntityAnimParams(float animationPosition, float animationSpeed, float tickAtFrame, float tickDifference, float delta, float headYRot, float headXRot, int lightInt){
         this.animationPosition = animationPosition;
         this.animationSpeed = animationSpeed;
         this.tickAtFrame = tickAtFrame;
@@ -18,6 +19,7 @@ public class LivingEntityAnimParams {
         this.delta = delta;
         this.headYRot = headYRot;
         this.headXRot = headXRot;
+        this.lightInt = lightInt;
     }
 
     public float getAnimationPosition(){
@@ -40,5 +42,8 @@ public class LivingEntityAnimParams {
     }
     public float getHeadXRot(){
         return this.headXRot;
+    }
+    public int getLightInt(){
+        return this.lightInt;
     }
 }

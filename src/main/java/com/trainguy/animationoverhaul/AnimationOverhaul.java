@@ -1,6 +1,10 @@
 package com.trainguy.animationoverhaul;
 
+import com.trainguy.animationoverhaul.commands.DebugCommands;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.minecraft.core.Registry;
+import net.minecraft.data.BuiltinRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,7 +16,6 @@ public class AnimationOverhaul implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		//CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {if (!dedicated) {DebugCommands.registerDebugCommands(dispatcher);}});
-
 
 		/*
 

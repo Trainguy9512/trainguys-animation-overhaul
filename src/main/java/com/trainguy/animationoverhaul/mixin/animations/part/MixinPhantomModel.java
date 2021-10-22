@@ -1,4 +1,4 @@
-package com.trainguy.animationoverhaul.mixin;
+package com.trainguy.animationoverhaul.mixin.animations.part;
 
 import com.trainguy.animationoverhaul.util.Easing;
 import com.trainguy.animationoverhaul.util.timeline.Timeline;

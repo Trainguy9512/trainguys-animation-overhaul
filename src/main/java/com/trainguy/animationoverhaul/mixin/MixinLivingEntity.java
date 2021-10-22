@@ -86,8 +86,8 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     }
 
     // Animation parameters
-    public void setAnimationParamaters(float animationPosition, float animationSpeed, float tickAtFrame, float tickDifference, float delta, float headYRot, float headXRot){
-        this.animationParameters = new LivingEntityAnimParams(animationPosition, animationSpeed, tickAtFrame, tickDifference, delta, headYRot, headXRot);
+    public void setAnimationParamaters(float animationPosition, float animationSpeed, float tickAtFrame, float tickDifference, float delta, float headYRot, float headXRot, int lightInt){
+        this.animationParameters = new LivingEntityAnimParams(animationPosition, animationSpeed, tickAtFrame, tickDifference, delta, headYRot, headXRot, lightInt);
     }
     public LivingEntityAnimParams getAnimationParameters(){
         return this.animationParameters;

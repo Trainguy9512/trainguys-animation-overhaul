@@ -3,16 +3,31 @@ package com.trainguy.animationoverhaul.mixin;
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.HashMap;
 
 @Mixin(Entity.class)
-public class MixinEntity implements EntityAccess {
+public abstract class MixinEntity implements EntityAccess {
+
+    @Shadow public abstract EntityType<?> getType();
 
     private HashMap<String, Float> animationTimers = new HashMap<String, Float>();
 
+
+    public void incrementAnimationTimer(String identifier, boolean isIncreasing, int ticksToIncrement, int ticksToDecrement) {
+        if(ticksToIncrement != 0 && ticksToDecrement != 0){
+            incrementAnimationTimer(identifier, isIncreasing, (1/(float)ticksToIncrement), (1/(float)ticksToDecrement));
+        } else {
+            System.out.println("Invalid tick increment/decrement specified for timer increment for timer " + identifier + " in entity part animator " + this.getType().toShortString() + ", tick values must not be 0!");
+        }
+    }
     // Animation timers
     public void incrementAnimationTimer(String identifier, boolean isIncreasing, float increment, float decrement){
         incrementAnimationTimer(identifier, isIncreasing, increment, decrement, 0, 1);
