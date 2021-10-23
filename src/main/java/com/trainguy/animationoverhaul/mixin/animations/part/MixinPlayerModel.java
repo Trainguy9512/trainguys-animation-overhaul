@@ -16,6 +16,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
@@ -138,8 +139,9 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         addWalkPoseLayer(livingEntity);
         addSprintPoseLayer(livingEntity);
         addCrouchPoseLayer(livingEntity);
+        addCreativeFlyPoseLayer(livingEntity);
 
-        // TODO: creative flying, swimming, fall flying, redo crouching, crawling, wading in water, riding in boat, sleeping
+        // TODO: swimming, fall flying, redo crouching, crawling, wading in water, riding in boat, sleeping
 
         // Idle pose layers
         // TODO: idling normally, idling while flying, idling underwater, idling sleeping, idle battle pose?
@@ -292,7 +294,70 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     }
 
     private void addCreativeFlyPoseLayer(T livingEntity){
+        float creativeFlyingWeight = getCreativeFlyingWeight(livingEntity);
+        if(creativeFlyingWeight > 0){
+            // Part variable definitions
+            ModelPart mainArm = livingEntity.getMainArm() == HumanoidArm.LEFT ? this.leftArm : this.rightArm;
+            ModelPart offArm = livingEntity.getMainArm() == HumanoidArm.LEFT ? this.rightArm : this.leftArm;
+            ModelPart mainLeg = livingEntity.getMainArm() == HumanoidArm.LEFT ? this.leftLeg : this.rightLeg;
+            ModelPart offLeg = livingEntity.getMainArm() == HumanoidArm.LEFT ? this.rightLeg : this.leftLeg;
 
+            // Animation variables
+            float animationSpeed = getAnimationParameters(livingEntity).getAnimationSpeed();
+            float forwardMovementOnlyMultiplier = 1 - getDirectionShift(livingEntity);
+            float tickAtFrame = getAnimationParameters(livingEntity).getTickAtFrame();
+            float movingInAirMultiplier = animationSpeed * forwardMovementOnlyMultiplier * creativeFlyingWeight;
+
+            // Timer fields
+            float primaryMovementTimer = new TimerProcessor(tickAtFrame).repeat(30, 0.0F).getValue();
+            float secondaryMovementTimer = new TimerProcessor(tickAtFrame).repeat(30, 0.15F).getValue();
+            float tertiaryMovementTimer = new TimerProcessor(tickAtFrame).repeat(30, 0.3F).getValue();
+
+            // Oscillation curves from the timer fields
+            float primaryMovementLerp = Timeline.oscillateLerpTimeline(Easing.CubicBezier.bezierInOutSine()).getValueAt(primaryMovementTimer);
+            float secondaryMovementLerp = Timeline.oscillateLerpTimeline(Easing.CubicBezier.bezierInOutSine()).getValueAt(secondaryMovementTimer);
+            float tertiaryMovementLerp = Timeline.oscillateLerpTimeline(Easing.CubicBezier.bezierInOutSine()).getValueAt(tertiaryMovementTimer);
+
+            // Body, leg, and arm idle movements
+            float bodyPrimaryBob = Mth.lerp(primaryMovementLerp, -0.5F, 0.5F) * creativeFlyingWeight;
+            float bodySecondaryBobRotation = Mth.lerp(secondaryMovementLerp, Mth.HALF_PI / -32, Mth.HALF_PI / 32) * creativeFlyingWeight;
+            float bodySecondaryBobPosition = Mth.lerp(secondaryMovementLerp, 0.5F, -0.5F) * creativeFlyingWeight;
+            float mainLegLiftMovement = Mth.lerp(primaryMovementLerp, -3F, -2.5F) * creativeFlyingWeight;
+            float mainLegForwardMovement = Mth.lerp(primaryMovementLerp, -3F, -2.5F) * creativeFlyingWeight;
+            float mainLegRotation = Mth.lerp(secondaryMovementLerp, Mth.HALF_PI / -16, Mth.HALF_PI / 8) * creativeFlyingWeight;
+            float offLegLiftMovement = Mth.lerp(secondaryMovementLerp, -0.5F, 0) * creativeFlyingWeight;
+            float offLegForwardMovement = Mth.lerp(secondaryMovementLerp, 0.5F, 0.75F) * creativeFlyingWeight;
+            float offLegRotation = Mth.lerp(tertiaryMovementLerp, Mth.HALF_PI / -20, Mth.HALF_PI / 16) * creativeFlyingWeight;
+            float armZRotation = Mth.lerp(secondaryMovementLerp, Mth.HALF_PI / 6, Mth.HALF_PI / 30) * creativeFlyingWeight;
+            float armXRotation = Mth.lerp(tertiaryMovementLerp, Mth.HALF_PI / -8, Mth.HALF_PI / 20) * creativeFlyingWeight;
+
+            // Additional movements when moving forwards
+            float mainLegLiftMovementMoving = 2F * movingInAirMultiplier;
+            float mainLegForwardMovementMoving = -0.5F * movingInAirMultiplier;
+            float mainLegRotationMoving = Mth.HALF_PI / 3F * movingInAirMultiplier;
+            float offLegLiftMovementMoving = 0.75F * movingInAirMultiplier;
+            float offLegForwardMovementMoving = 1.25F * movingInAirMultiplier;
+            float offLegRotationMoving = Mth.HALF_PI / 2F * movingInAirMultiplier;
+
+            mainLeg.xRot += mainLegRotation + mainLegRotationMoving;
+            mainLeg.y += mainLegLiftMovement + mainLegLiftMovementMoving;
+            mainLeg.z += mainLegForwardMovement + mainLegForwardMovementMoving;
+            offLeg.xRot += offLegRotation + offLegRotationMoving;
+            offLeg.y += offLegLiftMovement + offLegLiftMovementMoving;
+            offLeg.z += offLegForwardMovement + offLegForwardMovementMoving;
+            mainArm.xRot += armXRotation + mainLegRotationMoving;
+            mainArm.zRot += armZRotation;
+            offArm.xRot += armXRotation + offLegRotationMoving;
+            offArm.zRot += -armZRotation;
+            this.body.xRot += bodySecondaryBobRotation;
+            this.head.xRot += -0.2F * movingInAirMultiplier;
+            for(ModelPart part : getPartListAll()){
+                part.y += bodyPrimaryBob;
+                if(getPartListBody().contains(part)){
+                    part.z += bodySecondaryBobPosition;
+                }
+            }
+        }
     }
 
     private void addCrouchPoseLayer(T livingEntity){
@@ -387,9 +452,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         ((EntityAccess)livingEntity).incrementAnimationTimer("sprint", animationSpeed > 0.9, 0.0625F, -0.125F);
         // Creative flying
         ((EntityAccess) livingEntity).incrementAnimationTimer("creative_flying", abstractClientPlayer.getAbilities().flying, 20, -20);
-        ((EntityAccess) livingEntity).incrementAnimationTimer("creative_fast_flying", roughEntitySpeed > 0.7, 20, -20);
-        ((EntityAccess) livingEntity).incrementAnimationTimer("creative_flying_up", livingEntity.getDeltaMovement().y > 0.1F, 10, -10);
-        ((EntityAccess) livingEntity).incrementAnimationTimer("creative_flying_down", livingEntity.getDeltaMovement().y < -0.1F, 10, -10);
     }
 
     // UNUSED

@@ -4,7 +4,6 @@
   "package": "com.trainguy.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "MixinInventoryScreen"
   ],
   "client": [
     "MixinBlockEntity",
@@ -19,7 +18,8 @@
     "animations.renderer.MixinBellRenderer",
     "animations.renderer.MixinChestRenderer",
     "animations.renderer.MixinPlayerRenderer",
-    "animations.renderer.MixinShulkerBoxRenderer"
+    "animations.renderer.MixinShulkerBoxRenderer",
+    "MixinInventoryScreen"
   ],
   "injectors": {
     "defaultRequire": 1

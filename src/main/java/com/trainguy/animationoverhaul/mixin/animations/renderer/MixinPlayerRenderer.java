@@ -62,15 +62,13 @@ public class MixinPlayerRenderer {
 
         // Creative fast flying
         float creativeFlyWeight = ((EntityAccess) abstractClientPlayer).getAnimationTimer("creative_flying");
-        float creativeFastFlyWeight = ((EntityAccess) abstractClientPlayer).getAnimationTimer("creative_fast_flying");
-        if(creativeFlyWeight * creativeFastFlyWeight > 0){
-            float creativeFastFlyWeightEased = Easing.CubicBezier.bezierInOutQuad().ease(creativeFastFlyWeight * creativeFlyWeight);
-            float creativeFlyUpWeight = Easing.CubicBezier.bezierInOutQuad().ease(((EntityAccess) abstractClientPlayer).getAnimationTimer("creative_flying_up"));
-            float creativeFlyDownWeight = Easing.CubicBezier.bezierInOutQuad().ease(((EntityAccess) abstractClientPlayer).getAnimationTimer("creative_flying_down"));
-            creativeFastFlyWeightEased += (0.2F * creativeFlyDownWeight) + (-0.2F * creativeFlyUpWeight);
-            poseStack.translate(0.0D, -1 * creativeFastFlyWeightEased, 1 * creativeFastFlyWeightEased);
-            poseStack.mulPose(Vector3f.XP.rotationDegrees((90 * creativeFastFlyWeightEased)));
-            poseStack.mulPose(Vector3f.YP.rotationDegrees(differenceRot * creativeFastFlyWeightEased * -1.25F));
+        if(creativeFlyWeight > 0){
+            float animationSpeed = ((LivingEntityAccess)abstractClientPlayer).getAnimationParameters().getAnimationSpeed();
+            float speedReverser = Mth.lerp(Easing.CubicBezier.bezierInOutQuad().ease(((EntityAccess) abstractClientPlayer).getAnimationTimer("direction_shift")), 1, 0);
+            float creativeFastFlyWeightEased = Easing.CubicBezier.bezierInOutQuad().ease(creativeFlyWeight) * speedReverser * animationSpeed;
+            poseStack.translate(0.0D, -1 * creativeFastFlyWeightEased, 0);
+            poseStack.mulPose(Vector3f.XP.rotationDegrees((15 * creativeFastFlyWeightEased)));
+            poseStack.translate(0.0D, 1 * creativeFastFlyWeightEased, 0);
         }
     }
 }
