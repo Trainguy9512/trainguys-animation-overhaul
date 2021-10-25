@@ -37,6 +37,13 @@ public abstract class MixinEntity implements EntityAccess {
         float delta = Minecraft.getInstance().getDeltaFrameTime();
         setAnimationTimer(identifier, Mth.clamp(previousTimerValue + (isIncreasing ? increment * delta : decrement * delta), min, max));
     }
+    public void resetTimerOnCondition(String identifier, boolean condition, int ticksToIncrement){
+        if(condition){
+            setAnimationTimer(identifier, 0);
+        } else {
+            incrementAnimationTimer(identifier, true, ticksToIncrement, 10);
+        }
+    }
     public void setAnimationTimer(String identifier, float value){
         animationTimers.put(identifier, value);
     }
@@ -45,5 +52,8 @@ public abstract class MixinEntity implements EntityAccess {
             animationTimers.put(identifier, 0F);
         }
         return animationTimers.get(identifier);
+    }
+    public HashMap<String, Float> getAnimationTimers(){
+        return animationTimers;
     }
 }

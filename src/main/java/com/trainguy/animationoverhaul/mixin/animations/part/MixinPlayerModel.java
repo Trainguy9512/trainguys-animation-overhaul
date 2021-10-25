@@ -76,11 +76,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             .addKeyframe(16, Mth.HALF_PI * 0.3F, Easing.CubicBezier.bezierInQuad())
             .addKeyframe(20, Mth.HALF_PI * -0.5F, Easing.CubicBezier.bezierOutQuad());
 
-    /*
-            .addKeyframe(12, Mth.HALF_PI * (3/5F), new Easing.CubicBezier(0.3F, 0, 0.7F, 1))
-            .addKeyframe(20, Mth.HALF_PI * -(1/3F), new Easing.CubicBezier(0.3F, 0, 0.3F, 1));
-    */
-
     private static final Timeline<Float> sprintLegForwardMovementAnimation = Timeline.floatTimeline()
             .addKeyframe(0, -2.5F)
             .addKeyframe(10, 2.5F, Easing.CubicBezier.bezierInOutQuad())
@@ -102,6 +97,10 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             .addKeyframe(0, 1F)
             .addKeyframe(12, -1F, new Easing.CubicBezier(0.4F, 0, 0.2F, 1))
             .addKeyframe(20, 1F, new Easing.CubicBezier(0.4F, 0, 0.2F, 1));
+
+    private static final Timeline<Float> sprintJumpWeightAnimation = Timeline.floatTimeline()
+            .addKeyframe(0, 0F)
+            .addKeyframe(10, 1F, Easing.CubicBezier.bezierOutQuart());
 
     public MixinPlayerModel(ModelPart modelPart) {
         super(modelPart);
@@ -138,16 +137,20 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // Locomotion pose layers
         addWalkPoseLayer(livingEntity);
         addSprintPoseLayer(livingEntity);
+        addSprintJumpPoseLayer(livingEntity);
         addCrouchPoseLayer(livingEntity);
         addCreativeFlyPoseLayer(livingEntity);
 
-        // TODO: swimming, fall flying, redo crouching, crawling, wading in water, riding in boat, sleeping
+        // WIP: sprint jumping, creative flying, falling
+        // TODO: swimming, fall flying, redo crouching, crawling, wading in water, riding in boat, sleeping, riding horse (temp),
+        // TODO: riding minecart
 
         // Idle pose layers
         // TODO: idling normally, idling while flying, idling underwater, idling sleeping, idle battle pose?
 
         // Item interaction pose layers
         // TODO: holding item, using bow, using crossbow, using shield, using spyglass, eating and drinking, throwing trident, equipping armor
+        // TODO: fishing rod reeling, direction-based damage, death animation?, mining with pickaxe, interacting with fist?
 
         // Final stuff
         parentSecondLayerToModel();
@@ -200,9 +203,21 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         return Easing.CubicBezier.bezierInOutQuad().ease(Mth.clamp(fallFlyingTicks * fallFlyingTicks / 100F, 0, 1));
     }
 
+    private float getSprintJumpWeight(T livingEntity){
+        return Easing.CubicBezier.bezierInOutQuad().ease(((EntityAccess)livingEntity).getAnimationTimer("sprint_jump_weight"));
+    }
+
+    private float getMovingUpWeight(T livingEntity){
+        return Easing.CubicBezier.bezierInOutQuad().ease(((EntityAccess)livingEntity).getAnimationTimer("moving_up_weight"));
+    }
+
+    private float getMovingDownWeight(T livingEntity){
+        return Easing.CubicBezier.bezierInOutQuad().ease(((EntityAccess)livingEntity).getAnimationTimer("moving_down_weight"));
+    }
+
     private void addWalkPoseLayer(T livingEntity){
         float sprintWeight = getSprintWeight(livingEntity);
-        float walkCancelWeight = (1 - getSwimWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * (1 - getCreativeFlyingWeight(livingEntity));
+        float walkCancelWeight = (1 - getSwimWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * (1 - getCreativeFlyingWeight(livingEntity)) * (1 - getSprintJumpWeight(livingEntity));
         if(sprintWeight < 1){
             float animationPosition = getAnimationParameters(livingEntity).getAnimationPosition();
             float animationSpeed = getAnimationParameters(livingEntity).getAnimationSpeed();
@@ -252,23 +267,24 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         float sprintCancelWeight = (1 - getSwimWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * (1 - getCreativeFlyingWeight(livingEntity));
         sprintWeight *= sprintCancelWeight;
         if(sprintWeight > 0){
+            float sprintJumpCancelWeight =  (1 - getSprintJumpWeight(livingEntity));
             float animationPosition = getAnimationParameters(livingEntity).getAnimationPosition();
 
             float leftLegSprintTimer = new TimerProcessor(animationPosition).repeat(10, 0).getValue();
             float rightLegSprintTimer = new TimerProcessor(animationPosition).repeat(10, 0.5F).getValue();
             float bodyLiftTimer = new TimerProcessor(animationPosition).repeat(5, 0.25F).getValue();
 
-            float leftLegRotation = sprintLegRotationAnimation.getValueAt(leftLegSprintTimer) * sprintWeight;
-            float leftLegForwardMovement = sprintLegForwardMovementAnimation.getValueAt(leftLegSprintTimer) * sprintWeight;
-            float leftLegYMovement = sprintLegLiftMovementAnimation.getValueAt(leftLegSprintTimer) * sprintWeight;
-            float rightLegRotation = sprintLegRotationAnimation.getValueAt(rightLegSprintTimer) * sprintWeight;
-            float rightLegForwardMovement = sprintLegForwardMovementAnimation.getValueAt(rightLegSprintTimer) * sprintWeight;
-            float rightLegYMovement = sprintLegLiftMovementAnimation.getValueAt(rightLegSprintTimer) * sprintWeight;
-            float bodyYMovement = sprintBodyLiftMovementAnimation.getValueAt(bodyLiftTimer) * sprintWeight;
-            float leftArmRotation = sprintArmSwingAnimation.getValueAt(leftLegSprintTimer) * (Mth.HALF_PI * 3 / 5F) * sprintWeight;
-            float leftArmForwardMovement = sprintArmSwingAnimation.getValueAt(leftLegSprintTimer) * 2 * sprintWeight;
-            float rightArmRotation = sprintArmSwingAnimation.getValueAt(rightLegSprintTimer) * (Mth.HALF_PI * 3 / 5F) * sprintWeight;
-            float rightArmForwardMovement = sprintArmSwingAnimation.getValueAt(rightLegSprintTimer) * 2 * sprintWeight;
+            float leftLegRotation = sprintLegRotationAnimation.getValueAt(leftLegSprintTimer) * sprintWeight * sprintJumpCancelWeight;
+            float leftLegForwardMovement = sprintLegForwardMovementAnimation.getValueAt(leftLegSprintTimer) * sprintWeight * sprintJumpCancelWeight;
+            float leftLegYMovement = sprintLegLiftMovementAnimation.getValueAt(leftLegSprintTimer) * sprintWeight * sprintJumpCancelWeight;
+            float rightLegRotation = sprintLegRotationAnimation.getValueAt(rightLegSprintTimer) * sprintWeight * sprintJumpCancelWeight;
+            float rightLegForwardMovement = sprintLegForwardMovementAnimation.getValueAt(rightLegSprintTimer) * sprintWeight * sprintJumpCancelWeight;
+            float rightLegYMovement = sprintLegLiftMovementAnimation.getValueAt(rightLegSprintTimer) * sprintWeight * sprintJumpCancelWeight;
+            float bodyYMovement = sprintBodyLiftMovementAnimation.getValueAt(bodyLiftTimer) * sprintWeight * sprintJumpCancelWeight;
+            float leftArmRotation = sprintArmSwingAnimation.getValueAt(leftLegSprintTimer) * (Mth.HALF_PI * 3 / 5F) * sprintWeight * sprintJumpCancelWeight;
+            float leftArmForwardMovement = sprintArmSwingAnimation.getValueAt(leftLegSprintTimer) * 2 * sprintWeight * sprintJumpCancelWeight;
+            float rightArmRotation = sprintArmSwingAnimation.getValueAt(rightLegSprintTimer) * (Mth.HALF_PI * 3 / 5F) * sprintWeight * sprintJumpCancelWeight;
+            float rightArmForwardMovement = sprintArmSwingAnimation.getValueAt(rightLegSprintTimer) * 2 * sprintWeight * sprintJumpCancelWeight;
 
             this.leftLeg.xRot += leftLegRotation;
             this.leftLeg.z += leftLegForwardMovement;
@@ -280,8 +296,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             this.leftArm.z += leftArmForwardMovement;
             this.rightArm.xRot += rightArmRotation;
             this.rightArm.z += rightArmForwardMovement;
-            this.leftArm.xRot += Mth.HALF_PI * 1/6F * sprintWeight;
-            this.rightArm.xRot += Mth.HALF_PI * 1/6F * sprintWeight;
+            this.leftArm.xRot += Mth.HALF_PI * 1/6F * sprintWeight * sprintJumpCancelWeight;
+            this.rightArm.xRot += Mth.HALF_PI * 1/6F * sprintWeight * sprintJumpCancelWeight;
             this.body.xRot += Mth.HALF_PI * 1/6F * sprintWeight;
 
             for(ModelPart part : getPartListAll()){
@@ -307,6 +323,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             float forwardMovementOnlyMultiplier = 1 - getDirectionShift(livingEntity);
             float tickAtFrame = getAnimationParameters(livingEntity).getTickAtFrame();
             float movingInAirMultiplier = animationSpeed * forwardMovementOnlyMultiplier * creativeFlyingWeight;
+            float movingUpWeight = getMovingUpWeight(livingEntity) * creativeFlyingWeight;
+            float movingDownWeight = getMovingDownWeight(livingEntity) * creativeFlyingWeight;
 
             // Timer fields
             float primaryMovementTimer = new TimerProcessor(tickAtFrame).repeat(30, 0.0F).getValue();
@@ -328,27 +346,29 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             float offLegLiftMovement = Mth.lerp(secondaryMovementLerp, -0.5F, 0) * creativeFlyingWeight;
             float offLegForwardMovement = Mth.lerp(secondaryMovementLerp, 0.5F, 0.75F) * creativeFlyingWeight;
             float offLegRotation = Mth.lerp(tertiaryMovementLerp, Mth.HALF_PI / -20, Mth.HALF_PI / 16) * creativeFlyingWeight;
-            float armZRotation = Mth.lerp(secondaryMovementLerp, Mth.HALF_PI / 6, Mth.HALF_PI / 30) * creativeFlyingWeight;
-            float armXRotation = Mth.lerp(tertiaryMovementLerp, Mth.HALF_PI / -8, Mth.HALF_PI / 20) * creativeFlyingWeight;
+            float mainArmZRotation = Mth.lerp(primaryMovementLerp, Mth.HALF_PI / 6, Mth.HALF_PI / 30) * creativeFlyingWeight;
+            float mainArmXRotation = Mth.lerp(secondaryMovementLerp, Mth.HALF_PI / -8, Mth.HALF_PI / 20) * creativeFlyingWeight;
+            float offArmZRotation = Mth.lerp(secondaryMovementLerp, Mth.HALF_PI / 6, Mth.HALF_PI / 30) * creativeFlyingWeight;
+            float offArmXRotation = Mth.lerp(tertiaryMovementLerp, Mth.HALF_PI / -8, Mth.HALF_PI / 20) * creativeFlyingWeight;
 
             // Additional movements when moving forwards
-            float mainLegLiftMovementMoving = 2F * movingInAirMultiplier;
-            float mainLegForwardMovementMoving = -0.5F * movingInAirMultiplier;
-            float mainLegRotationMoving = Mth.HALF_PI / 3F * movingInAirMultiplier;
-            float offLegLiftMovementMoving = 0.75F * movingInAirMultiplier;
-            float offLegForwardMovementMoving = 1.25F * movingInAirMultiplier;
-            float offLegRotationMoving = Mth.HALF_PI / 2F * movingInAirMultiplier;
+            float mainLegLiftMovementMovingForward = 2F * movingInAirMultiplier;
+            float mainLegForwardMovementMovingForward = -0.5F * movingInAirMultiplier;
+            float mainLegRotationMovingForward = Mth.HALF_PI / 3F * movingInAirMultiplier;
+            float offLegLiftMovementMovingForward = 0.75F * movingInAirMultiplier;
+            float offLegForwardMovementMovingForward = 1.25F * movingInAirMultiplier;
+            float offLegRotationMovingForward = Mth.HALF_PI / 2F * movingInAirMultiplier;
 
-            mainLeg.xRot += mainLegRotation + mainLegRotationMoving;
-            mainLeg.y += mainLegLiftMovement + mainLegLiftMovementMoving;
-            mainLeg.z += mainLegForwardMovement + mainLegForwardMovementMoving;
-            offLeg.xRot += offLegRotation + offLegRotationMoving;
-            offLeg.y += offLegLiftMovement + offLegLiftMovementMoving;
-            offLeg.z += offLegForwardMovement + offLegForwardMovementMoving;
-            mainArm.xRot += armXRotation + mainLegRotationMoving;
-            mainArm.zRot += armZRotation;
-            offArm.xRot += armXRotation + offLegRotationMoving;
-            offArm.zRot += -armZRotation;
+            mainLeg.xRot += mainLegRotation + mainLegRotationMovingForward;
+            mainLeg.y += mainLegLiftMovement + mainLegLiftMovementMovingForward;
+            mainLeg.z += mainLegForwardMovement + mainLegForwardMovementMovingForward;
+            offLeg.xRot += offLegRotation + offLegRotationMovingForward;
+            offLeg.y += offLegLiftMovement + offLegLiftMovementMovingForward;
+            offLeg.z += offLegForwardMovement + offLegForwardMovementMovingForward;
+            mainArm.xRot += mainArmXRotation + mainLegRotationMovingForward;
+            mainArm.zRot += mainArmZRotation;
+            offArm.xRot += offArmXRotation + offLegRotationMovingForward;
+            offArm.zRot += -offArmZRotation;
             this.body.xRot += bodySecondaryBobRotation;
             this.head.xRot += -0.2F * movingInAirMultiplier;
             for(ModelPart part : getPartListAll()){
@@ -357,6 +377,19 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
                     part.z += bodySecondaryBobPosition;
                 }
             }
+        }
+    }
+
+    private void addSprintJumpPoseLayer(T livingEntity){
+        float sprintJumpWeight = getSprintJumpWeight(livingEntity) * (1 - getCreativeFlyingWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * getAnimationParameters(livingEntity).getAnimationSpeed();
+        if(sprintJumpWeight > 0){
+            float sprintJumpReverser = Mth.lerp(((EntityAccess)livingEntity).getAnimationTimer("sprint_jump_reverser"), 1, -1);
+            float sprintJumpTimer = ((EntityAccess) livingEntity).getAnimationTimer("sprint_jump_timer");
+            float sprintJumpLegRotation = Mth.lerp(sprintJumpWeightAnimation.getValueAt(sprintJumpTimer), Mth.HALF_PI / 2, Mth.HALF_PI / -2) * sprintJumpWeight * sprintJumpReverser;
+            this.leftLeg.xRot += sprintJumpLegRotation;
+            this.rightLeg.xRot += -sprintJumpLegRotation;
+            this.leftArm.xRot += -sprintJumpLegRotation;
+            this.rightArm.xRot += sprintJumpLegRotation;
         }
     }
 
@@ -452,6 +485,36 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         ((EntityAccess)livingEntity).incrementAnimationTimer("sprint", animationSpeed > 0.9, 0.0625F, -0.125F);
         // Creative flying
         ((EntityAccess) livingEntity).incrementAnimationTimer("creative_flying", abstractClientPlayer.getAbilities().flying, 20, -20);
+
+        // Ticks after hitting ground
+        float previousTicksAfterHittingGround = ((EntityAccess) livingEntity).getAnimationTimer("ticks_after_hitting_ground");
+        float ticksAfterHittingGround = livingEntity.isOnGround() ? previousTicksAfterHittingGround + delta : 0;
+        ((EntityAccess) livingEntity).setAnimationTimer("ticks_after_hitting_ground", ticksAfterHittingGround);
+
+        float previousYMovement = ((EntityAccess) livingEntity).getAnimationTimer("y_movement");
+        ((EntityAccess) livingEntity).setAnimationTimer("y_movement", (float) livingEntity.getDeltaMovement().y);
+
+        // TODO: Repurpose the sprint jump stuff as jumping animations
+
+        boolean shouldResetSprintJumpTimer = previousYMovement < 0 && livingEntity.getDeltaMovement().y > 0;
+        ((EntityAccess) livingEntity).resetTimerOnCondition("sprint_jump_timer", shouldResetSprintJumpTimer, 15);
+
+        // Ticks after switching legs
+        float previousTicksAfterSwitchingLegs = ((EntityAccess) livingEntity).getAnimationTimer("ticks_after_switching_legs");
+        float ticksAfterSwitchingLegs = shouldResetSprintJumpTimer ? 0 : previousTicksAfterSwitchingLegs + delta;
+        ((EntityAccess) livingEntity).setAnimationTimer("ticks_after_switching_legs", ticksAfterSwitchingLegs);
+
+        // Sprint jump weight
+        boolean isSprintJumping = (ticksAfterHittingGround < 1 || !livingEntity.isOnGround()) && animationSpeed > 0.4 && ticksAfterSwitchingLegs < 10;
+        ((EntityAccess) livingEntity).incrementAnimationTimer("sprint_jump_weight", isSprintJumping, 8, -8);
+
+        // Switch the legs for sprint jumping
+        float previousSprintJumpReverser = ((EntityAccess) livingEntity).getAnimationTimer("sprint_jump_reverser");
+        ((EntityAccess) livingEntity).setAnimationTimer("sprint_jump_reverser", shouldResetSprintJumpTimer ? 1 - previousSprintJumpReverser : previousSprintJumpReverser);
+
+        // Moving up and down weight
+        ((EntityAccess) livingEntity).incrementAnimationTimer("moving_up_weight", livingEntity.getDeltaMovement().y > 0.1, 10, -10);
+        ((EntityAccess) livingEntity).incrementAnimationTimer("moving_down_weight", livingEntity.getDeltaMovement().y < -0.1, 10, -10);
     }
 
     // UNUSED

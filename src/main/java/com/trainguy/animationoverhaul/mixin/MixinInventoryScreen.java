@@ -5,10 +5,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
+import com.trainguy.animationoverhaul.access.EntityAccess;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,6 +37,20 @@ public class MixinInventoryScreen {
         Quaternion quaternion2 = Vector3f.XP.rotationDegrees(l * 20.0F);
         quaternion.mul(quaternion2);
         poseStack2.mulPose(quaternion);
+
+
+        /*
+
+        smooth transition to point
+
+        float previousX = ((EntityAccess)livingEntity).getAnimationTimer("inventory_x");
+        float targetX = f;
+        float currentX = Mth.lerp(0.5F * Minecraft.getInstance().getDeltaFrameTime(), previousX, targetX);
+        ((EntityAccess) livingEntity).setAnimationTimer("inventory_x", currentX);
+
+        poseStack2.translate(currentX / 20F, 0, 0);
+
+         */
         float m = livingEntity.yBodyRot;
         float n = livingEntity.getYRot();
         float o = livingEntity.getXRot();
