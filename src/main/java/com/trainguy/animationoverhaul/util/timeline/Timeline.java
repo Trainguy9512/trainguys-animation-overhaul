@@ -2,6 +2,7 @@ package com.trainguy.animationoverhaul.util.timeline;
 
 import com.trainguy.animationoverhaul.util.Easing;
 import com.trainguy.animationoverhaul.util.Lerper;
+import com.trainguy.animationoverhaul.util.TransformChannel;
 
 import java.util.TreeMap;
 

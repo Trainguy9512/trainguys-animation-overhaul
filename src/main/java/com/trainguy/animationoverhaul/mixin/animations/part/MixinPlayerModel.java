@@ -5,6 +5,8 @@ import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.util.Easing;
 import com.trainguy.animationoverhaul.util.LivingEntityAnimParams;
 import com.trainguy.animationoverhaul.util.TimerProcessor;
+import com.trainguy.animationoverhaul.util.TransformChannel;
+import com.trainguy.animationoverhaul.util.timeline.ChannelTimeline;
 import com.trainguy.animationoverhaul.util.timeline.Timeline;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -102,6 +104,16 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             .addKeyframe(0, 0F)
             .addKeyframe(10, 1F, Easing.CubicBezier.bezierOutQuart());
 
+    private static final ChannelTimeline<Float> testChannelTimeline = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.x, 0, -3F)
+            .addKeyframe(TransformChannel.x, 4, 3F)
+            .addKeyframe(TransformChannel.x, 6, 3F)
+            .addKeyframe(TransformChannel.x, 10, -3F)
+
+            .addKeyframe(TransformChannel.zRot, 0, Mth.HALF_PI / 2)
+            .addKeyframe(TransformChannel.zRot, 5, Mth.HALF_PI / -2)
+            .addKeyframe(TransformChannel.zRot, 10, Mth.HALF_PI / 2);
+
     public MixinPlayerModel(ModelPart modelPart) {
         super(modelPart);
     }
@@ -140,6 +152,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         addSprintJumpPoseLayer(livingEntity);
         addCrouchPoseLayer(livingEntity);
         addCreativeFlyPoseLayer(livingEntity);
+        addFallingAndImpactPoseLayer(livingEntity);
 
         // WIP: sprint jumping, creative flying, falling
         // TODO: swimming, fall flying, redo crouching, crawling, wading in water, riding in boat, sleeping, riding horse (temp),
@@ -215,9 +228,13 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         return Easing.CubicBezier.bezierInOutQuad().ease(((EntityAccess)livingEntity).getAnimationTimer("moving_down_weight"));
     }
 
+    private float getFallingWeight(T livingEntity){
+        return Easing.CubicBezier.bezierInOutQuad().ease(((EntityAccess)livingEntity).getAnimationTimer("falling_weight"));
+    }
+
     private void addWalkPoseLayer(T livingEntity){
         float sprintWeight = getSprintWeight(livingEntity);
-        float walkCancelWeight = (1 - getSwimWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * (1 - getCreativeFlyingWeight(livingEntity)) * (1 - getSprintJumpWeight(livingEntity));
+        float walkCancelWeight = (1 - getSwimWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * (1 - getCreativeFlyingWeight(livingEntity)) * (1 - getSprintJumpWeight(livingEntity)) * (1 - getFallingWeight(livingEntity));
         if(sprintWeight < 1){
             float animationPosition = getAnimationParameters(livingEntity).getAnimationPosition();
             float animationSpeed = getAnimationParameters(livingEntity).getAnimationSpeed();
@@ -264,7 +281,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     private void addSprintPoseLayer(T livingEntity){
         float animationSpeed = getAnimationParameters(livingEntity).getAnimationSpeed();
         float sprintWeight = getSprintWeight(livingEntity) * animationSpeed;
-        float sprintCancelWeight = (1 - getSwimWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * (1 - getCreativeFlyingWeight(livingEntity));
+        float sprintCancelWeight = (1 - getSwimWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * (1 - getCreativeFlyingWeight(livingEntity)) * (1 - getFallingWeight(livingEntity));
         sprintWeight *= sprintCancelWeight;
         if(sprintWeight > 0){
             float sprintJumpCancelWeight =  (1 - getSprintJumpWeight(livingEntity));
@@ -381,7 +398,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     }
 
     private void addSprintJumpPoseLayer(T livingEntity){
-        float sprintJumpWeight = getSprintJumpWeight(livingEntity) * (1 - getCreativeFlyingWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * getAnimationParameters(livingEntity).getAnimationSpeed();
+        float sprintJumpWeight = getSprintJumpWeight(livingEntity) * (1 - getCreativeFlyingWeight(livingEntity)) * (1 - getFallFlyingWeight(livingEntity)) * getAnimationParameters(livingEntity).getAnimationSpeed() * (1 - getFallFlyingWeight(livingEntity)) * (1 - getSwimWeight(livingEntity)) * (1 - getFallingWeight(livingEntity));
         if(sprintJumpWeight > 0){
             float sprintJumpReverser = Mth.lerp(((EntityAccess)livingEntity).getAnimationTimer("sprint_jump_reverser"), 1, -1);
             float sprintJumpTimer = ((EntityAccess) livingEntity).getAnimationTimer("sprint_jump_timer");
@@ -391,6 +408,10 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             this.leftArm.xRot += -sprintJumpLegRotation;
             this.rightArm.xRot += sprintJumpLegRotation;
         }
+    }
+
+    private void addFallingAndImpactPoseLayer(T livingEntity){
+
     }
 
     private void addCrouchPoseLayer(T livingEntity){
@@ -515,6 +536,14 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // Moving up and down weight
         ((EntityAccess) livingEntity).incrementAnimationTimer("moving_up_weight", livingEntity.getDeltaMovement().y > 0.1, 10, -10);
         ((EntityAccess) livingEntity).incrementAnimationTimer("moving_down_weight", livingEntity.getDeltaMovement().y < -0.1, 10, -10);
+
+        // Falling
+        ((EntityAccess) livingEntity).setAnimationTimer("fall_distance", livingEntity.fallDistance);
+        boolean isFalling = livingEntity.fallDistance > 2 && !livingEntity.isInWater() && !livingEntity.isOnGround();
+        ((EntityAccess) livingEntity).incrementAnimationTimer("falling_weight", isFalling, 10, -5);
+
+        // Hitting the ground
+        ((EntityAccess) livingEntity).resetTimerOnCondition("falling_impact", ticksAfterHittingGround < 1 && ((EntityAccess) livingEntity).getAnimationTimer("falling_weight") > 0.5F, 10);
     }
 
     // UNUSED
