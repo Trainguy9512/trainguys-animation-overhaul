@@ -45,31 +45,30 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             .addKeyframe(1, 1F, Easing.CubicBezier.bezierOutCubic())
             .addKeyframe(2, 0F, Easing.CubicBezier.bezierOutCubic());
 
-    private static final Timeline<Float> walkLegRotationAnimation = Timeline.floatTimeline()
-            .addKeyframe(0, Mth.HALF_PI * -(2/5F))
-            .addKeyframe(12, Mth.HALF_PI * (2/5F), new Easing.CubicBezier(0.34F, 0, 0.72F, 1))
-            .addKeyframe(20, Mth.HALF_PI * -(2/5F), new Easing.CubicBezier(0.5F,0,0.66F,1));
+    private static final ChannelTimeline<Float> walkLegAnimation = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.xRot, 0, Mth.HALF_PI * -(2/5F))
+            .addKeyframe(TransformChannel.xRot, 12, Mth.HALF_PI * (2/5F), new Easing.CubicBezier(0.34F, 0, 0.72F, 1))
+            .addKeyframe(TransformChannel.xRot, 20, Mth.HALF_PI * -(2/5F), new Easing.CubicBezier(0.5F,0,0.66F,1))
+            .addKeyframe(TransformChannel.z, 0, -1.5F)
+            .addKeyframe(TransformChannel.z, 12, 1F, new Easing.CubicBezier(0.54F,0.23F,0.52F,1))
+            .addKeyframe(TransformChannel.z, 20, -1.5F, new Easing.CubicBezier(0.48F,0,0.29F,1.64F))
+            .addKeyframe(TransformChannel.y, 0, 0F)
+            .addKeyframe(TransformChannel.y, 12, 0F, new Easing.Linear())
+            .addKeyframe(TransformChannel.y, 16, -2F, new Easing.CubicBezier(0.23F, 0, 0.52F, 1))
+            .addKeyframe(TransformChannel.y, 20, 0F, Easing.CubicBezier.bezierInOutQuad());
 
-    private static final Timeline<Float> walkLegForwardMovementAnimation = Timeline.floatTimeline()
-            .addKeyframe(0, -1.5F)
-            .addKeyframe(12, 1F, new Easing.CubicBezier(0.54F,0.23F,0.52F,1))
-            .addKeyframe(20, -1.5F, new Easing.CubicBezier(0.48F,0,0.29F,1.64F));
+    private static final ChannelTimeline<Float> walkBodyAnimation = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.y, 0, 0.5F)
+            .addKeyframe(TransformChannel.y, 5, -0.5F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.y, 10, 0.5F, new Easing.CubicBezier(0.8F, 0, 0.5F, 1));
 
-    private static final Timeline<Float> walkLegLiftMovementAnimation = Timeline.floatTimeline()
-            .addKeyframe(0, 0F)
-            .addKeyframe(12, 0F, new Easing.Linear())
-            .addKeyframe(16, -2F, new Easing.CubicBezier(0.23F, 0, 0.52F, 1))
-            .addKeyframe(20, 0F, Easing.CubicBezier.bezierInOutQuad());
-
-    private static final Timeline<Float> walkBodyLiftMovementAnimation = Timeline.floatTimeline()
-            .addKeyframe(0, 0.5F)
-            .addKeyframe(5, -0.5F, Easing.CubicBezier.bezierInOutQuad())
-            .addKeyframe(10, 0.5F, new Easing.CubicBezier(0.8F, 0, 0.5F, 1));
-
-    private static final Timeline<Float> walkArmSwingAnimation = Timeline.floatTimeline()
-            .addKeyframe(0, 1F)
-            .addKeyframe(12, -1F, Easing.CubicBezier.bezierInOutQuad())
-            .addKeyframe(20, 1F, Easing.CubicBezier.bezierInOutQuad());
+    private static final ChannelTimeline<Float> walkArmAnimation = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.xRot, 0, Mth.HALF_PI * 2 / 5F)
+            .addKeyframe(TransformChannel.xRot, 12, Mth.HALF_PI * -2 / 5F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.xRot, 20, Mth.HALF_PI * 2 / 5F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.z, 0, 1F)
+            .addKeyframe(TransformChannel.z, 12, -1F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.z, 20, 1F, Easing.CubicBezier.bezierInOutQuad());
 
     private static final Timeline<Float> sprintLegRotationAnimation = Timeline.floatTimeline()
             .addKeyframe(0, Mth.HALF_PI * -0.5F)
@@ -249,31 +248,19 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             float walkingWeight = walkCancelWeight * (1 - sprintWeight) * Math.min(animationSpeed * 3, 1);
             float walkingWeightAffectedBySpeed = walkCancelWeight * (1 - sprintWeight) * Math.min(animationSpeed * 2, 1);
 
-            float leftLegRotation = walkLegRotationAnimation.getValueAt(leftLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
-            float leftLegForwardMovement = walkLegForwardMovementAnimation.getValueAt(leftLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
-            float leftLegLiftMovement = walkLegLiftMovementAnimation.getValueAt(leftLegWalkTimer) * walkingWeight;
-            float rightLegRotation = walkLegRotationAnimation.getValueAt(rightLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
-            float rightLegForwardMovement = walkLegForwardMovementAnimation.getValueAt(rightLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
-            float rightLegLiftMovement = walkLegLiftMovementAnimation.getValueAt(rightLegWalkTimer) * walkingWeight;
-            float bodyLiftMovement = walkBodyLiftMovementAnimation.getValueAt(bodyLiftTimer) * walkingWeight;
-            float leftArmRotation = walkArmSwingAnimation.getValueAt(leftLegWalkTimer) * (Mth.HALF_PI * 2 / 5F) * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
-            float leftArmForwardMovement = walkArmSwingAnimation.getValueAt(leftLegWalkTimer) * 1 * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
-            float rightArmRotation = walkArmSwingAnimation.getValueAt(rightLegWalkTimer) * (Mth.HALF_PI * 2 / 5F) * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
-            float rightArmForwardMovement = walkArmSwingAnimation.getValueAt(rightLegWalkTimer) * 1 * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
-
-            this.leftLeg.xRot += leftLegRotation;
-            this.leftLeg.z += leftLegForwardMovement;
-            this.leftLeg.y += leftLegLiftMovement;
-            this.rightLeg.xRot += rightLegRotation;
-            this.rightLeg.z += rightLegForwardMovement;
-            this.rightLeg.y += rightLegLiftMovement;
-            this.leftArm.xRot += leftArmRotation;
-            this.leftArm.z += leftArmForwardMovement;
-            this.rightArm.xRot += rightArmRotation;
-            this.rightArm.z += rightArmForwardMovement;
+            this.leftLeg.xRot += walkLegAnimation.getValueAt(TransformChannel.xRot, leftLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
+            this.leftLeg.z += walkLegAnimation.getValueAt(TransformChannel.z, leftLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
+            this.leftLeg.y += walkLegAnimation.getValueAt(TransformChannel.y, leftLegWalkTimer) * walkingWeight;
+            this.rightLeg.xRot += walkLegAnimation.getValueAt(TransformChannel.xRot, rightLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
+            this.rightLeg.z += walkLegAnimation.getValueAt(TransformChannel.z, rightLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftMultiplier;
+            this.rightLeg.y += walkLegAnimation.getValueAt(TransformChannel.y, rightLegWalkTimer) * walkingWeight;
+            this.leftArm.xRot += walkArmAnimation.getValueAt(TransformChannel.xRot, leftLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
+            this.leftArm.z += walkArmAnimation.getValueAt(TransformChannel.z, leftLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
+            this.rightArm.xRot += walkArmAnimation.getValueAt(TransformChannel.xRot, rightLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
+            this.rightArm.z += walkArmAnimation.getValueAt(TransformChannel.z, rightLegWalkTimer) * walkingWeightAffectedBySpeed * directionShiftArmMultiplier;
 
             for(ModelPart part : getPartListBody()){
-                part.y += bodyLiftMovement;
+                part.y += walkBodyAnimation.getValueAt(TransformChannel.y, bodyLiftTimer) * walkingWeight;
             }
         }
     }
@@ -539,7 +526,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         // Falling
         ((EntityAccess) livingEntity).setAnimationTimer("fall_distance", livingEntity.fallDistance);
-        boolean isFalling = livingEntity.fallDistance > 2 && !livingEntity.isInWater() && !livingEntity.isOnGround();
+        boolean isFalling = livingEntity.fallDistance > 1 && !livingEntity.isInWater() && !livingEntity.isOnGround();
         ((EntityAccess) livingEntity).incrementAnimationTimer("falling_weight", isFalling, 10, -5);
 
         // Hitting the ground
