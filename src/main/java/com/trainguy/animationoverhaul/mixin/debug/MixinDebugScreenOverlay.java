@@ -41,8 +41,8 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
             TreeMap<String, Float> animationTimers = new TreeMap<>(((EntityAccess)entity).getAnimationTimers());
 
             DecimalFormat format = new DecimalFormat("0.00");
-
             if(animationTimers.size() > 0){
+
                 for(int i = 0; i < animationTimers.size(); i++){
                     String key = animationTimers.keySet().stream().toList().get(i);
                     float value = animationTimers.get(key);
@@ -52,6 +52,7 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
                     String string;
                     int j = 9;
                     int m = 2 + j * i;
+                    m += j + 4;
                     if(isWithinRange){
                         string = key + ":";
                     } else {
@@ -70,6 +71,17 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
                         fill(poseStack, l - 1, m, l + k, m + j - 2, -2);
                     }
                 }
+
+
+                String string = "Selected entity: " + entity.getName().getString() + " (" + entity.getType().toShortString() + ")";
+                int j = 9;
+                int m = 2;
+                int k = this.font.width(string);
+                int l = this.minecraft.getWindow().getGuiScaledWidth() - 2 - k;
+                Objects.requireNonNull(this.font);
+                fill(poseStack, l - 1, m - 1, l + k + 1, m + j - 1, -1873784752);
+                this.font.draw(poseStack, string, (float)l, (float)m, COLOR_GREY);
+
             } else {
                 String string = "Animation timers not initiated!";
                 Objects.requireNonNull(this.font);
