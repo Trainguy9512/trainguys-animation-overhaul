@@ -20,7 +20,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -44,31 +43,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             .addKeyframe(0, 0F)
             .addKeyframe(1, 1F, Easing.CubicBezier.bezierOutCubic())
             .addKeyframe(2, 0F, Easing.CubicBezier.bezierOutCubic());
-
-    private static final ChannelTimeline<Float> walkLegAnimation = ChannelTimeline.floatChannelTimeline()
-            .addKeyframe(TransformChannel.xRot, 0, Mth.HALF_PI * -(2/5F))
-            .addKeyframe(TransformChannel.xRot, 12, Mth.HALF_PI * (2/5F), new Easing.CubicBezier(0.34F, 0, 0.72F, 1))
-            .addKeyframe(TransformChannel.xRot, 20, Mth.HALF_PI * -(2/5F), new Easing.CubicBezier(0.5F,0,0.66F,1))
-            .addKeyframe(TransformChannel.z, 0, -1.5F)
-            .addKeyframe(TransformChannel.z, 12, 1F, new Easing.CubicBezier(0.54F,0.23F,0.52F,1))
-            .addKeyframe(TransformChannel.z, 20, -1.5F, new Easing.CubicBezier(0.48F,0,0.29F,1.64F))
-            .addKeyframe(TransformChannel.y, 0, 0F)
-            .addKeyframe(TransformChannel.y, 12, 0F, new Easing.Linear())
-            .addKeyframe(TransformChannel.y, 16, -2F, new Easing.CubicBezier(0.23F, 0, 0.52F, 1))
-            .addKeyframe(TransformChannel.y, 20, 0F, Easing.CubicBezier.bezierInOutQuad());
-
-    private static final ChannelTimeline<Float> walkBodyAnimation = ChannelTimeline.floatChannelTimeline()
-            .addKeyframe(TransformChannel.y, 0, 0.5F)
-            .addKeyframe(TransformChannel.y, 5, -0.5F, Easing.CubicBezier.bezierInOutQuad())
-            .addKeyframe(TransformChannel.y, 10, 0.5F, new Easing.CubicBezier(0.8F, 0, 0.5F, 1));
-
-    private static final ChannelTimeline<Float> walkArmAnimation = ChannelTimeline.floatChannelTimeline()
-            .addKeyframe(TransformChannel.xRot, 0, Mth.HALF_PI * 2 / 5F)
-            .addKeyframe(TransformChannel.xRot, 12, Mth.HALF_PI * -2 / 5F, Easing.CubicBezier.bezierInOutQuad())
-            .addKeyframe(TransformChannel.xRot, 20, Mth.HALF_PI * 2 / 5F, Easing.CubicBezier.bezierInOutQuad())
-            .addKeyframe(TransformChannel.z, 0, 1F)
-            .addKeyframe(TransformChannel.z, 12, -1F, Easing.CubicBezier.bezierInOutQuad())
-            .addKeyframe(TransformChannel.z, 20, 1F, Easing.CubicBezier.bezierInOutQuad());
 
     private static final Timeline<Float> sprintLegRotationAnimation = Timeline.floatTimeline()
             .addKeyframe(0, Mth.HALF_PI * -0.5F)
@@ -151,11 +125,11 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         addSprintJumpPoseLayer(livingEntity);
         addCrouchPoseLayer(livingEntity);
         addCreativeFlyPoseLayer(livingEntity);
-        addFallingAndImpactPoseLayer(livingEntity);
+        addFallingPoseLayer(livingEntity);
 
         // WIP: sprint jumping, creative flying, falling
         // TODO: swimming, fall flying, redo crouching, crawling, wading in water, riding in boat, sleeping, riding horse (temp),
-        // TODO: riding minecart
+        // TODO: riding minecart, levitating
 
         // Idle pose layers
         // TODO: idling normally, idling while flying, idling underwater, idling sleeping, idle battle pose?
@@ -230,6 +204,31 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     private float getFallingWeight(T livingEntity){
         return Easing.CubicBezier.bezierInOutQuad().ease(((EntityAccess)livingEntity).getAnimationTimer("falling_weight"));
     }
+
+    private static final ChannelTimeline<Float> walkLegAnimation = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.xRot, 0, Mth.HALF_PI * -(2/5F))
+            .addKeyframe(TransformChannel.xRot, 12, Mth.HALF_PI * (2/5F), new Easing.CubicBezier(0.34F, 0, 0.72F, 1))
+            .addKeyframe(TransformChannel.xRot, 20, Mth.HALF_PI * -(2/5F), new Easing.CubicBezier(0.5F,0,0.66F,1))
+            .addKeyframe(TransformChannel.z, 0, -1.5F)
+            .addKeyframe(TransformChannel.z, 12, 1F, new Easing.CubicBezier(0.54F,0.23F,0.52F,1))
+            .addKeyframe(TransformChannel.z, 20, -1.5F, new Easing.CubicBezier(0.48F,0,0.29F,1.64F))
+            .addKeyframe(TransformChannel.y, 0, 0F)
+            .addKeyframe(TransformChannel.y, 12, 0F, new Easing.Linear())
+            .addKeyframe(TransformChannel.y, 16, -2F, new Easing.CubicBezier(0.23F, 0, 0.52F, 1))
+            .addKeyframe(TransformChannel.y, 20, 0F, Easing.CubicBezier.bezierInOutQuad());
+
+    private static final ChannelTimeline<Float> walkBodyAnimation = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.y, 0, 0.5F)
+            .addKeyframe(TransformChannel.y, 5, -0.5F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.y, 10, 0.5F, new Easing.CubicBezier(0.8F, 0, 0.5F, 1));
+
+    private static final ChannelTimeline<Float> walkArmAnimation = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.xRot, 0, Mth.HALF_PI * 2 / 5F)
+            .addKeyframe(TransformChannel.xRot, 12, Mth.HALF_PI * -2 / 5F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.xRot, 20, Mth.HALF_PI * 2 / 5F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.z, 0, 1F)
+            .addKeyframe(TransformChannel.z, 12, -1F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.z, 20, 1F, Easing.CubicBezier.bezierInOutQuad());
 
     private void addWalkPoseLayer(T livingEntity){
         float sprintWeight = getSprintWeight(livingEntity);
@@ -397,8 +396,53 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         }
     }
 
-    private void addFallingAndImpactPoseLayer(T livingEntity){
+    private static final ChannelTimeline<Float> fallingLegAnimation = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.y, 0, -0.5F)
+            .addKeyframe(TransformChannel.y, 10, 0.25F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.y, 20, -0.5F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.z, 0, 1.5F)
+            .addKeyframe(TransformChannel.z, 10, -1.5F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.z, 20, 1.5F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.xRot, 0, Mth.HALF_PI / 5F)
+            .addKeyframe(TransformChannel.xRot, 10, Mth.HALF_PI / -5F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.xRot, 20, Mth.HALF_PI / 5F, Easing.CubicBezier.bezierInOutQuad());
 
+    private static final ChannelTimeline<Float> fallingArmAnimation = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.zRot, 0, Mth.HALF_PI * 3 / 4F)
+            .addKeyframe(TransformChannel.zRot, 10, Mth.HALF_PI * 2 / 7F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.zRot, 20, Mth.HALF_PI * 3 / 4F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.xRot, 0, Mth.HALF_PI * 1 / 3F)
+            .addKeyframe(TransformChannel.xRot, 10, Mth.HALF_PI * -1 / 3F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.xRot, 20, Mth.HALF_PI * 1 / 3F, Easing.CubicBezier.bezierInOutQuad());
+
+    private void addFallingPoseLayer(T livingEntity){
+        float fallingWeight = getFallingWeight(livingEntity);
+        if(fallingWeight > 0) {
+            float tickAtFrame = getAnimationParameters(livingEntity).getTickAtFrame();
+            float leftLegTimer = new TimerProcessor(tickAtFrame).repeat(10).getValue();
+            float leftLegOffsetTimer = new TimerProcessor(tickAtFrame).repeat(10, 0.2F).getValue();
+            float rightLegTimer = new TimerProcessor(tickAtFrame).repeat(10, 0.5F).getValue();
+            float rightLegOffsetTimer = new TimerProcessor(tickAtFrame).repeat(10, 0.7F).getValue();
+
+            this.leftLeg.y += fallingLegAnimation.getValueAt(TransformChannel.y, leftLegOffsetTimer) * fallingWeight;
+            this.leftLeg.z += fallingLegAnimation.getValueAt(TransformChannel.z, leftLegTimer) * fallingWeight;
+            this.leftLeg.xRot += fallingLegAnimation.getValueAt(TransformChannel.xRot, leftLegTimer) * fallingWeight;
+            this.rightLeg.y += fallingLegAnimation.getValueAt(TransformChannel.y, rightLegOffsetTimer) * fallingWeight;
+            this.rightLeg.z += fallingLegAnimation.getValueAt(TransformChannel.z, rightLegTimer) * fallingWeight;
+            this.rightLeg.xRot += fallingLegAnimation.getValueAt(TransformChannel.xRot, rightLegTimer) * fallingWeight;
+            this.leftArm.xRot += fallingArmAnimation.getValueAt(TransformChannel.xRot, leftLegTimer) * fallingWeight;
+            this.leftArm.zRot += -fallingArmAnimation.getValueAt(TransformChannel.zRot, leftLegOffsetTimer) * fallingWeight;
+            this.rightArm.xRot += fallingArmAnimation.getValueAt(TransformChannel.xRot, rightLegTimer) * fallingWeight;
+            this.rightArm.zRot += fallingArmAnimation.getValueAt(TransformChannel.zRot, rightLegOffsetTimer) * fallingWeight;
+        }
+    }
+
+    private static final ChannelTimeline<Float> fallingImpactBodyAnimation = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.y, 0, 0F)
+            ;
+
+    private void addFallingImpactPoseLayer(T livingEntity){
+        float impactTimer = ((EntityAccess)livingEntity).getAnimationTimer("falling_impact");
     }
 
     private void addCrouchPoseLayer(T livingEntity){
@@ -489,8 +533,9 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         }
         ((EntityAccess)livingEntity).setAnimationTimer("direction_shift", previousDirectionShift);
         // Crouch and sprint
-        ((EntityAccess)livingEntity).incrementAnimationTimer("crouch", livingEntity.isCrouching(), 0.25F, -0.3F);
-        ((EntityAccess)livingEntity).incrementAnimationTimer("sprint", animationSpeed > 0.9, 0.0625F, -0.125F);
+        boolean isVisuallyCrouching = livingEntity.isCrouching() && !livingEntity.isInWater() && !livingEntity.onClimbable();
+        ((EntityAccess)livingEntity).incrementAnimationTimer("crouch", isVisuallyCrouching, 0.25F, -0.3F);
+        ((EntityAccess)livingEntity).incrementAnimationTimer("sprint", livingEntity.isSprinting(), 0.0625F, -0.125F);
         // Creative flying
         ((EntityAccess) livingEntity).incrementAnimationTimer("creative_flying", abstractClientPlayer.getAbilities().flying, 20, -20);
 
