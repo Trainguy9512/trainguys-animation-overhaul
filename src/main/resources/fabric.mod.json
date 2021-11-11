@@ -14,7 +14,7 @@
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/betteranimations/icon.png",
+  "icon": "assets/animationoverhaul/icon.png",
 
   "environment": "*",
   "entrypoints": {

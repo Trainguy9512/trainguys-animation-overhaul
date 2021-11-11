@@ -1,12 +1,31 @@
 package com.trainguy.animationoverhaul;
 
+import com.google.gson.Gson;
 import com.trainguy.animationoverhaul.commands.DebugCommands;
+import com.trainguy.animationoverhaul.util.AnimationDataLoader;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
+import net.fabricmc.fabric.impl.resource.loader.ResourceManagerHelperImpl;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public class AnimationOverhaul implements ModInitializer {
 
@@ -15,37 +34,10 @@ public class AnimationOverhaul implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		//CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {if (!dedicated) {DebugCommands.registerDebugCommands(dispatcher);}});
+		registerTimelineGroupLoader();
+	}
 
-		/*
-
-		bezier debug stuff
-
-		AnimCurve animCurve = new AnimCurve(3);
-		//CubicBezier bezier = new CubicBezier(0, 0, 1, 1F);
-		CubicBezier bezier = new CubicBezier(0.34F, 0, 0.06F, 1);
-		System.out.println(
-				"\n" +
-				animCurve.setValue(0).oscillate(3, 0.1F).getValue() + "\n" +
-				animCurve.setValue(1F).oscillate(3, 0.1F).getValue() + "\n" +
-				animCurve.setValue(2F).oscillate(3, 0.1F).getValue() + "\n" +
-				animCurve.setValue(3F).oscillate(3, 0.1F).getValue() + "\n" +
-				"repeat" + "\n" +
-				animCurve.setValue(0).repeat(1).getValue() + "\n" +
-				animCurve.setValue(0.25F).repeat(1).getValue() + "\n" +
-				animCurve.setValue(0.5F).repeat(1).getValue() + "\n" +
-				animCurve.setValue(0.75F).repeat(1).getValue() + "\n" +
-				animCurve.setValue(1F).repeat(1).getValue() + "\n" +
-				animCurve.setValue(1.25F).repeat(1).getValue() + "\n" +
-				"bezier" + "\n" +
-				bezier.getValue(0) + "\n" +
-				bezier.getValue(0.25F) + "\n" +
-				bezier.getValue(0.5F) + "\n" +
-				bezier.getValue(0.75F) + "\n" +
-				bezier.getValue(1) + "\n"
-		);
-
-		 */
-
+	private void registerTimelineGroupLoader(){
+		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new AnimationDataLoader());
 	}
 }

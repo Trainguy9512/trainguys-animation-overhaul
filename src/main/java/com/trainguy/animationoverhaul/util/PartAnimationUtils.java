@@ -1,7 +1,9 @@
 package com.trainguy.animationoverhaul.util;
 
 import com.trainguy.animationoverhaul.util.timeline.ChannelTimeline;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.Mth;
 
 import java.util.HashMap;
@@ -20,8 +22,6 @@ public class PartAnimationUtils {
             }
         }
     }
-
-
 
     public static void animatePartAdditive(ModelPart modelPart, ChannelTimeline<Float> channelTimeline, float time, float weight, boolean mirrored){
         int mirrorMultiplier = mirrored ? -1 : 1;
