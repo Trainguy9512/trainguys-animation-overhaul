@@ -32,3 +32,5 @@ bin/
 
 run/
 /remappedSrc/
+/src/main/maya/animations
+/src/main/maya/rigs

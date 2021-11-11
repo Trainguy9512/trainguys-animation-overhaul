@@ -2,8 +2,11 @@ package com.trainguy.animationoverhaul.util;
 
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.trainguy.animationoverhaul.AnimationOverhaul;
+import com.trainguy.animationoverhaul.util.timeline.ChannelTimeline;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
@@ -35,7 +38,6 @@ public class AnimationDataLoader implements SimpleResourceReloadListener<Map<Res
             Collection<ResourceLocation> passedFiles = manager.listResources("animations", (string) -> {
                 return string.endsWith(".json");
             });
-            System.out.println("Test resources loaded: " + passedFiles);
 
             //String entity = "bee";
             //EntityType<?> entityType = EntityType.byString(entity).isPresent() ? EntityType.byString(entity).get() : null;
@@ -102,7 +104,47 @@ public class AnimationDataLoader implements SimpleResourceReloadListener<Map<Res
 
     @Override
     public CompletableFuture<Void> apply(Map<ResourceLocation, JsonElement> data, ResourceManager manager, ProfilerFiller profiler, Executor executor) {
-        AnimationOverhaul.LOGGER.info("Resource data to apply: {}", data);
+        AnimationData newData = new AnimationData();
+        for(ResourceLocation resourceLocationKey : data.keySet()){
+            JsonElement animationJSON = data.get(resourceLocationKey);
+
+            String entityKey = resourceLocationKey.toString().split("/")[1];
+            String animationKey = resourceLocationKey.toString().split("/")[2].split("\\.")[0];
+            float frameTime = animationJSON.getAsJsonObject().get("frame_length").getAsFloat();
+
+            AnimationData.TimelineGroup timelineGroup = new AnimationData.TimelineGroup(frameTime);
+
+            JsonArray partArrayJSON = animationJSON.getAsJsonObject().get("parts").getAsJsonArray();
+            for(int partIndex = 0; partIndex < partArrayJSON.size(); partIndex++){
+                JsonObject partJSON = partArrayJSON.get(partIndex).getAsJsonObject();
+                String partName = partJSON.get("name").getAsString();
+                //AnimationOverhaul.LOGGER.info(partName);
+
+                ChannelTimeline<Float> channelTimeline = ChannelTimeline.floatChannelTimeline();
+
+                JsonObject partKeyframesJSON = partJSON.get("keyframes").getAsJsonObject();
+                for(Map.Entry<String, JsonElement> keyframeEntry : partKeyframesJSON.entrySet()){
+                    int keyframeNumber = Integer.parseInt(keyframeEntry.getKey());
+                    JsonElement keyframeJSON = keyframeEntry.getValue();
+                    //AnimationOverhaul.LOGGER.info(keyframeNumber);
+
+                    for(Map.Entry<String, JsonElement> attributeEntry : keyframeJSON.getAsJsonObject().entrySet()){
+                        TransformChannel transformChannel = TransformChannel.valueOf(attributeEntry.getKey());
+                        float keyframeValue = attributeEntry.getValue().getAsFloat();
+
+                        channelTimeline = channelTimeline.addKeyframe(transformChannel, keyframeNumber, keyframeValue);
+                        //AnimationOverhaul.LOGGER.info("Channel: {} Value: {}", transformChannel, keyframeValue);
+                    }
+                }
+                timelineGroup.addPartTimeline(partName, channelTimeline);
+            }
+
+            newData.put(entityKey, animationKey, timelineGroup);
+            //AnimationOverhaul.LOGGER.info(frameTime);
+            //AnimationOverhaul.LOGGER.info("Entity key: {} Animation key: {}", entityKey, animationKey);
+        }
+
+        AnimationData.loadedData = newData;
         return CompletableFuture.completedFuture(null);
     }
 }

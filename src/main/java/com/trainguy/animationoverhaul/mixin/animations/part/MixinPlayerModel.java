@@ -2,7 +2,6 @@ package com.trainguy.animationoverhaul.mixin.animations.part;
 
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
-import com.trainguy.animationoverhaul.timelines.PlayerTimelines;
 import com.trainguy.animationoverhaul.util.*;
 import com.trainguy.animationoverhaul.util.timeline.ChannelTimeline;
 import com.trainguy.animationoverhaul.util.timeline.Timeline;
@@ -125,7 +124,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
         ((EntityAccess) livingEntity).resetTimerOnCondition("test", livingEntity.isCrouching(), 83);
         float testTimer = ((EntityAccess) livingEntity).getAnimationTimer("test");
-        PartAnimationUtils.animateMultiplePartsAdditive(getPartListAll(), PlayerTimelines.testAnimationTimelines, getModelPartDictionary(), testTimer, 1, true);
+        PartAnimationUtils.animateMultiplePartsAdditive(getPartListAll(), getPlayerTimelineGroup("test"), getModelPartDictionary(), testTimer, 1, true);
 
         /*
 
@@ -155,6 +154,10 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         offsetModelToFinalPose();
         parentSecondLayerToModel();
         ci.cancel();
+    }
+
+    private AnimationData.TimelineGroup getPlayerTimelineGroup(String animationKey){
+        return AnimationData.loadedData.get("player", animationKey);
     }
 
     private HashMap<ModelPart, String[]> getModelPartDictionary(){
