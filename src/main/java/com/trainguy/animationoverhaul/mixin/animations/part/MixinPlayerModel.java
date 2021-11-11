@@ -2,10 +2,8 @@ package com.trainguy.animationoverhaul.mixin.animations.part;
 
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
-import com.trainguy.animationoverhaul.util.Easing;
-import com.trainguy.animationoverhaul.util.LivingEntityAnimParams;
-import com.trainguy.animationoverhaul.util.TimerProcessor;
-import com.trainguy.animationoverhaul.util.TransformChannel;
+import com.trainguy.animationoverhaul.timelines.PlayerTimelines;
+import com.trainguy.animationoverhaul.util.*;
 import com.trainguy.animationoverhaul.util.timeline.ChannelTimeline;
 import com.trainguy.animationoverhaul.util.timeline.Timeline;
 import net.fabricmc.api.EnvType;
@@ -16,10 +14,12 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -27,6 +27,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
@@ -110,14 +111,23 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             super.setupAnim(livingEntity, animationPosition, animationSpeed, tickFrame, headYRot, headXRot);
             return;
         }
-
         // Don't adjust the normal timers if the inventory model is being animated, use separate timers for separate animations
         if(getAnimationParameters(livingEntity).getLightInt() != 15728881){
             adjustTimers(livingEntity);
         }
 
+
+
+
         // Initial setup
         setupBasePose(livingEntity);
+        //TODO: Do this last^
+
+        ((EntityAccess) livingEntity).resetTimerOnCondition("test", livingEntity.isCrouching(), 83);
+        float testTimer = ((EntityAccess) livingEntity).getAnimationTimer("test");
+        PartAnimationUtils.animateMultiplePartsAdditive(getPartListAll(), PlayerTimelines.testAnimationTimelines, getModelPartDictionary(), testTimer, 1, true);
+
+        /*
 
         // Locomotion pose layers
         addWalkPoseLayer(livingEntity);
@@ -126,7 +136,10 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         addCrouchPoseLayer(livingEntity);
         addCreativeFlyPoseLayer(livingEntity);
         addFallingPoseLayer(livingEntity);
+        addFallingImpactPoseLayer(livingEntity);
 
+
+         */
         // WIP: sprint jumping, creative flying, falling
         // TODO: swimming, fall flying, redo crouching, crawling, wading in water, riding in boat, sleeping, riding horse (temp),
         // TODO: riding minecart, levitating
@@ -139,8 +152,20 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // TODO: fishing rod reeling, direction-based damage, death animation?, mining with pickaxe, interacting with fist?
 
         // Final stuff
+        offsetModelToFinalPose();
         parentSecondLayerToModel();
         ci.cancel();
+    }
+
+    private HashMap<ModelPart, String[]> getModelPartDictionary(){
+        HashMap<ModelPart, String[]> hashMap = new HashMap<>();
+        hashMap.put(this.head, new String[]{"head", "head"});
+        hashMap.put(this.body, new String[]{"body", "body"});
+        hashMap.put(this.leftLeg, new String[]{"leftLeg", "rightLeg"});
+        hashMap.put(this.rightLeg, new String[]{"rightLeg", "leftLeg"});
+        hashMap.put(this.leftArm, new String[]{"leftArm", "rightArm"});
+        hashMap.put(this.rightArm, new String[]{"rightArm", "leftArm"});
+        return hashMap;
     }
 
     private LivingEntityAnimParams getAnimationParameters(T livingEntity){
@@ -439,10 +464,69 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
 
     private static final ChannelTimeline<Float> fallingImpactBodyAnimation = ChannelTimeline.floatChannelTimeline()
             .addKeyframe(TransformChannel.y, 0, 0F)
-            ;
+            .addKeyframe(TransformChannel.y, 4, 3F, Easing.CubicBezier.bezierOutCubic())
+            .addKeyframe(TransformChannel.y, 10, -1F, Easing.CubicBezier.bezierInOutSine())
+            .addKeyframe(TransformChannel.y, 16, 0.5F, Easing.CubicBezier.bezierInOutSine())
+            .addKeyframe(TransformChannel.y, 20, 0F, Easing.CubicBezier.bezierInOutSine())
+            .addKeyframe(TransformChannel.z, 0, 0F)
+            .addKeyframe(TransformChannel.z, 6, -3F, Easing.CubicBezier.bezierOutCubic())
+            .addKeyframe(TransformChannel.z, 16, 0F, Easing.CubicBezier.bezierInOutSine())
+            .addKeyframe(TransformChannel.z, 20, 0F)
+            .addKeyframe(TransformChannel.xRot, 0, 0F)
+            .addKeyframe(TransformChannel.xRot, 6, Mth.HALF_PI / 5F, Easing.CubicBezier.bezierOutCubic())
+            .addKeyframe(TransformChannel.xRot, 16, 0F, Easing.CubicBezier.bezierInOutSine())
+            .addKeyframe(TransformChannel.xRot, 20, 0F);
+
+    private static final ChannelTimeline<Float> fallingImpactMainLegAnimation = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.y, 0, 0F)
+            .addKeyframe(TransformChannel.y, 6, 1F, Easing.CubicBezier.bezierOutCubic())
+            .addKeyframe(TransformChannel.y, 10, -1F, Easing.CubicBezier.bezierOutQuad())
+            .addKeyframe(TransformChannel.y, 14, 0F, Easing.CubicBezier.bezierInQuad())
+            .addKeyframe(TransformChannel.y, 20, 0F)
+            .addKeyframe(TransformChannel.z, 0, 0F)
+            .addKeyframe(TransformChannel.z, 6, -5F, Easing.CubicBezier.bezierOutCubic())
+            .addKeyframe(TransformChannel.z, 14, 0F, Easing.CubicBezier.bezierInOutSine())
+            .addKeyframe(TransformChannel.z, 20, 0F)
+            .addKeyframe(TransformChannel.xRot, 0, 0F)
+            .addKeyframe(TransformChannel.xRot, 6, Mth.HALF_PI / 8F, Easing.CubicBezier.bezierOutCubic())
+            .addKeyframe(TransformChannel.xRot, 14, 0F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.xRot, 20, 0F);
+
+    private static final ChannelTimeline<Float> fallingImpactOffLegAnimation = ChannelTimeline.floatChannelTimeline()
+            .addKeyframe(TransformChannel.y, 0, 0F)
+            .addKeyframe(TransformChannel.y, 4, 1F, Easing.CubicBezier.bezierOutCubic())
+            .addKeyframe(TransformChannel.y, 10, -1F, Easing.CubicBezier.bezierInOutSine())
+            .addKeyframe(TransformChannel.y, 16, 0F, Easing.CubicBezier.bezierInOutSine())
+            .addKeyframe(TransformChannel.y, 20, 0F, Easing.CubicBezier.bezierInOutSine())
+            .addKeyframe(TransformChannel.z, 0, 0F)
+            .addKeyframe(TransformChannel.z, 6, -2F, Easing.CubicBezier.bezierOutCubic())
+            .addKeyframe(TransformChannel.z, 14, 0F, Easing.CubicBezier.bezierInOutSine())
+            .addKeyframe(TransformChannel.z, 20, 0F)
+            .addKeyframe(TransformChannel.xRot, 0, 0F)
+            .addKeyframe(TransformChannel.xRot, 6, Mth.HALF_PI / 4F, Easing.CubicBezier.bezierOutCubic())
+            .addKeyframe(TransformChannel.xRot, 14, 0F, Easing.CubicBezier.bezierInOutQuad())
+            .addKeyframe(TransformChannel.xRot, 20, 0F);
 
     private void addFallingImpactPoseLayer(T livingEntity){
         float impactTimer = ((EntityAccess)livingEntity).getAnimationTimer("falling_impact");
+
+        // Part variable definitions
+        ModelPart mainArm = livingEntity.getMainArm() == HumanoidArm.LEFT ? this.leftArm : this.rightArm;
+        ModelPart offArm = livingEntity.getMainArm() == HumanoidArm.LEFT ? this.rightArm : this.leftArm;
+        ModelPart mainLeg = livingEntity.getMainArm() == HumanoidArm.LEFT ? this.leftLeg : this.rightLeg;
+        ModelPart offLeg = livingEntity.getMainArm() == HumanoidArm.LEFT ? this.rightLeg : this.leftLeg;
+
+        mainLeg.y += fallingImpactMainLegAnimation.getValueAt(TransformChannel.y, impactTimer);
+        mainLeg.z += fallingImpactMainLegAnimation.getValueAt(TransformChannel.z, impactTimer);
+        mainLeg.xRot += fallingImpactMainLegAnimation.getValueAt(TransformChannel.xRot, impactTimer);
+        offLeg.y += fallingImpactOffLegAnimation.getValueAt(TransformChannel.y, impactTimer);
+        offLeg.z += fallingImpactOffLegAnimation.getValueAt(TransformChannel.z, impactTimer);
+        offLeg.xRot += fallingImpactOffLegAnimation.getValueAt(TransformChannel.xRot, impactTimer);
+        this.body.xRot += fallingImpactBodyAnimation.getValueAt(TransformChannel.xRot, impactTimer);
+        for(ModelPart part : getPartListBody()){
+            part.y += fallingImpactBodyAnimation.getValueAt(TransformChannel.y, impactTimer);
+            part.z += fallingImpactBodyAnimation.getValueAt(TransformChannel.z, impactTimer);
+        }
     }
 
     private void addCrouchPoseLayer(T livingEntity){
@@ -488,14 +572,17 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
             part.setPos(0, 0, 0);
             part.setRotation(0, 0, 0);
         }
-        this.leftArm.x = 5;
-        this.leftArm.y = 2;
-        this.rightArm.x = -5;
-        this.rightArm.y = 2;
-        this.leftLeg.x = 1.95F;
-        this.leftLeg.y = 12;
-        this.rightLeg.x = -1.95F;
-        this.rightLeg.y = 12;
+    }
+
+    private void offsetModelToFinalPose() {
+        this.leftArm.x += 5;
+        this.leftArm.y += 2;
+        this.rightArm.x += -5;
+        this.rightArm.y += 2;
+        this.leftLeg.x += 1.95F;
+        this.leftLeg.y += 12;
+        this.rightLeg.x += -1.95F;
+        this.rightLeg.y += 12;
     }
 
     private void parentSecondLayerToModel(){
@@ -509,7 +596,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     }
 
     private void adjustTimers(T livingEntity){
-        AbstractClientPlayer abstractClientPlayer = ((AbstractClientPlayer)livingEntity);
+        AbstractClientPlayer playerEntity = ((AbstractClientPlayer)livingEntity);
         float roughEntitySpeed = (float) (Math.abs(livingEntity.getDeltaMovement().x) + Math.abs(livingEntity.getDeltaMovement().z));
         float animationSpeed = getAnimationParameters(livingEntity).getAnimationSpeed();
         float delta = getAnimationParameters(livingEntity).getDelta();
@@ -537,7 +624,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         ((EntityAccess)livingEntity).incrementAnimationTimer("crouch", isVisuallyCrouching, 0.25F, -0.3F);
         ((EntityAccess)livingEntity).incrementAnimationTimer("sprint", livingEntity.isSprinting(), 0.0625F, -0.125F);
         // Creative flying
-        ((EntityAccess) livingEntity).incrementAnimationTimer("creative_flying", abstractClientPlayer.getAbilities().flying, 20, -20);
+        ((EntityAccess) livingEntity).incrementAnimationTimer("creative_flying", playerEntity.getAbilities().flying, 20, -20);
 
         // Ticks after hitting ground
         float previousTicksAfterHittingGround = ((EntityAccess) livingEntity).getAnimationTimer("ticks_after_hitting_ground");
@@ -565,6 +652,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         float previousSprintJumpReverser = ((EntityAccess) livingEntity).getAnimationTimer("sprint_jump_reverser");
         ((EntityAccess) livingEntity).setAnimationTimer("sprint_jump_reverser", shouldResetSprintJumpTimer ? 1 - previousSprintJumpReverser : previousSprintJumpReverser);
 
+        //TODO: Store separated delta movement and use it. Idk about creative flying though.
+
         // Moving up and down weight
         ((EntityAccess) livingEntity).incrementAnimationTimer("moving_up_weight", livingEntity.getDeltaMovement().y > 0.1, 10, -10);
         ((EntityAccess) livingEntity).incrementAnimationTimer("moving_down_weight", livingEntity.getDeltaMovement().y < -0.1, 10, -10);
@@ -572,10 +661,10 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         // Falling
         ((EntityAccess) livingEntity).setAnimationTimer("fall_distance", livingEntity.fallDistance);
         boolean isFalling = livingEntity.fallDistance > 1 && !livingEntity.isInWater() && !livingEntity.isOnGround();
-        ((EntityAccess) livingEntity).incrementAnimationTimer("falling_weight", isFalling, 10, -5);
+        ((EntityAccess) livingEntity).incrementAnimationTimer("falling_weight", isFalling, 15, -5);
 
         // Hitting the ground
-        ((EntityAccess) livingEntity).resetTimerOnCondition("falling_impact", ticksAfterHittingGround < 1 && ((EntityAccess) livingEntity).getAnimationTimer("falling_weight") > 0.5F, 10);
+        ((EntityAccess) livingEntity).resetTimerOnCondition("falling_impact", ticksAfterHittingGround < 1 && ((EntityAccess) livingEntity).getAnimationTimer("falling_weight") > 0.25, 10);
     }
 
     // UNUSED
@@ -686,6 +775,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         float previousDirectionShift = ((EntityAccess)livingEntity).getAnimationTimer("direction_shift");
         float moveAngleX = -Mth.sin(livingEntity.yBodyRot * Mth.PI / 180);
         float moveAngleZ = Mth.cos(livingEntity.yBodyRot * Mth.PI / 180);
+
+        //
 
         if(animationSpeed > 0.01){
             if(

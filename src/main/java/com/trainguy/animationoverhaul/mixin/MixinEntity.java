@@ -41,16 +41,20 @@ public abstract class MixinEntity implements EntityAccess {
         if(condition){
             setAnimationTimer(identifier, 0);
         } else {
+            initAnimationTimer(identifier, 1);
             incrementAnimationTimer(identifier, true, ticksToIncrement, 10);
         }
     }
     public void setAnimationTimer(String identifier, float value){
         animationTimers.put(identifier, value);
     }
-    public float getAnimationTimer(String identifier){
+    public void initAnimationTimer(String identifier, float value){
         if(!animationTimers.containsKey(identifier)){
-            animationTimers.put(identifier, 0F);
+            animationTimers.put(identifier, value);
         }
+    }
+    public float getAnimationTimer(String identifier){
+        initAnimationTimer(identifier, 0);
         return animationTimers.get(identifier);
     }
     public HashMap<String, Float> getAnimationTimers(){
