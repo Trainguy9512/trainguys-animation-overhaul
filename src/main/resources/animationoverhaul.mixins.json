@@ -16,7 +16,6 @@
     "MixinLivingEntity",
     "MixinLivingEntityRenderer",
     "animations.part.MixinPhantomModel",
-    "animations.part.MixinPlayerModel",
     "animations.renderer.MixinBellRenderer",
     "animations.renderer.MixinChestRenderer",
     "animations.renderer.MixinPlayerRenderer",

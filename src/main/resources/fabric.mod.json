@@ -1,22 +1,24 @@
 {
   "schemaVersion": 1,
-  "id": "betteranimations",
+  "id": "animation_overhaul",
   "version": "${version}",
 
-  "name": "Trainguy's Better Animations",
+  "name": "Trainguy's Animation Overhaul",
   "description": "-",
   "authors": [
-    "Trainguy"
+    "Trainguy",
+    "Marvin Schürz (MineToBlend)"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://twitter.com/trainguy9512",
+    "sources": "https://github.com/Trainguy9512/trainguys-animation-overhaul"
   },
 
   "license": "CC0-1.0",
   "icon": "assets/animationoverhaul/icon.png",
 
   "environment": "*",
+  "accessWidener" : "animationoverhaul.accesswidener",
   "entrypoints": {
     "main": [
       "com.trainguy.animationoverhaul.AnimationOverhaul"
