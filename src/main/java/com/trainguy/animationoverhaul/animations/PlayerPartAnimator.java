@@ -1,11 +1,11 @@
 package com.trainguy.animationoverhaul.animations;
 
 import com.trainguy.animationoverhaul.access.EntityAccess;
-import com.trainguy.animationoverhaul.util.PartAnimationUtils;
+import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
+import com.trainguy.animationoverhaul.util.animation.PartAnimationUtils;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -18,15 +18,24 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
     private final PlayerModel<T> playerModel;
 
     private final List<ModelPart> partListAll;
+    private final HashMap<ModelPart, String[]> modelPartDictionary;
 
     //TODO: add cases for handling inventory and hand animations
     //TODO: pass animation parameters to these
 
-    public PlayerPartAnimator(T livingEntity, M model){
-        super(livingEntity, model);
+    public PlayerPartAnimator(T livingEntity, M model, LivingEntityAnimParams livingEntityAnimParams){
+        super(livingEntity, model, livingEntityAnimParams);
         playerModel = (PlayerModel<T>)model;
-
         partListAll = Arrays.asList(playerModel.leftArm, playerModel.rightArm, playerModel.leftLeg, playerModel.rightLeg, playerModel.body, playerModel.head);
+
+        modelPartDictionary = new HashMap<>(){{
+            put(playerModel.head, new String[]{"head", "head"});
+            put(playerModel.body, new String[]{"body", "body"});
+            put(playerModel.leftLeg, new String[]{"leftLeg", "rightLeg"});
+            put(playerModel.rightLeg, new String[]{"rightLeg", "leftLeg"});
+            put(playerModel.leftArm, new String[]{"leftArm", "rightArm"});
+            put(playerModel.rightArm, new String[]{"rightArm", "leftArm"});
+        }};
     }
 
     @Override
@@ -44,11 +53,14 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
 
     @Override
     protected void animateParts() {
+        //addPoseLayerLook();
+    }
 
-        ((EntityAccess) livingEntity).resetTimerOnCondition("test", livingEntity.isCrouching(), 83);
-        float testTimer = ((EntityAccess) livingEntity).getAnimationTimer("test");
-        PartAnimationUtils.animateMultiplePartsAdditive(partListAll, getTimelineGroup("player", "test"), getModelPartDictionary(), testTimer, 1, true);
-
+    private void addPoseLayerLook(){
+        float lookHorizontalTimer = 1 - Mth.clamp((livingEntityAnimParams.getHeadYRot() / Mth.HALF_PI) + 0.5F, 0, 1);
+        ((EntityAccess)livingEntity).setAnimationTimer("head_yrot_raw", livingEntityAnimParams.getHeadYRot());
+        ((EntityAccess)livingEntity).setAnimationTimer("head_yrot_timer", lookHorizontalTimer);
+        PartAnimationUtils.animateMultiplePartsAdditive(partListAll, getTimelineGroup("player", "look_horizontal"), modelPartDictionary, lookHorizontalTimer, 1, false);
     }
 
     @Override
@@ -61,16 +73,5 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
         playerModel.leftLeg.y += 12;
         playerModel.rightLeg.x += -1.95F;
         playerModel.rightLeg.y += 12;
-    }
-
-    protected HashMap<ModelPart, String[]> getModelPartDictionary(){
-        HashMap<ModelPart, String[]> hashMap = new HashMap<>();
-        hashMap.put(playerModel.head, new String[]{"head", "head"});
-        hashMap.put(playerModel.body, new String[]{"body", "body"});
-        hashMap.put(playerModel.leftLeg, new String[]{"leftLeg", "rightLeg"});
-        hashMap.put(playerModel.rightLeg, new String[]{"rightLeg", "leftLeg"});
-        hashMap.put(playerModel.leftArm, new String[]{"leftArm", "rightArm"});
-        hashMap.put(playerModel.rightArm, new String[]{"rightArm", "leftArm"});
-        return hashMap;
     }
 }

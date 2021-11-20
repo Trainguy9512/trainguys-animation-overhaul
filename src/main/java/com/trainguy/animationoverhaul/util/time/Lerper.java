@@ -1,4 +1,4 @@
-package com.trainguy.animationoverhaul.util;
+package com.trainguy.animationoverhaul.util.time;
 
 public interface Lerper<T>  {
 

@@ -1,14 +1,10 @@
-package com.trainguy.animationoverhaul.util;
+package com.trainguy.animationoverhaul.util.animation;
 
 import com.google.common.collect.Maps;
 import com.trainguy.animationoverhaul.AnimationOverhaul;
-import com.trainguy.animationoverhaul.util.timeline.ChannelTimeline;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EntityType;
+import com.trainguy.animationoverhaul.util.time.ChannelTimeline;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class AnimationData {
 
@@ -23,9 +19,13 @@ public class AnimationData {
     }
 
     public void put(String entityKey, String animationKey, TimelineGroup timelineGroup){
-        Map<String, TimelineGroup> individualAnimationMap = Maps.newHashMap();
+        Map<String, TimelineGroup> individualAnimationMap;
+        if(animationEntries.containsKey(entityKey)){
+            individualAnimationMap = animationEntries.get(entityKey);
+        } else {
+            individualAnimationMap = Maps.newHashMap();
+        }
         individualAnimationMap.put(animationKey, timelineGroup);
-
         animationEntries.put(entityKey, individualAnimationMap);
     }
 
@@ -34,7 +34,7 @@ public class AnimationData {
             if(animationEntries.get(entityKey).containsKey(animationKey)){
                 return animationEntries.get(entityKey).get(animationKey);
             } else {
-                AnimationOverhaul.LOGGER.error("Animation key {} for entity key {} not found within loaded animation data!", animationKey, entityKey);
+                AnimationOverhaul.LOGGER.error("Animation key {} for entity key {} not found within loaded animation data! Valid entries include {}", animationKey, entityKey, animationEntries.get(entityKey).keySet());
                 return null;
             }
         } else {

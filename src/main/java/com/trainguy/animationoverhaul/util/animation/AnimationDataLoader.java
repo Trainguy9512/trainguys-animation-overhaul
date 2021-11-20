@@ -1,4 +1,4 @@
-package com.trainguy.animationoverhaul.util;
+package com.trainguy.animationoverhaul.util.animation;
 
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
@@ -6,15 +6,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.trainguy.animationoverhaul.AnimationOverhaul;
-import com.trainguy.animationoverhaul.util.timeline.ChannelTimeline;
+import com.trainguy.animationoverhaul.util.time.ChannelTimeline;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.entity.EntityType;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -108,9 +106,11 @@ public class AnimationDataLoader implements SimpleResourceReloadListener<Map<Res
         for(ResourceLocation resourceLocationKey : data.keySet()){
             JsonElement animationJSON = data.get(resourceLocationKey);
 
+            AnimationOverhaul.LOGGER.info("Loading animation {}", resourceLocationKey);
+
             String entityKey = resourceLocationKey.toString().split("/")[1];
             String animationKey = resourceLocationKey.toString().split("/")[2].split("\\.")[0];
-            float frameTime = animationJSON.getAsJsonObject().get("frame_length").getAsFloat();
+            float frameTime = animationJSON.getAsJsonObject().get("frame_length").getAsFloat() / 1.2F;
 
             AnimationData.TimelineGroup timelineGroup = new AnimationData.TimelineGroup(frameTime);
 

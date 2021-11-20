@@ -1,7 +1,7 @@
 package com.trainguy.animationoverhaul.mixin.animations.part;
 
-import com.trainguy.animationoverhaul.util.Easing;
-import com.trainguy.animationoverhaul.util.timeline.Timeline;
+import com.trainguy.animationoverhaul.util.time.Easing;
+import com.trainguy.animationoverhaul.util.time.Timeline;
 import net.minecraft.client.model.PhantomModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.util.Mth;

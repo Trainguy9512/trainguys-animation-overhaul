@@ -2,25 +2,11 @@ package com.trainguy.animationoverhaul.mixin;
 
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
-import com.trainguy.animationoverhaul.commands.CommandModifyParameter;
-import com.trainguy.animationoverhaul.util.LivingEntityAnimParams;
+import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Unique
 @Mixin(LivingEntity.class)

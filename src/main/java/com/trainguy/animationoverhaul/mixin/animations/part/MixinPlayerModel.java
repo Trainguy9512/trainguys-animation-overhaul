@@ -2,9 +2,14 @@ package com.trainguy.animationoverhaul.mixin.animations.part;
 
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
-import com.trainguy.animationoverhaul.util.*;
-import com.trainguy.animationoverhaul.util.timeline.ChannelTimeline;
-import com.trainguy.animationoverhaul.util.timeline.Timeline;
+import com.trainguy.animationoverhaul.util.animation.AnimationData;
+import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
+import com.trainguy.animationoverhaul.util.animation.PartAnimationUtils;
+import com.trainguy.animationoverhaul.util.animation.TransformChannel;
+import com.trainguy.animationoverhaul.util.time.ChannelTimeline;
+import com.trainguy.animationoverhaul.util.time.Easing;
+import com.trainguy.animationoverhaul.util.time.Timeline;
+import com.trainguy.animationoverhaul.util.time.TimerProcessor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.HumanoidModel;
@@ -13,12 +18,10 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -172,7 +175,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
     }
 
     private LivingEntityAnimParams getAnimationParameters(T livingEntity){
-        return ((LivingEntityAccess)livingEntity).getAnimationParameters();
+        return null;
     }
 
     private List<ModelPart> getPartListAll(){

@@ -5,8 +5,10 @@ import json
 selection = cmds.ls(selection=True)
 
 startKeyframe = 0
-endKeyframe = 100
+endKeyframe = 20
 keysPerFrame = 1
+entityKey = "player"
+animationKey = "look_horizontal"
 
 attributes = ['translateX', 'translateY', 'translateZ', 'rotateX', 'rotateY', 'rotateZ']
 attributesJava = ['x', 'y', 'z', 'xRot', 'yRot', 'zRot']
@@ -23,9 +25,8 @@ masterDict = {"frame_length": endKeyframe - startKeyframe}
 partsList = []
 
 for locator in selection:
-    partName = locator.split('_')[0]
+    partName = locator.split(':')[1].split('_')[0]
     partDict = {"name": partName}
-    #baseString = '    put("' + partName + '", ChannelTimeline.floatChannelTimeline()'
     keyframesDict = {}
     for i in range((endKeyframe * keysPerFrame) + 1):
         keyframeDict = {}
@@ -41,15 +42,24 @@ for locator in selection:
                 value = round(value, 3)
             if j == 1 or j == 2 or j == 4 or j == 5:
                 value = -value
-            baseString += '.addKeyframe(TransformChannel.' + attributesJava[j] + ', ' + str(currentTime) + 'F, ' + str(value) + 'F)'
             
             keyframeDict[attributesJava[j]] = value
         keyframesDict[i] = keyframeDict
-    #baseString += ');'
-    #print(baseString)
     partDict["keyframes"] = keyframesDict
     partsList.append(partDict)
-#print('}};')
 masterDict["parts"] = partsList
 masterDictJSON = json.dumps(masterDict)
 print(masterDictJSON)
+
+filePath = 'C:/Users/Trainguy/Desktop/Minecraft Modding/trainguys-clientside-tweaks/src/main/resources/assets/animationoverhaul/animations/' + entityKey + '/'
+
+if not os.path.exists(filePath):
+    os.makedirs(filePath)
+    
+filePath += animationKey + '.json'
+
+with open(filePath, 'w') as outfile:
+    json.dump(masterDict, outfile)
+
+#f = open(filePath, 'wb')
+#f.write(masterDictJSON)

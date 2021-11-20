@@ -1,8 +1,6 @@
-package com.trainguy.animationoverhaul.util.timeline;
+package com.trainguy.animationoverhaul.util.time;
 
-import com.trainguy.animationoverhaul.util.Easing;
-import com.trainguy.animationoverhaul.util.Lerper;
-import com.trainguy.animationoverhaul.util.TransformChannel;
+import com.trainguy.animationoverhaul.util.animation.TransformChannel;
 
 import java.util.TreeMap;
 

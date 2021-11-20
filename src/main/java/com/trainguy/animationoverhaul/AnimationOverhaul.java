@@ -1,6 +1,6 @@
 package com.trainguy.animationoverhaul;
 
-import com.trainguy.animationoverhaul.util.AnimationDataLoader;
+import com.trainguy.animationoverhaul.util.animation.AnimationDataLoader;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.server.packs.PackType;

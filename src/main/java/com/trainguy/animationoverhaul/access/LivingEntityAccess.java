@@ -1,9 +1,7 @@
 package com.trainguy.animationoverhaul.access;
 
-import com.trainguy.animationoverhaul.commands.CommandModifyParameter;
-import com.trainguy.animationoverhaul.util.LivingEntityAnimParams;
+import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.ItemStack;
 
 public interface LivingEntityAccess {
     //float getAnimationVariable(String animationVariable);

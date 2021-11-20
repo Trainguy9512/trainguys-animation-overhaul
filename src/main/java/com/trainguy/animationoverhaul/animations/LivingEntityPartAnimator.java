@@ -1,24 +1,20 @@
 package com.trainguy.animationoverhaul.animations;
 
-import com.trainguy.animationoverhaul.access.LivingEntityAccess;
-import com.trainguy.animationoverhaul.util.AnimationData;
-import com.trainguy.animationoverhaul.util.LivingEntityAnimParams;
+import com.trainguy.animationoverhaul.util.animation.AnimationData;
+import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.LivingEntity;
-
-import java.util.HashMap;
 
 public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityModel<T>> {
 
-    protected T livingEntity;
+    protected final T livingEntity;
     protected M model;
+    protected final LivingEntityAnimParams livingEntityAnimParams;
 
-    public LivingEntityPartAnimator(T livingEntity, M model){
+    public LivingEntityPartAnimator(T livingEntity, M model, LivingEntityAnimParams livingEntityAnimParams){
         this.livingEntity = livingEntity;
         this.model = model;
+        this.livingEntityAnimParams = livingEntityAnimParams;
     }
 
     protected abstract void initModel();
@@ -26,13 +22,7 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
     protected abstract void animateParts();
     protected abstract void finalizeModel();
 
-    protected abstract HashMap<ModelPart, String[]> getModelPartDictionary();
-
     protected AnimationData.TimelineGroup getTimelineGroup(String entityKey, String animationKey){
         return AnimationData.loadedData.get(entityKey, animationKey);
-    }
-
-    protected LivingEntityAnimParams getAnimationParameters(){
-        return ((LivingEntityAccess)livingEntity).getAnimationParameters();
     }
 }

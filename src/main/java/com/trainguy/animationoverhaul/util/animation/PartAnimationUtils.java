@@ -1,11 +1,10 @@
-package com.trainguy.animationoverhaul.util;
+package com.trainguy.animationoverhaul.util.animation;
 
+import com.mojang.math.Vector3f;
 import com.trainguy.animationoverhaul.AnimationOverhaul;
-import com.trainguy.animationoverhaul.util.timeline.ChannelTimeline;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import com.trainguy.animationoverhaul.util.math.RotationMatrix;
+import com.trainguy.animationoverhaul.util.time.ChannelTimeline;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
-import net.minecraft.util.Mth;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,8 +31,25 @@ public class PartAnimationUtils {
         modelPart.x += channelTimeline.getValueAt(TransformChannel.x, time) * weight * mirrorMultiplier;
         modelPart.y += channelTimeline.getValueAt(TransformChannel.y, time) * weight;
         modelPart.z += channelTimeline.getValueAt(TransformChannel.z, time) * weight;
-        modelPart.xRot += channelTimeline.getValueAt(TransformChannel.xRot, time) * weight;
-        modelPart.yRot += channelTimeline.getValueAt(TransformChannel.yRot, time) * weight * mirrorMultiplier;
-        modelPart.zRot += channelTimeline.getValueAt(TransformChannel.zRot, time) * weight * mirrorMultiplier;
+        rotateModelWorldSpace(modelPart, channelTimeline.getValueAt(TransformChannel.xRot, time) * weight, channelTimeline.getValueAt(TransformChannel.yRot, time) * weight * mirrorMultiplier, channelTimeline.getValueAt(TransformChannel.zRot, time) * weight * mirrorMultiplier);
+    }
+
+    public static void rotateModelWorldSpace(ModelPart modelPart, float x, float y, float z){
+        Vector3f baseRotation = new Vector3f(modelPart.xRot, modelPart.yRot, modelPart.zRot);
+        Vector3f multRotation = new Vector3f(x, y, z);
+
+        RotationMatrix baseRotationMatrix = RotationMatrix.fromEulerAngles(baseRotation);
+        //RotationMatrix inverseRotationMatrix = RotationMatrix.getInverse(baseRotationMatrix);
+        RotationMatrix multRotationMatrix = RotationMatrix.fromEulerAngles(multRotation);
+        //RotationMatrix copyRotationMatrix = RotationMatrix.fromEulerAngles(baseRotation);
+
+        //baseRotationMatrix.mult(inverseRotationMatrix);
+        baseRotationMatrix.mult(multRotationMatrix);
+        //baseRotationMatrix.mult(copyRotationMatrix);
+
+        Vector3f finalRotation = baseRotationMatrix.toEulerAngles();
+        modelPart.xRot = finalRotation.x();
+        modelPart.yRot = finalRotation.y();
+        modelPart.zRot = finalRotation.z();
     }
 }

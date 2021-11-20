@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
-import com.trainguy.animationoverhaul.util.Easing;
+import com.trainguy.animationoverhaul.util.time.Easing;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.util.Mth;

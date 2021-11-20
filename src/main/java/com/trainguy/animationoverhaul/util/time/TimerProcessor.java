@@ -1,4 +1,4 @@
-package com.trainguy.animationoverhaul.util;
+package com.trainguy.animationoverhaul.util.time;
 
 import net.minecraft.util.Mth;
 
@@ -42,5 +42,9 @@ public class TimerProcessor {
 
     private static float getRepeatValue(float time, float period, float offset){
         return (((time + period) - (offset * period)) % period) / period;
+    }
+
+    public static float framesToTicks(float x){
+        return x / 1.2F;
     }
 }
