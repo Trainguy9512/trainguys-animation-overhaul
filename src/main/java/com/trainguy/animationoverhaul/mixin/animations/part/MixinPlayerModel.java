@@ -2,10 +2,10 @@ package com.trainguy.animationoverhaul.mixin.animations.part;
 
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
-import com.trainguy.animationoverhaul.util.animation.AnimationData;
+import com.trainguy.animationoverhaul.util.data.AnimationData;
 import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
 import com.trainguy.animationoverhaul.util.animation.PartAnimationUtils;
-import com.trainguy.animationoverhaul.util.animation.TransformChannel;
+import com.trainguy.animationoverhaul.util.data.TransformChannel;
 import com.trainguy.animationoverhaul.util.time.ChannelTimeline;
 import com.trainguy.animationoverhaul.util.time.Easing;
 import com.trainguy.animationoverhaul.util.time.Timeline;
@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+@Deprecated
 @Environment(EnvType.CLIENT)
 @Mixin(PlayerModel.class)
 public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidModel<T> {
@@ -129,7 +130,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         float testTimer = ((EntityAccess) livingEntity).getAnimationTimer("test");
         PartAnimationUtils.animateMultiplePartsAdditive(getPartListAll(), getPlayerTimelineGroup("test"), getModelPartDictionary(), testTimer, 1, true);
 
-        /*
 
         // Locomotion pose layers
         addWalkPoseLayer(livingEntity);
@@ -141,7 +141,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> extends HumanoidM
         addFallingImpactPoseLayer(livingEntity);
 
 
-         */
         // WIP: sprint jumping, creative flying, falling
         // TODO: swimming, fall flying, redo crouching, crawling, wading in water, riding in boat, sleeping, riding horse (temp),
         // TODO: riding minecart, levitating

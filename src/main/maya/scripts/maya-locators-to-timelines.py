@@ -5,15 +5,20 @@ import json
 selection = cmds.ls(selection=True)
 
 startKeyframe = 0
-endKeyframe = 20
+endKeyframe = 30
 keysPerFrame = 1
 entityKey = "player"
-animationKey = "look_horizontal"
+animationKey = "dummy"
+
+fileName = cmds.file(query=True, sceneName=True, shortName=True)
+splittedName = fileName.split('_')
+finalName = '_'.join(splittedName[1:len(splittedName)])[0:-3]
+animationKey = finalName
 
 attributes = ['translateX', 'translateY', 'translateZ', 'rotateX', 'rotateY', 'rotateZ']
 attributesJava = ['x', 'y', 'z', 'xRot', 'yRot', 'zRot']
 
-animationName = 'test'
+#animationName = 'walk_normal'
 
 
 # put("leftLeg", ChannelTimeline.floatChannelTimeline().addKeyframe(TransformChannel.x, 0, 2F));
@@ -60,6 +65,8 @@ filePath += animationKey + '.json'
 
 with open(filePath, 'w') as outfile:
     json.dump(masterDict, outfile)
+
+print("Saved animation " + animationKey + " for entity " + entityKey + " with " + str(len(selection)) + " parts")
 
 #f = open(filePath, 'wb')
 #f.write(masterDictJSON)

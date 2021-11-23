@@ -20,7 +20,6 @@ public abstract class MixinEntity implements EntityAccess {
 
     private HashMap<String, Float> animationTimers = new HashMap<String, Float>();
 
-
     public void incrementAnimationTimer(String identifier, boolean isIncreasing, int ticksToIncrement, int ticksToDecrement) {
         if(ticksToIncrement != 0 && ticksToDecrement != 0){
             incrementAnimationTimer(identifier, isIncreasing, (1/(float)ticksToIncrement), (1/(float)ticksToDecrement));
@@ -28,7 +27,6 @@ public abstract class MixinEntity implements EntityAccess {
             System.out.println("Invalid tick increment/decrement specified for timer increment for timer " + identifier + " in entity part animator " + this.getType().toShortString() + ", tick values must not be 0!");
         }
     }
-    // Animation timers
     public void incrementAnimationTimer(String identifier, boolean isIncreasing, float increment, float decrement){
         incrementAnimationTimer(identifier, isIncreasing, increment, decrement, 0, 1);
     }

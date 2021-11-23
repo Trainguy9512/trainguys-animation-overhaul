@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -53,7 +54,7 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
                     int j = 9;
                     int m = 2 + j * i;
                     m += j + 4;
-                    if(isWithinRange){
+                    if(isWithinRange && !this.minecraft.options.renderFpsChart){
                         string = key + ":";
                     } else {
                         string = key + ": " + format.format(value);
@@ -68,7 +69,10 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
                         k = this.font.width("0.00");
                         k *= value;
                         l = this.minecraft.getWindow().getGuiScaledWidth() - 2 - k;
+                        int k2 = (int) (k / value);
+                        int l2 = this.minecraft.getWindow().getGuiScaledWidth() - 2 - k;
                         fill(poseStack, l - 1, m, l + k, m + j - 2, -2);
+                        fill(poseStack, l2 - 1, m, l2 + k2, m + j - 2, COLOR_GREY);
                     }
                 }
 

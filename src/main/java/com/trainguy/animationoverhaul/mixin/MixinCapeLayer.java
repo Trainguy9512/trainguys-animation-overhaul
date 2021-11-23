@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(CapeLayer.class)
 public class MixinCapeLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
 
-    ResourceLocation debugCapeLocation = new ResourceLocation("textures/entity/zombie/zombie.png");
+    ResourceLocation debugCapeLocation = new ResourceLocation("textures/testcape.png");
 
     public MixinCapeLayer(RenderLayerParent<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderLayerParent) {
         super(renderLayerParent);
@@ -40,7 +40,7 @@ public class MixinCapeLayer extends RenderLayer<AbstractClientPlayer, PlayerMode
         if (!itemStack.is(Items.ELYTRA)) {
             // Debug renderer for testing capes
             poseStack.pushPose();
-            poseStack.translate(0.0D, 0.0D, 0.125D);
+            //poseStack.translate(0.0D, 0.0D, 0.125D);
             double d = Mth.lerp((double)h, abstractClientPlayer.xCloakO, abstractClientPlayer.xCloak) - Mth.lerp((double)h, abstractClientPlayer.xo, abstractClientPlayer.getX());
             double e = Mth.lerp((double)h, abstractClientPlayer.yCloakO, abstractClientPlayer.yCloak) - Mth.lerp((double)h, abstractClientPlayer.yo, abstractClientPlayer.getY());
             double m = Mth.lerp((double)h, abstractClientPlayer.zCloakO, abstractClientPlayer.zCloak) - Mth.lerp((double)h, abstractClientPlayer.zo, abstractClientPlayer.getZ());
@@ -63,9 +63,9 @@ public class MixinCapeLayer extends RenderLayer<AbstractClientPlayer, PlayerMode
                 q += 25.0F;
             }
 
-            poseStack.mulPose(Vector3f.XP.rotationDegrees(6.0F + r / 2.0F + q));
-            poseStack.mulPose(Vector3f.ZP.rotationDegrees(s / 2.0F));
-            poseStack.mulPose(Vector3f.YP.rotationDegrees(180.0F - s / 2.0F));
+            //poseStack.mulPose(Vector3f.XP.rotationDegrees(6.0F + r / 2.0F + q));
+            //poseStack.mulPose(Vector3f.ZP.rotationDegrees(s / 2.0F));
+            //poseStack.mulPose(Vector3f.YP.rotationDegrees(180.0F - s / 2.0F));
             VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.entitySolid(debugCapeLocation));
             this.getParentModel().renderCloak(poseStack, vertexConsumer, i, OverlayTexture.NO_OVERLAY);
             poseStack.popPose();

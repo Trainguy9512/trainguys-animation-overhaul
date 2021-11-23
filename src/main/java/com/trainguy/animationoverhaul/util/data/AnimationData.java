@@ -1,4 +1,4 @@
-package com.trainguy.animationoverhaul.util.animation;
+package com.trainguy.animationoverhaul.util.data;
 
 import com.google.common.collect.Maps;
 import com.trainguy.animationoverhaul.AnimationOverhaul;

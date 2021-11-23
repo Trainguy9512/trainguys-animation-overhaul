@@ -1,4 +1,4 @@
-package com.trainguy.animationoverhaul.util.animation;
+package com.trainguy.animationoverhaul.util.data;
 
 public enum TransformChannel {
     x,

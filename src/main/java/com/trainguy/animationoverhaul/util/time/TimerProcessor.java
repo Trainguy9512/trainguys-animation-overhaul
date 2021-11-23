@@ -1,5 +1,6 @@
 package com.trainguy.animationoverhaul.util.time;
 
+import com.trainguy.animationoverhaul.util.data.AnimationData;
 import net.minecraft.util.Mth;
 
 public class TimerProcessor {
@@ -17,8 +18,17 @@ public class TimerProcessor {
         return this;
     }
 
+    public TimerProcessor speedUp(float amount){
+        this.time *= amount;
+        return this;
+    }
+
     public TimerProcessor repeat(float period){
         return repeat(period, 0);
+    }
+
+    public TimerProcessor repeat(AnimationData.TimelineGroup timelineGroup){
+        return repeat(framesToTicks(timelineGroup.getFrameLength()), 0);
     }
 
     public TimerProcessor shortenAndOffsetForward(float offset){

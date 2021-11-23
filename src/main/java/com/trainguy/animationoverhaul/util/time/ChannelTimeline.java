@@ -1,6 +1,6 @@
 package com.trainguy.animationoverhaul.util.time;
 
-import com.trainguy.animationoverhaul.util.animation.TransformChannel;
+import com.trainguy.animationoverhaul.util.data.TransformChannel;
 
 import java.util.TreeMap;
 

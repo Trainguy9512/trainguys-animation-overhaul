@@ -21,6 +21,8 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
 
     private String equippedArmor = "";
 
+    public boolean useInventoryRenderer = false;
+
     /*
     public float getAnimationVariable(String variableType){
         return 4F;
@@ -77,5 +79,13 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     }
     public LivingEntityAnimParams getAnimationParameters(){
         return this.animationParameters;
+    }
+
+    public boolean getUseInventoryRenderer(){
+        return useInventoryRenderer;
+    }
+
+    public void setUseInventoryRenderer(boolean bool){
+        useInventoryRenderer = bool;
     }
 }

@@ -15,4 +15,7 @@ public interface LivingEntityAccess {
 
     void setAnimationParamaters(float animationPosition, float animationSpeed, float tickAtFrame, float tickDifference, float delta, float headYRot, float headXRot, int lightInt);
     LivingEntityAnimParams getAnimationParameters();
+
+    boolean getUseInventoryRenderer();
+    void setUseInventoryRenderer(boolean bool);
 }

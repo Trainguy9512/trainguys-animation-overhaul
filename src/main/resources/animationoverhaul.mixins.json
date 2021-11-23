@@ -4,7 +4,7 @@
   "package": "com.trainguy.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "debug.MixinDebugScreenOverlay"
+    "MixinCapeLayer"
   ],
   "client": [
     "MixinBlockEntity",
@@ -19,7 +19,8 @@
     "animations.renderer.MixinBellRenderer",
     "animations.renderer.MixinChestRenderer",
     "animations.renderer.MixinPlayerRenderer",
-    "animations.renderer.MixinShulkerBoxRenderer"
+    "animations.renderer.MixinShulkerBoxRenderer",
+    "debug.MixinDebugScreenOverlay"
   ],
   "injectors": {
     "defaultRequire": 1
