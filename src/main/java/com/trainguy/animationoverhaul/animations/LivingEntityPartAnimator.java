@@ -16,8 +16,8 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
     protected final LivingEntityAnimParams animationParameters;
 
     public LivingEntityPartAnimator(T livingEntity, M model, LivingEntityAnimParams livingEntityAnimParams){
-        this.livingEntity = livingEntity;
         this.model = model;
+        this.livingEntity = livingEntity;
         this.animationParameters = livingEntityAnimParams;
     }
 

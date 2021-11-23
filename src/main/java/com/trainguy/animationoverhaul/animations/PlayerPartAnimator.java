@@ -7,14 +7,19 @@ import com.trainguy.animationoverhaul.util.time.TimerProcessor;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>> extends LivingEntityPartAnimator<T, M> {
+
+    private final Player playerEntity;
 
     private final PlayerModel<T> playerModel;
 
@@ -31,6 +36,7 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
     public PlayerPartAnimator(T livingEntity, M model, LivingEntityAnimParams livingEntityAnimParams){
         super(livingEntity, model, livingEntityAnimParams);
         playerModel = (PlayerModel<T>)model;
+        playerEntity = ((AbstractClientPlayer)livingEntity);
         partListAll = Arrays.asList(playerModel.leftArm, playerModel.rightArm, playerModel.leftLeg, playerModel.rightLeg, playerModel.body, playerModel.head, playerModel.cloak);
 
         modelPartDictionary = new HashMap<>(){{
@@ -56,10 +62,10 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
 
     @Override
     protected void adjustTimers() {
-        incrementAnimationTimer(SPRINT_WEIGHT, livingEntity.isSprinting(), 10, -10);
-        incrementAnimationTimer(CROUCH_WEIGHT, livingEntity.isCrouching(), 10, -10);
+        incrementAnimationTimer(SPRINT_WEIGHT, playerEntity.isSprinting(), 10, -10);
+        incrementAnimationTimer(CROUCH_WEIGHT, playerEntity.isCrouching(), 5, -5);
 
-        // Direction shift
+        // Legacy direction shift
         float previousDirectionShift = getAnimationTimer(DIRECTION_SHIFT);
         float animationSpeed = animationParameters.getAnimationSpeed();
         float moveAngleX = -Mth.sin(livingEntity.yBodyRot * Mth.PI / 180);
@@ -83,6 +89,8 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
     protected void animateParts() {
         addPoseLayerLook();
         addPoseLayerWalk();
+        addPoseLayerSprint();
+        addPoseLayerIdle();
     }
 
     private void addPoseLayerLook(){
@@ -114,11 +122,47 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
                 .repeat(walkCrouchTimelineGroup)
                 .getValue();
 
-        float walkNormalWeight = (1 - getAnimationTimerEasedSine(SPRINT_WEIGHT)) * Math.min(animationParameters.getAnimationSpeed() / 0.86F, 1) * (1 - getAnimationTimerEasedSine(CROUCH_WEIGHT));
-        float walkCrouchWeight = (1 - getAnimationTimerEasedSine(SPRINT_WEIGHT)) * Math.min(animationParameters.getAnimationSpeed() / 0.26F, 1) * getAnimationTimerEasedSine(CROUCH_WEIGHT);
+        float walkNormalWeight = (1 - getAnimationTimerEasedSine(SPRINT_WEIGHT))
+                * Math.min(animationParameters.getAnimationSpeed() / 0.86F, 1)
+                * (1 - getAnimationTimerEasedSine(CROUCH_WEIGHT));
+        float walkCrouchWeight = Math.min(animationParameters.getAnimationSpeed() / 0.26F, 1)
+                * getAnimationTimerEasedSine(CROUCH_WEIGHT);
 
         PartAnimationUtils.animateMultiplePartsAdditive(partListAll, walkNormalTimelineGroup, modelPartDictionary, walkNormalTimer, walkNormalWeight, false);
         PartAnimationUtils.animateMultiplePartsAdditive(partListAll, walkCrouchTimelineGroup, modelPartDictionary, walkCrouchTimer, walkCrouchWeight, false);
+    }
+
+    private void addPoseLayerSprint(){
+        // Referencing the walk's timeline length so that the walk and sprint cycles sync properly
+        AnimationData.TimelineGroup walkNormalTimelineGroup = getTimelineGroup("walk_normal");
+        AnimationData.TimelineGroup sprintNormalTimelineGroup = getTimelineGroup("sprint_normal");
+
+        float sprintNormalTimer = new TimerProcessor(animationParameters.getAnimationPosition())
+                .speedUp(1.4F)
+                .repeat(walkNormalTimelineGroup)
+                .getValue();
+
+        float sprintNormalWeight = getAnimationTimerEasedSine(SPRINT_WEIGHT)
+                * Math.min(animationParameters.getAnimationSpeed() / 0.86F, 1)
+                * (1 - getAnimationTimerEasedSine(CROUCH_WEIGHT));
+
+        PartAnimationUtils.animateMultiplePartsAdditive(partListAll, sprintNormalTimelineGroup, modelPartDictionary, sprintNormalTimer, sprintNormalWeight, false);
+    }
+
+    private void addPoseLayerIdle(){
+        AnimationData.TimelineGroup idleNormalTimelineGroup = getTimelineGroup("idle_normal");
+        AnimationData.TimelineGroup crouchPoseTimelineGroup = getTimelineGroup("crouch");
+
+        float idleNormalTimer = new TimerProcessor(animationParameters.getTickAtFrame())
+                .repeat(idleNormalTimelineGroup)
+                .getValue();
+
+        float idleNormalWeight = (1 - Math.min(animationParameters.getAnimationSpeed() / 0.5F, 1))
+            * (1 - (getAnimationTimerEasedSine(CROUCH_WEIGHT) * 0.75F));
+        float idleCrouchWeight = (1 - Math.min(animationParameters.getAnimationSpeed() / 0.25F, 1));
+
+        PartAnimationUtils.animateMultiplePartsAdditive(partListAll, idleNormalTimelineGroup, modelPartDictionary, idleNormalTimer, idleNormalWeight, livingEntity.getMainArm() == HumanoidArm.LEFT);
+        PartAnimationUtils.animateMultiplePartsAdditive(partListAll, crouchPoseTimelineGroup, modelPartDictionary, getAnimationTimer(CROUCH_WEIGHT), idleCrouchWeight, livingEntity.getMainArm() == HumanoidArm.LEFT);
     }
 
     @Override

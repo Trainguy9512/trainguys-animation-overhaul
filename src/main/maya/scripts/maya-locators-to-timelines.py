@@ -5,7 +5,7 @@ import json
 selection = cmds.ls(selection=True)
 
 startKeyframe = 0
-endKeyframe = 30
+endKeyframe = 10
 keysPerFrame = 1
 entityKey = "player"
 animationKey = "dummy"
