@@ -167,11 +167,13 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
 
     @Override
     protected void finalizeModel() {
+
         if(livingEntity.isCrouching()){
             for(ModelPart part : partListAll){
                 part.y -= 2;
             }
         }
+
         playerModel.leftArm.x += 5;
         playerModel.leftArm.y += 2;
         playerModel.rightArm.x -= 5;
@@ -183,6 +185,13 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
         playerModel.cloak.z += 2;
         playerModel.cloak.yRot += Mth.PI;
         playerModel.cloak.xRot = -playerModel.cloak.xRot;
+
+        playerModel.hat.copyFrom(playerModel.head);
+        playerModel.leftPants.copyFrom(playerModel.leftLeg);
+        playerModel.rightPants.copyFrom(playerModel.rightLeg);
+        playerModel.leftSleeve.copyFrom(playerModel.leftArm);
+        playerModel.rightSleeve.copyFrom(playerModel.rightArm);
+        playerModel.jacket.copyFrom(playerModel.body);
     }
 
     @Override
