@@ -15,6 +15,10 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
     protected M model;
     protected final LivingEntityAnimParams animationParameters;
 
+    protected final String DELTA_X_MOVEMENT = "delta_x_movement";
+    protected final String DELTA_Y_MOVEMENT = "delta_y_movement";
+    protected final String DELTA_Z_MOVEMENT = "delta_z_movement";
+
     public LivingEntityPartAnimator(T livingEntity, M model, LivingEntityAnimParams livingEntityAnimParams){
         this.model = model;
         this.livingEntity = livingEntity;
