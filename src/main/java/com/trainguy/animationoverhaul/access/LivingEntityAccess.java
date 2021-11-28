@@ -1,7 +1,11 @@
 package com.trainguy.animationoverhaul.access;
 
 import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
+import com.trainguy.animationoverhaul.util.animation.Locator;
+import com.trainguy.animationoverhaul.util.animation.LocatorRig;
 import net.minecraft.core.BlockPos;
+
+import java.util.HashMap;
 
 public interface LivingEntityAccess {
     //float getAnimationVariable(String animationVariable);
@@ -18,4 +22,7 @@ public interface LivingEntityAccess {
 
     boolean getUseInventoryRenderer();
     void setUseInventoryRenderer(boolean bool);
+
+    LocatorRig getLocatorRig();
+    void storeLocatorRig(LocatorRig locatorRig);
 }

@@ -28,12 +28,12 @@ public class LivingEntityAnimationController<T extends LivingEntity, L extends L
                 partAnimator.animatePartsInventory();
                 ((LivingEntityAccess)livingEntity).setUseInventoryRenderer(false);
             } else {
+                partAnimator.adjustGeneralMovementTimers();
                 partAnimator.adjustTimers();
                 partAnimator.animateParts();
             }
+            partAnimator.bakeLocatorRig();
             partAnimator.finalizeModel();
-        } else {
-
         }
     }
 }

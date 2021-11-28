@@ -3,14 +3,21 @@ package com.trainguy.animationoverhaul.mixin;
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
+import com.trainguy.animationoverhaul.util.animation.Locator;
+import com.trainguy.animationoverhaul.util.animation.LocatorRig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+
+import java.util.HashMap;
 
 @Unique
 @Mixin(LivingEntity.class)
 public abstract class MixinLivingEntity implements LivingEntityAccess {
+
+    @Shadow public abstract void lerpHeadTo(float f, int i);
 
     private LivingEntityAnimParams animationParameters;
 
@@ -22,6 +29,8 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
     private String equippedArmor = "";
 
     public boolean useInventoryRenderer = false;
+
+    private LocatorRig locatorRig;
 
     /*
     public float getAnimationVariable(String variableType){
@@ -87,5 +96,12 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
 
     public void setUseInventoryRenderer(boolean bool){
         useInventoryRenderer = bool;
+    }
+
+    public void storeLocatorRig(LocatorRig locatorRig){
+        this.locatorRig = locatorRig;
+    }
+    public LocatorRig getLocatorRig(){
+        return this.locatorRig;
     }
 }

@@ -11,9 +11,12 @@ import net.minecraft.client.model.geom.ModelPart;
 import java.util.HashMap;
 import java.util.List;
 
+@Deprecated
 public class PartAnimationUtils {
 
+    @Deprecated
     public static void animateMultiplePartsAdditive(List<ModelPart> partList, AnimationData.TimelineGroup timelineGroup, HashMap<ModelPart, String[]> modelPartStringDictionary, float time, float weight, boolean mirrored){
+        /*
         for(ModelPart modelPart : partList){
             if(modelPartStringDictionary.containsKey(modelPart) && weight > 0){
                 int mirroredPartKey = mirrored ? 1 : 0;
@@ -26,6 +29,7 @@ public class PartAnimationUtils {
                 }
             }
         }
+        */
     }
 
     public static void animatePartAdditive(ModelPart modelPart, ChannelTimeline<Float> channelTimeline, float time, float weight, boolean mirrored){

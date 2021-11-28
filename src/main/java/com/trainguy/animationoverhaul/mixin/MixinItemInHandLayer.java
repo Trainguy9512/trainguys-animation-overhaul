@@ -1,96 +1,52 @@
 package com.trainguy.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
-import com.trainguy.animationoverhaul.access.EntityAccess;
-import com.trainguy.animationoverhaul.util.time.Easing;
+import com.trainguy.animationoverhaul.AnimationOverhaul;
+import com.trainguy.animationoverhaul.access.LivingEntityAccess;
+import com.trainguy.animationoverhaul.util.animation.Locator;
+import com.trainguy.animationoverhaul.util.animation.LocatorRig;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.model.ArmedModel;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
-import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Environment(EnvType.CLIENT)
 @Mixin(ItemInHandLayer.class)
 public class MixinItemInHandLayer {
 
-    @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getInstance()Lnet/minecraft/client/Minecraft;"))
-    private void transformItemInHand(LivingEntity livingEntity, ItemStack itemStack, ItemTransforms.TransformType transformType, HumanoidArm humanoidArm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
-
-        HumanoidArm swingingArm = livingEntity.getMainArm();
-        HumanoidArm interactionArm = livingEntity.getUsedItemHand() == InteractionHand.MAIN_HAND ? livingEntity.getMainArm() == HumanoidArm.RIGHT ? HumanoidArm.RIGHT : HumanoidArm.LEFT : livingEntity.getMainArm() != HumanoidArm.RIGHT ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
-        swingingArm = livingEntity.swingingArm == InteractionHand.MAIN_HAND ? swingingArm : swingingArm.getOpposite();
-
-        float entityAttackIndex = ((EntityAccess)livingEntity).getAnimationTimer("attack_index");
-
-        // TODO: Revisit this and implement more methods into CubicBezier regarding weight!
-        if(itemStack.getItem().toString().contains("sword") && swingingArm == humanoidArm && entityAttackIndex == 1){
-            float entityAttackAmount = ((EntityAccess)livingEntity).getAnimationTimer("attack_progress");
-            float entityShieldPoseAmount = ((EntityAccess)livingEntity).getAnimationTimer("shield_block");
-            float inOutSine = Mth.sin(entityAttackAmount * Mth.PI * 4 - Mth.PI / 2) * 0.5F + 0.5F;
-            //float entityAttackWeight = AnimCurveUtils.linearToEaseInOutWeight(entityAttackAmount, 2) * (1 - entityShieldPoseAmount);
-            float entityAttackWeight = entityAttackAmount;
-            poseStack.mulPose(Vector3f.XP.rotationDegrees(-90 * entityAttackWeight));
-            poseStack.mulPose(Vector3f.YP.rotationDegrees(90 * entityAttackWeight));
-            poseStack.mulPose(Vector3f.XP.rotationDegrees(10 * entityAttackWeight));
-            poseStack.translate(0.125 * entityAttackWeight, 0.125 * entityAttackWeight, -0.125 * entityAttackWeight);
+    @Redirect(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V"))
+    private void removeArmItemTranslation(PoseStack instance, double d, double e, double f, LivingEntity livingEntity, ItemStack itemStack, ItemTransforms.TransformType transformType, HumanoidArm humanoidArm){
+        boolean bl = humanoidArm == HumanoidArm.LEFT;
+        if(!shouldUseAlternateHandAnimation(livingEntity)){
+            instance.translate((double)((float)(bl ? -1 : 1) / 16.0F), 0.125D, -0.625D);
         }
-        float entityEatingAmount = ((EntityAccess)livingEntity).getAnimationTimer("eating");
-        if(entityEatingAmount > 0 && interactionArm == humanoidArm){
-            float eatingAmount = Mth.sin(entityEatingAmount * Mth.PI - Mth.PI * 0.5F) * 0.5F + 0.5F;
-            poseStack.mulPose(Vector3f.XP.rotationDegrees(70 * eatingAmount));
-            poseStack.mulPose(Vector3f.ZP.rotationDegrees((humanoidArm == HumanoidArm.RIGHT ? 20 : -20) * eatingAmount));
-            poseStack.translate((humanoidArm == HumanoidArm.RIGHT ? -0.15 : 0.15) * eatingAmount, -0.125 * eatingAmount, -0.0625 * eatingAmount);
+    }
+
+    @Redirect(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ArmedModel;translateToHand(Lnet/minecraft/world/entity/HumanoidArm;Lcom/mojang/blaze3d/vertex/PoseStack;)V"))
+    private void removeArmItemParent(ArmedModel instance, HumanoidArm humanoidArm, PoseStack poseStack, LivingEntity livingEntity){
+        if(shouldUseAlternateHandAnimation(livingEntity)){
+            LocatorRig locatorRig = ((LivingEntityAccess)livingEntity).getLocatorRig();
+            String identifier = humanoidArm == HumanoidArm.LEFT ? "leftHand" : "rightHand";
+            locatorRig.getLocator(identifier, livingEntity.getMainArm() == HumanoidArm.LEFT).translateAndRotate(poseStack);
+        } else {
+            instance.translateToHand(humanoidArm, poseStack);
         }
-        /*
+    }
 
-        No longer needed!
-
-        if(itemStack.getItem() == Items.SHIELD && livingEntity.isUsingItem() && interactionArm == humanoidArm){
-
-            if(humanoidArm == HumanoidArm.LEFT){
-                poseStack.translate(-1.45F / 16F, 0.35F / 16F, 1.5F / 16F);
-                poseStack.mulPose(Vector3f.YP.rotationDegrees(45));
-                poseStack.mulPose(Vector3f.XP.rotationDegrees(-45));
-            }
-            if(humanoidArm == HumanoidArm.RIGHT){
-                poseStack.translate(1.0F / 16F, -0.35F / 16F, 0);
-                poseStack.mulPose(Vector3f.YP.rotationDegrees(-45));
-                poseStack.mulPose(Vector3f.XP.rotationDegrees(-45));
+    private boolean shouldUseAlternateHandAnimation(LivingEntity livingEntity){
+        LocatorRig locatorRig = ((LivingEntityAccess)livingEntity).getLocatorRig();
+        if(locatorRig != null){
+            if(locatorRig.containsLocator("leftHand") && locatorRig.containsLocator("rightHand")){
+                return true;
             }
         }
-        */
-
-        float handednessReverser = humanoidArm == HumanoidArm.RIGHT ? 1 : -1;
-        float entityShieldPoseAmount = ((EntityAccess)livingEntity).getAnimationTimer("shield_block");
-        if(entityShieldPoseAmount > 0 && itemStack.getItem() == Items.SHIELD && interactionArm == humanoidArm){
-            float shieldPoseAmount = Easing.CubicBezier.bezierInOutQuad().ease(entityShieldPoseAmount);
-            if(humanoidArm == HumanoidArm.LEFT){
-                poseStack.mulPose(Vector3f.XP.rotationDegrees(45 * shieldPoseAmount));
-                poseStack.mulPose(Vector3f.YP.rotationDegrees(-45 * shieldPoseAmount));
-                poseStack.translate(1.45F / 16F * shieldPoseAmount, -0.35F / 16F * shieldPoseAmount, -1.5F / 16F * shieldPoseAmount);
-            }
-            if(humanoidArm == HumanoidArm.RIGHT){
-                poseStack.mulPose(Vector3f.XP.rotationDegrees(45 * shieldPoseAmount));
-                poseStack.mulPose(Vector3f.YP.rotationDegrees(45 * shieldPoseAmount));
-                poseStack.translate(-1.0F / 16F * shieldPoseAmount, 0.35F / 16F * shieldPoseAmount, 0);
-            }
-        }
-
-        float spearPoseTimer = ((EntityAccess)livingEntity).getAnimationTimer("spear");
-        if(spearPoseTimer > 0 && itemStack.getItem() == Items.TRIDENT && interactionArm == humanoidArm){
-            float spearSpinWeight = Easing.CubicBezier.bezierInOutQuad().ease(Mth.clamp(2.5F * spearPoseTimer - 0.75F, 0, 1));
-            poseStack.mulPose(Vector3f.ZP.rotationDegrees(spearSpinWeight * -180 * handednessReverser));
-        }
+        return false;
     }
 }
