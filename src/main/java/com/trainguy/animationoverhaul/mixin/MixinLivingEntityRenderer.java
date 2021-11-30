@@ -33,8 +33,6 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
 
     @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;isBodyVisible(Lnet/minecraft/world/entity/LivingEntity;)Z"))
     private void setPartController(T livingEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
-        float animationPosition = livingEntity.animationPosition - livingEntity.animationSpeed * (1.0F - g);
-        float animationSpeed = Mth.lerp(g, livingEntity.animationSpeedOld, livingEntity.animationSpeed);
         float tickAtFrame = this.getBob(livingEntity, g);
         float delta = Minecraft.getInstance().getDeltaFrameTime();
 
@@ -65,7 +63,7 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
 
         float headXRot = (float) Math.toRadians(Mth.lerp(g, livingEntity.xRotO, livingEntity.getXRot()));
         float headYRot = (float) Math.toRadians(k);
-        LivingEntityAnimParams livingEntityAnimParams = new LivingEntityAnimParams(animationPosition, animationSpeed, tickAtFrame, g, delta, headYRot, headXRot, i);
+        LivingEntityAnimParams livingEntityAnimParams = new LivingEntityAnimParams(tickAtFrame, g, delta, headYRot, headXRot, i);
 
         LivingEntityAnimationController<T, P, M> livingEntityAnimationController = new LivingEntityAnimationController<>(livingEntity, this.model, livingEntityAnimParams);
         livingEntityAnimationController.animate();

@@ -3,28 +3,21 @@ package com.trainguy.animationoverhaul.animations;
 import com.trainguy.animationoverhaul.util.animation.Locator;
 import com.trainguy.animationoverhaul.util.data.AnimationData;
 import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
-import com.trainguy.animationoverhaul.util.animation.PartAnimationUtils;
-import com.trainguy.animationoverhaul.util.time.Easing;
 import com.trainguy.animationoverhaul.util.time.TimerProcessor;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>> extends LivingEntityPartAnimator<T, M> {
 
     private final PlayerModel<T> playerModel;
 
-    private final List<ModelPart> partListAll;
-    public final HashMap<ModelPart, String[]> modelPartDictionary;
-
     private final List<Locator> locatorListAll;
+    private final List<Locator> locatorListBody;
 
     private static final String SPRINT_WEIGHT = "sprint_weight";
     private static final String CROUCH_WEIGHT = "crouch_weight";
@@ -51,20 +44,7 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
 
     public PlayerPartAnimator(T livingEntity, M model, LivingEntityAnimParams livingEntityAnimParams){
         super(livingEntity, model, livingEntityAnimParams);
-        playerModel = (PlayerModel<T>) model;
-
-        partListAll = Arrays.asList(playerModel.leftArm, playerModel.rightArm, playerModel.leftLeg, playerModel.rightLeg, playerModel.body, playerModel.head, playerModel.cloak);
-
-        modelPartDictionary = new HashMap<>(){{
-            put(playerModel.head, new String[]{"head", "head"});
-            put(playerModel.body, new String[]{"body", "body"});
-            put(playerModel.leftLeg, new String[]{"leftLeg", "rightLeg"});
-            put(playerModel.rightLeg, new String[]{"rightLeg", "leftLeg"});
-            put(playerModel.leftArm, new String[]{"leftArm", "rightArm"});
-            put(playerModel.rightArm, new String[]{"rightArm", "leftArm"});
-            put(playerModel.cloak, new String[]{"cloak", "cloak"});
-        }};
-
+        playerModel = (PlayerModel<T>)model;
 
         this.locatorHead = new Locator("head");
         this.locatorBody = new Locator("body");
@@ -77,6 +57,7 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
         this.locatorRightHand = new Locator("rightHand");
 
         locatorListAll = Arrays.asList(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak, locatorLeftHand, locatorRightHand);
+        locatorListBody = Arrays.asList(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak);
 
         this.locatorRig.addLocatorModelPart(locatorHead, playerModel.head);
         this.locatorRig.addLocatorModelPart(locatorBody, playerModel.body);
@@ -89,30 +70,25 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
         this.locatorRig.addLocator(locatorRightHand, locatorLeftHand);
     }
 
-    //TODO: local translation from the body to offset the cloak when armor is being worn
-
-    @Override
-    protected void initModel() {
-        for(ModelPart part : partListAll){
-            part.setPos(0, 0, 0);
-            part.setRotation(0, 0, 0);
-        }
-    }
-
     @Override
     protected void adjustTimers() {
+        super.adjustTimers();
 
-
-        incrementAnimationTimer(SPRINT_WEIGHT, livingEntity.isCrouching(), 10, -10);
-        incrementAnimationTimer(CROUCH_WEIGHT, livingEntity.isCrouching(), 5, -5);
+        boolean isCrouching = livingEntity.isCrouching();
+        boolean isSprinting = livingEntity.isSprinting();
+        if(isCrouching && isSprinting){
+            isSprinting = false;
+        }
+        incrementAnimationTimer(SPRINT_WEIGHT, isCrouching, 10, -10);
+        incrementAnimationTimer(CROUCH_WEIGHT, isSprinting, 3, -3);
 
         // Legacy direction shift
         float moveAngleX = -Mth.sin(livingEntity.yBodyRot * Mth.PI / 180);
         float moveAngleZ = Mth.cos(livingEntity.yBodyRot * Mth.PI / 180);
-        float deltaMovementX = (float) (livingEntity.getX() - livingEntity.xo) / animationParameters.getAnimationSpeed();
-        float deltaMovementZ = (float) (livingEntity.getZ() - livingEntity.zo) / animationParameters.getAnimationSpeed();
+        float deltaMovementX = (float) (livingEntity.getX() - livingEntity.xo) / getAnimationTimer(ANIMATION_SPEED);
+        float deltaMovementZ = (float) (livingEntity.getZ() - livingEntity.zo) / getAnimationTimer(ANIMATION_SPEED);
         boolean isMovingForwards = true;
-        if(animationParameters.getAnimationSpeed() > 0.01){
+        if(getAnimationTimer(ANIMATION_SPEED) > 0.01){
             if(
                     (moveAngleX >= 0 && deltaMovementX < 0 - 0.05) ||
                     (moveAngleX <= 0 && deltaMovementX > 0 + 0.05) ||
@@ -145,16 +121,16 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
                 (ticksAfterHittingGround < 1 || !livingEntity.isOnGround())
                 && livingEntity.isSprinting()
                 && getAnimationTimer(DELTA_Y) != 0
-                && ticksAfterSwitchingLegs < 15;
-        incrementAnimationTimer(SPRINT_JUMP_WEIGHT, isSprintJumping, 4, -4);
+                && ticksAfterSwitchingLegs < 12;
+        incrementAnimationTimer(SPRINT_JUMP_WEIGHT, isSprintJumping, 2, -4);
 
         // Walk jump weight
         boolean isWalkJumping =
                 (ticksAfterHittingGround < 1 || !livingEntity.isOnGround())
                 && !livingEntity.isSprinting()
                 && getAnimationTimer(DELTA_Y) != 0
-                && ticksAfterSwitchingLegs < 15;
-        incrementAnimationTimer(WALK_JUMP_WEIGHT, isWalkJumping, 4, -4);
+                && ticksAfterSwitchingLegs < 12;
+        incrementAnimationTimer(WALK_JUMP_WEIGHT, isWalkJumping, 2, -4);
 
         // Switch the legs for sprint jumping
         float previousSprintJumpReverser = getAnimationTimer(SPRINT_JUMP_REVERSER);
@@ -170,17 +146,29 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
         addPoseLayerSprint();
         addPoseLayerIdle();
         addPoseLayerJump();
+
+
+        // WIP: sprint jumping, creative flying, falling
+        // TODO: swimming, fall flying, redo crouching, crawling, wading in water, riding in boat, sleeping, riding horse (temp),
+        // TODO: riding minecart, levitating
+
+        // Idle pose layers
+        // TODO: idling normally, idling while flying, idling underwater, idling sleeping, idle battle pose?
+
+        // Item interaction pose layers
+        // TODO: holding item, using bow, using crossbow, using shield, using spyglass, eating and drinking, throwing trident, equipping armor
+        // TODO: fishing rod reeling, direction-based damage, death animation?, mining with pickaxe, interacting with fist?
     }
 
     private void addPoseLayerLook(){
-        playerModel.head.xRot = animationParameters.getHeadXRot();
-        playerModel.head.yRot = animationParameters.getHeadYRot();
+        locatorHead.xRot = animationParameters.getHeadXRot();
+        locatorHead.yRot = animationParameters.getHeadYRot();
 
         float lookHorizontalTimer = 1 - getLookLeftRightTimer();
         float lookVerticalTimer = 1 - getLookUpDownTimer();
 
-        PartAnimationUtils.animateMultiplePartsAdditive(partListAll, getTimelineGroup("look_horizontal"), modelPartDictionary, lookHorizontalTimer, 1, false);
-        PartAnimationUtils.animateMultiplePartsAdditive(partListAll, getTimelineGroup("look_vertical"), modelPartDictionary, lookVerticalTimer, 1, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, getTimelineGroup("look_horizontal"), lookHorizontalTimer, 1, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, getTimelineGroup("look_vertical"), lookVerticalTimer, 1, false);
     }
 
     private void addPoseLayerWalk(){
@@ -191,11 +179,11 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
         AnimationData.TimelineGroup walkNormalTimelineGroup = getTimelineGroup("walk_normal");
         AnimationData.TimelineGroup walkCrouchTimelineGroup = getTimelineGroup("walk_crouch");
 
-        float walkNormalTimer = new TimerProcessor(animationParameters.getAnimationPosition())
+        float walkNormalTimer = new TimerProcessor(getAnimationTimer(ANIMATION_POSITION))
                 .speedUp(1.4F)
                 .repeat(walkNormalTimelineGroup)
                 .getValue();
-        float walkCrouchTimer = new TimerProcessor(animationParameters.getAnimationPosition())
+        float walkCrouchTimer = new TimerProcessor(getAnimationTimer(ANIMATION_POSITION))
                 .speedUp(2.5F)
                 .repeat(walkCrouchTimelineGroup)
                 .getValue();
@@ -203,17 +191,17 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
         //walkNormalTimer = Mth.lerp(getAnimationTimerEasedSine(DIRECTION_SHIFT), walkNormalTimer, 1 - walkNormalTimer);
         //walkCrouchTimer = Mth.lerp(getAnimationTimerEasedSine(DIRECTION_SHIFT), walkCrouchTimer, 1 - walkCrouchTimer);
 
-        float walkNormalWeight = (1 - getAnimationTimerEasedSine(SPRINT_WEIGHT))
-                * Math.min(animationParameters.getAnimationSpeed() / 0.86F, 1)
-                * (1 - getAnimationTimerEasedSine(WALK_JUMP_WEIGHT))
-                * (1 - getAnimationTimerEasedSine(CROUCH_WEIGHT));
-        float walkCrouchWeight = Math.min(animationParameters.getAnimationSpeed() / 0.26F, 1)
-                * (1 - getAnimationTimerEasedSine(WALK_JUMP_WEIGHT))
-                * getAnimationTimerEasedSine(CROUCH_WEIGHT);
+        float walkNormalWeight = (1 - getAnimationTimerEasedQuad(SPRINT_WEIGHT))
+                * Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.86F, 1)
+                * (1 - getAnimationTimerEasedQuad(WALK_JUMP_WEIGHT))
+                * (1 - getAnimationTimerEasedQuad(CROUCH_WEIGHT));
+        float walkCrouchWeight = Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.26F, 1)
+                * (1 - getAnimationTimerEasedQuad(WALK_JUMP_WEIGHT))
+                * getAnimationTimerEasedQuad(CROUCH_WEIGHT);
 
         // TODO: Backwards walking animations
-        PartAnimationUtils.animateMultiplePartsAdditive(partListAll, walkNormalTimelineGroup, modelPartDictionary, walkNormalTimer, walkNormalWeight, false);
-        PartAnimationUtils.animateMultiplePartsAdditive(partListAll, walkCrouchTimelineGroup, modelPartDictionary, walkCrouchTimer, walkCrouchWeight, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, walkNormalTimelineGroup, walkNormalTimer, walkNormalWeight, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, walkCrouchTimelineGroup, walkCrouchTimer, walkCrouchWeight, false);
     }
 
     private void addPoseLayerSprint(){
@@ -221,62 +209,57 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
         AnimationData.TimelineGroup walkNormalTimelineGroup = getTimelineGroup("walk_normal");
         AnimationData.TimelineGroup sprintNormalTimelineGroup = getTimelineGroup("sprint_normal");
 
-        float sprintNormalTimer = new TimerProcessor(animationParameters.getAnimationPosition())
+        float sprintNormalTimer = new TimerProcessor(getAnimationTimer(ANIMATION_POSITION))
                 .speedUp(1.4F)
                 .repeat(walkNormalTimelineGroup)
                 .getValue();
 
-        float sprintNormalWeight = getAnimationTimerEasedSine(SPRINT_WEIGHT)
-                * Math.min(animationParameters.getAnimationSpeed() / 0.86F, 1)
-                * (1 - getSprintJumpWeight())
-                * (1 - getAnimationTimerEasedSine(CROUCH_WEIGHT));
+        float sprintNormalWeight = getAnimationTimerEasedQuad(SPRINT_WEIGHT)
+                * Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.86F, 1)
+                * (1 - getAnimationTimerEasedQuad(SPRINT_JUMP_WEIGHT))
+                * (1 - getAnimationTimerEasedQuad(CROUCH_WEIGHT));
 
-        PartAnimationUtils.animateMultiplePartsAdditive(partListAll, sprintNormalTimelineGroup, modelPartDictionary, sprintNormalTimer, sprintNormalWeight, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, sprintNormalTimelineGroup, sprintNormalTimer, sprintNormalWeight, false);
     }
 
     private void addPoseLayerJump(){
         AnimationData.TimelineGroup sprintJumpTimelineGroup = getTimelineGroup("sprint_jump");
-        float sprintJumpWeight = getSprintJumpWeight();
+        AnimationData.TimelineGroup walkJumpTimelineGroup = getTimelineGroup("walk_jump");
+        float sprintJumpWeight = getAnimationTimerEasedQuad(SPRINT_JUMP_WEIGHT);
+        float walkJumpWeight = getAnimationTimerEasedQuad(WALK_JUMP_WEIGHT);
         float sprintJumpReverser = Mth.lerp(getAnimationTimer(SPRINT_JUMP_REVERSER), 1, -1);
         float sprintJumpTimer = getAnimationTimer(SPRINT_JUMP_TIMER);
 
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, sprintJumpTimelineGroup, sprintJumpTimer, sprintJumpWeight, sprintJumpReverser == 1);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, walkJumpTimelineGroup, sprintJumpTimer, walkJumpWeight, sprintJumpReverser == 1);
     }
 
     private void addPoseLayerIdle(){
         AnimationData.TimelineGroup idleNormalTimelineGroup = getTimelineGroup("idle_normal");
-        AnimationData.TimelineGroup crouchPoseTimelineGroup = getTimelineGroup("crouch");
+        AnimationData.TimelineGroup idleCrouchTimelineGroup = getTimelineGroup("idle_crouch");
 
         float idleNormalTimer = new TimerProcessor(animationParameters.getTickAtFrame())
                 .repeat(idleNormalTimelineGroup)
                 .getValue();
 
-        float idleNormalWeight = (1 - Math.min(animationParameters.getAnimationSpeed() / 0.5F, 1))
-            * (1 - (getAnimationTimerEasedSine(CROUCH_WEIGHT) * 0.75F));
-        float idleCrouchWeight = (1 - Math.min(animationParameters.getAnimationSpeed() / 0.25F, 1));
+        float idleNormalWeight = (1 - Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.5F, 1))
+                * (1 - (getAnimationTimerEasedQuad(CROUCH_WEIGHT)));
+        float idleCrouchWeight = (1 - Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.25F, 1))
+                * getAnimationTimerEasedQuad(CROUCH_WEIGHT);
 
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleNormalTimelineGroup, idleNormalTimer, idleNormalWeight, false);
-        PartAnimationUtils.animateMultiplePartsAdditive(partListAll, crouchPoseTimelineGroup, modelPartDictionary, getAnimationTimer(CROUCH_WEIGHT), idleCrouchWeight, livingEntity.getMainArm() == HumanoidArm.LEFT);
-    }
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleCrouchTimelineGroup, idleNormalTimer, idleCrouchWeight, false);
 
-    private float getSprintJumpWeight(){
-        boolean isSprintJumping =
-                (getAnimationTimer(TICKS_AFTER_HITTING_GROUND) < 1 || !livingEntity.isOnGround())
-                && livingEntity.isSprinting()
-                && getAnimationTimer(DELTA_Y) != 0
-                && getAnimationTimer(TICKS_AFTER_SWITCHING_LEGS) < 15;
-
-        return getEasedConditionAnimationTimer(SPRINT_JUMP_WEIGHT, Easing.CubicBezier.bezierOutQuad(), Easing.CubicBezier.bezierInQuad(), isSprintJumping);
+        // Removes the vanilla transformation done for the crouch pose
+        if(livingEntity.isCrouching()){
+            for(Locator locator : locatorListBody){
+                locator.y -= 2;
+            }
+        }
     }
 
     @Override
     protected void finalizeModel() {
-
-        if(livingEntity.isCrouching()){
-            for(ModelPart part : partListAll){
-                part.y -= 2;
-            }
-        }
 
         playerModel.leftArm.x += 5;
         playerModel.leftArm.y += 2;
@@ -300,11 +283,20 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
 
     @Override
     protected void adjustTimersInventory() {
-
     }
 
     @Override
     protected void animatePartsInventory() {
+        addPoseLayerInventoryIdle();
+    }
 
+    private void addPoseLayerInventoryIdle(){
+        AnimationData.TimelineGroup idleNormalTimelineGroup = getTimelineGroup("idle_normal");
+
+        float idleNormalTimer = new TimerProcessor(animationParameters.getTickAtFrame())
+                .repeat(idleNormalTimelineGroup)
+                .getValue();
+
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleNormalTimelineGroup, idleNormalTimer, 1, false);
     }
 }

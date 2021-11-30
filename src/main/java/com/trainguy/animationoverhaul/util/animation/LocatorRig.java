@@ -89,29 +89,10 @@ public class LocatorRig {
         locator.x += channelTimeline.getValueAt(TransformChannel.x, time) * weight * mirrorMultiplier;
         locator.y += channelTimeline.getValueAt(TransformChannel.y, time) * weight;
         locator.z += channelTimeline.getValueAt(TransformChannel.z, time) * weight;
-        rotateLocatorWorldSpace(locator, channelTimeline.getValueAt(TransformChannel.xRot, time) * weight, channelTimeline.getValueAt(TransformChannel.yRot, time) * weight * mirrorMultiplier, channelTimeline.getValueAt(TransformChannel.zRot, time) * weight * mirrorMultiplier);
+        locator.rotateWorldSpace(channelTimeline.getValueAt(TransformChannel.xRot, time) * weight, channelTimeline.getValueAt(TransformChannel.yRot, time) * weight * mirrorMultiplier, channelTimeline.getValueAt(TransformChannel.zRot, time) * weight * mirrorMultiplier);
     }
 
-    public static void rotateLocatorWorldSpace(Locator locator, float x, float y, float z){
-        Vector3f baseRotation = new Vector3f(locator.xRot, locator.yRot, locator.zRot);
-        Vector3f multRotation = new Vector3f(x, y, z);
-
-        RotationMatrix baseRotationMatrix = RotationMatrix.fromEulerAngles(baseRotation);
-        //RotationMatrix inverseRotationMatrix = RotationMatrix.getInverse(baseRotationMatrix);
-        RotationMatrix multRotationMatrix = RotationMatrix.fromEulerAngles(multRotation);
-        //RotationMatrix copyRotationMatrix = RotationMatrix.fromEulerAngles(baseRotation);
-
-        //baseRotationMatrix.mult(inverseRotationMatrix);
-        baseRotationMatrix.mult(multRotationMatrix);
-        //baseRotationMatrix.mult(copyRotationMatrix);
-
-        Vector3f finalRotation = baseRotationMatrix.toEulerAngles();
-        locator.xRot = finalRotation.x();
-        locator.yRot = finalRotation.y();
-        locator.zRot = finalRotation.z();
-    }
-
-    private class LocatorEntry {
+    private static class LocatorEntry {
         private final Locator locator;
         private final Locator locatorMirrored;
         private final ModelPart modelPart;

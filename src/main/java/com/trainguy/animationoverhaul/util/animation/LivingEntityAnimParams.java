@@ -2,8 +2,6 @@ package com.trainguy.animationoverhaul.util.animation;
 
 public class LivingEntityAnimParams {
 
-    private final float animationPosition;
-    private final float animationSpeed;
     private final float tickAtFrame;
     private final float tickDifference;
     private final float delta;
@@ -11,9 +9,7 @@ public class LivingEntityAnimParams {
     private final float headXRot;
     private final int lightInt;
 
-    public LivingEntityAnimParams(float animationPosition, float animationSpeed, float tickAtFrame, float tickDifference, float delta, float headYRot, float headXRot, int lightInt){
-        this.animationPosition = animationPosition;
-        this.animationSpeed = animationSpeed;
+    public LivingEntityAnimParams(float tickAtFrame, float tickDifference, float delta, float headYRot, float headXRot, int lightInt){
         this.tickAtFrame = tickAtFrame;
         this.tickDifference = tickDifference;
         this.delta = delta;
@@ -22,12 +18,6 @@ public class LivingEntityAnimParams {
         this.lightInt = lightInt;
     }
 
-    public float getAnimationPosition(){
-        return this.animationPosition;
-    }
-    public float getAnimationSpeed(){
-        return this.animationSpeed;
-    }
     public float getTickAtFrame(){
         return this.tickAtFrame;
     }

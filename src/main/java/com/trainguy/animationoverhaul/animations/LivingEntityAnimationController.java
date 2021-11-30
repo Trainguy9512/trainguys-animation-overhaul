@@ -22,13 +22,11 @@ public class LivingEntityAnimationController<T extends LivingEntity, L extends L
     public void animate(){
         // Only animate the parts if the part animator exists
         if(partAnimator != null){
-            partAnimator.initModel();
             if(((LivingEntityAccess)livingEntity).getUseInventoryRenderer()){
                 partAnimator.adjustTimersInventory();
                 partAnimator.animatePartsInventory();
                 ((LivingEntityAccess)livingEntity).setUseInventoryRenderer(false);
             } else {
-                partAnimator.adjustGeneralMovementTimers();
                 partAnimator.adjustTimers();
                 partAnimator.animateParts();
             }

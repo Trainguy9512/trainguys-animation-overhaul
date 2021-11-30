@@ -14,9 +14,10 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.player.Player;
 
-public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityModel<T>> {
+public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityModel<T>> extends AbstractPartAnimator<T, M> {
 
     protected final T livingEntity;
     protected M model;
@@ -25,6 +26,8 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
 
     protected final String DELTA_Y = "delta_y";
     protected final String DELTA_Y_OLD = "delta_y_old";
+    protected final String ANIMATION_SPEED = "animation_speed";
+    protected final String ANIMATION_POSITION = "animation_position";
 
     public LivingEntityPartAnimator(T livingEntity, M model, LivingEntityAnimParams livingEntityAnimParams){
         this.model = model;
@@ -33,13 +36,31 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
         this.locatorRig = new LocatorRig();
     }
 
-    protected abstract void initModel();
-    protected abstract void adjustTimers();
-    protected abstract void animateParts();
-    protected abstract void finalizeModel();
+    @Override
+    protected void adjustTimers() {
+        adjustGeneralMovementTimers();
+        adjustAnimationSpeedTimers();
+    }
 
-    protected abstract void adjustTimersInventory();
-    protected abstract void animatePartsInventory();
+    @Override
+    protected void animateParts() {
+
+    }
+
+    @Override
+    protected void finalizeModel() {
+
+    }
+
+    @Override
+    protected void adjustTimersInventory() {
+
+    }
+
+    @Override
+    protected void animatePartsInventory() {
+
+    }
 
     public void bakeLocatorRig(){
         ((LivingEntityAccess)livingEntity).storeLocatorRig(this.locatorRig);
@@ -51,6 +72,25 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
         float deltaYOld = getAnimationTimer(DELTA_Y);
         setAnimationTimer(DELTA_Y, deltaY);
         setAnimationTimer(DELTA_Y_OLD, deltaYOld);
+    }
+
+    private void adjustAnimationSpeedTimers(){
+        boolean useVerticalVector = livingEntity instanceof FlyingAnimal;
+
+        float previousAnimationSpeed = getAnimationTimer(ANIMATION_SPEED);
+        float previousAnimationPosition = getAnimationTimer(ANIMATION_POSITION);
+
+        double deltaX = livingEntity.getX() - livingEntity.xo;
+        double deltaY = useVerticalVector ? livingEntity.getY() - livingEntity.yo : 0.0D;
+        double deltaZ = livingEntity.getZ() - livingEntity.zo;
+        float g = (float)Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) * 4.0F;
+        if (g > 1.0F) {
+            g = 1.0F;
+        }
+
+        float finalAnimationSpeed = previousAnimationSpeed + ((g - previousAnimationSpeed) * 0.4F * animationParameters.getDelta());
+        setAnimationTimer(ANIMATION_SPEED, finalAnimationSpeed);
+        setAnimationTimer(ANIMATION_POSITION, previousAnimationPosition + finalAnimationSpeed * animationParameters.getDelta());
     }
 
     protected AnimationData.TimelineGroup getTimelineGroup(String animationKey){
@@ -67,8 +107,8 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
         return getEasedAnimationTimer(identifier, easement);
     }
 
-    protected float getAnimationTimerEasedSine(String identifier){
-        return getEasedAnimationTimer(identifier, Easing.CubicBezier.bezierInOutSine());
+    protected float getAnimationTimerEasedQuad(String identifier){
+        return getEasedAnimationTimer(identifier, Easing.CubicBezier.bezierInOutQuad());
     }
 
     protected float getAnimationTimer(String identifier){
