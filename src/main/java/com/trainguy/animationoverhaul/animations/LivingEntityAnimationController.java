@@ -3,6 +3,8 @@ package com.trainguy.animationoverhaul.animations;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.LivingEntity;
 
 public class LivingEntityAnimationController<T extends LivingEntity, L extends LivingEntityPartAnimator<T, M>, M extends EntityModel<T>> {
@@ -13,7 +15,7 @@ public class LivingEntityAnimationController<T extends LivingEntity, L extends L
     @SuppressWarnings("unchecked")
     public LivingEntityAnimationController(T livingEntity, M model, LivingEntityAnimParams livingEntityAnimParams){
         partAnimator = switch (livingEntity.getType().toString().split("\\.")[2]){
-            case "player" -> (L) new PlayerPartAnimator<T, M>(livingEntity, model, livingEntityAnimParams);
+            case "player" -> (L) new PlayerPartAnimator((AbstractClientPlayer) livingEntity, (PlayerModel<AbstractClientPlayer>) model, livingEntityAnimParams);
             default -> null;
         };
         this.livingEntity = livingEntity;

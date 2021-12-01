@@ -8,7 +8,6 @@
   "client": [
     "MixinBlockEntity",
     "MixinCapeLayer",
-    "debug.MixinAbstractClientPlayer",
     "MixinElytraLayer",
     "MixinEntity",
     "MixinInventoryScreen",
@@ -19,8 +18,8 @@
     "animations.part.MixinPhantomModel",
     "animations.renderer.MixinBellRenderer",
     "animations.renderer.MixinChestRenderer",
-    "animations.renderer.MixinPlayerRenderer",
     "animations.renderer.MixinShulkerBoxRenderer",
+    "debug.MixinAbstractClientPlayer",
     "debug.MixinDebugScreenOverlay"
   ],
   "injectors": {

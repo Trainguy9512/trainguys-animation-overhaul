@@ -6,15 +6,14 @@ import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
 import com.trainguy.animationoverhaul.util.time.TimerProcessor;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>> extends LivingEntityPartAnimator<T, M> {
-
-    private final PlayerModel<T> playerModel;
+public class PlayerPartAnimator extends LivingEntityPartAnimator<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
 
     private final List<Locator> locatorListAll;
     private final List<Locator> locatorListBody;
@@ -23,10 +22,9 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
     private static final String CROUCH_WEIGHT = "crouch_weight";
     private static final String DIRECTION_SHIFT = "direction_shift";
     private static final String TICKS_AFTER_HITTING_GROUND = "ticks_after_hitting_ground";
-    private static final String WALK_JUMP_WEIGHT = "walk_jump_weight";
-    private static final String SPRINT_JUMP_WEIGHT = "sprint_jump_weight";
-    private static final String SPRINT_JUMP_TIMER = "sprint_jump_timer";
-    private static final String SPRINT_JUMP_REVERSER = "sprint_jump_reverser";
+    private static final String JUMP_WEIGHT = "jump_weight";
+    private static final String JUMP_TIMER = "jump_timer";
+    private static final String JUMP_REVERSER = "jump_reverser";
     private static final String TICKS_AFTER_SWITCHING_LEGS = "ticks_after_switching_legs";
 
     private final Locator locatorHead;
@@ -42,9 +40,8 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
     //TODO: add cases for handling inventory and hand animations
     //TODO: pass animation parameters to these
 
-    public PlayerPartAnimator(T livingEntity, M model, LivingEntityAnimParams livingEntityAnimParams){
-        super(livingEntity, model, livingEntityAnimParams);
-        playerModel = (PlayerModel<T>)model;
+    public PlayerPartAnimator(AbstractClientPlayer abstractClientPlayer, PlayerModel<AbstractClientPlayer> playerModel, LivingEntityAnimParams livingEntityAnimParams){
+        super(abstractClientPlayer, playerModel, livingEntityAnimParams);
 
         this.locatorHead = new Locator("head");
         this.locatorBody = new Locator("body");
@@ -79,8 +76,8 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
         if(isCrouching && isSprinting){
             isSprinting = false;
         }
-        incrementAnimationTimer(SPRINT_WEIGHT, isCrouching, 10, -10);
-        incrementAnimationTimer(CROUCH_WEIGHT, isSprinting, 3, -3);
+        incrementAnimationTimer(SPRINT_WEIGHT, isSprinting, 10, -10);
+        incrementAnimationTimer(CROUCH_WEIGHT, isCrouching, 3, -3);
 
         // Legacy direction shift
         float moveAngleX = -Mth.sin(livingEntity.yBodyRot * Mth.PI / 180);
@@ -106,35 +103,26 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
         float ticksAfterHittingGround = livingEntity.isOnGround() ? previousTicksAfterHittingGround + animationParameters.getDelta() : 0;
         setAnimationTimer(TICKS_AFTER_HITTING_GROUND, ticksAfterHittingGround);
 
-        boolean shouldResetSprintJumpTimer =
+        boolean shouldResetJumpTimer =
                 (getAnimationTimer(DELTA_Y_OLD) < 0 && getAnimationTimer(DELTA_Y) > 0)
                 || (getAnimationTimer(DELTA_Y_OLD) == 0 && getAnimationTimer(DELTA_Y) > 0);
-        resetTimerOnCondition(SPRINT_JUMP_TIMER, shouldResetSprintJumpTimer, 12);
+        resetTimerOnCondition(JUMP_TIMER, shouldResetJumpTimer, 12);
 
         // Ticks after switching legs
         float previousTicksAfterSwitchingLegs = getAnimationTimer(TICKS_AFTER_SWITCHING_LEGS);
-        float ticksAfterSwitchingLegs = shouldResetSprintJumpTimer ? 0 : previousTicksAfterSwitchingLegs + animationParameters.getDelta();
+        float ticksAfterSwitchingLegs = shouldResetJumpTimer ? 0 : previousTicksAfterSwitchingLegs + animationParameters.getDelta();
         setAnimationTimer(TICKS_AFTER_SWITCHING_LEGS, ticksAfterSwitchingLegs);
 
         // Sprint jump weight
-        boolean isSprintJumping =
+        boolean isJumping =
                 (ticksAfterHittingGround < 1 || !livingEntity.isOnGround())
-                && livingEntity.isSprinting()
                 && getAnimationTimer(DELTA_Y) != 0
                 && ticksAfterSwitchingLegs < 12;
-        incrementAnimationTimer(SPRINT_JUMP_WEIGHT, isSprintJumping, 2, -4);
-
-        // Walk jump weight
-        boolean isWalkJumping =
-                (ticksAfterHittingGround < 1 || !livingEntity.isOnGround())
-                && !livingEntity.isSprinting()
-                && getAnimationTimer(DELTA_Y) != 0
-                && ticksAfterSwitchingLegs < 12;
-        incrementAnimationTimer(WALK_JUMP_WEIGHT, isWalkJumping, 2, -4);
+        incrementAnimationTimer(JUMP_WEIGHT, isJumping, 2, -4);
 
         // Switch the legs for sprint jumping
-        float previousSprintJumpReverser = getAnimationTimer(SPRINT_JUMP_REVERSER);
-        setAnimationTimer(SPRINT_JUMP_REVERSER, shouldResetSprintJumpTimer ? 1 - previousSprintJumpReverser : previousSprintJumpReverser);
+        float previousSprintJumpReverser = getAnimationTimer(JUMP_REVERSER);
+        setAnimationTimer(JUMP_REVERSER, shouldResetJumpTimer ? 1 - previousSprintJumpReverser : previousSprintJumpReverser);
 
         //End sprint jump timers
     }
@@ -193,10 +181,10 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
 
         float walkNormalWeight = (1 - getAnimationTimerEasedQuad(SPRINT_WEIGHT))
                 * Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.86F, 1)
-                * (1 - getAnimationTimerEasedQuad(WALK_JUMP_WEIGHT))
+                * (1 - getAnimationTimerEasedQuad(JUMP_WEIGHT))
                 * (1 - getAnimationTimerEasedQuad(CROUCH_WEIGHT));
         float walkCrouchWeight = Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.26F, 1)
-                * (1 - getAnimationTimerEasedQuad(WALK_JUMP_WEIGHT))
+                * (1 - getAnimationTimerEasedQuad(JUMP_WEIGHT))
                 * getAnimationTimerEasedQuad(CROUCH_WEIGHT);
 
         // TODO: Backwards walking animations
@@ -216,7 +204,7 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
 
         float sprintNormalWeight = getAnimationTimerEasedQuad(SPRINT_WEIGHT)
                 * Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.86F, 1)
-                * (1 - getAnimationTimerEasedQuad(SPRINT_JUMP_WEIGHT))
+                * (1 - getAnimationTimerEasedQuad(JUMP_WEIGHT))
                 * (1 - getAnimationTimerEasedQuad(CROUCH_WEIGHT));
 
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, sprintNormalTimelineGroup, sprintNormalTimer, sprintNormalWeight, false);
@@ -225,13 +213,14 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
     private void addPoseLayerJump(){
         AnimationData.TimelineGroup sprintJumpTimelineGroup = getTimelineGroup("sprint_jump");
         AnimationData.TimelineGroup walkJumpTimelineGroup = getTimelineGroup("walk_jump");
-        float sprintJumpWeight = getAnimationTimerEasedQuad(SPRINT_JUMP_WEIGHT);
-        float walkJumpWeight = getAnimationTimerEasedQuad(WALK_JUMP_WEIGHT);
-        float sprintJumpReverser = Mth.lerp(getAnimationTimer(SPRINT_JUMP_REVERSER), 1, -1);
-        float sprintJumpTimer = getAnimationTimer(SPRINT_JUMP_TIMER);
+        float jumpWeight = getAnimationTimerEasedQuad(JUMP_WEIGHT);
+        float sprintJumpWeight = jumpWeight * getAnimationTimerEasedQuad(SPRINT_WEIGHT);
+        float walkJumpWeight = jumpWeight * (1 - getAnimationTimerEasedQuad(SPRINT_WEIGHT));
+        float jumpReverser = Mth.lerp(getAnimationTimer(JUMP_REVERSER), 1, -1);
+        float jumpTimer = getAnimationTimer(JUMP_TIMER);
 
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, sprintJumpTimelineGroup, sprintJumpTimer, sprintJumpWeight, sprintJumpReverser == 1);
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, walkJumpTimelineGroup, sprintJumpTimer, walkJumpWeight, sprintJumpReverser == 1);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, sprintJumpTimelineGroup, jumpTimer, sprintJumpWeight, jumpReverser == 1);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, walkJumpTimelineGroup, jumpTimer, walkJumpWeight, jumpReverser == 1);
     }
 
     private void addPoseLayerIdle(){
@@ -260,25 +249,24 @@ public class PlayerPartAnimator<T extends LivingEntity, M extends EntityModel<T>
 
     @Override
     protected void finalizeModel() {
+        this.model.leftArm.x += 5;
+        this.model.leftArm.y += 2;
+        this.model.rightArm.x -= 5;
+        this.model.rightArm.y += 2;
+        this.model.leftLeg.x += 1.95;
+        this.model.leftLeg.y += 12;
+        this.model.rightLeg.x -= 1.95;
+        this.model.rightLeg.y += 12;
+        this.model.cloak.z += 2;
+        this.model.cloak.yRot += Mth.PI;
+        this.model.cloak.xRot = -this.model.cloak.xRot;
 
-        playerModel.leftArm.x += 5;
-        playerModel.leftArm.y += 2;
-        playerModel.rightArm.x -= 5;
-        playerModel.rightArm.y += 2;
-        playerModel.leftLeg.x += 1.95;
-        playerModel.leftLeg.y += 12;
-        playerModel.rightLeg.x -= 1.95;
-        playerModel.rightLeg.y += 12;
-        playerModel.cloak.z += 2;
-        playerModel.cloak.yRot += Mth.PI;
-        playerModel.cloak.xRot = -playerModel.cloak.xRot;
-
-        playerModel.hat.copyFrom(playerModel.head);
-        playerModel.leftPants.copyFrom(playerModel.leftLeg);
-        playerModel.rightPants.copyFrom(playerModel.rightLeg);
-        playerModel.leftSleeve.copyFrom(playerModel.leftArm);
-        playerModel.rightSleeve.copyFrom(playerModel.rightArm);
-        playerModel.jacket.copyFrom(playerModel.body);
+        this.model.hat.copyFrom(this.model.head);
+        this.model.leftPants.copyFrom(this.model.leftLeg);
+        this.model.rightPants.copyFrom(this.model.rightLeg);
+        this.model.leftSleeve.copyFrom(this.model.leftArm);
+        this.model.rightSleeve.copyFrom(this.model.rightArm);
+        this.model.jacket.copyFrom(this.model.body);
     }
 
     @Override

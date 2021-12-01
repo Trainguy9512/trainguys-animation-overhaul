@@ -82,14 +82,6 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
         return this.equippedArmor;
     }
 
-    // Animation parameters
-    public void setAnimationParamaters(float animationPosition, float animationSpeed, float tickAtFrame, float tickDifference, float delta, float headYRot, float headXRot, int lightInt){
-        this.animationParameters = new LivingEntityAnimParams(animationPosition, animationSpeed, tickAtFrame, tickDifference, delta, headYRot, headXRot, lightInt);
-    }
-    public LivingEntityAnimParams getAnimationParameters(){
-        return this.animationParameters;
-    }
-
     public boolean getUseInventoryRenderer(){
         return useInventoryRenderer;
     }
