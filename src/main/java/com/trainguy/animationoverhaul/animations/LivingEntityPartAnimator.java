@@ -7,6 +7,7 @@ import com.trainguy.animationoverhaul.util.animation.LocatorRig;
 import com.trainguy.animationoverhaul.util.data.AnimationData;
 import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
 import com.trainguy.animationoverhaul.util.time.Easing;
+import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.PlayerModel;
@@ -24,10 +25,12 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
     protected final LivingEntityAnimParams animationParameters;
     protected final LocatorRig locatorRig;
 
-    protected final String DELTA_Y = "delta_y";
-    protected final String DELTA_Y_OLD = "delta_y_old";
-    protected final String ANIMATION_SPEED = "animation_speed";
-    protected final String ANIMATION_POSITION = "animation_position";
+    protected static final String DELTA_Y = "delta_y";
+    protected static final String DELTA_Y_OLD = "delta_y_old";
+    protected static final String ANIMATION_SPEED = "animation_speed";
+    protected static final String ANIMATION_SPEED_Y = "animation_speed_y";
+    protected static final String ANIMATION_POSITION = "animation_position";
+    protected static final String ANIMATION_POSITION_Y = "animation_position_y";
 
     public LivingEntityPartAnimator(T livingEntity, M model, LivingEntityAnimParams livingEntityAnimParams){
         this.model = model;
@@ -78,19 +81,28 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
         boolean useVerticalVector = livingEntity instanceof FlyingAnimal;
 
         float previousAnimationSpeed = getAnimationTimer(ANIMATION_SPEED);
+        float previousAnimationSpeedY = getAnimationTimer(ANIMATION_SPEED_Y);
         float previousAnimationPosition = getAnimationTimer(ANIMATION_POSITION);
+        float previousAnimationPositionY = getAnimationTimer(ANIMATION_POSITION_Y);
 
         double deltaX = livingEntity.getX() - livingEntity.xo;
-        double deltaY = useVerticalVector ? livingEntity.getY() - livingEntity.yo : 0.0D;
+        double deltaY = livingEntity.getY() - livingEntity.yo;
         double deltaZ = livingEntity.getZ() - livingEntity.zo;
-        float g = (float)Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) * 4.0F;
-        if (g > 1.0F) {
-            g = 1.0F;
+        float movementSquared = (float)Math.sqrt(deltaX * deltaX + deltaZ * deltaZ) * 4.0F;
+        float movementSquaredY = (float)Math.sqrt(deltaY * deltaY) * 4.0F;
+        if (movementSquared > 1.0F) {
+            movementSquared = 1.0F;
+        }
+        if (movementSquaredY > 1.0F) {
+            movementSquaredY = 1.0F;
         }
 
-        float finalAnimationSpeed = previousAnimationSpeed + ((g - previousAnimationSpeed) * 0.4F * animationParameters.getDelta());
+        float finalAnimationSpeed = previousAnimationSpeed + ((movementSquared - previousAnimationSpeed) * 0.4F * animationParameters.getDelta());
+        float finalAnimationSpeedY = previousAnimationSpeedY + ((movementSquaredY - previousAnimationSpeedY) * 0.4F * animationParameters.getDelta());
         setAnimationTimer(ANIMATION_SPEED, finalAnimationSpeed);
+        setAnimationTimer(ANIMATION_SPEED_Y, finalAnimationSpeedY);
         setAnimationTimer(ANIMATION_POSITION, previousAnimationPosition + finalAnimationSpeed * animationParameters.getDelta());
+        setAnimationTimer(ANIMATION_POSITION_Y, previousAnimationPositionY + finalAnimationSpeedY * animationParameters.getDelta());
     }
 
     protected AnimationData.TimelineGroup getTimelineGroup(String animationKey){
