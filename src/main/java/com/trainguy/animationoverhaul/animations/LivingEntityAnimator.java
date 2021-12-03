@@ -1,29 +1,28 @@
 package com.trainguy.animationoverhaul.animations;
 
-import com.google.common.collect.Lists;
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.util.animation.LocatorRig;
 import com.trainguy.animationoverhaul.util.data.AnimationData;
-import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
 import com.trainguy.animationoverhaul.util.time.Easing;
-import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.FlyingAnimal;
-import net.minecraft.world.entity.player.Player;
 
-public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityModel<T>> extends AbstractPartAnimator<T, M> {
+public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<T>> extends AbstractEntityAnimator<T, M> {
 
-    protected final T livingEntity;
+    protected T livingEntity;
     protected M model;
-    protected final LivingEntityAnimParams animationParameters;
-    protected final LocatorRig locatorRig;
+    protected LocatorRig locatorRig;
+
+    protected float tickProgress;
+    protected float delta;
+    protected float tickAtFrame;
+    protected float headXRot;
+    protected float headYRot;
 
     protected static final String DELTA_Y = "delta_y";
     protected static final String DELTA_Y_OLD = "delta_y_old";
@@ -32,11 +31,31 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
     protected static final String ANIMATION_POSITION = "animation_position";
     protected static final String ANIMATION_POSITION_Y = "animation_position_y";
 
-    public LivingEntityPartAnimator(T livingEntity, M model, LivingEntityAnimParams livingEntityAnimParams){
+    public LivingEntityAnimator(){
+        this.locatorRig = new LocatorRig();
+    }
+
+    public void setProperties(T livingEntity, M model, float tickProgress){
         this.model = model;
         this.livingEntity = livingEntity;
-        this.animationParameters = livingEntityAnimParams;
-        this.locatorRig = new LocatorRig();
+        this.tickProgress = tickProgress;
+        this.delta = Minecraft.getInstance().getDeltaFrameTime();
+        this.tickAtFrame = livingEntity.tickCount + tickProgress;
+        setHeadVariables(tickProgress);
+    }
+
+    public void animate(){
+        this.locatorRig.resetRig();
+        if(((LivingEntityAccess)livingEntity).getUseInventoryRenderer()){
+            this.adjustTimersInventory();
+            this.animatePartsInventory();
+            ((LivingEntityAccess)livingEntity).setUseInventoryRenderer(false);
+        } else {
+            this.adjustTimers();
+            this.animateParts();
+        }
+        this.bakeLocatorRig();
+        this.finalizeModel();
     }
 
     @Override
@@ -97,12 +116,41 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
             movementSquaredY = 1.0F;
         }
 
-        float finalAnimationSpeed = previousAnimationSpeed + ((movementSquared - previousAnimationSpeed) * 0.4F * animationParameters.getDelta());
-        float finalAnimationSpeedY = previousAnimationSpeedY + ((movementSquaredY - previousAnimationSpeedY) * 0.4F * animationParameters.getDelta());
+        float finalAnimationSpeed = previousAnimationSpeed + ((movementSquared - previousAnimationSpeed) * 0.4F * this.delta);
+        float finalAnimationSpeedY = previousAnimationSpeedY + ((movementSquaredY - previousAnimationSpeedY) * 0.4F * this.delta);
         setAnimationTimer(ANIMATION_SPEED, finalAnimationSpeed);
         setAnimationTimer(ANIMATION_SPEED_Y, finalAnimationSpeedY);
-        setAnimationTimer(ANIMATION_POSITION, previousAnimationPosition + finalAnimationSpeed * animationParameters.getDelta());
-        setAnimationTimer(ANIMATION_POSITION_Y, previousAnimationPositionY + finalAnimationSpeedY * animationParameters.getDelta());
+        setAnimationTimer(ANIMATION_POSITION, previousAnimationPosition + finalAnimationSpeed * this.delta);
+        setAnimationTimer(ANIMATION_POSITION_Y, previousAnimationPositionY + finalAnimationSpeedY * this.delta);
+    }
+
+    private void setHeadVariables(float tickAtFrame){
+        float h = Mth.rotLerp(tickAtFrame, livingEntity.yBodyRotO, livingEntity.yBodyRot);
+        float j = Mth.rotLerp(tickAtFrame, livingEntity.yHeadRotO, livingEntity.yHeadRot);
+        float k = j - h;
+        float o;
+        if (livingEntity.isPassenger() && livingEntity.getVehicle() instanceof LivingEntity livingEntity2) {
+            h = Mth.rotLerp(tickAtFrame, livingEntity2.yBodyRotO, livingEntity2.yBodyRot);
+            k = j - h;
+            o = Mth.wrapDegrees(k);
+            if (o < -85.0F) {
+                o = -85.0F;
+            }
+
+            if (o >= 85.0F) {
+                o = 85.0F;
+            }
+
+            h = j - o;
+            if (o * o > 2500.0F) {
+                h += o * 0.2F;
+            }
+
+            k = j - h;
+        }
+
+        this.headXRot = (float) Math.toRadians(Mth.lerp(tickAtFrame, livingEntity.xRotO, livingEntity.getXRot()));
+        this.headYRot = (float) Math.toRadians(k);
     }
 
     protected AnimationData.TimelineGroup getTimelineGroup(String animationKey){
@@ -157,11 +205,11 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
     }
 
     protected float getLookLeftRightTimer(){
-        return Mth.clamp((animationParameters.getHeadYRot() / Mth.HALF_PI) + 0.5F, 0, 1);
+        return Mth.clamp((this.headYRot / Mth.HALF_PI) + 0.5F, 0, 1);
     }
 
     protected float getLookUpDownTimer(){
-        return Mth.clamp((animationParameters.getHeadXRot() / Mth.PI) + 0.5F, 0, 1);
+        return Mth.clamp((this.headXRot / Mth.PI) + 0.5F, 0, 1);
     }
 
     protected boolean isLeftHanded(){

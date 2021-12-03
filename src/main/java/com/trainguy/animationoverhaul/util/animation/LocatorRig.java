@@ -92,6 +92,12 @@ public class LocatorRig {
         locator.rotateWorldSpace(channelTimeline.getValueAt(TransformChannel.xRot, time) * weight, channelTimeline.getValueAt(TransformChannel.yRot, time) * weight * mirrorMultiplier, channelTimeline.getValueAt(TransformChannel.zRot, time) * weight * mirrorMultiplier);
     }
 
+    public void resetRig(){
+        for(Locator locator : locatorEntryHashMap.keySet()){
+            locator.reset();
+        }
+    }
+
     private static class LocatorEntry {
         private final Locator locator;
         private final Locator locatorMirrored;

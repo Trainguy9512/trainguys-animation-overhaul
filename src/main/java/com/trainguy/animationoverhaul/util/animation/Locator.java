@@ -72,6 +72,15 @@ public class Locator {
         this.zRot = finalRotation.z();
     }
 
+    public void reset(){
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+        this.xRot = 0;
+        this.yRot = 0;
+        this.zRot = 0;
+    }
+
     public String getIdentifier(){
         return this.identifier;
     }

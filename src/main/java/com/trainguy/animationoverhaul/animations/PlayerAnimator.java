@@ -2,18 +2,15 @@ package com.trainguy.animationoverhaul.animations;
 
 import com.trainguy.animationoverhaul.util.animation.Locator;
 import com.trainguy.animationoverhaul.util.data.AnimationData;
-import com.trainguy.animationoverhaul.util.animation.LivingEntityAnimParams;
 import com.trainguy.animationoverhaul.util.time.TimerProcessor;
-import net.minecraft.client.Camera;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.ai.navigation.WallClimberNavigation;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class PlayerPartAnimator extends LivingEntityPartAnimator<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
+public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
 
     private final List<Locator> locatorListAll;
     private final List<Locator> locatorListBody;
@@ -46,8 +43,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<AbstractClientP
     //TODO: add cases for handling inventory and hand animations
     //TODO: pass animation parameters to these
 
-    public PlayerPartAnimator(AbstractClientPlayer abstractClientPlayer, PlayerModel<AbstractClientPlayer> playerModel, LivingEntityAnimParams livingEntityAnimParams){
-        super(abstractClientPlayer, playerModel, livingEntityAnimParams);
+    public PlayerAnimator(){
 
         this.locatorMaster = new Locator("master");
         this.locatorHead = new Locator("head");
@@ -62,14 +58,19 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<AbstractClientP
 
         locatorListAll = Arrays.asList(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak, locatorLeftHand, locatorRightHand);
         locatorListBody = Arrays.asList(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak);
+    }
 
-        this.locatorRig.addLocatorModelPart(locatorHead, playerModel.head);
-        this.locatorRig.addLocatorModelPart(locatorBody, playerModel.body);
-        this.locatorRig.addLocatorModelPart(locatorLeftLeg, locatorRightLeg, playerModel.leftLeg);
-        this.locatorRig.addLocatorModelPart(locatorRightLeg, locatorLeftLeg, playerModel.rightLeg);
-        this.locatorRig.addLocatorModelPart(locatorLeftArm, locatorRightArm, playerModel.leftArm);
-        this.locatorRig.addLocatorModelPart(locatorRightArm, locatorLeftArm, playerModel.rightArm);
-        this.locatorRig.addLocatorModelPart(locatorCloak, playerModel.cloak);
+    public void setProperties(AbstractClientPlayer abstractClientPlayer, PlayerModel<AbstractClientPlayer> model, float tickProgress){
+        super.setProperties(abstractClientPlayer, model, tickProgress);
+
+        this.locatorRig.addLocator(locatorMaster);
+        this.locatorRig.addLocatorModelPart(locatorHead, model.head);
+        this.locatorRig.addLocatorModelPart(locatorBody, model.body);
+        this.locatorRig.addLocatorModelPart(locatorLeftLeg, locatorRightLeg, model.leftLeg);
+        this.locatorRig.addLocatorModelPart(locatorRightLeg, locatorLeftLeg, model.rightLeg);
+        this.locatorRig.addLocatorModelPart(locatorLeftArm, locatorRightArm, model.leftArm);
+        this.locatorRig.addLocatorModelPart(locatorRightArm, locatorLeftArm, model.rightArm);
+        this.locatorRig.addLocatorModelPart(locatorCloak, model.cloak);
         this.locatorRig.addLocator(locatorLeftHand, locatorRightHand);
         this.locatorRig.addLocator(locatorRightHand, locatorLeftHand);
     }
@@ -107,7 +108,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<AbstractClientP
         // Begin sprint jump timers
         // Ticks after hitting ground
         float previousTicksAfterHittingGround = getAnimationTimer(TICKS_AFTER_HITTING_GROUND);
-        float ticksAfterHittingGround = livingEntity.isOnGround() ? previousTicksAfterHittingGround + animationParameters.getDelta() : 0;
+        float ticksAfterHittingGround = livingEntity.isOnGround() ? previousTicksAfterHittingGround + this.delta : 0;
         setAnimationTimer(TICKS_AFTER_HITTING_GROUND, ticksAfterHittingGround);
 
         boolean shouldResetJumpTimer =
@@ -117,14 +118,14 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<AbstractClientP
 
         // Ticks after switching legs
         float previousTicksAfterSwitchingLegs = getAnimationTimer(TICKS_AFTER_SWITCHING_LEGS);
-        float ticksAfterSwitchingLegs = shouldResetJumpTimer ? 0 : previousTicksAfterSwitchingLegs + animationParameters.getDelta();
+        float ticksAfterSwitchingLegs = shouldResetJumpTimer ? 0 : previousTicksAfterSwitchingLegs + this.delta;
         setAnimationTimer(TICKS_AFTER_SWITCHING_LEGS, ticksAfterSwitchingLegs);
 
         // Sprint jump weight
         boolean isJumping =
                 (ticksAfterHittingGround < 1 || !livingEntity.isOnGround())
                 && getAnimationTimer(DELTA_Y) != 0
-                && ticksAfterSwitchingLegs < 8;
+                && ticksAfterSwitchingLegs < 10;
         incrementAnimationTimer(JUMP_WEIGHT, isJumping, 4, -8);
 
         // Switch the legs for sprint jumping
@@ -166,8 +167,8 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<AbstractClientP
     }
 
     private void addPoseLayerLook(){
-        locatorHead.xRot = animationParameters.getHeadXRot();
-        locatorHead.yRot = animationParameters.getHeadYRot();
+        locatorHead.xRot = this.headXRot;
+        locatorHead.yRot = this.headYRot;
         float lookHorizontalTimer = 1 - getLookLeftRightTimer();
         float lookVerticalTimer = 1 - getLookUpDownTimer();
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, getTimelineGroup("look_horizontal"), lookHorizontalTimer, 1, false);
@@ -303,7 +304,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<AbstractClientP
         AnimationData.TimelineGroup idleNormalTimelineGroup = getTimelineGroup("idle_normal");
         AnimationData.TimelineGroup idleCrouchTimelineGroup = getTimelineGroup("idle_crouch");
 
-        float idleNormalTimer = new TimerProcessor(animationParameters.getTickAtFrame())
+        float idleNormalTimer = new TimerProcessor(this.tickAtFrame)
                 .repeat(idleNormalTimelineGroup)
                 .getValue();
 
@@ -350,7 +351,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<AbstractClientP
     }
 
     @Override
-    protected void adjustTimersInventory() {
+    public void adjustTimersInventory() {
     }
 
     @Override
@@ -361,7 +362,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<AbstractClientP
     private void addPoseLayerInventoryIdle(){
         AnimationData.TimelineGroup idleNormalTimelineGroup = getTimelineGroup("idle_normal");
 
-        float idleNormalTimer = new TimerProcessor(animationParameters.getTickAtFrame())
+        float idleNormalTimer = new TimerProcessor(this.tickAtFrame)
                 .repeat(idleNormalTimelineGroup)
                 .getValue();
 
