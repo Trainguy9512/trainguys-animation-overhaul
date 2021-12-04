@@ -8,12 +8,12 @@ import java.util.Map;
 
 public class AnimationData {
 
-    public static AnimationData loadedData;
+    public static AnimationData loadedData = new AnimationData();
 
     //TODO: Set this as a class,
 
     // Entity type entries -> Specific animation entries -> Part entries -> Timeline
-    private Map<String, Map<String, TimelineGroup>> animationEntries = Maps.newHashMap();
+    private final Map<String, Map<String, TimelineGroup>> animationEntries = Maps.newHashMap();
 
     public AnimationData(){
     }
@@ -41,6 +41,19 @@ public class AnimationData {
             AnimationOverhaul.LOGGER.error("Entity key {} not found within loaded animation data!", entityKey);
             return null;
         }
+    }
+
+    public void clearAndReplace(AnimationData newAnimationData){
+        this.animationEntries.clear();
+        for(String entityKey : newAnimationData.getHashMap().keySet()){
+            for(String animationKey : newAnimationData.getHashMap().get(entityKey).keySet()){
+                this.put(entityKey, animationKey, newAnimationData.getHashMap().get(entityKey).get(animationKey));
+            }
+        }
+    }
+
+    public Map<String, Map<String, TimelineGroup>> getHashMap(){
+        return animationEntries;
     }
 
     public static class TimelineGroup {

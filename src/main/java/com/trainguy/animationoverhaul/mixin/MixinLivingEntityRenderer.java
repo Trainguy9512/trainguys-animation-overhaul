@@ -54,7 +54,6 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
         //poseStack.mulPose(Vector3f.ZP.rotation(Mth.sin(bob / 6) / 4));
 
         if(shouldUseAlternateRotations(livingEntity)){
-
             if (livingEntity.getPose() != Pose.SLEEPING) {
                 poseStack.mulPose(Vector3f.YP.rotationDegrees(180.0f - bodyRot));
             }

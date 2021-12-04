@@ -32,7 +32,6 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
     protected static final String ANIMATION_POSITION_Y = "animation_position_y";
 
     public LivingEntityAnimator(){
-        this.locatorRig = new LocatorRig();
     }
 
     public void setProperties(T livingEntity, M model, float tickProgress){
@@ -41,6 +40,7 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
         this.tickProgress = tickProgress;
         this.delta = Minecraft.getInstance().getDeltaFrameTime();
         this.tickAtFrame = livingEntity.tickCount + tickProgress;
+        this.locatorRig = new LocatorRig();
         setHeadVariables(tickProgress);
     }
 

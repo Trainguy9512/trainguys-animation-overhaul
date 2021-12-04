@@ -44,7 +44,6 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
     //TODO: pass animation parameters to these
 
     public PlayerAnimator(){
-
         this.locatorMaster = new Locator("master");
         this.locatorHead = new Locator("head");
         this.locatorBody = new Locator("body");
@@ -64,13 +63,13 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         super.setProperties(abstractClientPlayer, model, tickProgress);
 
         this.locatorRig.addLocator(locatorMaster);
-        this.locatorRig.addLocatorModelPart(locatorHead, model.head);
-        this.locatorRig.addLocatorModelPart(locatorBody, model.body);
-        this.locatorRig.addLocatorModelPart(locatorLeftLeg, locatorRightLeg, model.leftLeg);
-        this.locatorRig.addLocatorModelPart(locatorRightLeg, locatorLeftLeg, model.rightLeg);
-        this.locatorRig.addLocatorModelPart(locatorLeftArm, locatorRightArm, model.leftArm);
-        this.locatorRig.addLocatorModelPart(locatorRightArm, locatorLeftArm, model.rightArm);
-        this.locatorRig.addLocatorModelPart(locatorCloak, model.cloak);
+        this.locatorRig.addLocatorModelPart(locatorHead, this.model.head);
+        this.locatorRig.addLocatorModelPart(locatorBody, this.model.body);
+        this.locatorRig.addLocatorModelPart(locatorLeftLeg, locatorRightLeg, this.model.leftLeg);
+        this.locatorRig.addLocatorModelPart(locatorRightLeg, locatorLeftLeg, this.model.rightLeg);
+        this.locatorRig.addLocatorModelPart(locatorLeftArm, locatorRightArm, this.model.leftArm);
+        this.locatorRig.addLocatorModelPart(locatorRightArm, locatorLeftArm, this.model.rightArm);
+        this.locatorRig.addLocatorModelPart(locatorCloak, this.model.cloak);
         this.locatorRig.addLocator(locatorLeftHand, locatorRightHand);
         this.locatorRig.addLocator(locatorRightHand, locatorLeftHand);
     }
@@ -330,6 +329,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
 
     @Override
     protected void finalizeModel() {
+
         this.model.leftArm.x += 5;
         this.model.leftArm.y += 2;
         this.model.rightArm.x -= 5;

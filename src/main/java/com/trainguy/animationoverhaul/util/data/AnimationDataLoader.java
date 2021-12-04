@@ -139,12 +139,13 @@ public class AnimationDataLoader implements SimpleResourceReloadListener<Map<Res
                 timelineGroup.addPartTimeline(partName, channelTimeline);
             }
 
+
             newData.put(entityKey, animationKey, timelineGroup);
             //AnimationOverhaul.LOGGER.info(frameTime);
             //AnimationOverhaul.LOGGER.info("Entity key: {} Animation key: {}", entityKey, animationKey);
         }
 
-        AnimationData.loadedData = newData;
+        AnimationData.loadedData.clearAndReplace(newData);
         return CompletableFuture.completedFuture(null);
     }
 }

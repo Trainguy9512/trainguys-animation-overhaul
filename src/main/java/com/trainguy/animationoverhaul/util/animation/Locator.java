@@ -48,6 +48,30 @@ public class Locator {
         rotatePoseStack(poseStack);
     }
 
+    public void translatePoseStackInverse(PoseStack poseStack){
+        poseStack.translate((this.x / -16.0F), (this.y / -16.0F), (this.z / -16.0F));
+    }
+
+    public void rotatePoseStackInverse(PoseStack poseStack){
+        if (this.xRot != 0.0F) {
+            poseStack.mulPose(Vector3f.XP.rotation(-this.xRot));
+        }
+
+        if (this.yRot != 0.0F) {
+            poseStack.mulPose(Vector3f.YP.rotation(-this.yRot));
+        }
+
+        if (this.zRot != 0.0F) {
+            poseStack.mulPose(Vector3f.ZP.rotation(-this.zRot));
+        }
+
+
+    }
+    public void translateAndRotatePoseStackInverse(PoseStack poseStack){
+        rotatePoseStackInverse(poseStack);
+        translatePoseStackInverse(poseStack);
+    }
+
     public void bakeToModelPart(ModelPart modelPart){
         modelPart.x = this.x;
         modelPart.y = this.y;

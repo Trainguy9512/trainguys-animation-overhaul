@@ -2,6 +2,7 @@ package com.trainguy.animationoverhaul.util.animation;
 
 import com.google.common.collect.Maps;
 import com.mojang.math.Vector3f;
+import com.trainguy.animationoverhaul.AnimationOverhaul;
 import com.trainguy.animationoverhaul.util.data.AnimationData;
 import com.trainguy.animationoverhaul.util.data.TransformChannel;
 import com.trainguy.animationoverhaul.util.math.RotationMatrix;
@@ -41,7 +42,7 @@ public class LocatorRig {
         if(this.containsLocator(identifier)){
             LocatorEntry locatorEntry = getLocatorEntry(identifier);
             if(locatorEntry != null){
-                return mirrored ? locatorEntry.getLocator() : locatorEntry.getLocatorMirrored();
+                return mirrored ? locatorEntry.getLocatorMirrored() : locatorEntry.getLocator();
             }
         }
         return new Locator("null");
