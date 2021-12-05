@@ -46,16 +46,24 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
 
     public void animate(){
         this.locatorRig.resetRig();
+
+        boolean shouldAdjustTimers = getAnimationTimer("last_frame_run") != this.tickProgress;
+
         if(((LivingEntityAccess)livingEntity).getUseInventoryRenderer()){
-            this.adjustTimersInventory();
+            if(shouldAdjustTimers){
+                this.adjustTimersInventory();
+            }
             this.animatePartsInventory();
             ((LivingEntityAccess)livingEntity).setUseInventoryRenderer(false);
         } else {
-            this.adjustTimers();
+            if(shouldAdjustTimers){
+                this.adjustTimers();
+            }
             this.animateParts();
         }
         this.bakeLocatorRig();
         this.finalizeModel();
+        setAnimationTimer("last_frame_run", this.tickProgress);
     }
 
     @Override

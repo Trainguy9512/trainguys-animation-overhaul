@@ -55,13 +55,19 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
 
         if(shouldUseAlternateRotations(livingEntity)){
             if (livingEntity.getPose() != Pose.SLEEPING) {
-                poseStack.mulPose(Vector3f.YP.rotationDegrees(180.0f - bodyRot));
+                poseStack.mulPose(Vector3f.YP.rotationDegrees(180 - bodyRot));
             }
-
-            LocatorRig locatorRig = ((LivingEntityAccess)livingEntity).getLocatorRig();
-            locatorRig.getLocator("master", false).translateAndRotatePoseStack(poseStack);
         } else {
             this.setupRotations(livingEntity, poseStack, bob, bodyRot, frameTime);
+        }
+    }
+
+    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V"))
+    private void translateAndRotateAfterScale(T livingEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
+        if(shouldUseAlternateRotations(livingEntity)){
+            LocatorRig locatorRig = ((LivingEntityAccess)livingEntity).getLocatorRig();
+
+            locatorRig.getLocator("master", false).translateAndRotatePoseStack(poseStack);
         }
     }
 

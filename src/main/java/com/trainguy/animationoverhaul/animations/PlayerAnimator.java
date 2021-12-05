@@ -2,6 +2,7 @@ package com.trainguy.animationoverhaul.animations;
 
 import com.trainguy.animationoverhaul.util.animation.Locator;
 import com.trainguy.animationoverhaul.util.data.AnimationData;
+import com.trainguy.animationoverhaul.util.time.Easing;
 import com.trainguy.animationoverhaul.util.time.TimerProcessor;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -11,9 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
-
-    private final List<Locator> locatorListAll;
-    private final List<Locator> locatorListBody;
 
     private static final String SPRINT_WEIGHT = "sprint_weight";
     private static final String CROUCH_WEIGHT = "crouch_weight";
@@ -28,6 +26,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
     private static final String ON_GROUND_WEIGHT = "on_ground_weight";
     private static final String CLIMBING_UP_WEIGHT = "climbing_up_weight";
     private static final String CLIMBING_DOWN_WEIGHT = "climbing_down_weight";
+    private static final String CRAWLING_WEIGHT = "crawling_weight";
 
     private final Locator locatorMaster;
     private final Locator locatorHead;
@@ -39,6 +38,10 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
     private final Locator locatorCloak;
     private final Locator locatorLeftHand;
     private final Locator locatorRightHand;
+
+    private final List<Locator> locatorListAll;
+    private final List<Locator> locatorListBody;
+    private final List<Locator> locatorListMaster;
 
     //TODO: add cases for handling inventory and hand animations
     //TODO: pass animation parameters to these
@@ -57,6 +60,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
 
         locatorListAll = Arrays.asList(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak, locatorLeftHand, locatorRightHand);
         locatorListBody = Arrays.asList(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak);
+        locatorListMaster = Arrays.asList(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak, locatorLeftHand, locatorRightHand, locatorMaster);
     }
 
     public void setProperties(AbstractClientPlayer abstractClientPlayer, PlayerModel<AbstractClientPlayer> model, float tickProgress){
@@ -142,6 +146,8 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         //setAnimationTimer("vertical_blocks_per_second", (float) (livingEntity.getY() - livingEntity.yo) * 20);
         incrementAnimationTimer(CLIMBING_UP_WEIGHT, livingEntity.onClimbable() && getAnimationTimer(DELTA_Y) >= 0, 8, -8);
         incrementAnimationTimer(CLIMBING_DOWN_WEIGHT, livingEntity.onClimbable() && getAnimationTimer(DELTA_Y) < 0, 8, -8);
+
+        incrementAnimationTimer(CRAWLING_WEIGHT, livingEntity.isVisuallyCrawling(), 16, -16);
     }
 
     @Override
@@ -149,12 +155,14 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         addPoseLayerLook();
         addPoseLayerWalk();
         addPoseLayerSprint();
-        addPoseLayerIdle();
         addPoseLayerJump();
         addPoseLayerFall();
         addPoseLayerClimbing();
+        addPoseLayerCrawling();
 
-        // done: walking, sprinting, jump, sprint jump, idle, crouch idle
+        addPoseLayerIdle();
+
+        // done: walking, sprinting, jump, sprint jump, idle, crouch idle, climbing
         // scrapped: creative flying
         // TODO: swimming, fall flying, crawling, wading in water, riding in boat, sleeping, riding minecart, levitating, trident spinning, damage, death
 
@@ -168,10 +176,16 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
     private void addPoseLayerLook(){
         locatorHead.xRot = this.headXRot;
         locatorHead.yRot = this.headYRot;
+
+        float lookWeight =
+                (1 - getAnimationTimerEasedQuad(CLIMBING_DOWN_WEIGHT)) *
+                (1 - getAnimationTimerEasedQuad(CLIMBING_UP_WEIGHT)) *
+                (1 - getAnimationTimerEasedQuad(CRAWLING_WEIGHT));
+
         float lookHorizontalTimer = 1 - getLookLeftRightTimer();
         float lookVerticalTimer = 1 - getLookUpDownTimer();
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, getTimelineGroup("look_horizontal"), lookHorizontalTimer, 1, false);
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, getTimelineGroup("look_vertical"), lookVerticalTimer, 1, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, getTimelineGroup("look_horizontal"), lookHorizontalTimer, lookWeight, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, getTimelineGroup("look_vertical"), lookVerticalTimer, lookWeight, false);
     }
 
     private void addPoseLayerWalk(){
@@ -193,11 +207,13 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
                 * Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.86F, 1)
                 * (1 - getAnimationTimerEasedQuad(JUMP_WEIGHT))
                 * (1 - getAnimationTimerEasedQuad(CROUCH_WEIGHT))
+                * (1 - getAnimationTimerEasedQuad(CRAWLING_WEIGHT))
                 * getAnimationTimerEasedQuad(ON_GROUND_WEIGHT)
                 * (1 - getAnimationTimer(ANIMATION_SPEED_Y));
         float walkCrouchWeight = Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.26F, 1)
                 * (1 - getAnimationTimerEasedQuad(JUMP_WEIGHT))
                 * getAnimationTimerEasedQuad(ON_GROUND_WEIGHT)
+                * (1 - getAnimationTimerEasedQuad(CRAWLING_WEIGHT))
                 * getAnimationTimerEasedQuad(CROUCH_WEIGHT)
                 * (1 - getAnimationTimer(ANIMATION_SPEED_Y));
 
@@ -228,6 +244,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         float sprintNormalWeight = getAnimationTimerEasedQuad(SPRINT_WEIGHT)
                 * Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.86F, 1)
                 * (1 - getAnimationTimerEasedQuad(JUMP_WEIGHT))
+                * (1 - getAnimationTimerEasedQuad(CRAWLING_WEIGHT))
                 * getAnimationTimerEasedQuad(ON_GROUND_WEIGHT)
                 * (1 - getAnimationTimerEasedQuad(CROUCH_WEIGHT))
                 * (1 - getAnimationTimer(ANIMATION_SPEED_Y));
@@ -241,6 +258,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
 
         float jumpWeight = getAnimationTimerEasedQuad(JUMP_WEIGHT)
                 * (1 - getAnimationTimerEasedQuad(CLIMBING_UP_WEIGHT))
+                * (1 - getAnimationTimerEasedQuad(CRAWLING_WEIGHT))
                 * (1 - getAnimationTimerEasedQuad(CLIMBING_DOWN_WEIGHT));
         float sprintJumpWeight = jumpWeight * getAnimationTimerEasedQuad(SPRINT_WEIGHT);
         float walkJumpWeight = jumpWeight * (1 - getAnimationTimerEasedQuad(SPRINT_WEIGHT));
@@ -259,6 +277,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         float fallWeight = getAnimationTimerEasedQuad(FALL_WEIGHT)
                 * getAnimationTimer(ANIMATION_SPEED_Y)
                 * (1 - getAnimationTimerEasedQuad(CLIMBING_UP_WEIGHT))
+                * (1 - getAnimationTimerEasedQuad(CRAWLING_WEIGHT))
                 * (1 - getAnimationTimerEasedQuad(CLIMBING_DOWN_WEIGHT))
                 * (1 - getAnimationTimerEasedQuad(JUMP_WEIGHT));
         float slowFallWeight = fallWeight * (1 - fastFallLerp);
@@ -299,6 +318,28 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, climbDownTimelineGroup, 1 - climbDownTimer, climbDownWeight, false);
     }
 
+    private void addPoseLayerCrawling(){
+        AnimationData.TimelineGroup crawlMasterTimelineGroup = getTimelineGroup("crawl_master");
+        AnimationData.TimelineGroup crawlTimelineGroup = getTimelineGroup("crawl");
+
+        float visualCrawlTimer = getAnimationTimer(CRAWLING_WEIGHT);
+
+
+        float crawlWeight = Easing.CubicBezier.bezierInOutSine().ease(getAnimationTimer(CRAWLING_WEIGHT) * 4 - 3);
+        float crawlForwardWeight = Mth.lerp(getAnimationTimerEasedQuad(DIRECTION_SHIFT), crawlWeight, 0);
+        float crawlBackwardsWeight = Mth.lerp(getAnimationTimerEasedQuad(DIRECTION_SHIFT), 0, crawlWeight);
+
+        float crawlTimer = new TimerProcessor(getAnimationTimer(ANIMATION_POSITION))
+                .speedUp(5)
+                .repeat(crawlTimelineGroup)
+                .getValue();
+        float crawlBackwardsTimer = 1 - crawlTimer;
+
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListMaster, crawlMasterTimelineGroup, visualCrawlTimer, 1, isLeftHanded());
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, crawlTimelineGroup, crawlTimer, crawlForwardWeight, isLeftHanded());
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, crawlTimelineGroup, crawlBackwardsTimer, crawlBackwardsWeight, isLeftHanded());
+    }
+
     private void addPoseLayerIdle(){
         AnimationData.TimelineGroup idleNormalTimelineGroup = getTimelineGroup("idle_normal");
         AnimationData.TimelineGroup idleCrouchTimelineGroup = getTimelineGroup("idle_crouch");
@@ -307,14 +348,13 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
                 .repeat(idleNormalTimelineGroup)
                 .getValue();
 
-        float idleNormalWeight = (1 - Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.5F, 1))
-                * (1 - (getAnimationTimerEasedQuad(CROUCH_WEIGHT)))
+        float idleWeight = (1 - Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.5F, 1))
                 * (getAnimationTimerEasedQuad(ON_GROUND_WEIGHT))
+                * (1 - getAnimationTimerEasedQuad(CRAWLING_WEIGHT))
                 * (1 - getAnimationTimer(ANIMATION_SPEED_Y));
-        float idleCrouchWeight = (1 - Math.min(getAnimationTimer(ANIMATION_SPEED) / 0.25F, 1))
-                * getAnimationTimerEasedQuad(CROUCH_WEIGHT)
-                * (getAnimationTimerEasedQuad(ON_GROUND_WEIGHT))
-                * (1 - getAnimationTimer(ANIMATION_SPEED_Y));
+
+        float idleNormalWeight = Mth.lerp(getAnimationTimerEasedQuad(CROUCH_WEIGHT), idleWeight, 0);
+        float idleCrouchWeight = Mth.lerp(getAnimationTimerEasedQuad(CROUCH_WEIGHT), 0, idleWeight);
 
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleNormalTimelineGroup, idleNormalTimer, idleNormalWeight, false);
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleCrouchTimelineGroup, idleNormalTimer, idleCrouchWeight, false);

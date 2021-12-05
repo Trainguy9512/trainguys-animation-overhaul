@@ -72,14 +72,4 @@ public class Timeline<T> {
     public static Timeline<Float> floatTimeline() {
         return new Timeline<Float>((a, b, t) -> a + (b - a) * t);
     }
-
-    public static Timeline<Float> oscillateLerpTimeline(Easing.CubicBezier bezier1){
-        return oscillateLerpTimeline(bezier1, bezier1);
-    }
-    public static Timeline<Float> oscillateLerpTimeline(Easing.CubicBezier bezier1, Easing.CubicBezier bezier2){
-        return floatTimeline()
-                .addKeyframe(0, 0F)
-                .addKeyframe(5, 1F, bezier1)
-                .addKeyframe(10, 0F, bezier2);
-    }
 }
