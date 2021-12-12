@@ -6,9 +6,8 @@
   "mixins": [
   ],
   "client": [
-    "MixinGameRenderer",
-    "MixinItemInHandLayer",
     "MixinBlockEntity",
+    "MixinGameRenderer",
     "MixinCapeLayer",
     "MixinElytraLayer",
     "MixinEntity",

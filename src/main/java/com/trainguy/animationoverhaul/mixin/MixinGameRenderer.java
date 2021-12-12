@@ -25,8 +25,7 @@ public class MixinGameRenderer {
 
     @Inject(method = "renderLevel", at = @At("HEAD"))
     private void adjustTimersForAllEntities(float f, long l, PoseStack poseStack, CallbackInfo ci){
-        for(int i = 0; i < this.minecraft.level.getEntityCount(); i++){
-            Entity entity = this.minecraft.level.getEntity(i);
+        for(Entity entity : this.minecraft.level.entitiesForRendering()){
             if(entity instanceof LivingEntity){
                 ResourceLocation entityAnimatorResourceLocation = new ResourceLocation(entity.getType().toShortString());
                 if(AnimationOverhaul.ENTITY_ANIMATORS.containsKey(entityAnimatorResourceLocation)){
