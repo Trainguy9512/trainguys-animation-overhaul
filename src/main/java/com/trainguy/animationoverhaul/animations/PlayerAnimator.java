@@ -7,6 +7,7 @@ import com.trainguy.animationoverhaul.util.time.TimerProcessor;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
@@ -37,7 +38,9 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
     private static final String MOVING_UP_WEIGHT = "moving_up_weight";
     private static final String TRUDGE_WEIGHT = "trudge_weight";
     private static final String IS_PASSENGER_TIMER = "is_passenger_timer";
-    private static final String MINECART_MOVING_DOWN_WEIGHT = "minecart_moving_down_weight";
+    private static final String FALL_FLYING_WEIGHT = "fall_flying_weight";
+    private static final String FALL_FLYING_SPEED = "fall_flying_speed";
+    private static final String FALL_FLYING_FALLING = "fall_flying_speed";
 
     private final Locator locatorMaster;
     private final Locator locatorHead;
@@ -90,11 +93,11 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
     }
 
     @Override
-    protected void adjustTimers() {
-        super.adjustTimers();
+    public void adjustTimers(AbstractClientPlayer abstractClientPlayer) {
+        super.adjustTimers(abstractClientPlayer);
 
-        boolean isCrouching = livingEntity.isCrouching();
-        boolean isSprinting = livingEntity.isSprinting();
+        boolean isCrouching = abstractClientPlayer.isCrouching();
+        boolean isSprinting = abstractClientPlayer.isSprinting();
         if(isCrouching && isSprinting){
             isSprinting = false;
         }
@@ -102,10 +105,10 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         incrementAnimationTimer(CROUCH_WEIGHT, isCrouching, 3, -3);
 
         // Legacy direction shift
-        float moveAngleX = -Mth.sin(livingEntity.yBodyRotO * Mth.PI / 180);
-        float moveAngleZ = Mth.cos(livingEntity.yBodyRotO * Mth.PI / 180);
-        float deltaMovementX = (float) (livingEntity.getX() - livingEntity.xo) / getAnimationTimer(ANIMATION_SPEED);
-        float deltaMovementZ = (float) (livingEntity.getZ() - livingEntity.zo) / getAnimationTimer(ANIMATION_SPEED);
+        float moveAngleX = -Mth.sin(abstractClientPlayer.yBodyRotO * Mth.PI / 180);
+        float moveAngleZ = Mth.cos(abstractClientPlayer.yBodyRotO * Mth.PI / 180);
+        float deltaMovementX = (float) (abstractClientPlayer.getX() - abstractClientPlayer.xo) / getAnimationTimer(ANIMATION_SPEED);
+        float deltaMovementZ = (float) (abstractClientPlayer.getZ() - abstractClientPlayer.zo) / getAnimationTimer(ANIMATION_SPEED);
         boolean isMovingForwards = true;
         if(getAnimationTimer(ANIMATION_SPEED) > 0.01){
             if(
@@ -122,7 +125,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         // Begin sprint jump timers
         // Ticks after hitting ground
         float previousTicksAfterHittingGround = getAnimationTimer(TICKS_AFTER_HITTING_GROUND);
-        float ticksAfterHittingGround = livingEntity.isOnGround() ? previousTicksAfterHittingGround + this.delta : 0;
+        float ticksAfterHittingGround = abstractClientPlayer.isOnGround() ? previousTicksAfterHittingGround + this.delta : 0;
         setAnimationTimer(TICKS_AFTER_HITTING_GROUND, ticksAfterHittingGround);
 
         boolean shouldResetJumpTimer =
@@ -138,7 +141,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
 
         // Sprint jump weight
         boolean isJumping =
-                (ticksAfterHittingGround < 1 || !livingEntity.isOnGround())
+                (ticksAfterHittingGround < 1 || !abstractClientPlayer.isOnGround())
                 && getAnimationTimer(DELTA_Y) != 0
                 && ticksAfterSwitchingLegs < 15;
         incrementAnimationTimer(JUMP_WEIGHT, isJumping, 4, -4);
@@ -150,26 +153,26 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         // End sprint jump timers
 
         // Falling weight
-        incrementAnimationTimer(FALL_WEIGHT, livingEntity.fallDistance > 0, 20, -4);
-        incrementAnimationTimer(FAST_FALL_WEIGHT, livingEntity.fallDistance > 6, 24, -2);
+        incrementAnimationTimer(FALL_WEIGHT, abstractClientPlayer.fallDistance > 0, 20, -4);
+        incrementAnimationTimer(FAST_FALL_WEIGHT, abstractClientPlayer.fallDistance > 6, 24, -2);
 
-        incrementAnimationTimer(ON_GROUND_WEIGHT, livingEntity.isOnGround(), 6, -6);
+        incrementAnimationTimer(ON_GROUND_WEIGHT, abstractClientPlayer.isOnGround(), 6, -6);
 
         //setAnimationTimer("vertical_blocks_per_second", (float) (livingEntity.getY() - livingEntity.yo) * 20);
-        incrementAnimationTimer(CLIMBING_UP_WEIGHT, livingEntity.onClimbable() && getAnimationTimer(DELTA_Y) >= 0, 8, -8);
-        incrementAnimationTimer(CLIMBING_DOWN_WEIGHT, livingEntity.onClimbable() && getAnimationTimer(DELTA_Y) < 0, 8, -8);
+        incrementAnimationTimer(CLIMBING_UP_WEIGHT, abstractClientPlayer.onClimbable() && getAnimationTimer(DELTA_Y) >= 0, 8, -8);
+        incrementAnimationTimer(CLIMBING_DOWN_WEIGHT, abstractClientPlayer.onClimbable() && getAnimationTimer(DELTA_Y) < 0, 8, -8);
 
-        incrementAnimationTimer(VISUAL_SWIMMING_WEIGHT, livingEntity.isVisuallySwimming(), 16, -16);
+        incrementAnimationTimer(VISUAL_SWIMMING_WEIGHT, abstractClientPlayer.isVisuallySwimming(), 16, -16);
 
-        incrementAnimationTimer(IN_WATER_WEIGHT, livingEntity.isInWater(), 8, -8);
-        incrementAnimationTimer(UNDER_WATER_WEIGHT, livingEntity.isUnderWater(), 8, -8);
+        incrementAnimationTimer(IN_WATER_WEIGHT, abstractClientPlayer.isInWater(), 8, -8);
+        incrementAnimationTimer(UNDER_WATER_WEIGHT, abstractClientPlayer.isUnderWater(), 8, -8);
         incrementAnimationTimer(MOVING_UP_WEIGHT, getAnimationTimer(DELTA_Y) > 0.12, 8, -8);
 
-        incrementAnimationTimer(TRUDGE_WEIGHT, livingEntity.isInPowderSnow || livingEntity.getFeetBlockState().getBlock() == Blocks.SOUL_SAND, 8, -8);
+        incrementAnimationTimer(TRUDGE_WEIGHT, abstractClientPlayer.isInPowderSnow || abstractClientPlayer.getFeetBlockState().getBlock() == Blocks.SOUL_SAND ||  abstractClientPlayer.getFeetBlockState().getBlock() == Blocks.SLIME_BLOCK ||  abstractClientPlayer.getFeetBlockState().getBlock() == Blocks.HONEY_BLOCK, 8, -8);
 
         adjustHurtTimers(4);
 
-        if(livingEntity.deathTime != 0 && getAnimationTimer(DEATH_TIMER) == 0){
+        if(abstractClientPlayer.deathTime != 0 && getAnimationTimer(DEATH_TIMER) == 0){
             setAnimationTimer(DEATH_TIMER + "_index", 0);
             if(getAnimationTimer(FALL_WEIGHT) > 0){
                 setAnimationTimer(DEATH_TIMER + "_index", 1);
@@ -178,7 +181,20 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         adjustDeathTimer();
         adjustSleepTimer();
 
-        resetTimerOnCondition(IS_PASSENGER_TIMER, !livingEntity.isPassenger(), (int) TimerProcessor.framesToTicks(17));
+        resetTimerOnCondition(IS_PASSENGER_TIMER, !abstractClientPlayer.isPassenger(), (int) TimerProcessor.framesToTicks(17));
+
+        incrementAnimationTimer(FALL_FLYING_WEIGHT, abstractClientPlayer.isFallFlying(), 12, -12);
+
+        float k = 1.0f;
+        if (abstractClientPlayer.getFallFlyingTicks() > 4) {
+            k = (float) abstractClientPlayer.getDeltaMovement().lengthSqr();
+            k /= 0.2f;
+            k *= k * k;
+        }
+        if (k < 1.0f) {
+            k = 1.0f;
+        }
+        setAnimationTimer(FALL_FLYING_SPEED, 1 - (1 / k));
     }
 
     @Override
@@ -200,6 +216,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
 
         // Item interactions
 
+        addPoseLayerFallFlying();
         addPoseLayerSleep();
         addPoseLayerDeath();
         addPoseLayerHurt(List.of(getTimelineGroup("hurt_0"), getTimelineGroup("hurt_1"), getTimelineGroup("hurt_2"), getTimelineGroup("hurt_3")), locatorListAll);
@@ -470,7 +487,8 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         AnimationData.TimelineGroup crawlTimelineGroup = getTimelineGroup("crawl");
 
         float visualCrawlTimer = getAnimationTimer(VISUAL_SWIMMING_WEIGHT)
-                * (1 - getAnimationTimerEasedQuad(UNDER_WATER_WEIGHT));
+                * (1 - getAnimationTimerEasedQuad(UNDER_WATER_WEIGHT))
+                * getAnimationTimerEasedQuad(ON_GROUND_WEIGHT);
 
 
         float crawlWeight = Easing.CubicBezier.bezierInOutSine().ease(getAnimationTimer(VISUAL_SWIMMING_WEIGHT) * 4 - 3)
@@ -555,7 +573,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         AnimationData.TimelineGroup swimFastTimelineGroup = getTimelineGroup("swim_fast");
 
         float swimMasterWeight = getAnimationTimerEasedQuad(VISUAL_SWIMMING_WEIGHT)
-                * getAnimationTimerEasedQuad(UNDER_WATER_WEIGHT);
+                * getAnimationTimerEasedQuad(IN_WATER_WEIGHT);
 
         float swimMasterTimer = (float) Mth.clamp((Math.toRadians(Mth.lerp(this.tickProgress, livingEntity.xRotO, livingEntity.getXRot())) / Mth.PI) + 0.5F, 0, 1);
         float swimFastTimer = new TimerProcessor(getAnimationTimer(ANIMATION_POSITION_XYZ))
@@ -566,11 +584,24 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         List<Locator> locatorListNoLeftArm = Arrays.asList(locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak, locatorRightHand);
         List<Locator> locatorListLeftArm = List.of(locatorLeftArm, locatorLeftHand);
 
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListMaster, swimMasterTimelineGroup, swimMasterTimer, swimMasterWeight, false);
+        this.locatorRig.weightedClearTransforms(locatorListMaster, swimMasterWeight);
+        this.locatorRig.animateMultipleLocatorsAdditive(List.of(locatorMaster), swimMasterTimelineGroup, swimMasterTimer, swimMasterWeight, false);
 
         //i hate gimbal lock
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListNoLeftArm, swimFastTimelineGroup, swimFastTimer, swimMasterWeight, false);
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListLeftArm, swimFastTimelineGroup, swimFastTimer, swimMasterWeight, true);
+    }
+
+    private void addPoseLayerFallFlying(){
+        AnimationData.TimelineGroup fallFlyingMasterTimelineGroup = getTimelineGroup("swim_master");
+
+        float fallFlyingMasterWeight = getAnimationTimerEasedQuad(FALL_FLYING_WEIGHT);
+
+        float fallFlyingMasterTimer = (float) Mth.clamp((Math.toRadians(Mth.lerp(this.tickProgress, livingEntity.xRotO, livingEntity.getXRot())) / Mth.PI) + 0.5F, 0, 1);
+
+        this.locatorRig.weightedClearTransforms(locatorListMaster, fallFlyingMasterWeight);
+        this.locatorHead.xRot -= Mth.HALF_PI * fallFlyingMasterWeight;
+        this.locatorRig.animateMultipleLocatorsAdditive(List.of(locatorMaster), fallFlyingMasterTimelineGroup, fallFlyingMasterTimer, fallFlyingMasterWeight, false);
     }
 
     private void addPoseLayerIdle(){
@@ -594,15 +625,12 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
 
         // Removes the vanilla transformation done for the crouch pose
         if(livingEntity.isCrouching()){
-            for(Locator locator : locatorListBody){
-                locator.y -= 2;
-            }
+            locatorMaster.y -= 2;
         }
     }
 
     @Override
     protected void finalizeModel() {
-
         this.model.leftArm.x += 5;
         this.model.leftArm.y += 2;
         this.model.rightArm.x -= 5;
@@ -624,12 +652,12 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
     }
 
     @Override
-    public void adjustTimersInventory() {
-    }
-
-    @Override
     protected void animatePartsInventory() {
         addPoseLayerInventoryIdle();
+        // Removes the vanilla transformation done for the crouch pose
+        if(livingEntity.isCrouching()){
+            locatorMaster.y -= 2;
+        }
     }
 
     private void addPoseLayerInventoryIdle(){

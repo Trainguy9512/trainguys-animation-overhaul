@@ -1,10 +1,20 @@
 package com.trainguy.animationoverhaul.mixin;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
+import com.trainguy.animationoverhaul.AnimationOverhaul;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
+import com.trainguy.animationoverhaul.animations.LivingEntityAnimator;
+import net.minecraft.client.Camera;
+import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.phys.AABB;
@@ -21,7 +31,23 @@ import java.util.List;
 public class MixinLevelRenderer {
     @Shadow private ClientLevel level;
 
-    @Inject(method = "playStreamingMusic", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;notifyNearbyEntities(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Z)V"))
+
+    @Inject(method = "renderLevel", at = @At("HEAD"))
+    private void adjustTimersForAllEntities(PoseStack poseStack, float f, long l, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, CallbackInfo ci){
+        for(int i = 0; i < this.level.getEntityCount(); i++){
+            Entity entity = this.level.getEntity(i);
+            if(entity instanceof LivingEntity){
+                ResourceLocation entityAnimatorResourceLocation = new ResourceLocation(entity.getType().toShortString());
+                if(AnimationOverhaul.ENTITY_ANIMATORS.containsKey(entityAnimatorResourceLocation)){
+                    LivingEntityAnimator<LivingEntity, EntityModel<LivingEntity>> livingEntityAnimator = AnimationOverhaul.ENTITY_ANIMATORS.get(new ResourceLocation(entity.getType().toShortString()));
+                    assert livingEntityAnimator != null;
+                    livingEntityAnimator.adjustTimers((LivingEntity) entity);
+                }
+            }
+        }
+    }
+
+    //@Inject(method = "playStreamingMusic", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;notifyNearbyEntities(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Z)V"))
     private void notifyNearbyEntitiesWithSongName(SoundEvent soundEvent, BlockPos blockPos, CallbackInfo ci){
         List<LivingEntity> list = this.level.getEntitiesOfClass(LivingEntity.class, (new AABB(blockPos)).inflate(3.0D));
 

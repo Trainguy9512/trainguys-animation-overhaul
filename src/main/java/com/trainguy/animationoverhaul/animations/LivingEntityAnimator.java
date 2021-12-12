@@ -1,5 +1,6 @@
 package com.trainguy.animationoverhaul.animations;
 
+import com.trainguy.animationoverhaul.AnimationOverhaul;
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
 import com.trainguy.animationoverhaul.util.animation.Locator;
@@ -7,6 +8,7 @@ import com.trainguy.animationoverhaul.util.animation.LocatorRig;
 import com.trainguy.animationoverhaul.util.data.AnimationData;
 import com.trainguy.animationoverhaul.util.time.Easing;
 import com.trainguy.animationoverhaul.util.time.TimerProcessor;
+import net.minecraft.CrashReport;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -61,22 +63,19 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
 
     public void animate(){
         this.locatorRig.resetRig();
-
         if(((LivingEntityAccess)livingEntity).getUseInventoryRenderer()){
-            this.adjustTimersInventory();
             this.animatePartsInventory();
             ((LivingEntityAccess)livingEntity).setUseInventoryRenderer(false);
         } else {
-            this.adjustTimers();
             this.animateParts();
         }
-        setAnimationTimer("last_frame_run", this.tickProgress);
         this.bakeLocatorRig();
         this.finalizeModel();
     }
 
     @Override
-    protected void adjustTimers() {
+    public void adjustTimers(T livingEntity) {
+        this.livingEntity = livingEntity;
         adjustGeneralMovementTimers();
         adjustAnimationSpeedTimers();
     }
@@ -88,11 +87,6 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
 
     @Override
     protected void finalizeModel() {
-
-    }
-
-    @Override
-    protected void adjustTimersInventory() {
 
     }
 

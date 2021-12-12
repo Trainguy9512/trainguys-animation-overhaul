@@ -50,8 +50,8 @@ public class ZombifiedPiglinAnimator extends LivingEntityAnimator<ZombifiedPigli
     }
 
     @Override
-    protected void adjustTimers() {
-        super.adjustTimers();
+    public void adjustTimers(ZombifiedPiglin zombifiedPiglin) {
+        super.adjustTimers(zombifiedPiglin);
     }
 
     @Override

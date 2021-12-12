@@ -5,8 +5,7 @@
   "compatibilityLevel": "JAVA_16",
   "mixins": [
     "MixinItemInHandLayer",
-    ,
-    "debug.MixinAbstractClientPlayer"
+    "MixinLevelRenderer"
   ],
   "client": [
     "MixinBlockEntity",
