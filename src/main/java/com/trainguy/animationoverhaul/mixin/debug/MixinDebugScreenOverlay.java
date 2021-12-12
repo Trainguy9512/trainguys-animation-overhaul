@@ -38,6 +38,18 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
 
     @Inject(method = "drawSystemInformation", at = @At("HEAD"), cancellable = true)
     private void drawTimerDebugInfo(PoseStack poseStack, CallbackInfo ci){
+
+        poseStack.translate(this.minecraft.getWindow().getGuiScaledWidth() / 4F, 0, 0);
+        poseStack.scale(0.75F, 0.75F, 0.75F);
+
+        drawTimerDebug(poseStack);
+
+        poseStack.scale(1/0.75F, 1/0.75F, 1/0.75F);
+        poseStack.translate(-this.minecraft.getWindow().getGuiScaledWidth() / 4F, 0, 0);
+        ci.cancel();
+    }
+
+    private void drawTimerDebug(PoseStack poseStack){
         boolean shouldRenderDebugTimers = true;
         Entity entity = AnimationOverhaul.debugEntity;
 
@@ -45,6 +57,7 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
 
         if(entity != null){
             TreeMap<String, Float> animationTimers = new TreeMap<>(((EntityAccess)entity).getAnimationTimers());
+
 
             DecimalFormat format = new DecimalFormat("0.00");
             if(animationTimers.size() > 0){
@@ -102,8 +115,5 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
                 this.font.draw(poseStack, string, (float)l, (float)m, COLOR_GREY);
             }
         }
-
-
-        ci.cancel();
     }
 }

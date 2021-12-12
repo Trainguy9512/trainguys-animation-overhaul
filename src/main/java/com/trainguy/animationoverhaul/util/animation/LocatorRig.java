@@ -72,25 +72,41 @@ public class LocatorRig {
         }
     }
 
-    public void animateMultipleLocatorsAdditive(List<Locator> locators, AnimationData.TimelineGroup timelineGroup, float time, float weight, boolean mirrored){
+    public void animateMultipleLocatorsAdditive(List<Locator> locators, AnimationData.TimelineGroup timelineGroup, float time, float weightRotation, float weightTranslation, boolean mirrored){
         for(Locator locator : locators){
             if(this.locatorEntryHashMap.containsKey(locator)){
                 LocatorEntry locatorEntry = locatorEntryHashMap.get(locator);
                 Locator locatorToUse = mirrored ? locatorEntry.getLocatorMirrored() : locatorEntry.getLocator();
                 if(timelineGroup.containsPart(locatorToUse.getIdentifier())){
                     ChannelTimeline<Float> channelTimeline = timelineGroup.getPartTimeline(locatorToUse.getIdentifier());
-                    animateLocatorAdditive(locator, channelTimeline, time, weight, mirrored);
+                    animateLocatorAdditive(locator, channelTimeline, time, weightRotation, weightTranslation, mirrored);
                 }
             }
         }
     }
 
-    public void animateLocatorAdditive(Locator locator, ChannelTimeline<Float> channelTimeline, float time, float weight, boolean mirrored){
+    public void animateMultipleLocatorsAdditive(List<Locator> locators, AnimationData.TimelineGroup timelineGroup, float time, float weight, boolean mirrored){
+        animateMultipleLocatorsAdditive(locators, timelineGroup, time, weight, weight, mirrored);
+    }
+
+    public void animateMultipleLocatorsAdditive(List<Locator> locators, AnimationData.TimelineGroup timelineGroup, float time, float weight){
+        animateMultipleLocatorsAdditive(locators, timelineGroup, time, weight, weight, false);
+    }
+
+    public void animateLocatorAdditive(Locator locator, ChannelTimeline<Float> channelTimeline, float time, float weightRotation, float weightTranslation, boolean mirrored){
         int mirrorMultiplier = mirrored ? -1 : 1;
-        locator.x += channelTimeline.getValueAt(TransformChannel.x, time) * weight * mirrorMultiplier;
-        locator.y += channelTimeline.getValueAt(TransformChannel.y, time) * weight;
-        locator.z += channelTimeline.getValueAt(TransformChannel.z, time) * weight;
-        locator.rotateWorldSpace(channelTimeline.getValueAt(TransformChannel.xRot, time) * weight, channelTimeline.getValueAt(TransformChannel.yRot, time) * weight * mirrorMultiplier, channelTimeline.getValueAt(TransformChannel.zRot, time) * weight * mirrorMultiplier);
+        locator.x += channelTimeline.getValueAt(TransformChannel.x, time) * weightTranslation * mirrorMultiplier;
+        locator.y += channelTimeline.getValueAt(TransformChannel.y, time) * weightTranslation;
+        locator.z += channelTimeline.getValueAt(TransformChannel.z, time) * weightTranslation;
+        locator.rotateWorldSpace(channelTimeline.getValueAt(TransformChannel.xRot, time) * weightRotation, channelTimeline.getValueAt(TransformChannel.yRot, time) * weightRotation * mirrorMultiplier, channelTimeline.getValueAt(TransformChannel.zRot, time) * weightRotation * mirrorMultiplier);
+    }
+
+    public void weightedClearTransforms(List<Locator> locators, float weight){
+        for(Locator locator : locators){
+            if(this.locatorEntryHashMap.containsKey(locator)){
+                locator.weightedClearTransforms(weight);
+            }
+        }
     }
 
     public void resetRig(){

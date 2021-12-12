@@ -7,6 +7,7 @@ import com.trainguy.animationoverhaul.util.data.AnimationDataLoader;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
@@ -22,12 +23,14 @@ public class AnimationOverhaul implements ModInitializer {
 	public static Logger LOGGER = LogManager.getLogger();
 	public static final MappedRegistry<LivingEntityAnimator> ENTITY_ANIMATORS = FabricRegistryBuilder.createSimple(LivingEntityAnimator.class, new ResourceLocation(MOD_ID, "entity_animators")).buildAndRegister();
 
+	public static EntityRendererProvider.Context context;
 	public static Entity debugEntity;
 
 	@Override
 	public void onInitialize() {
 		registerTimelineGroupLoader();
 		registerEntityAnimators();
+
 	}
 
 	private void registerTimelineGroupLoader(){

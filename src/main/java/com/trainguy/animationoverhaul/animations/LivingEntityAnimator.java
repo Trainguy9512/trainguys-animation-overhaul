@@ -2,15 +2,22 @@ package com.trainguy.animationoverhaul.animations;
 
 import com.trainguy.animationoverhaul.access.EntityAccess;
 import com.trainguy.animationoverhaul.access.LivingEntityAccess;
+import com.trainguy.animationoverhaul.util.animation.Locator;
 import com.trainguy.animationoverhaul.util.animation.LocatorRig;
 import com.trainguy.animationoverhaul.util.data.AnimationData;
 import com.trainguy.animationoverhaul.util.time.Easing;
+import com.trainguy.animationoverhaul.util.time.TimerProcessor;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.animal.FlyingAnimal;
+
+import java.util.List;
+import java.util.Random;
 
 public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<T>> extends AbstractEntityAnimator<T, M> {
 
@@ -24,12 +31,19 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
     protected float headXRot;
     protected float headYRot;
 
+    protected Random random;
+
     protected static final String DELTA_Y = "delta_y";
     protected static final String DELTA_Y_OLD = "delta_y_old";
     protected static final String ANIMATION_SPEED = "animation_speed";
     protected static final String ANIMATION_SPEED_Y = "animation_speed_y";
+    protected static final String ANIMATION_SPEED_XYZ = "animation_speed_xyz";
     protected static final String ANIMATION_POSITION = "animation_position";
     protected static final String ANIMATION_POSITION_Y = "animation_position_y";
+    protected static final String ANIMATION_POSITION_XYZ = "animation_position_xyz";
+    protected static final String HURT_TIMER = "hurt_timer";
+    protected static final String DEATH_TIMER = "death_timer";
+    protected static final String SLEEP_TIMER = "sleep_timer";
 
     public LivingEntityAnimator(){
     }
@@ -41,29 +55,24 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
         this.delta = Minecraft.getInstance().getDeltaFrameTime();
         this.tickAtFrame = livingEntity.tickCount + tickProgress;
         this.locatorRig = new LocatorRig();
+        this.random = livingEntity.getRandom();
         setHeadVariables(tickProgress);
     }
 
     public void animate(){
         this.locatorRig.resetRig();
 
-        boolean shouldAdjustTimers = getAnimationTimer("last_frame_run") != this.tickProgress;
-
         if(((LivingEntityAccess)livingEntity).getUseInventoryRenderer()){
-            if(shouldAdjustTimers){
-                this.adjustTimersInventory();
-            }
+            this.adjustTimersInventory();
             this.animatePartsInventory();
             ((LivingEntityAccess)livingEntity).setUseInventoryRenderer(false);
         } else {
-            if(shouldAdjustTimers){
-                this.adjustTimers();
-            }
+            this.adjustTimers();
             this.animateParts();
         }
+        setAnimationTimer("last_frame_run", this.tickProgress);
         this.bakeLocatorRig();
         this.finalizeModel();
-        setAnimationTimer("last_frame_run", this.tickProgress);
     }
 
     @Override
@@ -109,27 +118,36 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
 
         float previousAnimationSpeed = getAnimationTimer(ANIMATION_SPEED);
         float previousAnimationSpeedY = getAnimationTimer(ANIMATION_SPEED_Y);
+        float previousAnimationSpeedXYZ = getAnimationTimer(ANIMATION_SPEED_XYZ);
         float previousAnimationPosition = getAnimationTimer(ANIMATION_POSITION);
         float previousAnimationPositionY = getAnimationTimer(ANIMATION_POSITION_Y);
+        float previousAnimationPositionXYZ = getAnimationTimer(ANIMATION_POSITION_XYZ);
 
         double deltaX = livingEntity.getX() - livingEntity.xo;
         double deltaY = livingEntity.getY() - livingEntity.yo;
         double deltaZ = livingEntity.getZ() - livingEntity.zo;
         float movementSquared = (float)Math.sqrt(deltaX * deltaX + deltaZ * deltaZ) * 4.0F;
         float movementSquaredY = (float)Math.sqrt(deltaY * deltaY) * 4.0F;
+        float movementSquaredXYZ = (float)Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) * 4.0F;
         if (movementSquared > 1.0F) {
             movementSquared = 1.0F;
         }
         if (movementSquaredY > 1.0F) {
             movementSquaredY = 1.0F;
         }
+        if (movementSquaredXYZ > 1.0F) {
+            movementSquaredXYZ = 1.0F;
+        }
 
         float finalAnimationSpeed = previousAnimationSpeed + ((movementSquared - previousAnimationSpeed) * 0.4F * this.delta);
         float finalAnimationSpeedY = previousAnimationSpeedY + ((movementSquaredY - previousAnimationSpeedY) * 0.4F * this.delta);
+        float finalAnimationSpeedXYZ = previousAnimationSpeedXYZ + ((movementSquaredXYZ - previousAnimationSpeedXYZ) * 0.4F * this.delta);
         setAnimationTimer(ANIMATION_SPEED, finalAnimationSpeed);
         setAnimationTimer(ANIMATION_SPEED_Y, finalAnimationSpeedY);
+        setAnimationTimer(ANIMATION_SPEED_XYZ, finalAnimationSpeedXYZ);
         setAnimationTimer(ANIMATION_POSITION, previousAnimationPosition + finalAnimationSpeed * this.delta);
         setAnimationTimer(ANIMATION_POSITION_Y, previousAnimationPositionY + finalAnimationSpeedY * this.delta);
+        setAnimationTimer(ANIMATION_POSITION_XYZ, previousAnimationPositionXYZ + finalAnimationSpeedXYZ * this.delta);
     }
 
     private void setHeadVariables(float tickAtFrame){
@@ -222,5 +240,38 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
 
     protected boolean isLeftHanded(){
         return livingEntity.getMainArm() == HumanoidArm.LEFT;
+    }
+
+    protected int getTimerIndex(String identifier){
+        return (int) getAnimationTimer(identifier + "_index");
+    }
+
+    protected void resetRandomAnimation(String identifier, boolean condition, int numberOfAnimations, int ticksToIncrement){
+        if(condition && getAnimationTimer(identifier) > 0.5 && numberOfAnimations > 1){
+            setAnimationTimer(identifier + "_index", random.nextInt(numberOfAnimations));
+        }
+        resetTimerOnCondition(identifier, condition && getAnimationTimer(identifier) > 0.5, ticksToIncrement);
+    }
+
+    protected void adjustHurtTimers(int numberOfTimers){
+        resetRandomAnimation(HURT_TIMER, livingEntity.hurtTime == 10, numberOfTimers, 10);
+    }
+
+    protected void adjustDeathTimer(){
+        resetTimerOnCondition(DEATH_TIMER, livingEntity.deathTime == 0, 19);
+    }
+
+    protected void adjustSleepTimer(){
+        resetTimerOnCondition(SLEEP_TIMER, livingEntity.getPose() != Pose.SLEEPING, (int) TimerProcessor.framesToTicks(24));
+    }
+
+    protected void addPoseLayerHurt(List<AnimationData.TimelineGroup> timelineGroupList, List<Locator> locatorList){
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorList, timelineGroupList.get(getTimerIndex(HURT_TIMER)), getAnimationTimer(HURT_TIMER), 1, false);
+    }
+
+    // Add after everything but before damage animations
+    protected void addPoseLayerDeath(AnimationData.TimelineGroup timelineGroup, List<Locator> locatorList){
+        this.locatorRig.weightedClearTransforms(locatorList, Math.min(getAnimationTimer(DEATH_TIMER) * 4, 1));
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorList, timelineGroup, getAnimationTimer(DEATH_TIMER), 1, false);
     }
 }

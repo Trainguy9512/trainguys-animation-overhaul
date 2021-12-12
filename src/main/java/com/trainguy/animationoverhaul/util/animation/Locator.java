@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import com.trainguy.animationoverhaul.util.math.RotationMatrix;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.util.Mth;
 
 public class Locator {
 
@@ -103,6 +104,15 @@ public class Locator {
         this.xRot = 0;
         this.yRot = 0;
         this.zRot = 0;
+    }
+
+    public void weightedClearTransforms(float weight){
+        this.x = Mth.lerp(weight, this.x, 0);
+        this.y = Mth.lerp(weight, this.y, 0);
+        this.z = Mth.lerp(weight, this.z, 0);
+        this.xRot = Mth.lerp(weight, this.xRot, 0);
+        this.yRot = Mth.lerp(weight, this.yRot, 0);
+        this.zRot = Mth.lerp(weight, this.zRot, 0);
     }
 
     public String getIdentifier(){

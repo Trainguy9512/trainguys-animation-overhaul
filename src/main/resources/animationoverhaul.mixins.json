@@ -4,7 +4,9 @@
   "package": "com.trainguy.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "MixinItemInHandLayer"
+    "MixinItemInHandLayer",
+    ,
+    "debug.MixinAbstractClientPlayer"
   ],
   "client": [
     "MixinBlockEntity",
@@ -12,7 +14,6 @@
     "MixinElytraLayer",
     "MixinEntity",
     "MixinInventoryScreen",
-    "MixinLevelRenderer",
     "MixinLivingEntity",
     "MixinLivingEntityRenderer",
     "animations.part.MixinPhantomModel",
