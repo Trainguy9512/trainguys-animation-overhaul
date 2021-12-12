@@ -31,22 +31,6 @@ import java.util.List;
 public class MixinLevelRenderer {
     @Shadow private ClientLevel level;
 
-
-    @Inject(method = "renderLevel", at = @At("HEAD"))
-    private void adjustTimersForAllEntities(PoseStack poseStack, float f, long l, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, CallbackInfo ci){
-        for(int i = 0; i < this.level.getEntityCount(); i++){
-            Entity entity = this.level.getEntity(i);
-            if(entity instanceof LivingEntity){
-                ResourceLocation entityAnimatorResourceLocation = new ResourceLocation(entity.getType().toShortString());
-                if(AnimationOverhaul.ENTITY_ANIMATORS.containsKey(entityAnimatorResourceLocation)){
-                    LivingEntityAnimator<LivingEntity, EntityModel<LivingEntity>> livingEntityAnimator = AnimationOverhaul.ENTITY_ANIMATORS.get(new ResourceLocation(entity.getType().toShortString()));
-                    assert livingEntityAnimator != null;
-                    livingEntityAnimator.adjustTimers((LivingEntity) entity);
-                }
-            }
-        }
-    }
-
     //@Inject(method = "playStreamingMusic", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;notifyNearbyEntities(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Z)V"))
     private void notifyNearbyEntitiesWithSongName(SoundEvent soundEvent, BlockPos blockPos, CallbackInfo ci){
         List<LivingEntity> list = this.level.getEntitiesOfClass(LivingEntity.class, (new AABB(blockPos)).inflate(3.0D));
