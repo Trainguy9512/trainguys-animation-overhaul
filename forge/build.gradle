@@ -1,0 +1,108 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+plugins {
+    id "com.github.johnrengelman.shadow" version "7.0.0"
+}
+
+archivesBaseName = "${rootProject.archivesBaseName}-${project.name}"
+
+loom {
+    //accessWidenerPath.set(project(":common").file("src/main/resources/${project.mod_id}.accesswidener"))
+
+    forge {
+        mixinConfig "${project.mod_id}-common.mixins.json"
+        mixinConfig "${project.mod_id}.mixins.json"
+
+//        convertAccessWideners.set(true)
+//        extraAccessWideners.add("${project.mod_id}.accesswidener")
+    }
+    mixin {
+        defaultRefmapName = "${project.mod_id}-refmap.json"
+    }
+}
+
+architectury {
+    platformSetupLoomIde()
+    forge()
+}
+
+configurations {
+    common
+    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentForge.extendsFrom common
+}
+
+
+dependencies {
+    forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
+
+    modApi("gg.moonflower:pollen-forge:${rootProject.pollen_version}") { transitive = false }
+	
+	modRuntimeOnly "curse.maven:configured-457570:3559398"
+    modRuntimeOnly "curse.maven:catalogue-459701:3559402"
+
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+}
+
+processResources {
+    inputs.property "id", rootProject.mod_id
+    inputs.property "name", rootProject.mod_name
+    inputs.property "version", rootProject.mod_version
+    inputs.property "repo", rootProject.name
+
+    filesMatching(["META-INF/mods.toml", "pack.mcmeta"]) {
+        expand "id": rootProject.mod_id,
+                "name": rootProject.mod_name,
+                "version": rootProject.mod_version,
+                "repo": rootProject.name
+    }
+
+    doLast {
+        fileTree(dir: outputs.files.asPath, include: "**/*.json").each {
+            File file -> file.text = JsonOutput.toJson(new JsonSlurper().parse(file))
+        }
+    }
+}
+
+shadowJar {
+    exclude "fabric.mod.json"
+    exclude "archiectury.common.json"
+
+    configurations = [project.configurations.shadowCommon]
+    classifier "dev-shadow"
+}
+
+remapJar {
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    classifier null
+}
+
+jar {
+    classifier "dev"
+}
+
+sourcesJar {
+    def commonSources = project(":common").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}
+
+publishing {
+    publications {
+        mavenForge(MavenPublication) {
+            artifactId = project.archivesBaseName
+            from components.java
+        }
+    }
+}

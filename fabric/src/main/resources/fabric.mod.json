@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "This is an example starter template.",
+  "authors": [
+    "Moonflower"
+  ],
+  "contributors": [
+    "James Pelter (Trainguy)",
+    "Marvin Schürz (MineToBlend)"
+  ],
+  "contact": {
+    "homepage": "https://moonflower.gg",
+	"issues": "https://github.com/MoonflowerTeam/${repo}/issues",
+    "sources": "https://github.com/MoonflowerTeam/${repo}/"
+  },
+  "license": "GPLv3",
+  "environment": "*",
+  "mixins": [
+    "${id}-common.mixins.json",
+    "${id}.mixins.json"
+  ],
+  "entrypoints": {
+    "main": [
+      "gg.moonflower.animationoverhaul.core.fabric.AnimationOverhaulFabric"
+    ]
+  },
+  "depends": {
+    "fabric": "*",
+    "minecraft": "1.18.x",
+    "pollen": "1.0.0"
+  }
+}

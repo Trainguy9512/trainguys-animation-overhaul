@@ -1,0 +1,37 @@
+modLoader = "javafml"
+loaderVersion = "[39,)"
+issueTrackerURL = "https://github.com/MoonflowerTeam/${repo}/issues"
+license = "GPLv3"
+
+[[mods]]
+modId = "${id}"
+version = "${version}"
+displayName = "${name}"
+authors = "Moonflower"
+credits = "James Pelter (Trainguy), Marvin Schürz (MineToBlend)"
+description = '''
+This is an example starter template.
+'''
+#updateJSONURL = ""
+#logoFile = ""
+
+[[dependencies.${id}]]
+modId = "forge"
+mandatory = true
+versionRange = "[39,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${id}]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.18,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${id}]]
+modId = "pollen"
+mandatory = true
+versionRange = "[1.0.0,)"
+ordering = "BEFORE"
+side = "BOTH"

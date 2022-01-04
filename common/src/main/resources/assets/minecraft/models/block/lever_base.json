@@ -1,0 +1,21 @@
+{
+    "ambientocclusion": false,
+    "textures": {
+        "particle": "block/cobblestone",
+        "base": "block/cobblestone",
+        "lever": "block/lever"
+    },
+    "elements": [
+        {   "from": [ 5, 0, 4 ],
+            "to": [ 11, 3, 12 ],
+            "faces": {
+                "down":  { "uv": [ 5, 4, 11, 12 ], "texture": "#base", "cullface": "down" },
+                "up":    { "uv": [ 5, 4, 11, 12 ], "texture": "#base" },
+                "north": { "uv": [ 5, 0, 11,  3 ], "texture": "#base" },
+                "south": { "uv": [ 5, 0, 11,  3 ], "texture": "#base" },
+                "west":  { "uv": [ 4, 0, 12,  3 ], "texture": "#base" },
+                "east":  { "uv": [ 4, 0, 12,  3 ], "texture": "#base" }
+            }
+        }
+    ]
+}

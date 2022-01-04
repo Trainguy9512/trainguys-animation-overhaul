@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories {
+        maven { url "https://maven.fabricmc.net/" }
+        maven { url "https://maven.architectury.dev/" }
+        maven { url "https://maven.minecraftforge.net/" }
+        maven { url "https://server.bbkr.space/artifactory/libs-release/" }
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = "animationoverhaul"
+
+include("common")
+include("fabric")
+include("forge")

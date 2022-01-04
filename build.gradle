@@ -1,0 +1,58 @@
+plugins {
+    id "architectury-plugin" version "3.4-SNAPSHOT"
+    id "dev.architectury.loom" version "0.10.0-SNAPSHOT" apply false
+    id "io.github.juuxel.loom-quiltflower-mini" version "1.0.0" apply false
+}
+
+architectury {
+    minecraft = rootProject.minecraft_version
+}
+
+subprojects {
+    apply plugin: "dev.architectury.loom"
+    apply plugin: "io.github.juuxel.loom-quiltflower-mini"
+
+    loom {
+        silentMojangMappingsLicense()
+    }
+
+    dependencies {
+        minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+        mappings loom.layered() {
+            officialMojangMappings()
+//            parchment("org.parchmentmc.data:parchment-${rootProject.minecraft_version}:${rootProject.parchment_version}")
+        }
+    }
+}
+
+allprojects {
+    apply plugin: "java"
+    apply plugin: "architectury-plugin"
+    apply plugin: "maven-publish"
+
+    archivesBaseName = rootProject.name
+    version = "${rootProject.mod_version}+${rootProject.minecraft_version}"
+    group = rootProject.maven_group
+
+    repositories {
+		mavenLocal()
+        maven { url "https://jitpack.io" }
+        maven { url "https://repo.moonflower.gg/releases" }
+        maven { url "https://maven.parchmentmc.org" }
+        maven {
+            url "https://www.cursemaven.com"
+            content {
+                includeGroup "curse.maven"
+            }
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+        options.release.set(17)
+    }
+
+    java {
+        withSourcesJar()
+    }
+}
