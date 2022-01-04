@@ -40,7 +40,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build
-        run: ./gradlew :fabric:build -x runDatagen :forge:build
+        run: ./gradlew :fabric:build :forge:build
 
       - name: Capture build artifacts (Fabric)
         if: ${{ runner.os == 'Linux' && matrix.java == '17' }} # Only upload artifacts built from latest java on one OS
