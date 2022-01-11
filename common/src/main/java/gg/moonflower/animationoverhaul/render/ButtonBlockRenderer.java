@@ -64,8 +64,10 @@ public class ButtonBlockRenderer implements TickableBlockRenderer {
 
     @Override
     public void receiveUpdate(Level level, BlockPos pos, BlockState oldState, BlockState newState, DataContainer dataContainer) {
-        BlockData<Boolean> pressed = dataContainer.get(PRESSED);
-        pressed.set(newState.getValue(ButtonBlock.POWERED));
+        if(newState.getBlock() instanceof ButtonBlock){
+            BlockData<Boolean> pressed = dataContainer.get(PRESSED);
+            pressed.set(newState.getValue(ButtonBlock.POWERED));
+        }
         //TickableBlockRenderer.super.receiveUpdate(level, pos, oldState, newState, container);
     }
 

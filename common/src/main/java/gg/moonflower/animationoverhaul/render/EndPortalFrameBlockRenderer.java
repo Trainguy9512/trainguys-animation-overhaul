@@ -70,8 +70,10 @@ public class EndPortalFrameBlockRenderer implements TickableBlockRenderer {
 
     @Override
     public void receiveUpdate(Level level, BlockPos pos, BlockState oldState, BlockState newState, DataContainer dataContainer) {
-        BlockData<Boolean> pressed = dataContainer.get(FILLED);
-        pressed.set(newState.getValue(EndPortalFrameBlock.HAS_EYE));
+        if(newState.getBlock() instanceof EndPortalFrameBlock){
+            BlockData<Boolean> pressed = dataContainer.get(FILLED);
+            pressed.set(newState.getValue(EndPortalFrameBlock.HAS_EYE));
+        }
         //TickableBlockRenderer.super.receiveUpdate(level, pos, oldState, newState, container);
     }
 

@@ -56,8 +56,10 @@ public class LeverBlockRenderer implements TickableBlockRenderer {
 
     @Override
     public void receiveUpdate(Level level, BlockPos pos, BlockState oldState, BlockState newState, DataContainer dataContainer) {
-        BlockData<Boolean> pressed = dataContainer.get(PULLED);
-        pressed.set(newState.getValue(LeverBlock.POWERED));
+        if(newState.getBlock() instanceof TrapDoorBlock){
+            BlockData<Boolean> pressed = dataContainer.get(PULLED);
+            pressed.set(newState.getValue(LeverBlock.POWERED));
+        }
         //TickableBlockRenderer.super.receiveUpdate(level, pos, oldState, newState, container);
     }
 

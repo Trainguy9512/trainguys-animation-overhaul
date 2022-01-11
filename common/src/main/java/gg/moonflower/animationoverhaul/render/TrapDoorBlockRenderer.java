@@ -58,8 +58,10 @@ public class TrapDoorBlockRenderer implements TickableBlockRenderer {
 
     @Override
     public void receiveUpdate(Level level, BlockPos pos, BlockState oldState, BlockState newState, DataContainer dataContainer) {
-        BlockData<Boolean> pressed = dataContainer.get(OPEN);
-        pressed.set(newState.getValue(TrapDoorBlock.OPEN));
+        if(newState.getBlock() instanceof TrapDoorBlock){
+            BlockData<Boolean> pressed = dataContainer.get(OPEN);
+            pressed.set(newState.getValue(TrapDoorBlock.OPEN));
+        }
         //TickableBlockRenderer.super.receiveUpdate(level, pos, oldState, newState, container);
     }
 
@@ -67,6 +69,9 @@ public class TrapDoorBlockRenderer implements TickableBlockRenderer {
     public void render(Level level, BlockPos blockPos, DataContainer dataContainer, MultiBufferSource multiBufferSource, PoseStack poseStack, float v, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, int packedLight, int packedOverlay) {
         BlockState blockState = level.getBlockState(blockPos);
 
+        if(level.getBlockState(blockPos).getBlock() instanceof TrapDoorBlock){
+
+        }
         float openTimerNew = dataContainer.get(OPEN_TIMER).get();
         float openTimerPrevious = dataContainer.get(OPEN_TIMER_PREVIOUS).get();
         float openTimer = Mth.lerp(v, openTimerPrevious, openTimerNew);
