@@ -4,8 +4,6 @@
   "package": "gg.moonflower.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "MixinItemInHandLayer",
-    "debug.MixinDebugScreenOverlay"
   ],
   "client": [
     "MixinBlockEntity",
@@ -21,7 +19,9 @@
     "animations.renderer.MixinChestRenderer",
     "animations.renderer.MixinShulkerBoxRenderer",
     "debug.MixinAbstractClientPlayer",
-    "models.MixinPlayerModel"
+    "models.MixinPlayerModel",
+    "MixinItemInHandLayer",
+    "debug.MixinDebugScreenOverlay"
   ],
   "injectors": {
     "defaultRequire": 1

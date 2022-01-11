@@ -55,9 +55,7 @@ public class AnimationOverhaulMain {
 
 	private static void registerEntityAnimators(){
 		ENTITY_ANIMATORS.register(EntityType.PLAYER, new PlayerAnimator());
-		ENTITY_ANIMATORS.register(EntityType.ZOMBIFIED_PIGLIN, new ZombifiedPiglinAnimator());
-		//ENTITY_ANIMATORS.register(EntityType.PLAYER.toShortString(), PlayerAnimator::new);
-		//ENTITY_ANIMATORS.register(EntityType.ZOMBIFIED_PIGLIN.toShortString(), ZombifiedPiglinAnimator::new);
+		//ENTITY_ANIMATORS.register(EntityType.ZOMBIFIED_PIGLIN, new ZombifiedPiglinAnimator());
 	}
 
 	private static void registerBlockRenderers(){

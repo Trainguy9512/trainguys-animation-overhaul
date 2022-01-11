@@ -55,7 +55,7 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
         if(entity != null){
 
             EntityAnimationData entityAnimationData = ((EntityAccess)entity).getEntityAnimationData();
-            HashMap<String, EntityAnimationData.Data<?>> debugData = entityAnimationData.getDebugData();
+            TreeMap<String, EntityAnimationData.Data<?>> debugData = entityAnimationData.getDebugData();
 
             DecimalFormat format = new DecimalFormat("0.00");
             if(debugData.size() > 0){

@@ -36,6 +36,7 @@ public class MixinGameRenderer {
                 EntityType<?> entityType = entity.getType();
                 if(AnimationOverhaulMain.ENTITY_ANIMATORS.contains(entityType)){
                     LivingEntityAnimator livingEntityAnimator = AnimationOverhaulMain.ENTITY_ANIMATORS.get(entityType);
+                    livingEntityAnimator.setPartialTicks(f);
                     livingEntityAnimator.adjustTimers((LivingEntity) entity);
                 }
             }

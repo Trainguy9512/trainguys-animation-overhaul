@@ -1,5 +1,6 @@
 package gg.moonflower.animationoverhaul.animations;
 
+import com.ibm.icu.text.Normalizer2;
 import gg.moonflower.animationoverhaul.access.ModelAccess;
 import gg.moonflower.animationoverhaul.util.animation.Locator;
 import gg.moonflower.animationoverhaul.util.data.EntityAnimationData;
@@ -16,14 +17,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.item.CrossbowItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.Blocks;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
 
@@ -50,8 +49,19 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
     private static final EntityAnimationData.DataKey<Float> HOLD_NORMAL_MAIN_WEIGHT = new EntityAnimationData.DataKey<>("hold_normal_main_weight", 0F);
     private static final EntityAnimationData.DataKey<Float> HOLD_NORMAL_OFF_WEIGHT = new EntityAnimationData.DataKey<>("hold_normal_off_weight", 0F);
 
-    private static final EntityAnimationData.DataKey<Float> PUNCH_WEIGHT = new EntityAnimationData.DataKey<>("punch_weight", 0F);
-    private static final EntityAnimationData.DataKey<Float> PUNCH_TIMER = new EntityAnimationData.DataKey<>("punch_timer", 0F);
+    private static final EntityAnimationData.DataKey<Float> ATTACK_TIMER = new EntityAnimationData.DataKey<>("attack_timer", 0F);
+    private static final EntityAnimationData.DataKey<AttackType> ATTACK_TYPE = new EntityAnimationData.DataKey<>("attack_type", AttackType.PUNCH);
+
+    private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT = new EntityAnimationData.DataKey<>("attack_weight", 0F);
+    private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT_PUNCH = new EntityAnimationData.DataKey<>("attack_weight_punch", 0F);
+    private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT_OFFHAND = new EntityAnimationData.DataKey<>("attack_weight_offhand", 0F);
+    private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT_PICKAXE = new EntityAnimationData.DataKey<>("attack_weight_pickaxe", 0F);
+    private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT_SHOVEL = new EntityAnimationData.DataKey<>("attack_weight_shovel", 0F);
+    private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT_AXE = new EntityAnimationData.DataKey<>("attack_weight_axe", 0F);
+    private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT_HOE = new EntityAnimationData.DataKey<>("attack_weight_hoe", 0F);
+    private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT_SWORD = new EntityAnimationData.DataKey<>("attack_weight_sword", 0F);
+    private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT_PLACE = new EntityAnimationData.DataKey<>("attack_weight_place", 0F);
+
 
     private final Locator locatorMaster;
     private final Locator locatorHead;
@@ -200,9 +210,48 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
 
         incrementAnimationTimer(FALL_FLYING_WEIGHT, abstractClientPlayer.isFallFlying(), 12, -12);
 
-        resetTimerOnCondition(PUNCH_TIMER, abstractClientPlayer.attackAnim == 0 && (getAnimationTimer(PUNCH_TIMER) == 1 || getAnimationTimer(PUNCH_TIMER) == 0), 8);
-        incrementAnimationTimer(PUNCH_WEIGHT, getAnimationTimer(PUNCH_TIMER) != 0, 3, -4);
+        boolean shouldRepeatAttack = (abstractClientPlayer.getAttackAnim(this.partialTicks) != 0 && getAnimationTimer(ATTACK_TIMER) == 1);
+        boolean shouldResetAttack = (abstractClientPlayer.getAttackAnim(this.partialTicks) == 0 || getAnimationTimer(ATTACK_TIMER) == 1) && (getAnimationTimer(ATTACK_TIMER) == 0 || getAnimationTimer(ATTACK_TIMER) == 1);
+        resetTimerOnCondition(ATTACK_TIMER, shouldResetAttack, 6);
+        if(shouldRepeatAttack){
+            setAnimationTimer(ATTACK_TIMER, 0.001F);
+        }
+        if(getAnimationTimer(ATTACK_TIMER) == 0){
+            AttackType attackType;
+            if(livingEntity.swingingArm == InteractionHand.MAIN_HAND){
+                Item mainHandItem = livingEntity.getMainHandItem().getItem();
+                if(mainHandItem instanceof PickaxeItem){
+                    attackType = AttackType.PICKAXE;
+                } else if(mainHandItem instanceof AxeItem){
+                    attackType = AttackType.AXE;
+                } else if(mainHandItem instanceof ShovelItem){
+                    attackType = AttackType.SHOVEL;
+                } else if(mainHandItem instanceof HoeItem){
+                    attackType = AttackType.HOE;
+                } else if(mainHandItem instanceof SwordItem){
+                    attackType = AttackType.SWORD;
+                } else if(mainHandItem instanceof BlockItem){
+                    attackType = AttackType.PLACE;
+                } else {
+                    attackType = AttackType.PUNCH;
+                }
+            } else {
+                attackType = AttackType.OFFHAND;
+            }
+            setAnimationTimer(ATTACK_TYPE, attackType);
+        }
 
+        boolean isAttacking = getAnimationTimer(ATTACK_TIMER) != 0 || abstractClientPlayer.attackAnim != 0;
+        AttackType attackType = getAnimationTimer(ATTACK_TYPE);
+        incrementAnimationTimer(ATTACK_WEIGHT, isAttacking, 3, -3);
+        incrementAnimationTimer(ATTACK_WEIGHT_PUNCH, isAttacking && attackType == AttackType.PUNCH, 3, -6);
+        incrementAnimationTimer(ATTACK_WEIGHT_OFFHAND, isAttacking && attackType == AttackType.OFFHAND, 3, -6);
+        incrementAnimationTimer(ATTACK_WEIGHT_PICKAXE, isAttacking && attackType == AttackType.PICKAXE, 3, -6);
+        incrementAnimationTimer(ATTACK_WEIGHT_SHOVEL, isAttacking && attackType == AttackType.SHOVEL, 3, -6);
+        incrementAnimationTimer(ATTACK_WEIGHT_AXE, isAttacking && attackType == AttackType.AXE, 3, -6);
+        incrementAnimationTimer(ATTACK_WEIGHT_HOE, isAttacking && attackType == AttackType.HOE, 3, -6);
+        incrementAnimationTimer(ATTACK_WEIGHT_SWORD, isAttacking && attackType == AttackType.SWORD, 3, -6);
+        incrementAnimationTimer(ATTACK_WEIGHT_PLACE, isAttacking && attackType == AttackType.PLACE, 3, -6);
 
         incrementAnimationTimer(HOLD_NORMAL_MAIN_WEIGHT, getArmPose(abstractClientPlayer, InteractionHand.MAIN_HAND) == HumanoidModel.ArmPose.ITEM, 10, -10);
         incrementAnimationTimer(HOLD_NORMAL_OFF_WEIGHT, getArmPose(abstractClientPlayer, InteractionHand.OFF_HAND) == HumanoidModel.ArmPose.ITEM, 10, -10);
@@ -228,6 +277,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
 
         // Item interactions
         addPoseLayerHold();
+        addPoseLayerAttack();
 
         addPoseLayerFallFlying();
         addPoseLayerSleep();
@@ -253,11 +303,22 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         TimelineGroupData.TimelineGroup holdNormalMainHandTimelineGroup = getTimelineGroup("hold_normal_mainhand");
         TimelineGroupData.TimelineGroup holdNormalOffHandTimelineGroup = getTimelineGroup("hold_normal_offhand");
 
-        float holdNormalMainHandTimer = getAnimationTimer(HOLD_NORMAL_MAIN_WEIGHT);
-        float holdNormalOffHandTimer = getAnimationTimer(HOLD_NORMAL_OFF_WEIGHT);
+        float holdNormalMainHandTimer = getAnimationTimer(HOLD_NORMAL_MAIN_WEIGHT) * (1 - getAnimationTimerEasedQuad(ATTACK_WEIGHT));
+        float holdNormalOffHandTimer = getAnimationTimer(HOLD_NORMAL_OFF_WEIGHT) * (1 - getAnimationTimerEasedQuad(ATTACK_WEIGHT));
 
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, holdNormalMainHandTimelineGroup, holdNormalMainHandTimer, 1, isLeftHanded());
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, holdNormalOffHandTimelineGroup, holdNormalOffHandTimer, 1, isLeftHanded());
+    }
+
+    private void addPoseLayerAttack(){
+        Map<EntityAnimationData.DataKey<Float>, TimelineGroupData.TimelineGroup> attackTimelineGroups = Map.of(
+                ATTACK_WEIGHT_PUNCH, getTimelineGroup("attack_punch")
+        );
+        float attackTimer = getAnimationTimer(ATTACK_TIMER);
+        boolean isAttacking = getAnimationTimer(ATTACK_TIMER) != 0 || livingEntity.attackAnim != 0;
+        for(EntityAnimationData.DataKey<Float> dataKey : attackTimelineGroups.keySet()){
+            this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, attackTimelineGroups.get(dataKey), attackTimer, getEasedConditionAnimationTimer(dataKey, Easing.CubicBezier.bezierOutQuart(), Easing.CubicBezier.bezierInQuart(), isAttacking), isLeftHanded());
+        }
     }
 
     private void addPoseLayerTurn(){
@@ -438,11 +499,11 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
     }
 
     private float leftArmCancelWeight(){
-        return (1 - (getAnimationTimerEasedQuad(PUNCH_WEIGHT) * (isLeftHanded() ? 1 : 0)));
+        return (1 - (getAnimationTimerEasedQuad(ATTACK_WEIGHT) * (isLeftHanded() ? 1 : 0)));
     }
 
     private float rightArmCancelWeight(){
-        return (1 - (getAnimationTimerEasedQuad(PUNCH_WEIGHT) * (isLeftHanded() ? 0 : 1)));
+        return (1 - (getAnimationTimerEasedQuad(ATTACK_WEIGHT) * (isLeftHanded() ? 0 : 1)));
     }
 
     private void addPoseLayerSprint(){
@@ -644,7 +705,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         float swimMasterWeight = getAnimationTimerEasedQuad(VISUAL_SWIMMING_WEIGHT)
                 * getAnimationTimerEasedQuad(IN_WATER_WEIGHT);
 
-        float swimMasterTimer = (float) Mth.clamp((Math.toRadians(Mth.lerp(this.tickProgress, livingEntity.xRotO, livingEntity.getXRot())) / Mth.PI) + 0.5F, 0, 1);
+        float swimMasterTimer = (float) Mth.clamp((Math.toRadians(Mth.lerp(this.partialTicks, livingEntity.xRotO, livingEntity.getXRot())) / Mth.PI) + 0.5F, 0, 1);
         float swimFastTimer = new TimerProcessor(getAnimationTimer(ANIMATION_POSITION_XYZ))
                 .speedUp(1.5F)
                 .repeat(swimFastTimelineGroup)
@@ -669,7 +730,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         float fallFlyingMasterWeight = getAnimationTimerEasedQuad(FALL_FLYING_WEIGHT);
         float fallFlyingFastWeight = getAnimationTimer(FLYING_SPEED);
 
-        float fallFlyingMasterTimer = (float) Mth.clamp((Math.toRadians(Mth.lerp(this.tickProgress, livingEntity.xRotO, livingEntity.getXRot())) / Mth.PI) + 0.5F, 0, 1);
+        float fallFlyingMasterTimer = (float) Mth.clamp((Math.toRadians(Mth.lerp(this.partialTicks, livingEntity.xRotO, livingEntity.getXRot())) / Mth.PI) + 0.5F, 0, 1);
         float fallFlyingSlowTimer = new TimerProcessor(getAnimationTimer(ANIMATION_POSITION_XYZ))
                 .speedUp(1.5F)
                 .repeat(fallFlyingSlowTimelineGroup)
@@ -708,8 +769,10 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleCrouchTimelineGroup, idleNormalTimer, idleCrouchWeight, false);
 
         // Removes the vanilla transformation done for the crouch pose
-        if(livingEntity.isCrouching()){
-            locatorMaster.y -= 2;
+        if(model.crouching){
+            for(Locator locator : locatorListAll){
+                locator.y -= 2;
+            }
         }
     }
 
@@ -781,5 +844,16 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
             return HumanoidModel.ArmPose.CROSSBOW_HOLD;
         }
         return HumanoidModel.ArmPose.ITEM;
+    }
+
+    private enum AttackType{
+        PUNCH,
+        PLACE,
+        PICKAXE,
+        SHOVEL,
+        AXE,
+        HOE,
+        SWORD,
+        OFFHAND
     }
 }

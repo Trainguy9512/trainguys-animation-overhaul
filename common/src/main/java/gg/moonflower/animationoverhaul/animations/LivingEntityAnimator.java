@@ -16,7 +16,6 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.animal.FlyingAnimal;
-import org.lwjgl.system.CallbackI;
 
 import java.util.List;
 import java.util.Random;
@@ -27,7 +26,7 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
     protected M model;
     protected LocatorRig locatorRig;
 
-    protected float tickProgress;
+    protected float partialTicks;
     protected float delta;
     protected float tickAtFrame;
     protected float headXRot;
@@ -61,7 +60,7 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
     public void setProperties(T livingEntity, M model, float tickProgress){
         this.model = model;
         this.livingEntity = livingEntity;
-        this.tickProgress = tickProgress;
+        this.partialTicks = tickProgress;
         this.delta = Minecraft.getInstance().getDeltaFrameTime();
         this.tickAtFrame = livingEntity.tickCount + tickProgress;
         this.locatorRig = new LocatorRig();
@@ -86,6 +85,10 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
         adjustGeneralMovementTimers();
         adjustAnimationSpeedTimers();
         //adjustBodyYRotTimers();
+    }
+
+    public void setPartialTicks(float f){
+        this.partialTicks = f;
     }
 
     @Override
@@ -240,6 +243,10 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
 
     protected float getEasedAnimationTimer(EntityAnimationData.DataKey<Float> dataKey, Easing easing){
         return easing.ease(getAnimationTimer(dataKey));
+    }
+
+    protected float getEasedConditionAnimationTimer(EntityAnimationData.DataKey<Float> dataKey, Easing easing1, Easing easing2, boolean condition){
+        return condition ? easing1.ease(getAnimationTimer(dataKey)) : easing2.ease(getAnimationTimer(dataKey));
     }
 
     protected float getAnimationTimerEasedQuad(EntityAnimationData.DataKey<Float> dataKey){

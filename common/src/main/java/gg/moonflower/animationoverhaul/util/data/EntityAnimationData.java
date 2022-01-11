@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 
 public class EntityAnimationData {
 
@@ -20,13 +21,16 @@ public class EntityAnimationData {
         return (Data<D>) entityAnimationDataMap.get(dataKey);
     }
 
-    public HashMap<String, Data<?>> getDebugData(){
-        HashMap<String, Data<?>> finalList = Maps.newHashMap();
+    public TreeMap<String, Data<?>> getDebugData(){
+        TreeMap<String, Data<?>> finalList = Maps.newTreeMap();
         for(DataKey<?> dataKey : this.entityAnimationDataMap.keySet()){
             Data<?> data = entityAnimationDataMap.get(dataKey);
 
             String[] typeSplitted = data.get().getClass().toString().split("\\.");
             String type = typeSplitted[typeSplitted.length - 1];
+
+            typeSplitted = type.split("\\$");
+            type = typeSplitted[typeSplitted.length - 1];
 
             String debugIdentifier = dataKey.getIdentifier() + " (" + type + "):";
             finalList.put(debugIdentifier, data);
