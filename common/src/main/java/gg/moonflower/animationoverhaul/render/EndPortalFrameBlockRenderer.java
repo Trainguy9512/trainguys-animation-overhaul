@@ -38,7 +38,7 @@ public class EndPortalFrameBlockRenderer implements TickableBlockRenderer {
     public static final Block[] END_PORTAL_BLOCKS = new Block[]{
             Blocks.END_PORTAL_FRAME
     };
-    private static final ChannelTimeline<Float> eyeInsertTimeline = ChannelTimeline.floatChannelTimeline()
+    private static final ChannelTimeline eyeInsertTimeline = new ChannelTimeline()
             .addKeyframe(TransformChannel.y, 0, 0F)
             .addKeyframe(TransformChannel.y, 1, -2F/16F)
             .addKeyframe(TransformChannel.y, 5, 0F, new Easing.CubicBezier(.35F,1.0F,.63F,1F));

@@ -39,12 +39,12 @@ public class ButtonBlockRenderer implements TickableBlockRenderer {
             Blocks.STONE_BUTTON,
             Blocks.POLISHED_BLACKSTONE_BUTTON
     };
-    private static final ChannelTimeline<Float> pressDownTimeline = ChannelTimeline.floatChannelTimeline()
+    private static final ChannelTimeline pressDownTimeline = new ChannelTimeline()
             .addKeyframe(TransformChannel.y, 0, 0F)
             .addKeyframe(TransformChannel.y, 1, -1.5F/16F, new Easing.CubicBezier(0.18F, 0.59F, 0.45F, 1.6F))
             .addKeyframe(TransformChannel.y, 2, -1.5F/16F, new Easing.CubicBezier(0.18F, 0.59F, 0.45F, 1.6F));
 
-    private static final ChannelTimeline<Float> pressUpTimeline = ChannelTimeline.floatChannelTimeline()
+    private static final ChannelTimeline pressUpTimeline = new ChannelTimeline()
             .addKeyframe(TransformChannel.y, 0, 0F)
             .addKeyframe(TransformChannel.y, 1, -1/4F/16F, Easing.CubicBezier.bezierInCirc())
             .addKeyframe(TransformChannel.y, 2, 0F, Easing.CubicBezier.bezierOutCirc())
@@ -64,9 +64,12 @@ public class ButtonBlockRenderer implements TickableBlockRenderer {
 
     @Override
     public void receiveUpdate(Level level, BlockPos pos, BlockState oldState, BlockState newState, DataContainer dataContainer) {
+
+        BlockData<Boolean> pressed = dataContainer.get(PRESSED);
         if(newState.getBlock() instanceof ButtonBlock){
-            BlockData<Boolean> pressed = dataContainer.get(PRESSED);
             pressed.set(newState.getValue(ButtonBlock.POWERED));
+        } else {
+            pressed.set(false);
         }
         //TickableBlockRenderer.super.receiveUpdate(level, pos, oldState, newState, container);
     }
@@ -101,7 +104,7 @@ public class ButtonBlockRenderer implements TickableBlockRenderer {
 
         poseStack.pushPose();
 
-        ChannelTimeline<Float> channelTimeline = pressed ? pressDownTimeline : pressUpTimeline;
+        ChannelTimeline channelTimeline = pressed ? pressDownTimeline : pressUpTimeline;
         poseStack.translate(0, channelTimeline.getValueAt(TransformChannel.y, pressedTimer), 0);
 
         Minecraft.getInstance().getBlockRenderer().renderSingleBlock(level.getBlockState(blockPos).getBlock().defaultBlockState().setValue(ButtonBlock.FACE, AttachFace.FLOOR), poseStack, multiBufferSource, packedLight, packedOverlay);

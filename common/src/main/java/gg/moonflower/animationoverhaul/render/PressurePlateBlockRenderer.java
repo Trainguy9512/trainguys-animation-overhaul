@@ -40,11 +40,11 @@ public class PressurePlateBlockRenderer implements TickableBlockRenderer {
             Blocks.WARPED_PRESSURE_PLATE
     };
 
-    private static final ChannelTimeline<Float> pressDownTimeline = ChannelTimeline.floatChannelTimeline()
+    private static final ChannelTimeline pressDownTimeline = new ChannelTimeline()
             .addKeyframe(TransformChannel.y, 0, 0F)
             .addKeyframe(TransformChannel.y, 1, -1/2F/16F, new Easing.CubicBezier(0.18F, 0.59F, 0.45F, 1.13F));
 
-    private static final ChannelTimeline<Float> pressUpTimeline = ChannelTimeline.floatChannelTimeline()
+    private static final ChannelTimeline pressUpTimeline = new ChannelTimeline()
             .addKeyframe(TransformChannel.y, 0, 0F)
             .addKeyframe(TransformChannel.y, 1, -1/2F/16F, new Easing.CubicBezier(0.51F, -0.8F, 0.61F, 0.13F));
 
@@ -65,6 +65,8 @@ public class PressurePlateBlockRenderer implements TickableBlockRenderer {
             pressed.set(newState.getValue(PressurePlateBlock.POWERED));
         } else if(newState.getBlock() instanceof WeightedPressurePlateBlock){
             pressed.set(newState.getValue(WeightedPressurePlateBlock.POWER) > 0);
+        } else {
+            pressed.set(false);
         }
         //TickableBlockRenderer.super.receiveUpdate(level, pos, oldState, newState, container);
     }
@@ -77,7 +79,7 @@ public class PressurePlateBlockRenderer implements TickableBlockRenderer {
 
         boolean pressed = dataContainer.get(PRESSED).get();
 
-        ChannelTimeline<Float> channelTimeline = pressed ? pressDownTimeline : pressUpTimeline;
+        ChannelTimeline channelTimeline = pressed ? pressDownTimeline : pressUpTimeline;
         poseStack.translate(0, channelTimeline.getValueAt(TransformChannel.y, pressedTimer), 0);
 
         Minecraft.getInstance().getBlockRenderer().renderSingleBlock(level.getBlockState(blockPos).getBlock().defaultBlockState(), poseStack, multiBufferSource, packedLight, packedOverlay);

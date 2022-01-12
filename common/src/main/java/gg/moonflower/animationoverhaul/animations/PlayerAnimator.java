@@ -306,13 +306,17 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         float holdNormalMainHandTimer = getAnimationTimer(HOLD_NORMAL_MAIN_WEIGHT) * (1 - getAnimationTimerEasedQuad(ATTACK_WEIGHT));
         float holdNormalOffHandTimer = getAnimationTimer(HOLD_NORMAL_OFF_WEIGHT) * (1 - getAnimationTimerEasedQuad(ATTACK_WEIGHT));
 
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, holdNormalMainHandTimelineGroup, holdNormalMainHandTimer, 1, isLeftHanded());
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, holdNormalOffHandTimelineGroup, holdNormalOffHandTimer, 1, isLeftHanded());
+        float holdNormalMainHandWeight = 1 - getAnimationTimerEasedQuad(ATTACK_WEIGHT);
+        float holdNormalOffHandWeight = 1 - getAnimationTimerEasedQuad(ATTACK_WEIGHT_OFFHAND);
+
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, holdNormalMainHandTimelineGroup, holdNormalMainHandTimer, holdNormalMainHandWeight, isLeftHanded());
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, holdNormalOffHandTimelineGroup, holdNormalOffHandTimer, holdNormalOffHandWeight, isLeftHanded());
     }
 
     private void addPoseLayerAttack(){
         Map<EntityAnimationData.DataKey<Float>, TimelineGroupData.TimelineGroup> attackTimelineGroups = Map.of(
-                ATTACK_WEIGHT_PUNCH, getTimelineGroup("attack_punch")
+                ATTACK_WEIGHT_PUNCH, getTimelineGroup("attack_punch"),
+                ATTACK_WEIGHT_PICKAXE, getTimelineGroup("attack_pickaxe")
         );
         float attackTimer = getAnimationTimer(ATTACK_TIMER);
         boolean isAttacking = getAnimationTimer(ATTACK_TIMER) != 0 || livingEntity.attackAnim != 0;

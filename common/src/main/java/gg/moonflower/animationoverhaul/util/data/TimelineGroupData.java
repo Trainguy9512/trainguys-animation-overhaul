@@ -58,14 +58,14 @@ public class TimelineGroupData {
 
     public static class TimelineGroup {
 
-        private Map<String, ChannelTimeline<Float>> partTimelines = Maps.newHashMap();
+        private Map<String, ChannelTimeline> partTimelines = Maps.newHashMap();
         private final float frameLength;
 
         public TimelineGroup(float timelineFrameLength){
             frameLength = timelineFrameLength;
         }
 
-        public ChannelTimeline<Float> getPartTimeline(String partName){
+        public ChannelTimeline getPartTimeline(String partName){
             return partTimelines.get(partName);
         }
 
@@ -77,7 +77,7 @@ public class TimelineGroupData {
             return partTimelines.containsKey(partName);
         }
 
-        public void addPartTimeline(String partName, ChannelTimeline<Float> partTimeline){
+        public void addPartTimeline(String partName, ChannelTimeline partTimeline){
             partTimelines.put(partName, partTimeline);
         }
     }

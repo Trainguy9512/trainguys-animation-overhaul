@@ -1,9 +1,9 @@
 package gg.moonflower.animationoverhaul.util.data;
 
 import com.google.common.collect.Maps;
+import net.minecraft.util.Mth;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.TreeMap;
 
 public class EntityAnimationData {
@@ -79,6 +79,13 @@ public class EntityAnimationData {
             } else {
                 this.value = defaultValue;
             }
+        }
+
+        public float getLerped(float partialTicks){
+            if(this.value instanceof Float){
+                return Mth.lerp(partialTicks, (Float)this.valueOld, (Float)this.value);
+            }
+            return 0;
         }
     }
 }

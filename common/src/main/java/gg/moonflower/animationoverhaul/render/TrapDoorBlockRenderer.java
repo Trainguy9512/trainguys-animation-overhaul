@@ -38,11 +38,11 @@ public class TrapDoorBlockRenderer implements TickableBlockRenderer {
             Blocks.IRON_TRAPDOOR
     };
 
-    private static final ChannelTimeline<Float> openTimeline = ChannelTimeline.floatChannelTimeline()
+    private static final ChannelTimeline openTimeline = new ChannelTimeline()
             .addKeyframe(TransformChannel.xRot, 0, -90F)
             .addKeyframe(TransformChannel.xRot, 1, 0F, new Easing.CubicBezier(0.71F, 1.95F, 0.57F, 0.75F));
 
-    private static final ChannelTimeline<Float> closeTimeline = ChannelTimeline.floatChannelTimeline()
+    private static final ChannelTimeline closeTimeline = new ChannelTimeline()
             .addKeyframe(TransformChannel.xRot, 0, -90F)
             .addKeyframe(TransformChannel.xRot, 1, 0F, Easing.CubicBezier.getInverseBezier(0.71F, 1.95F, 0.57F, 0.75F));
 
@@ -58,9 +58,11 @@ public class TrapDoorBlockRenderer implements TickableBlockRenderer {
 
     @Override
     public void receiveUpdate(Level level, BlockPos pos, BlockState oldState, BlockState newState, DataContainer dataContainer) {
+        BlockData<Boolean> pressed = dataContainer.get(OPEN);
         if(newState.getBlock() instanceof TrapDoorBlock){
-            BlockData<Boolean> pressed = dataContainer.get(OPEN);
             pressed.set(newState.getValue(TrapDoorBlock.OPEN));
+        } else {
+            pressed.set(false);
         }
         //TickableBlockRenderer.super.receiveUpdate(level, pos, oldState, newState, container);
     }
@@ -97,7 +99,7 @@ public class TrapDoorBlockRenderer implements TickableBlockRenderer {
 
         poseStack.pushPose();
 
-        ChannelTimeline<Float> channelTimeline = open ? openTimeline : closeTimeline;
+        ChannelTimeline channelTimeline = open ? openTimeline : closeTimeline;
 
 
         poseStack.translate(0.5F, 0.5F, 0.5F);

@@ -74,7 +74,7 @@ public class LocatorRig {
                 LocatorEntry locatorEntry = locatorEntryHashMap.get(locator);
                 Locator locatorToUse = mirrored ? locatorEntry.getLocatorMirrored() : locatorEntry.getLocator();
                 if(timelineGroup.containsPart(locatorToUse.getIdentifier())){
-                    ChannelTimeline<Float> channelTimeline = timelineGroup.getPartTimeline(locatorToUse.getIdentifier());
+                    ChannelTimeline channelTimeline = timelineGroup.getPartTimeline(locatorToUse.getIdentifier());
                     animateLocatorAdditive(locator, channelTimeline, time, weightRotation, weightTranslation, mirrored);
                 }
             }
@@ -89,7 +89,7 @@ public class LocatorRig {
         animateMultipleLocatorsAdditive(locators, timelineGroup, time, weight, weight, false);
     }
 
-    public void animateLocatorAdditive(Locator locator, ChannelTimeline<Float> channelTimeline, float time, float weightRotation, float weightTranslation, boolean mirrored){
+    public void animateLocatorAdditive(Locator locator, ChannelTimeline channelTimeline, float time, float weightRotation, float weightTranslation, boolean mirrored){
         int mirrorMultiplier = mirrored ? -1 : 1;
         locator.x += channelTimeline.getValueAt(TransformChannel.x, time) * weightTranslation * mirrorMultiplier;
         locator.y += channelTimeline.getValueAt(TransformChannel.y, time) * weightTranslation;

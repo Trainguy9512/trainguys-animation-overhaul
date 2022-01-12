@@ -32,11 +32,11 @@ public class LeverBlockRenderer implements TickableBlockRenderer {
     public static final Block[] LEVERS = new Block[]{
             Blocks.LEVER
     };
-    private static final ChannelTimeline<Float> pullUpTimeline = ChannelTimeline.floatChannelTimeline()
+    private static final ChannelTimeline pullUpTimeline = new ChannelTimeline()
             .addKeyframe(TransformChannel.xRot, 0, 90F)
             .addKeyframe(TransformChannel.xRot, 1, 0F, new Easing.CubicBezier(0.58F, 1.5F, 0.74F, 1F));
 
-    private static final ChannelTimeline<Float> pullDownTimeline = ChannelTimeline.floatChannelTimeline()
+    private static final ChannelTimeline pullDownTimeline = new ChannelTimeline()
             .addKeyframe(TransformChannel.xRot, 0, 90F)
             .addKeyframe(TransformChannel.xRot, 1, 0F, Easing.CubicBezier.getInverseBezier(0.58F, 1.5F, 0.74F, 1F));
 
@@ -56,9 +56,11 @@ public class LeverBlockRenderer implements TickableBlockRenderer {
 
     @Override
     public void receiveUpdate(Level level, BlockPos pos, BlockState oldState, BlockState newState, DataContainer dataContainer) {
-        if(newState.getBlock() instanceof TrapDoorBlock){
-            BlockData<Boolean> pressed = dataContainer.get(PULLED);
+        BlockData<Boolean> pressed = dataContainer.get(PULLED);
+        if(newState.getBlock() instanceof LeverBlock){
             pressed.set(newState.getValue(LeverBlock.POWERED));
+        } else {
+            pressed.set(false);
         }
         //TickableBlockRenderer.super.receiveUpdate(level, pos, oldState, newState, container);
     }
@@ -98,7 +100,7 @@ public class LeverBlockRenderer implements TickableBlockRenderer {
         Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(), multiBufferSource.getBuffer(Sheets.cutoutBlockSheet()), null, leverBaseBakedModel, 1, 1, 1, packedLight, packedOverlay);
         poseStack.pushPose();
 
-        ChannelTimeline<Float> channelTimeline = pulled ? pullUpTimeline : pullDownTimeline;
+        ChannelTimeline channelTimeline = pulled ? pullUpTimeline : pullDownTimeline;
 
         poseStack.translate(0.5F, 1F/16F, 0.5F);
         poseStack.mulPose(Vector3f.XP.rotationDegrees(channelTimeline.getValueAt(TransformChannel.xRot, pullTimer)));

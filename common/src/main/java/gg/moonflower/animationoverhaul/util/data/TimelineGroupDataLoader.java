@@ -115,7 +115,7 @@ public class TimelineGroupDataLoader implements PollinatedPreparableReloadListen
                 String partName = partJSON.get("name").getAsString();
                 //AnimationOverhaul.LOGGER.info(partName);
 
-                ChannelTimeline<Float> channelTimeline = ChannelTimeline.floatChannelTimeline();
+                ChannelTimeline channelTimeline = new ChannelTimeline();
 
                 JsonObject partKeyframesJSON = partJSON.get("keyframes").getAsJsonObject();
                 for(Map.Entry<String, JsonElement> keyframeEntry : partKeyframesJSON.entrySet()){

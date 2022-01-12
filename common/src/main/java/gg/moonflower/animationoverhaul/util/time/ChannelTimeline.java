@@ -1,17 +1,19 @@
 package gg.moonflower.animationoverhaul.util.time;
 
 import gg.moonflower.animationoverhaul.util.data.TransformChannel;
+import net.minecraft.util.Mth;
 
+import java.util.List;
 import java.util.TreeMap;
 
-public class ChannelTimeline<T> {
+public class ChannelTimeline {
 
-    private TreeMap<TransformChannel, TreeMap<Float, Timeline.Keyframe<T>>> keyframeChannels = new TreeMap();
+    private static final List<TransformChannel> rotations = List.of(TransformChannel.xRot, TransformChannel.yRot, TransformChannel.zRot);
 
-    private Lerper<T> lerper;
+    private TreeMap<TransformChannel, TreeMap<Float, Timeline.Keyframe<Float>>> keyframeChannels = new TreeMap();
 
-    public T getValueAtFrame(TransformChannel transformChannel, float time) {
-        TreeMap<Float, Timeline.Keyframe<T>> keyframes = keyframeChannels.get(transformChannel);
+    public float getValueAtFrame(TransformChannel transformChannel, float time) {
+        TreeMap<Float, Timeline.Keyframe<Float>> keyframes = keyframeChannels.get(transformChannel);
         var firstKeyframe = keyframes.floorEntry(time);
         var secondKeyframe = keyframes.ceilingEntry(time);
 
@@ -29,36 +31,41 @@ public class ChannelTimeline<T> {
         float relativeTime = (time - firstKeyframe.getKey()) / (secondKeyframe.getKey() - firstKeyframe.getKey());
 
 
-        return lerper.lerp(
-                firstKeyframe.getValue().getValue(),
-                secondKeyframe.getValue().getValue(),
-                secondKeyframe.getValue().getEasing().ease(relativeTime)
+        float firstValue = firstKeyframe.getValue().getValue();
+        float secondValue = secondKeyframe.getValue().getValue();
+        if(rotations.contains(transformChannel)){
+            if(firstValue - secondValue < -Mth.PI){
+                secondValue -= 2 * Mth.PI;
+            }
+            if(firstValue - secondValue > Mth.PI){
+                secondValue += 2 * Mth.PI;
+            }
+        }
+        return Mth.lerp(
+                secondKeyframe.getValue().getEasing().ease(relativeTime),
+                firstValue,
+                secondValue
         );
     }
 
-    public T getValueAt(TransformChannel transformChannel, float t) {
-        TreeMap<Float, Timeline.Keyframe<T>> keyframes = keyframeChannels.get(transformChannel);
+    public float getValueAt(TransformChannel transformChannel, float t) {
+        TreeMap<Float, Timeline.Keyframe<Float>> keyframes = keyframeChannels.get(transformChannel);
         return getValueAtFrame(transformChannel, t * keyframes.lastKey());
     }
 
-    public ChannelTimeline(Lerper<T> lerper) {
-        this.lerper = lerper;
+    public ChannelTimeline() {
         // Initiate a tree map for each channel transform
         for(TransformChannel transformChannel : TransformChannel.values()){
-            this.keyframeChannels.put(transformChannel, new TreeMap<Float, Timeline.Keyframe<T>>());
+            this.keyframeChannels.put(transformChannel, new TreeMap<Float, Timeline.Keyframe<Float>>());
         }
     }
 
-    public ChannelTimeline<T> addKeyframe(TransformChannel transformChannel, float time, T value) {
+    public ChannelTimeline addKeyframe(TransformChannel transformChannel, float time, float value) {
         return addKeyframe(transformChannel, time, value, new Easing.Linear());
     }
 
-    public ChannelTimeline<T> addKeyframe(TransformChannel transformChannel, float time, T value, Easing easing) {
-        keyframeChannels.get(transformChannel).put(time, new Timeline.Keyframe<T>(value, easing));
+    public ChannelTimeline addKeyframe(TransformChannel transformChannel, float time, float value, Easing easing) {
+        keyframeChannels.get(transformChannel).put(time, new Timeline.Keyframe<Float>(value, easing));
         return this;
-    }
-
-    public static ChannelTimeline<Float> floatChannelTimeline() {
-        return new ChannelTimeline<>((a, b, t) -> a + (b - a) * t);
     }
 }
