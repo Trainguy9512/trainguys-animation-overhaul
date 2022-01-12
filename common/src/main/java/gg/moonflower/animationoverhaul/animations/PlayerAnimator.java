@@ -1,6 +1,5 @@
 package gg.moonflower.animationoverhaul.animations;
 
-import com.ibm.icu.text.Normalizer2;
 import gg.moonflower.animationoverhaul.access.ModelAccess;
 import gg.moonflower.animationoverhaul.util.animation.Locator;
 import gg.moonflower.animationoverhaul.util.data.EntityAnimationData;
@@ -77,7 +76,6 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
     private ModelPart cloakModelPart;
 
     private final List<Locator> locatorListAll;
-    private final List<Locator> locatorListBody;
     private final List<Locator> locatorListMaster;
 
     //TODO: add cases for handling inventory and hand animations
@@ -96,7 +94,6 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         this.locatorRightHand = new Locator("rightHand");
 
         locatorListAll = Arrays.asList(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak, locatorLeftHand, locatorRightHand);
-        locatorListBody = Arrays.asList(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak);
         locatorListMaster = Arrays.asList(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak, locatorLeftHand, locatorRightHand, locatorMaster);
     }
 
