@@ -61,6 +61,7 @@ public class EntityAnimationData {
 
         public Data(DataKey<D> dataKey){
             this.value = dataKey.defaultValue;
+            this.valueOld = dataKey.defaultValue;
             this.defaultValue = dataKey.defaultValue;
         }
 

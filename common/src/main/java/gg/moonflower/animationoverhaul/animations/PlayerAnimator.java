@@ -102,6 +102,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
 
         this.cloakModelPart = ((ModelAccess)model).getModelPart("cloak");
 
+        /*
         this.locatorRig.addLocator(locatorMaster);
         this.locatorRig.addLocatorModelPart(locatorHead, this.model.head);
         this.locatorRig.addLocatorModelPart(locatorBody, this.model.body);
@@ -112,11 +113,13 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
         this.locatorRig.addLocatorModelPart(locatorCloak, this.cloakModelPart);
         this.locatorRig.addLocator(locatorLeftHand, locatorRightHand);
         this.locatorRig.addLocator(locatorRightHand, locatorLeftHand);
+
+         */
     }
 
     @Override
-    public void adjustTimers(AbstractClientPlayer abstractClientPlayer) {
-        super.adjustTimers(abstractClientPlayer);
+    public void tick(AbstractClientPlayer abstractClientPlayer) {
+        super.tick(abstractClientPlayer);
 
         boolean isCrouching = abstractClientPlayer.isCrouching();
         boolean isSprinting = abstractClientPlayer.isSprinting();

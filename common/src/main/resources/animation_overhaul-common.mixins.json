@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "gg.moonflower.animationoverhaul.mixin",
-  "compatibilityLevel": "JAVA_16",
+  "compatibilityLevel": "JAVA_17",
   "mixins": [
   ],
   "client": [
@@ -12,6 +12,7 @@
     "MixinEntity",
     "MixinGameRenderer",
     "MixinInventoryScreen",
+    "MixinItemInHandLayer",
     "MixinLivingEntity",
     "MixinLivingEntityRenderer",
     "animations.part.MixinPhantomModel",
@@ -19,9 +20,9 @@
     "animations.renderer.MixinChestRenderer",
     "animations.renderer.MixinShulkerBoxRenderer",
     "debug.MixinAbstractClientPlayer",
+    "debug.MixinDebugScreenOverlay",
     "models.MixinPlayerModel",
-    "MixinItemInHandLayer",
-    "debug.MixinDebugScreenOverlay"
+    "models.MixinPiglinModel"
   ],
   "injectors": {
     "defaultRequire": 1

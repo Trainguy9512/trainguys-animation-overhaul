@@ -38,6 +38,7 @@ dependencies {
     modApi("gg.moonflower:pollen-fabric:${rootProject.pollen_version}") { transitive = false }
 
     modRuntimeOnly "com.terraformersmc:modmenu:${rootProject.mod_menu_version}"
+    modRuntimeOnly "curse.maven:3dskinlayers-521480:3541751"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }

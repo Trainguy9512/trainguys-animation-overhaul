@@ -5,7 +5,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public abstract class AbstractEntityAnimator<T extends LivingEntity, M extends EntityModel<T>>{
     protected abstract void setProperties(T livingEntity, M model, float tickProgress);
-    public abstract void adjustTimers(T livingEntity);
+    public abstract void tick(T livingEntity);
     protected abstract void animateParts();
     protected abstract void finalizeModel();
     protected abstract void animatePartsInventory();

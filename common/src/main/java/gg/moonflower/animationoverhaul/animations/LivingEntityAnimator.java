@@ -27,10 +27,10 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
     protected LocatorRig locatorRig;
 
     protected float partialTicks;
-    protected float delta;
     protected float tickAtFrame;
     protected float headXRot;
     protected float headYRot;
+    protected float delta = 0;
 
     protected final Random random = new Random();
 
@@ -61,13 +61,14 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
         this.model = model;
         this.livingEntity = livingEntity;
         this.partialTicks = tickProgress;
-        this.delta = Minecraft.getInstance().getDeltaFrameTime();
-        this.tickAtFrame = livingEntity.tickCount + tickProgress;
         this.locatorRig = new LocatorRig();
         setHeadVariables(tickProgress);
     }
 
-    public void animate(){
+    public void animate(T livingEntity, M model, float partialTicks){
+        this.model = model;
+        this.livingEntity = livingEntity;
+        this.tickAtFrame = livingEntity.tickCount + partialTicks;
         this.locatorRig.resetRig();
         if(((LivingEntityAccess)livingEntity).getUseInventoryRenderer()){
             this.animatePartsInventory();
@@ -80,7 +81,7 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
     }
 
     @Override
-    public void adjustTimers(T livingEntity) {
+    public void tick(T livingEntity) {
         this.livingEntity = livingEntity;
         adjustGeneralMovementTimers();
         adjustAnimationSpeedTimers();
@@ -108,7 +109,7 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
 
     public void bakeLocatorRig(){
         ((LivingEntityAccess)livingEntity).storeLocatorRig(this.locatorRig);
-        this.locatorRig.bakeRig();
+        //this.locatorRig.bakeRig();
     }
 
     protected void adjustGeneralMovementTimers(){

@@ -1,10 +1,13 @@
 package gg.moonflower.animationoverhaul.util.animation;
 
 import com.google.common.collect.Maps;
+import gg.moonflower.animationoverhaul.AnimationOverhaulMain;
 import gg.moonflower.animationoverhaul.util.data.TimelineGroupData;
 import gg.moonflower.animationoverhaul.util.data.TransformChannel;
 import gg.moonflower.animationoverhaul.util.time.ChannelTimeline;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,22 +15,31 @@ import java.util.Objects;
 
 public class LocatorRig {
 
-    private HashMap<Locator, LocatorEntry> locatorEntryHashMap = Maps.newHashMap();
+    private final HashMap<Locator, LocatorEntry> locatorEntryHashMap = Maps.newHashMap();
 
     public LocatorRig(){
 
     }
 
-    public void addLocatorModelPart(Locator locator, Locator locatorMirrored, ModelPart modelPart){
-        locatorEntryHashMap.putIfAbsent(locator, new LocatorEntry(locator, locatorMirrored, modelPart));
+    public void addLocatorModelPart(Locator locator, Locator locatorMirrored, String modelPartIdentifier, PartPose defaultPose){
+        locatorEntryHashMap.putIfAbsent(locator, new LocatorEntry(locator, locatorMirrored, modelPartIdentifier, defaultPose));
     }
 
-    public void addLocatorModelPart(Locator locator, ModelPart modelPart){
-        addLocatorModelPart(locator, locator, modelPart);
+    public void addLocatorModelPart(Locator locator, String modelPartIdentifier, PartPose defaultPose){
+        addLocatorModelPart(locator, locator, modelPartIdentifier, defaultPose);
+    }
+
+    public void addLocatorModelPart(Locator locator, Locator locatorMirrored, String modelPartIdentifier){
+        addLocatorModelPart(locator, locatorMirrored, modelPartIdentifier, PartPose.ZERO);
+    }
+
+    public void addLocatorModelPart(Locator locator, String modelPartIdentifier){
+        addLocatorModelPart(locator, modelPartIdentifier, PartPose.ZERO);
     }
 
     public void addLocator(Locator locator, Locator locatorMirrored){
-        locatorEntryHashMap.putIfAbsent(locator, new LocatorEntry(locator, locatorMirrored));
+        AnimationOverhaulMain.LOGGER.info("Added locator {} to rig", locator.getIdentifier());
+        locatorEntryHashMap.putIfAbsent(locator, new LocatorEntry(locator, locatorMirrored, null, PartPose.ZERO));
     }
 
     public void addLocator(Locator locator){
@@ -62,9 +74,15 @@ public class LocatorRig {
         return false;
     }
 
-    public void bakeRig(){
+    public void bakeRig(ModelPart rootModelPart){
         for(LocatorEntry locatorEntry : locatorEntryHashMap.values()){
-            locatorEntry.bakeLocatorToModelPart();
+            if(locatorEntry.modelPartIdentifier != null){
+                ModelPart finalModelPart = rootModelPart;
+                for(String individualPartString : locatorEntry.modelPartIdentifier.split("\\.")){
+                    finalModelPart = finalModelPart.getChild(individualPartString);
+                }
+                locatorEntry.bakeLocatorToModelPart(finalModelPart);
+            }
         }
     }
 
@@ -114,31 +132,24 @@ public class LocatorRig {
     private static class LocatorEntry {
         private final Locator locator;
         private final Locator locatorMirrored;
-        private final ModelPart modelPart;
+        @Nullable
+        private final String modelPartIdentifier;
         private final boolean usesModelPart;
+        private final PartPose defaultPose;
 
-        public LocatorEntry(Locator locator, Locator locatorMirrored, ModelPart modelPart){
+        public LocatorEntry(Locator locator, Locator locatorMirrored, @Nullable String modelPartIdentifier, PartPose defaultPose){
             this.locator = locator;
             this.locatorMirrored = locatorMirrored;
-            this.modelPart = modelPart;
-            this.usesModelPart = true;
+            this.modelPartIdentifier = modelPartIdentifier;
+            this.usesModelPart = modelPartIdentifier != null;
+            this.defaultPose = defaultPose;
         }
 
-        public LocatorEntry(Locator locator, Locator locatorMirrored){
-            this.locator = locator;
-            this.locatorMirrored = locatorMirrored;
-            this.modelPart = null;
-            this.usesModelPart = false;
-        }
-
-        public void bakeLocatorToModelPart(){
-            if(usesModelPart && this.modelPart != null){
-                this.locator.bakeToModelPart(this.modelPart);
+        public void bakeLocatorToModelPart(ModelPart modelPart){
+            if(usesModelPart && modelPart != null){
+                this.locator.additiveApplyPose(this.defaultPose);
+                this.locator.bakeToModelPart(modelPart);
             }
-        }
-
-        public boolean usesModelPart(){
-            return this.usesModelPart;
         }
 
         public Locator getLocator(){

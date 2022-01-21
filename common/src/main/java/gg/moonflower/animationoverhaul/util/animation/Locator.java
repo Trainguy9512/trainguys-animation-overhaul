@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import gg.moonflower.animationoverhaul.util.math.RotationMatrix;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.util.Mth;
 
 public class Locator {
@@ -80,6 +81,15 @@ public class Locator {
         modelPart.xRot = this.xRot;
         modelPart.yRot = this.yRot;
         modelPart.zRot = this.zRot;
+    }
+
+    public void additiveApplyPose(PartPose partPose){
+        this.x += partPose.x;
+        this.y += partPose.y;
+        this.z += partPose.z;
+        this.xRot += partPose.xRot;
+        this.yRot += partPose.yRot;
+        this.zRot += partPose.zRot;
     }
 
     public void rotateWorldSpace(float x, float y, float z){

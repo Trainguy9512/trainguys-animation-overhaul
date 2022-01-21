@@ -5,6 +5,7 @@ import com.mojang.math.Vector3f;
 import gg.moonflower.animationoverhaul.AnimationOverhaulMain;
 import gg.moonflower.animationoverhaul.access.EntityAccess;
 import gg.moonflower.animationoverhaul.access.LivingEntityAccess;
+import gg.moonflower.animationoverhaul.animations.AnimatorDispatcher;
 import gg.moonflower.animationoverhaul.animations.LivingEntityAnimator;
 import gg.moonflower.animationoverhaul.animations.PlayerAnimator;
 import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
@@ -16,6 +17,7 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
@@ -33,23 +35,17 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
         super(context);
     }
 
-    @Shadow protected abstract float getBob(T livingEntity, float f);
     @Shadow protected M model;
     @Shadow public abstract M getModel();
 
     @Shadow protected abstract void setupRotations(T livingEntity, PoseStack poseStack, float f, float g, float h);
 
-    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;isBodyVisible(Lnet/minecraft/world/entity/LivingEntity;)Z"))
-    private void setPartController(T livingEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
-        EntityType<?> entityType = livingEntity.getType();
-        if(AnimationOverhaulMain.ENTITY_ANIMATORS.contains(entityType)){
-            LivingEntityAnimator<T, M> livingEntityAnimator = (LivingEntityAnimator<T, M>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(entityType);
-            livingEntityAnimator.setProperties(livingEntity, this.model, g);
-            livingEntityAnimator.animate();
+    @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;setupAnim(Lnet/minecraft/world/entity/Entity;FFFFF)V"))
+    private void redirectSetupAnim(M entityModel, Entity t, float a, float b, float c, float d, float e, T livingEntity, float f, float g, PoseStack poseStack){
+        if(!AnimatorDispatcher.INSTANCE.animateEntity(livingEntity, entityModel, poseStack, g)){
+            entityModel.setupAnim(livingEntity, a, b, c, d, e);
         }
     }
-
-
 
     @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;setupRotations(Lnet/minecraft/world/entity/LivingEntity;Lcom/mojang/blaze3d/vertex/PoseStack;FFF)V"))
     private void overwriteSetupRotations(LivingEntityRenderer<T,M> instance, T livingEntity, PoseStack poseStack, float bob, float bodyRot, float frameTime){

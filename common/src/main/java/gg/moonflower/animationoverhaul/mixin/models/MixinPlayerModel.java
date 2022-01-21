@@ -24,4 +24,9 @@ public class MixinPlayerModel implements ModelAccess {
     public ModelPart getModelPart(String identifier) {
         return this.rootModelPart.getChild(identifier);
     }
+
+    @Override
+    public ModelPart getRootModelPart() {
+        return this.rootModelPart;
+    }
 }

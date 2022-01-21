@@ -1,15 +1,24 @@
 package gg.moonflower.animationoverhaul.mixin.debug;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Vector3f;
 import gg.moonflower.animationoverhaul.AnimationOverhaulMain;
 import gg.moonflower.animationoverhaul.access.EntityAccess;
 import gg.moonflower.animationoverhaul.util.data.EntityAnimationData;
+import gg.moonflower.pollen.api.client.render.ShapeRenderer;
 import gg.moonflower.pollen.pinwheel.api.common.animation.AnimationData;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.server.IntegratedServer;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.HitResult;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -30,6 +39,10 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
     @Shadow @Final private static int COLOR_GREY;
 
     @Shadow protected abstract int colorLerp(int i, int j, float f);
+
+    @Shadow private HitResult block;
+
+    @Shadow private HitResult liquid;
 
     @Inject(method = "drawSystemInformation", at = @At("HEAD"), cancellable = true)
     private void drawTimerDebugInfo(PoseStack poseStack, CallbackInfo ci){
@@ -120,6 +133,12 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
                 fill(poseStack, l - 1, m - 1, l + k + 1, m + j - 1, -1873784752);
                 this.font.draw(poseStack, string, (float)l, (float)m, COLOR_GREY);
             }
+        }
+    }
+    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
+    private void testCompassGadget(PoseStack poseStack, CallbackInfo ci){
+        if(this.minecraft.options.fov == 73){
+            ci.cancel();
         }
     }
 }

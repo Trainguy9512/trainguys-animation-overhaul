@@ -1,7 +1,6 @@
 package gg.moonflower.animationoverhaul;
 
-import gg.moonflower.animationoverhaul.animations.PlayerAnimator;
-import gg.moonflower.animationoverhaul.animations.ZombifiedPiglinAnimator;
+import gg.moonflower.animationoverhaul.animations.entity.PlayerPartAnimator;
 import gg.moonflower.animationoverhaul.render.*;
 import gg.moonflower.animationoverhaul.util.data.TimelineGroupDataLoader;
 import gg.moonflower.animationoverhaul.util.data.LivingEntityAnimatorRegistry;
@@ -54,7 +53,7 @@ public class AnimationOverhaulMain {
 	}
 
 	private static void registerEntityAnimators(){
-		ENTITY_ANIMATORS.register(EntityType.PLAYER, new PlayerAnimator());
+		ENTITY_ANIMATORS.register(EntityType.PLAYER, new PlayerPartAnimator());
 		//ENTITY_ANIMATORS.register(EntityType.ZOMBIFIED_PIGLIN, new ZombifiedPiglinAnimator());
 	}
 

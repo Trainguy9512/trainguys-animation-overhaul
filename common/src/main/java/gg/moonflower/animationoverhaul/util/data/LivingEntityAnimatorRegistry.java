@@ -1,27 +1,27 @@
 package gg.moonflower.animationoverhaul.util.data;
 
 import com.google.common.collect.Maps;
-import gg.moonflower.animationoverhaul.animations.LivingEntityAnimator;
+import gg.moonflower.animationoverhaul.animations.entity.LivingEntityPartAnimator;
 import net.minecraft.world.entity.EntityType;
 
 import java.util.HashMap;
 
 public class LivingEntityAnimatorRegistry {
 
-    private final HashMap<EntityType<?>, LivingEntityAnimator<?, ?>> livingEntityAnimatorHashMap = Maps.newHashMap();
+    private final HashMap<EntityType<?>, LivingEntityPartAnimator<?, ?>> livingEntityPartAnimatorHashMap = Maps.newHashMap();
 
     public LivingEntityAnimatorRegistry(){
     }
 
-    public void register(EntityType<?> entityType, LivingEntityAnimator<?, ?> livingEntityAnimator){
-        livingEntityAnimatorHashMap.put(entityType, livingEntityAnimator);
+    public void register(EntityType<?> entityType, LivingEntityPartAnimator<?, ?> livingEntityPartAnimator){
+        livingEntityPartAnimatorHashMap.put(entityType, livingEntityPartAnimator);
     }
 
     public boolean contains(EntityType<?> entityType){
-        return livingEntityAnimatorHashMap.containsKey(entityType);
+        return livingEntityPartAnimatorHashMap.containsKey(entityType);
     }
 
-    public LivingEntityAnimator<?, ?> get(EntityType<?> entityType){
-        return livingEntityAnimatorHashMap.get(entityType);
+    public LivingEntityPartAnimator<?, ?> get(EntityType<?> entityType){
+        return livingEntityPartAnimatorHashMap.get(entityType);
     }
 }
