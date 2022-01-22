@@ -38,7 +38,6 @@ public class LocatorRig {
     }
 
     public void addLocator(Locator locator, Locator locatorMirrored){
-        AnimationOverhaulMain.LOGGER.info("Added locator {} to rig", locator.getIdentifier());
         locatorEntryHashMap.putIfAbsent(locator, new LocatorEntry(locator, locatorMirrored, null, PartPose.ZERO));
     }
 

@@ -227,7 +227,7 @@ public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<
 
     protected TimelineGroupData.TimelineGroup getTimelineGroup(String animationKey){
         String entityKey = livingEntity.getType().toString().split("\\.")[2];
-        return TimelineGroupData.loadedData.get(entityKey, animationKey);
+        return TimelineGroupData.INSTANCE.get(entityKey, animationKey);
     }
 
     protected EntityAnimationData getEntityAnimationData(){

@@ -103,8 +103,12 @@ public class TimelineGroupDataLoader implements PollinatedPreparableReloadListen
 
             AnimationOverhaulMain.LOGGER.info("Loading animation {}", resourceLocationKey);
 
-            String entityKey = resourceLocationKey.toString().split("/")[1];
-            String animationKey = resourceLocationKey.toString().split("/")[2].split("\\.")[0];
+            String resourceNamespace = resourceLocationKey.toString().split(":")[0];
+            String resourceBody = resourceLocationKey.toString().split(":")[1].split("\\.")[0].replace("timelinegroups/", "");
+            ResourceLocation finalResourceLocation = new ResourceLocation(resourceNamespace, resourceBody);
+
+            //String entityKey = resourceLocationKey.toString().split("/")[1];
+            //String animationKey = resourceLocationKey.toString().split("/")[2].split("\\.")[0];
             float frameTime = animationJSON.getAsJsonObject().get("frame_length").getAsFloat() / 1.2F;
 
             TimelineGroupData.TimelineGroup timelineGroup = new TimelineGroupData.TimelineGroup(frameTime);
@@ -135,12 +139,12 @@ public class TimelineGroupDataLoader implements PollinatedPreparableReloadListen
             }
 
 
-            newData.put(entityKey, animationKey, timelineGroup);
+            newData.put(finalResourceLocation, timelineGroup);
             //AnimationOverhaul.LOGGER.info(frameTime);
             //AnimationOverhaul.LOGGER.info("Entity key: {} Animation key: {}", entityKey, animationKey);
         }
 
-        TimelineGroupData.loadedData.clearAndReplace(newData);
+        TimelineGroupData.INSTANCE.clearAndReplace(newData);
     }
 
     @Override

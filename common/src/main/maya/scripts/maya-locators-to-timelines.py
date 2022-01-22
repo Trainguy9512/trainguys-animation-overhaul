@@ -5,7 +5,7 @@ import json
 selection = cmds.ls(selection=True)
 
 startKeyframe = 0
-endKeyframe = 10
+endKeyframe = 20
 keysPerFrame = 1
 entityKey = "player"
 animationKey = "dummy"
@@ -56,7 +56,7 @@ masterDict["parts"] = partsList
 masterDictJSON = json.dumps(masterDict)
 print(masterDictJSON)
 
-filePath = 'C:/Users/Trainguy/Desktop/Modding/moonflower/trainguys-animation-overhaul-1.18.x/common/src/main/resources/assets/animationoverhaul/timelinegroups/' + entityKey + '/'
+filePath = 'C:/Users/Trainguy/Desktop/Modding/moonflower/trainguys-animation-overhaul-1.18.x/common/src/main/resources/assets/animation_overhaul/timelinegroups/' + entityKey + '/'
 
 if not os.path.exists(filePath):
     os.makedirs(filePath)

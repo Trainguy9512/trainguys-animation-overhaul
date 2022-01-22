@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import gg.moonflower.animationoverhaul.AnimationOverhaulMain;
 import gg.moonflower.animationoverhaul.access.EntityAccess;
+import gg.moonflower.animationoverhaul.animations.AnimatorDispatcher;
 import gg.moonflower.animationoverhaul.util.data.EntityAnimationData;
 import gg.moonflower.pollen.api.client.render.ShapeRenderer;
 import gg.moonflower.pollen.pinwheel.api.common.animation.AnimationData;
@@ -67,7 +68,7 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
 
         if(entity != null){
 
-            EntityAnimationData entityAnimationData = ((EntityAccess)entity).getEntityAnimationData();
+            EntityAnimationData entityAnimationData = AnimatorDispatcher.INSTANCE.getEntityAnimationData(entity);
             TreeMap<String, EntityAnimationData.Data<?>> debugData = entityAnimationData.getDebugData();
 
             DecimalFormat format = new DecimalFormat("0.00");

@@ -255,6 +255,7 @@ public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, P
 
         incrementAnimationTimer(HOLD_NORMAL_MAIN_WEIGHT, getArmPose(abstractClientPlayer, InteractionHand.MAIN_HAND) == HumanoidModel.ArmPose.ITEM, 10, -10);
         incrementAnimationTimer(HOLD_NORMAL_OFF_WEIGHT, getArmPose(abstractClientPlayer, InteractionHand.OFF_HAND) == HumanoidModel.ArmPose.ITEM, 10, -10);
+
     }
 
     @Override

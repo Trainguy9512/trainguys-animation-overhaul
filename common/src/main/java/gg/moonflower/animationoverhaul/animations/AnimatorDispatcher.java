@@ -37,4 +37,15 @@ public class AnimatorDispatcher {
         }
         return false;
     }
+
+    public EntityAnimationData getEntityAnimationData(UUID uuid){
+        if(entityAnimationDataMap.containsKey(uuid)){
+            return entityAnimationDataMap.get(uuid);
+        }
+        return new EntityAnimationData();
+    }
+
+    public <T extends Entity> EntityAnimationData getEntityAnimationData(T entity){
+        return getEntityAnimationData(entity.getUUID());
+    }
 }

@@ -56,7 +56,7 @@ public class DebugGadgetRenderer extends GuiComponent {
         poseStack.pushPose();
         poseStack.translate(80, 83, 0);
 
-        poseStack.mulPose(Vector3f.ZP.rotationDegrees(animationData.get(COMPASS_ROTATION_POSITION).getLerped(partialTicks)));
+        poseStack.mulPose(Vector3f.ZP.rotationDegrees(animationData.getLerped(COMPASS_ROTATION_POSITION, partialTicks)));
         this.blit(poseStack, -3, -52, 160, 13, 6, 62);
         poseStack.popPose();
         poseStack.popPose();
