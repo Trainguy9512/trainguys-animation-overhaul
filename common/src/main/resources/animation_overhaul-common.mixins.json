@@ -4,6 +4,7 @@
   "package": "gg.moonflower.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "MixinModelPart"
   ],
   "client": [
     "MixinBlockEntity",
@@ -17,8 +18,8 @@
     "MixinLivingEntityRenderer",
     "debug.MixinAbstractClientPlayer",
     "debug.MixinDebugScreenOverlay",
-    "models.MixinPlayerModel",
-    "models.MixinPiglinModel"
+    "models.MixinPiglinModel",
+    "models.MixinPlayerModel"
   ],
   "injectors": {
     "defaultRequire": 1

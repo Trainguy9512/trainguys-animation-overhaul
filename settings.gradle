@@ -12,4 +12,4 @@ rootProject.name = "animationoverhaul"
 
 include("common")
 include("fabric")
-include("forge")
+//include("forge")

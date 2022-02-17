@@ -7,7 +7,7 @@ dependencies {
 }
 
 architectury {
-    common()
+    common(false)
 }
 
 loom {

@@ -29,7 +29,7 @@
   },
   "depends": {
     "fabric": "*",
-    "minecraft": "1.18.x",
+    "minecraft": "1.19-Deep.Dark.Experimental.Snapshot.1",
     "pollen": "1.0.0"
   }
 }
