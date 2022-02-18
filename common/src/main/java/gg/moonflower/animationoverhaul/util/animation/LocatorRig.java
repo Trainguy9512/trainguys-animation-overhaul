@@ -90,9 +90,11 @@ public class LocatorRig {
             if(this.locatorEntryHashMap.containsKey(locator)){
                 LocatorEntry locatorEntry = locatorEntryHashMap.get(locator);
                 Locator locatorToUse = mirrored ? locatorEntry.getLocatorMirrored() : locatorEntry.getLocator();
-                if(timelineGroup.containsPart(locatorToUse.getIdentifier())){
-                    ChannelTimeline channelTimeline = timelineGroup.getPartTimeline(locatorToUse.getIdentifier());
-                    animateLocatorAdditive(locator, channelTimeline, time, weightRotation, weightTranslation, mirrored);
+                if(timelineGroup != null){
+                    if(timelineGroup.containsPart(locatorToUse.getIdentifier())){
+                        ChannelTimeline channelTimeline = timelineGroup.getPartTimeline(locatorToUse.getIdentifier());
+                        animateLocatorAdditive(locator, channelTimeline, time, weightRotation, weightTranslation, mirrored);
+                    }
                 }
             }
         }

@@ -28,8 +28,8 @@ public class TimelineGroupData {
         if(animationEntries.containsKey(resourceLocation)){
             return animationEntries.get(resourceLocation);
         } else {
-            AnimationOverhaulMain.LOGGER.error("Resource location {} not found in loaded data", resourceLocation);
-            return null;
+            //AnimationOverhaulMain.LOGGER.error("Resource location {} not found in loaded data", resourceLocation);
+            return TimelineGroup.blank();
         }
     }
 
@@ -75,6 +75,10 @@ public class TimelineGroupData {
 
         public void addPartTimeline(String partName, ChannelTimeline partTimeline){
             partTimelines.put(partName, partTimeline);
+        }
+
+        public static TimelineGroup blank(){
+            return new TimelineGroup(10);
         }
     }
 }

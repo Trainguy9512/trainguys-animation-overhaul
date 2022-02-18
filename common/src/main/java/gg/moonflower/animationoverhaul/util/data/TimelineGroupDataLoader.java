@@ -18,6 +18,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -25,7 +26,7 @@ public class TimelineGroupDataLoader implements PollinatedPreparableReloadListen
 
     //<Map<ResourceLocation, JsonElement>>
 
-
+    private static final String FORMAT_VERSION = "0.2";
 
     public Map<ResourceLocation, JsonElement> prepare(ResourceManager resourceManager, ProfilerFiller profilerFiller) {
         Gson gson = new Gson();
@@ -101,7 +102,6 @@ public class TimelineGroupDataLoader implements PollinatedPreparableReloadListen
         for(ResourceLocation resourceLocationKey : data.keySet()){
             JsonElement animationJSON = data.get(resourceLocationKey);
 
-            AnimationOverhaulMain.LOGGER.info("Loading animation {}", resourceLocationKey);
 
             String resourceNamespace = resourceLocationKey.toString().split(":")[0];
             String resourceBody = resourceLocationKey.toString().split(":")[1].split("\\.")[0].replace("timelinegroups/", "");
@@ -110,38 +110,62 @@ public class TimelineGroupDataLoader implements PollinatedPreparableReloadListen
             //String entityKey = resourceLocationKey.toString().split("/")[1];
             //String animationKey = resourceLocationKey.toString().split("/")[2].split("\\.")[0];
             float frameTime = animationJSON.getAsJsonObject().get("frame_length").getAsFloat() / 1.2F;
-
-            TimelineGroupData.TimelineGroup timelineGroup = new TimelineGroupData.TimelineGroup(frameTime);
-
-            JsonArray partArrayJSON = animationJSON.getAsJsonObject().get("parts").getAsJsonArray();
-            for(int partIndex = 0; partIndex < partArrayJSON.size(); partIndex++){
-                JsonObject partJSON = partArrayJSON.get(partIndex).getAsJsonObject();
-                String partName = partJSON.get("name").getAsString();
-                //AnimationOverhaul.LOGGER.info(partName);
-
-                ChannelTimeline channelTimeline = new ChannelTimeline();
-
-                JsonObject partKeyframesJSON = partJSON.get("keyframes").getAsJsonObject();
-                for(Map.Entry<String, JsonElement> keyframeEntry : partKeyframesJSON.entrySet()){
-                    int keyframeNumber = Integer.parseInt(keyframeEntry.getKey());
-                    JsonElement keyframeJSON = keyframeEntry.getValue();
-                    //AnimationOverhaul.LOGGER.info(keyframeNumber);
-
-                    for(Map.Entry<String, JsonElement> attributeEntry : keyframeJSON.getAsJsonObject().entrySet()){
-                        TransformChannel transformChannel = TransformChannel.valueOf(attributeEntry.getKey());
-                        float keyframeValue = attributeEntry.getValue().getAsFloat();
-
-                        channelTimeline = channelTimeline.addKeyframe(transformChannel, keyframeNumber, keyframeValue);
-                        //AnimationOverhaul.LOGGER.info("Channel: {} Value: {}", transformChannel, keyframeValue);
-                    }
-                }
-                timelineGroup.addPartTimeline(partName, channelTimeline);
+            String formatVersion;
+            if(animationJSON.getAsJsonObject().has("format_version")){
+                formatVersion = animationJSON.getAsJsonObject().get("format_version").getAsString();
+            } else {
+                formatVersion = "0.1";
             }
 
+            if(Objects.equals(formatVersion, FORMAT_VERSION)){
+                TimelineGroupData.TimelineGroup timelineGroup = new TimelineGroupData.TimelineGroup(frameTime);
 
-            newData.put(finalResourceLocation, timelineGroup);
-            //AnimationOverhaul.LOGGER.info(frameTime);
-            //AnimationOverhaul.LOGGER.info("Entity key: {} Animation key: {}", entityKey, animationKey);
+                JsonArray partArrayJSON = animationJSON.getAsJsonObject().get("parts").getAsJsonArray();
+                for(int partIndex = 0; partIndex < partArrayJSON.size(); partIndex++){
+                    JsonObject partJSON = partArrayJSON.get(partIndex).getAsJsonObject();
+                    String partName = partJSON.get("name").getAsString();
+                    //AnimationOverhaul.LOGGER.info(partName);
+
+                    ChannelTimeline channelTimeline = new ChannelTimeline();
+
+                    JsonObject partKeyframesJSON = partJSON.get("keyframes").getAsJsonObject();
+                    for(Map.Entry<String, JsonElement> keyframeEntry : partKeyframesJSON.entrySet()) {
+                        int keyframeNumber = Integer.parseInt(keyframeEntry.getKey());
+                        JsonElement keyframeJSON = keyframeEntry.getValue();
+                        //AnimationOverhaul.LOGGER.info(keyframeNumber);
+
+                        channelTimeline.addKeyframe(TransformChannel.x, keyframeNumber, keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(0).getAsFloat());
+                        channelTimeline.addKeyframe(TransformChannel.y, keyframeNumber, keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(1).getAsFloat());
+                        channelTimeline.addKeyframe(TransformChannel.z, keyframeNumber, keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(2).getAsFloat());
+
+                        channelTimeline.addKeyframe(TransformChannel.xRot, keyframeNumber, keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(0).getAsFloat());
+                        channelTimeline.addKeyframe(TransformChannel.yRot, keyframeNumber, keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(1).getAsFloat());
+                        channelTimeline.addKeyframe(TransformChannel.zRot, keyframeNumber, keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(2).getAsFloat());
+
+
+                        /*
+                        for(Map.Entry<String, JsonElement> attributeEntry : keyframeJSON.getAsJsonObject().entrySet()){
+                            TransformChannel transformChannel = TransformChannel.valueOf(attributeEntry.getKey());
+                            float keyframeValue = attributeEntry.getValue().getAsFloat();
+
+                            channelTimeline = channelTimeline.addKeyframe(transformChannel, keyframeNumber, keyframeValue);
+                            //AnimationOverhaul.LOGGER.info("Channel: {} Value: {}", transformChannel, keyframeValue);
+                        }
+                         */
+                    }
+                    timelineGroup.addPartTimeline(partName, channelTimeline);
+                }
+
+
+                newData.put(finalResourceLocation, timelineGroup);
+                //AnimationOverhaul.LOGGER.info(frameTime);
+                //AnimationOverhaul.LOGGER.info("Entity key: {} Animation key: {}", entityKey, animationKey);
+
+
+                AnimationOverhaulMain.LOGGER.info("Loading animation {}", resourceLocationKey);
+            } else {
+
+            }
         }
 
         TimelineGroupData.INSTANCE.clearAndReplace(newData);
