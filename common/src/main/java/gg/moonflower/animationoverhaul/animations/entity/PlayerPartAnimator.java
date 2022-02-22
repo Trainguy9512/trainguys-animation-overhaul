@@ -90,7 +90,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         super.buildRig(locatorRig);
 
 
-        this.locatorMaster = new Locator("master");
+        this.locatorMaster = new Locator("root");
         this.locatorHead = new Locator("head");
         this.locatorBody = new Locator("body");
         this.locatorLeftLeg = new Locator("leftLeg");
@@ -128,7 +128,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
             isSprinting = false;
         }
         entityAnimationData.incrementInTicksFromCondition(SPRINT_WEIGHT, isSprinting, 10, 10);
-        entityAnimationData.incrementInTicksFromCondition(CROUCH_WEIGHT, isCrouching, 3, 3);
+        entityAnimationData.incrementInTicksFromCondition(CROUCH_WEIGHT, isCrouching, 8, 8);
 
         // Legacy direction shift
         float moveAngleX = -Mth.sin(livingEntity.yBodyRotO * Mth.PI / 180);
@@ -155,10 +155,14 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         entityAnimationData.setValue(TICKS_AFTER_HITTING_GROUND, ticksAfterHittingGround);
 
         boolean shouldResetJumpTimer =
-                ((entityAnimationData.getValue(DELTA_Y_OLD) < 0 && entityAnimationData.getValue(DELTA_Y) > 0)
+                ((entityAnimationData.getValue(DELTA_Y_OLD) <= 0 && entityAnimationData.getValue(DELTA_Y) > 0)
                         || (entityAnimationData.getValue(DELTA_Y_OLD) == 0 && entityAnimationData.getValue(DELTA_Y) > 0))
                         && entityAnimationData.getValue(TICKS_AFTER_SWITCHING_LEGS) > 4;
+
         entityAnimationData.incrementInTicksOrResetFromCondition(JUMP_TIMER, shouldResetJumpTimer, 12);
+        if(shouldResetJumpTimer){
+            entityAnimationData.incrementInTicksFromCondition(JUMP_TIMER, true, 12, 12);
+        }
 
         // Ticks after switching legs
         float previousTicksAfterSwitchingLegs = entityAnimationData.getValue(TICKS_AFTER_SWITCHING_LEGS);
@@ -170,7 +174,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
                 (ticksAfterHittingGround < 1 || !livingEntity.isOnGround())
                         && entityAnimationData.getValue(DELTA_Y) != 0
                         && ticksAfterSwitchingLegs < 15;
-        entityAnimationData.incrementInTicksFromCondition(JUMP_WEIGHT, isJumping, 4, 4);
+        entityAnimationData.incrementInTicksFromCondition(JUMP_WEIGHT, isJumping, 3, 4);
 
         // Switch the legs for sprint jumping
         boolean previousSprintJumpReverser = entityAnimationData.getValue(JUMP_REVERSER);
@@ -194,7 +198,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         entityAnimationData.incrementInTicksFromCondition(UNDER_WATER_WEIGHT, livingEntity.isUnderWater(), 8, 8);
         entityAnimationData.incrementInTicksFromCondition(MOVING_UP_WEIGHT, entityAnimationData.getValue(DELTA_Y) > 0.12, 8, 8);
 
-        entityAnimationData.incrementInTicksFromCondition(TRUDGE_WEIGHT, livingEntity.isInPowderSnow || livingEntity.getFeetBlockState().getBlock() == Blocks.SOUL_SAND ||  livingEntity.getFeetBlockState().getBlock() == Blocks.SLIME_BLOCK ||  livingEntity.getFeetBlockState().getBlock() == Blocks.HONEY_BLOCK, 8, 8);
+        //entityAnimationData.incrementInTicksFromCondition(TRUDGE_WEIGHT, livingEntity.isInPowderSnow || livingEntity.getFeetBlockState().getBlock() == Blocks.SOUL_SAND ||  livingEntity.getFeetBlockState().getBlock() == Blocks.SLIME_BLOCK ||  livingEntity.getFeetBlockState().getBlock() == Blocks.HONEY_BLOCK, 8, 8);
 
         tickHurtTimers(livingEntity, entityAnimationData, 4);
 
@@ -420,7 +424,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
     }
 
     private void addPoseLayerDeath(){
-        List<TimelineGroupData.TimelineGroup> timelineGroups = List.of(getTimelineGroup(AnimationOverhaulMain.MOD_ID, "death_fall"), getTimelineGroup(AnimationOverhaulMain.MOD_ID, "death_fall"));
+        List<TimelineGroupData.TimelineGroup> timelineGroups = List.of(getTimelineGroup(AnimationOverhaulMain.MOD_ID, "death_normal"), getTimelineGroup(AnimationOverhaulMain.MOD_ID, "death_fall"));
         addPoseLayerDeath(timelineGroups.get(getDataValue(DEATH_INDEX)), locatorListAll);
     }
 
@@ -467,7 +471,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
                 * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
                 * (1 - getDataValueEasedQuad(TRUDGE_WEIGHT))
                 * (1 - getDataValueLerped(ANIMATION_SPEED_Y));
-        float walkCrouchWeight = Math.min(getDataValueLerped(ANIMATION_SPEED) / 0.26F, 1)
+        float walkCrouchWeight = Math.min(getDataValueLerped(ANIMATION_SPEED) / 0.2F, 1)
                 * (1 - getDataValueEasedQuad(JUMP_WEIGHT))
                 * (1 - getDataValueEasedQuad(TRUDGE_WEIGHT))
                 * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
@@ -764,6 +768,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
     private void addPoseLayerIdle(){
         TimelineGroupData.TimelineGroup idleNormalTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "idle_normal");
         TimelineGroupData.TimelineGroup idleCrouchTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "idle_crouch");
+        TimelineGroupData.TimelineGroup idleCrouchTransitionTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "idle_crouch_transition");
 
         float idleNormalTimer = new TimerProcessor(this.livingEntity.tickCount + this.partialTicks)
                 .repeat(idleNormalTimelineGroup)
@@ -777,8 +782,9 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         float idleNormalWeight = Mth.lerp(getDataValueEasedQuad(CROUCH_WEIGHT), idleWeight, 0);
         float idleCrouchWeight = Mth.lerp(getDataValueEasedQuad(CROUCH_WEIGHT), 0, idleWeight);
 
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleNormalTimelineGroup, idleNormalTimer, idleNormalWeight, false);
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleCrouchTimelineGroup, idleNormalTimer, idleCrouchWeight, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleNormalTimelineGroup, idleNormalTimer, idleNormalWeight, isLeftHanded());
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleCrouchTimelineGroup, idleNormalTimer, idleCrouchWeight, isLeftHanded());
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleCrouchTransitionTimelineGroup, getDataValueLerped(CROUCH_WEIGHT), idleWeight, false);
 
         // Removes the vanilla transformation done for the crouch pose
         if(this.entityModel.crouching){

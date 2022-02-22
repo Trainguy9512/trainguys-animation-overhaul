@@ -10,11 +10,14 @@ import gg.moonflower.animationoverhaul.animations.LivingEntityAnimator;
 import gg.moonflower.animationoverhaul.animations.PlayerAnimator;
 import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -34,6 +37,8 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
     protected MixinLivingEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
     }
+
+    private static final String ROOT_LOCATOR = "root";
 
     @Shadow protected M model;
     @Shadow public abstract M getModel();
@@ -90,32 +95,34 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
         if(shouldUseAlternateRotations(livingEntity)){
             LocatorRig locatorRig = ((LivingEntityAccess)livingEntity).getLocatorRig();
 
-            locatorRig.getLocator("master", false).translateAndRotatePoseStack(poseStack);
+            locatorRig.getLocator(ROOT_LOCATOR, false).translateAndRotatePoseStack(poseStack);
         }
     }
 
     private boolean shouldUseAlternateRotations(LivingEntity livingEntity){
         LocatorRig locatorRig = ((LivingEntityAccess)livingEntity).getLocatorRig();
         if(locatorRig != null){
-            if(locatorRig.containsLocator("master")){
+            if(locatorRig.containsLocator(ROOT_LOCATOR)){
                 return true;
             }
         }
         return false;
     }
 
+
+
     private static float sleepDirectionToRotation(Direction direction) {
         switch (direction) {
-            case SOUTH: {
+            case SOUTH -> {
                 return 90.0f;
             }
-            case WEST: {
+            case WEST -> {
                 return 0.0f;
             }
-            case NORTH: {
+            case NORTH -> {
                 return 270.0f;
             }
-            case EAST: {
+            case EAST -> {
                 return 180.0f;
             }
         }

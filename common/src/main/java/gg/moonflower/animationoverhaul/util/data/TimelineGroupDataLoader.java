@@ -162,9 +162,9 @@ public class TimelineGroupDataLoader implements PollinatedPreparableReloadListen
                 //AnimationOverhaul.LOGGER.info("Entity key: {} Animation key: {}", entityKey, animationKey);
 
 
-                AnimationOverhaulMain.LOGGER.info("Loading animation {}", resourceLocationKey);
+                AnimationOverhaulMain.LOGGER.info("Successfully loaded animation {}", resourceLocationKey);
             } else {
-
+                AnimationOverhaulMain.LOGGER.error("Failed to load animation {} (Animation format version was {}, not up to date with {})", resourceLocationKey, formatVersion, FORMAT_VERSION);
             }
         }
 
