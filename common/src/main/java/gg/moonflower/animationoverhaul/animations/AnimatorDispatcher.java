@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
 import gg.moonflower.animationoverhaul.AnimationOverhaulMain;
 import gg.moonflower.animationoverhaul.animations.entity.LivingEntityPartAnimator;
+import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
 import gg.moonflower.animationoverhaul.util.data.EntityAnimationData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.world.entity.Entity;
@@ -16,6 +17,7 @@ public class AnimatorDispatcher {
     public static final AnimatorDispatcher INSTANCE = new AnimatorDispatcher();
 
     private final HashMap<UUID, EntityAnimationData> entityAnimationDataMap = Maps.newHashMap();
+    private final HashMap<UUID, LocatorRig> locatorRigMap = Maps.newHashMap();
 
     public AnimatorDispatcher(){
     }
@@ -36,6 +38,17 @@ public class AnimatorDispatcher {
             }
         }
         return false;
+    }
+
+    public void saveLocatorRig(UUID uuid, LocatorRig locatorRig){
+        this.locatorRigMap.put(uuid, locatorRig);
+    }
+
+    public LocatorRig getLocatorRig(UUID uuid){
+        if(this.locatorRigMap.containsKey(uuid)){
+            return this.locatorRigMap.get(uuid);
+        }
+        return new LocatorRig();
     }
 
     public EntityAnimationData getEntityAnimationData(UUID uuid){

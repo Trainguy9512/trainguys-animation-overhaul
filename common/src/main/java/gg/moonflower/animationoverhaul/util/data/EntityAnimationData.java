@@ -1,6 +1,7 @@
 package gg.moonflower.animationoverhaul.util.data;
 
 import com.google.common.collect.Maps;
+import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
 import gg.moonflower.animationoverhaul.util.time.Easing;
 import net.minecraft.util.Mth;
 

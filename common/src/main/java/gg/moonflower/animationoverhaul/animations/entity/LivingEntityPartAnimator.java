@@ -2,6 +2,7 @@ package gg.moonflower.animationoverhaul.animations.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import gg.moonflower.animationoverhaul.access.ModelAccess;
+import gg.moonflower.animationoverhaul.animations.AnimatorDispatcher;
 import gg.moonflower.animationoverhaul.util.animation.Locator;
 import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
 import gg.moonflower.animationoverhaul.util.data.EntityAnimationData;
@@ -70,6 +71,8 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
         ModelPart rootModelPart = ((ModelAccess)this.entityModel).getRootModelPart();
         this.locatorRig.bakeRig(rootModelPart);
         finalizeModelParts(rootModelPart);
+
+        AnimatorDispatcher.INSTANCE.saveLocatorRig(livingEntity.getUUID(), this.locatorRig);
     }
 
     /**

@@ -3,6 +3,7 @@ package gg.moonflower.animationoverhaul.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import gg.moonflower.animationoverhaul.access.LivingEntityAccess;
+import gg.moonflower.animationoverhaul.animations.AnimatorDispatcher;
 import gg.moonflower.animationoverhaul.util.animation.Locator;
 import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
 import net.fabricmc.api.EnvType;
@@ -143,7 +144,7 @@ public abstract class MixinItemInHandLayer {
      */
 
     private boolean shouldUseAlternateHandAnimation(LivingEntity livingEntity){
-        LocatorRig locatorRig = ((LivingEntityAccess)livingEntity).getLocatorRig();
+        LocatorRig locatorRig = AnimatorDispatcher.INSTANCE.getLocatorRig(livingEntity.getUUID());
         if(locatorRig != null){
             if(locatorRig.containsLocator("leftHand") && locatorRig.containsLocator("rightHand")){
                 return true;
@@ -152,17 +153,4 @@ public abstract class MixinItemInHandLayer {
         return false;
     }
 
-    private boolean shouldReverseBodyRot(LivingEntity livingEntity){
-        LocatorRig locatorRig = ((LivingEntityAccess)livingEntity).getLocatorRig();
-        if(locatorRig != null){
-            if(locatorRig.containsLocator("body")){
-                if(livingEntity instanceof Player){
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

@@ -1,6 +1,5 @@
 package gg.moonflower.animationoverhaul.animations;
 
-import gg.moonflower.animationoverhaul.access.EntityAccess;
 import gg.moonflower.animationoverhaul.access.LivingEntityAccess;
 import gg.moonflower.animationoverhaul.util.animation.Locator;
 import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
@@ -20,6 +19,7 @@ import net.minecraft.world.entity.animal.FlyingAnimal;
 import java.util.List;
 import java.util.Random;
 
+@Deprecated
 public class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<T>> extends AbstractEntityAnimator<T, M> {
 
     protected T livingEntity;

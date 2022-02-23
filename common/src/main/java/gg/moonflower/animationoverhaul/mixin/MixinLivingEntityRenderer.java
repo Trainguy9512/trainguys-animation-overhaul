@@ -2,26 +2,19 @@ package gg.moonflower.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
-import gg.moonflower.animationoverhaul.AnimationOverhaulMain;
-import gg.moonflower.animationoverhaul.access.EntityAccess;
-import gg.moonflower.animationoverhaul.access.LivingEntityAccess;
 import gg.moonflower.animationoverhaul.animations.AnimatorDispatcher;
 import gg.moonflower.animationoverhaul.animations.LivingEntityAnimator;
-import gg.moonflower.animationoverhaul.animations.PlayerAnimator;
+import gg.moonflower.animationoverhaul.animations.entity.LivingEntityPartAnimator;
 import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
-import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
@@ -38,7 +31,7 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
         super(context);
     }
 
-    private static final String ROOT_LOCATOR = "root";
+    private final String ROOT = "root";
 
     @Shadow protected M model;
     @Shadow public abstract M getModel();
@@ -58,8 +51,9 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
         //poseStack.translate(Mth.sin(bob / 6), 0, 0);
         //poseStack.mulPose(Vector3f.ZP.rotation(Mth.sin(bob / 6) / 4));
 
+        LocatorRig locatorRig = AnimatorDispatcher.INSTANCE.getLocatorRig(livingEntity.getUUID());
 
-        if(shouldUseAlternateRotations(livingEntity)){
+        if(shouldUseAlternateRotations(locatorRig)){
 
             poseStack.popPose();
             poseStack.pushPose();
@@ -69,7 +63,7 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
                 float j = i != null ? sleepDirectionToRotation(i) : bodyRot;
                 poseStack.mulPose(Vector3f.YP.rotationDegrees(j - 90));
             } else {
-                float lerpedBodyYRot = ((EntityAccess)livingEntity).getEntityAnimationData().get(LivingEntityAnimator.BODY_Y_ROT).get();
+                float lerpedBodyYRot = AnimatorDispatcher.INSTANCE.getEntityAnimationData(livingEntity).getLerped(LivingEntityPartAnimator.BODY_Y_ROT, frameTime);
                 if(livingEntity.isPassenger() && livingEntity.getVehicle() instanceof AbstractMinecart){
                     bodyRot = Mth.rotLerp(frameTime, ((LivingEntity)livingEntity).yHeadRotO, ((LivingEntity)livingEntity).yHeadRot);
                 }
@@ -83,7 +77,8 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
 
     @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V", ordinal = 0))
     private void removeBedTranslation(PoseStack instance, double d, double e, double f, T livingEntity){
-        if(shouldUseAlternateRotations(livingEntity)){
+        LocatorRig locatorRig = AnimatorDispatcher.INSTANCE.getLocatorRig(livingEntity.getUUID());
+        if(shouldUseAlternateRotations(locatorRig)){
 
         } else {
             instance.translate(d, e, f);
@@ -92,37 +87,35 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
 
     @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V"))
     private void translateAndRotateAfterScale(T livingEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
-        if(shouldUseAlternateRotations(livingEntity)){
-            LocatorRig locatorRig = ((LivingEntityAccess)livingEntity).getLocatorRig();
 
-            locatorRig.getLocator(ROOT_LOCATOR, false).translateAndRotatePoseStack(poseStack);
+        LocatorRig locatorRig = AnimatorDispatcher.INSTANCE.getLocatorRig(livingEntity.getUUID());
+        if(shouldUseAlternateRotations(locatorRig)){
+
+            locatorRig.getLocator(ROOT, false).translateAndRotatePoseStack(poseStack);
         }
     }
 
-    private boolean shouldUseAlternateRotations(LivingEntity livingEntity){
-        LocatorRig locatorRig = ((LivingEntityAccess)livingEntity).getLocatorRig();
+    private boolean shouldUseAlternateRotations(LocatorRig locatorRig){
         if(locatorRig != null){
-            if(locatorRig.containsLocator(ROOT_LOCATOR)){
+            if(locatorRig.containsLocator(ROOT)){
                 return true;
             }
         }
         return false;
     }
 
-
-
     private static float sleepDirectionToRotation(Direction direction) {
         switch (direction) {
-            case SOUTH -> {
+            case SOUTH: {
                 return 90.0f;
             }
-            case WEST -> {
+            case WEST: {
                 return 0.0f;
             }
-            case NORTH -> {
+            case NORTH: {
                 return 270.0f;
             }
-            case EAST -> {
+            case EAST: {
                 return 180.0f;
             }
         }

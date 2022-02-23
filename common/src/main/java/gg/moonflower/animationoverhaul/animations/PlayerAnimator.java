@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public class PlayerAnimator extends LivingEntityAnimator<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
 
     private static final EntityAnimationData.DataKey<Float> SPRINT_WEIGHT = new EntityAnimationData.DataKey<>("sprint_weight", 0F);

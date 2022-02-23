@@ -1,6 +1,5 @@
 package gg.moonflower.animationoverhaul.mixin;
 
-import gg.moonflower.animationoverhaul.access.EntityAccess;
 import gg.moonflower.animationoverhaul.access.LivingEntityAccess;
 import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
 import net.minecraft.core.BlockPos;
