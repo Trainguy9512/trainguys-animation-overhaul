@@ -1,9 +1,7 @@
 package gg.moonflower.animationoverhaul.mixin;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import gg.moonflower.animationoverhaul.AnimationOverhaulMain;
 import gg.moonflower.animationoverhaul.animations.AnimatorDispatcher;
-import gg.moonflower.animationoverhaul.animations.LivingEntityAnimator;
 import gg.moonflower.animationoverhaul.animations.entity.LivingEntityPartAnimator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;

@@ -300,6 +300,6 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
     // Add after everything but before damage animations
     protected void addPoseLayerDeath(TimelineGroupData.TimelineGroup timelineGroup, List<Locator> locatorList){
         this.locatorRig.weightedClearTransforms(locatorList, Math.min(this.entityAnimationData.getValue(DEATH_TIMER) * 4, 1));
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorList, timelineGroup, this.entityAnimationData.getValue(DEATH_TIMER), 1, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorList, timelineGroup, getDataValueLerped(DEATH_TIMER), 1, false);
     }
 }

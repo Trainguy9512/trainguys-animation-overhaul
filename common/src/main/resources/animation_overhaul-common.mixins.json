@@ -9,7 +9,6 @@
     "MixinBlockEntity",
     "MixinCapeLayer",
     "MixinElytraLayer",
-    "MixinEntity",
     "MixinGameRenderer",
     "MixinInventoryScreen",
     "MixinItemInHandLayer",

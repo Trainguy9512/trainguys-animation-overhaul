@@ -22,8 +22,6 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
 
     public boolean useInventoryRenderer = false;
 
-    private LocatorRig locatorRig;
-
     /*
     public float getAnimationVariable(String variableType){
         return 4F;
@@ -39,12 +37,5 @@ public abstract class MixinLivingEntity implements LivingEntityAccess {
 
     public void setUseInventoryRenderer(boolean bool){
         useInventoryRenderer = bool;
-    }
-
-    public void storeLocatorRig(LocatorRig locatorRig){
-        this.locatorRig = locatorRig;
-    }
-    public LocatorRig getLocatorRig(){
-        return this.locatorRig;
     }
 }

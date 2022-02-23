@@ -3,7 +3,6 @@ package gg.moonflower.animationoverhaul.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import gg.moonflower.animationoverhaul.animations.AnimatorDispatcher;
-import gg.moonflower.animationoverhaul.animations.LivingEntityAnimator;
 import gg.moonflower.animationoverhaul.animations.entity.LivingEntityPartAnimator;
 import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
 import net.minecraft.client.model.EntityModel;
@@ -90,8 +89,9 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
 
         LocatorRig locatorRig = AnimatorDispatcher.INSTANCE.getLocatorRig(livingEntity.getUUID());
         if(shouldUseAlternateRotations(locatorRig)){
-
+            poseStack.translate(0, -1.5, 0);
             locatorRig.getLocator(ROOT, false).translateAndRotatePoseStack(poseStack);
+            poseStack.translate(0, 1.5, 0);
         }
     }
 

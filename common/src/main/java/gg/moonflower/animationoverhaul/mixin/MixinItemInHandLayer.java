@@ -80,7 +80,8 @@ public abstract class MixinItemInHandLayer {
 
     @Redirect(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/layers/ItemInHandLayer;renderArmWithItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;Lnet/minecraft/world/entity/HumanoidArm;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"))
     private void overwriteRenderArmWithItem(ItemInHandLayer instance, LivingEntity livingEntity, ItemStack itemStack, ItemTransforms.TransformType transformType, HumanoidArm humanoidArm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i){
-        if(shouldUseAlternateHandAnimation(livingEntity)){
+        //TODO: rewrite this- disabling for now
+        if(shouldUseAlternateHandAnimation(livingEntity) && false){
 
             poseStack.pushPose();
             ((ArmedModel)instance.getParentModel()).translateToHand(humanoidArm, poseStack);
@@ -92,7 +93,7 @@ public abstract class MixinItemInHandLayer {
 
             poseStack.pushPose();
 
-            LocatorRig locatorRig = ((LivingEntityAccess)livingEntity).getLocatorRig();
+            LocatorRig locatorRig = AnimatorDispatcher.INSTANCE.getLocatorRig(livingEntity.getUUID());
             String identifier = humanoidArm == HumanoidArm.LEFT ? "leftHand" : "rightHand";
             Locator locator = locatorRig.getLocator(identifier, livingEntity.getMainArm() == HumanoidArm.LEFT);
 

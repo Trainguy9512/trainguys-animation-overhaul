@@ -289,13 +289,13 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
 
         addPoseLayerFallFlying();
         addPoseLayerSleep();
-        addPoseLayerDeath();
         addPoseLayerHurt(List.of(
                 getTimelineGroup(AnimationOverhaulMain.MOD_ID, "hurt_0"),
                 getTimelineGroup(AnimationOverhaulMain.MOD_ID, "hurt_1"),
                 getTimelineGroup(AnimationOverhaulMain.MOD_ID, "hurt_2"),
                 getTimelineGroup(AnimationOverhaulMain.MOD_ID, "hurt_3")
         ), locatorListAll);
+        addPoseLayerDeath();
 
 
         // done: walking, sprinting, jump, sprint jump, idle, crouch idle, climbing
