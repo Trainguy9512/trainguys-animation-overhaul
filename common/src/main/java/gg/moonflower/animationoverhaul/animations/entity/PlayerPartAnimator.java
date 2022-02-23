@@ -97,7 +97,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         this.locatorRightLeg = new Locator("rightLeg");
         this.locatorLeftArm = new Locator("leftArm");
         this.locatorRightArm = new Locator("rightArm");
-        this.locatorCloak = new Locator("cloak");
+        this.locatorCloak = new Locator("cape");
         this.locatorLeftHand = new Locator("leftHand");
         this.locatorRightHand = new Locator("rightHand");
 
