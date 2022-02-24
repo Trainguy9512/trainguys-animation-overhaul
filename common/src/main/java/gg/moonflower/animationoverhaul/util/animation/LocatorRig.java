@@ -1,7 +1,6 @@
 package gg.moonflower.animationoverhaul.util.animation;
 
 import com.google.common.collect.Maps;
-import gg.moonflower.animationoverhaul.AnimationOverhaulMain;
 import gg.moonflower.animationoverhaul.util.data.TimelineGroupData;
 import gg.moonflower.animationoverhaul.util.data.TransformChannel;
 import gg.moonflower.animationoverhaul.util.time.ChannelTimeline;
@@ -110,9 +109,9 @@ public class LocatorRig {
 
     public void animateLocatorAdditive(Locator locator, ChannelTimeline channelTimeline, float time, float weightRotation, float weightTranslation, boolean mirrored){
         int mirrorMultiplier = mirrored ? -1 : 1;
-        locator.x += channelTimeline.getValueAt(TransformChannel.x, time) * weightTranslation * mirrorMultiplier;
-        locator.y += channelTimeline.getValueAt(TransformChannel.y, time) * weightTranslation;
-        locator.z += channelTimeline.getValueAt(TransformChannel.z, time) * weightTranslation;
+        locator.translateX += channelTimeline.getValueAt(TransformChannel.x, time) * weightTranslation * mirrorMultiplier;
+        locator.translateY += channelTimeline.getValueAt(TransformChannel.y, time) * weightTranslation;
+        locator.translateZ += channelTimeline.getValueAt(TransformChannel.z, time) * weightTranslation;
         locator.rotateWorldSpace(channelTimeline.getValueAt(TransformChannel.xRot, time) * weightRotation, channelTimeline.getValueAt(TransformChannel.yRot, time) * weightRotation * mirrorMultiplier, channelTimeline.getValueAt(TransformChannel.zRot, time) * weightRotation * mirrorMultiplier);
     }
 
@@ -130,13 +129,27 @@ public class LocatorRig {
         }
     }
 
-    private static class LocatorEntry {
-        private final Locator locator;
-        private final Locator locatorMirrored;
+    public HashMap<LocatorRig.LocatorEntry, PartPose> bakePose(){
+        HashMap<LocatorRig.LocatorEntry, PartPose> hashMap = Maps.newHashMap();
+        for(Locator locator : locatorEntryHashMap.keySet()){
+            hashMap.put(locatorEntryHashMap.get(locator), locator.getPartPose());
+        }
+        return hashMap;
+    }
+
+    public void applyOffsets(){
+        for(Locator locator : this.locatorEntryHashMap.keySet()){
+            locator.additiveApplyPose(this.locatorEntryHashMap.get(locator).defaultPose);
+        }
+    }
+
+    public static class LocatorEntry {
+        public final Locator locator;
+        public final Locator locatorMirrored;
         @Nullable
-        private final String modelPartIdentifier;
-        private final boolean usesModelPart;
-        private final PartPose defaultPose;
+        public final String modelPartIdentifier;
+        public final boolean usesModelPart;
+        public final PartPose defaultPose;
 
         public LocatorEntry(Locator locator, Locator locatorMirrored, @Nullable String modelPartIdentifier, PartPose defaultPose){
             this.locator = locator;

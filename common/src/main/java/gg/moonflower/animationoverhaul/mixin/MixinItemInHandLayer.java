@@ -2,8 +2,8 @@ package gg.moonflower.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
-import gg.moonflower.animationoverhaul.access.LivingEntityAccess;
 import gg.moonflower.animationoverhaul.animations.AnimatorDispatcher;
+import gg.moonflower.animationoverhaul.util.animation.BakedPose;
 import gg.moonflower.animationoverhaul.util.animation.Locator;
 import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
 import net.fabricmc.api.EnvType;
@@ -15,7 +15,6 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -93,14 +92,16 @@ public abstract class MixinItemInHandLayer {
 
             poseStack.pushPose();
 
-            LocatorRig locatorRig = AnimatorDispatcher.INSTANCE.getLocatorRig(livingEntity.getUUID());
+            BakedPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
+
+            //livingEntity.getMainArm() == HumanoidArm.LEFT
             String identifier = humanoidArm == HumanoidArm.LEFT ? "leftHand" : "rightHand";
-            Locator locator = locatorRig.getLocator(identifier, livingEntity.getMainArm() == HumanoidArm.LEFT);
+            Locator locator = bakedPose.getLocator(identifier, Minecraft.getInstance().getFrameTime());
 
             //locator.reset();
             //locator.xRot = Util.getMillis() / 200F;
 
-            locator.xRot = -locator.xRot;
+            locator.rotateX = -locator.rotateX;
             locator.translateAndRotatePoseStack(poseStack);
 
             poseStack.translate(0, 2F/16F, -1F/16F);
@@ -145,9 +146,9 @@ public abstract class MixinItemInHandLayer {
      */
 
     private boolean shouldUseAlternateHandAnimation(LivingEntity livingEntity){
-        LocatorRig locatorRig = AnimatorDispatcher.INSTANCE.getLocatorRig(livingEntity.getUUID());
-        if(locatorRig != null){
-            if(locatorRig.containsLocator("leftHand") && locatorRig.containsLocator("rightHand")){
+        BakedPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
+        if(bakedPose != null){
+            if(bakedPose.containsLocator("leftHand") && bakedPose.containsLocator("rightHand")){
                 return true;
             }
         }

@@ -3,16 +3,15 @@ package gg.moonflower.animationoverhaul.animations.entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import gg.moonflower.animationoverhaul.access.ModelAccess;
 import gg.moonflower.animationoverhaul.animations.AnimatorDispatcher;
+import gg.moonflower.animationoverhaul.util.animation.BakedPose;
 import gg.moonflower.animationoverhaul.util.animation.Locator;
 import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
 import gg.moonflower.animationoverhaul.util.data.EntityAnimationData;
 import gg.moonflower.animationoverhaul.util.data.TimelineGroupData;
 import gg.moonflower.animationoverhaul.util.time.Easing;
-import gg.moonflower.animationoverhaul.util.time.TimerProcessor;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
@@ -28,7 +27,6 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
     protected final LocatorRig locatorRig;
 
     protected EntityAnimationData entityAnimationData;
-    protected float partialTicks = 0;
     protected final Random random = new Random();
 
     public LivingEntityPartAnimator(){
@@ -57,22 +55,46 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
     }
 
     protected void finalizeModelParts(ModelPart rootModelPart){
+    }
 
+    public void tickMethods(LivingEntity livingEntity){
+        BakedPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
+        EntityAnimationData entityAnimationData = AnimatorDispatcher.INSTANCE.getEntityAnimationData(livingEntity.getUUID());
+        this.entityAnimationData = entityAnimationData;
+        this.livingEntity = (T)livingEntity;
+
+        this.tick(livingEntity, entityAnimationData);
+
+        if(!bakedPose.hasPose){
+            bakedPose.setPose(this.locatorRig.bakePose());
+            bakedPose.hasPose = true;
+        }
+        bakedPose.pushToOld();
+
+        this.locatorRig.resetRig();
+        this.poseLocatorRig();
+        this.locatorRig.applyOffsets();
+
+        bakedPose.setPose(locatorRig.bakePose());
+        AnimatorDispatcher.INSTANCE.saveBakedPose(livingEntity.getUUID(), bakedPose);
     }
 
     public void animate(T livingEntity, M entityModel, PoseStack poseStack, EntityAnimationData entityAnimationData, float partialTicks){
         setEntity(livingEntity);
         setEntityModel(entityModel);
-        this.entityAnimationData = entityAnimationData;
-        this.locatorRig.resetRig();
-        this.partialTicks = partialTicks;
 
-        poseLocatorRig();
-        ModelPart rootModelPart = ((ModelAccess)this.entityModel).getRootModelPart();
-        this.locatorRig.bakeRig(rootModelPart);
+        BakedPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
+
+        //this.entityAnimationData = entityAnimationData;
+        //this.locatorRig.resetRig();
+        //this.partialTicks = partialTicks;
+
+        //poseLocatorRig();
+        ModelPart rootModelPart = ((ModelAccess)entityModel).getRootModelPart();
+        bakedPose.bakeToModelParts(rootModelPart, partialTicks);
+        //this.locatorRig.bakeRig(rootModelPart);
         finalizeModelParts(rootModelPart);
 
-        AnimatorDispatcher.INSTANCE.saveLocatorRig(livingEntity.getUUID(), this.locatorRig);
     }
 
     /**
@@ -105,9 +127,6 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
      * @param dataKey       Float data key to obtain the value with
      * @return              Interpolated float for values inbetween ticks
      */
-    protected float getDataValueLerped(EntityAnimationData.DataKey<Float> dataKey){
-        return this.entityAnimationData.getLerped(dataKey, this.partialTicks);
-    }
 
     /**
      * Shortcut method for retrieving an interpolated float value at the current frame and then applying it to an easing
@@ -119,7 +138,7 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
      * @return              Interpolated float for values inbetween ticks
      */
     protected float getDataValueEased(EntityAnimationData.DataKey<Float> dataKey, Easing easing){
-        return this.entityAnimationData.getEased(dataKey, easing, this.partialTicks);
+        return this.entityAnimationData.getEased(dataKey, easing, 1);
     }
 
     protected float getDataValueEasedQuad(EntityAnimationData.DataKey<Float> dataKey){
@@ -140,11 +159,11 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
     }
 
     protected float getLookLeftRightTimer(){
-        return Mth.clamp((getDataValueLerped(HEAD_Y_ROT) / Mth.HALF_PI) + 0.5F, 0, 1);
+        return Mth.clamp((getDataValue(HEAD_Y_ROT) / Mth.HALF_PI) + 0.5F, 0, 1);
     }
 
     protected float getLookUpDownTimer(){
-        return Mth.clamp((getDataValueLerped(HEAD_X_ROT) / Mth.PI) + 0.5F, 0, 1);
+        return Mth.clamp((getDataValue(HEAD_X_ROT) / Mth.PI) + 0.5F, 0, 1);
     }
 
     protected static final EntityAnimationData.DataKey<Float> HEAD_X_ROT = new EntityAnimationData.DataKey<>("head_x_rot", 0F);
@@ -294,12 +313,12 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
     }
 
     protected void addPoseLayerHurt(List<TimelineGroupData.TimelineGroup> timelineGroupList, List<Locator> locatorList){
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorList, timelineGroupList.get(this.entityAnimationData.getValue(HURT_INDEX)), this.entityAnimationData.getLerped(HURT_TIMER, this.partialTicks), 1, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorList, timelineGroupList.get(this.entityAnimationData.getValue(HURT_INDEX)), getDataValue(HURT_TIMER), 1, false);
     }
 
     // Add after everything but before damage animations
     protected void addPoseLayerDeath(TimelineGroupData.TimelineGroup timelineGroup, List<Locator> locatorList){
         this.locatorRig.weightedClearTransforms(locatorList, Math.min(this.entityAnimationData.getValue(DEATH_TIMER) * 4, 1));
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorList, timelineGroup, getDataValueLerped(DEATH_TIMER), 1, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorList, timelineGroup, getDataValue(DEATH_TIMER), 1, false);
     }
 }

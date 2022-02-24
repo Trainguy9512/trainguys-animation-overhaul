@@ -9,39 +9,39 @@ import net.minecraft.util.Mth;
 
 public class Locator {
 
-    public float x;
-    public float y;
-    public float z;
-    public float xRot;
-    public float yRot;
-    public float zRot;
+    public float translateX;
+    public float translateY;
+    public float translateZ;
+    public float rotateX;
+    public float rotateY;
+    public float rotateZ;
     private String identifier;
 
     public Locator(String identifier){
-        this.x = 0F;
-        this.y = 0F;
-        this.z = 0F;
-        this.xRot = 0F;
-        this.yRot = 0F;
-        this.zRot = 0F;
+        this.translateX = 0F;
+        this.translateY = 0F;
+        this.translateZ = 0F;
+        this.rotateX = 0F;
+        this.rotateY = 0F;
+        this.rotateZ = 0F;
         this.identifier = identifier;
     }
 
     public void translatePoseStack(PoseStack poseStack){
-        poseStack.translate((this.x / 16.0F), (this.y / 16.0F), (this.z / 16.0F));
+        poseStack.translate((this.translateX / 16.0F), (this.translateY / 16.0F), (this.translateZ / 16.0F));
     }
 
     public void rotatePoseStack(PoseStack poseStack){
-        if (this.zRot != 0.0F) {
-            poseStack.mulPose(Vector3f.ZP.rotation(this.zRot));
+        if (this.rotateZ != 0.0F) {
+            poseStack.mulPose(Vector3f.ZP.rotation(this.rotateZ));
         }
 
-        if (this.yRot != 0.0F) {
-            poseStack.mulPose(Vector3f.YP.rotation(this.yRot));
+        if (this.rotateY != 0.0F) {
+            poseStack.mulPose(Vector3f.YP.rotation(this.rotateY));
         }
 
-        if (this.xRot != 0.0F) {
-            poseStack.mulPose(Vector3f.XP.rotation(this.xRot));
+        if (this.rotateX != 0.0F) {
+            poseStack.mulPose(Vector3f.XP.rotation(this.rotateX));
         }
     }
 
@@ -51,20 +51,20 @@ public class Locator {
     }
 
     public void translatePoseStackInverse(PoseStack poseStack){
-        poseStack.translate((this.x / -16.0F), (this.y / -16.0F), (this.z / -16.0F));
+        poseStack.translate((this.translateX / -16.0F), (this.translateY / -16.0F), (this.translateZ / -16.0F));
     }
 
     public void rotatePoseStackInverse(PoseStack poseStack){
-        if (this.xRot != 0.0F) {
-            poseStack.mulPose(Vector3f.XP.rotation(-this.xRot));
+        if (this.rotateX != 0.0F) {
+            poseStack.mulPose(Vector3f.XP.rotation(-this.rotateX));
         }
 
-        if (this.yRot != 0.0F) {
-            poseStack.mulPose(Vector3f.YP.rotation(-this.yRot));
+        if (this.rotateY != 0.0F) {
+            poseStack.mulPose(Vector3f.YP.rotation(-this.rotateY));
         }
 
-        if (this.zRot != 0.0F) {
-            poseStack.mulPose(Vector3f.ZP.rotation(-this.zRot));
+        if (this.rotateZ != 0.0F) {
+            poseStack.mulPose(Vector3f.ZP.rotation(-this.rotateZ));
         }
 
 
@@ -74,26 +74,42 @@ public class Locator {
         translatePoseStackInverse(poseStack);
     }
 
+    @Deprecated
     public void bakeToModelPart(ModelPart modelPart){
-        modelPart.x = this.x;
-        modelPart.y = this.y;
-        modelPart.z = this.z;
-        modelPart.xRot = this.xRot;
-        modelPart.yRot = this.yRot;
-        modelPart.zRot = this.zRot;
+        modelPart.x = this.translateX;
+        modelPart.y = this.translateY;
+        modelPart.z = this.translateZ;
+        modelPart.xRot = this.rotateX;
+        modelPart.yRot = this.rotateY;
+        modelPart.zRot = this.rotateZ;
     }
 
     public void additiveApplyPose(PartPose partPose){
-        this.x += partPose.x;
-        this.y += partPose.y;
-        this.z += partPose.z;
-        this.xRot += partPose.xRot;
-        this.yRot += partPose.yRot;
-        this.zRot += partPose.zRot;
+        this.translateX += partPose.x;
+        this.translateY += partPose.y;
+        this.translateZ += partPose.z;
+        this.rotateX += partPose.xRot;
+        this.rotateY += partPose.yRot;
+        this.rotateZ += partPose.zRot;
+    }
+
+    public PartPose getPartPose(){
+        return PartPose.offsetAndRotation(this.translateX, this.translateY, this.translateZ, this.rotateX, this.rotateY, this.rotateZ);
+    }
+
+    public static Locator fromPartPose(PartPose partPose, String identifier){
+        Locator locator = new Locator(identifier);
+        locator.translateX = partPose.x;
+        locator.translateY = partPose.y;
+        locator.translateZ = partPose.z;
+        locator.rotateX = partPose.xRot;
+        locator.rotateY = partPose.yRot;
+        locator.rotateZ = partPose.zRot;
+        return locator;
     }
 
     public void rotateWorldSpace(float x, float y, float z){
-        Vector3f baseRotation = new Vector3f(this.xRot, this.yRot, this.zRot);
+        Vector3f baseRotation = new Vector3f(this.rotateX, this.rotateY, this.rotateZ);
         Vector3f multRotation = new Vector3f(x, y, z);
 
         RotationMatrix baseRotationMatrix = RotationMatrix.fromEulerAngles(baseRotation);
@@ -102,27 +118,27 @@ public class Locator {
         baseRotationMatrix.mult(multRotationMatrix);
 
         Vector3f finalRotation = baseRotationMatrix.toEulerAngles();
-        this.xRot = finalRotation.x();
-        this.yRot = finalRotation.y();
-        this.zRot = finalRotation.z();
+        this.rotateX = finalRotation.x();
+        this.rotateY = finalRotation.y();
+        this.rotateZ = finalRotation.z();
     }
 
     public void reset(){
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
-        this.xRot = 0;
-        this.yRot = 0;
-        this.zRot = 0;
+        this.translateX = 0;
+        this.translateY = 0;
+        this.translateZ = 0;
+        this.rotateX = 0;
+        this.rotateY = 0;
+        this.rotateZ = 0;
     }
 
     public void weightedClearTransforms(float weight){
-        this.x = Mth.lerp(weight, this.x, 0);
-        this.y = Mth.lerp(weight, this.y, 0);
-        this.z = Mth.lerp(weight, this.z, 0);
-        this.xRot = Mth.lerp(weight, this.xRot, 0);
-        this.yRot = Mth.lerp(weight, this.yRot, 0);
-        this.zRot = Mth.lerp(weight, this.zRot, 0);
+        this.translateX = Mth.lerp(weight, this.translateX, 0);
+        this.translateY = Mth.lerp(weight, this.translateY, 0);
+        this.translateZ = Mth.lerp(weight, this.translateZ, 0);
+        this.rotateX = Mth.lerp(weight, this.rotateX, 0);
+        this.rotateY = Mth.lerp(weight, this.rotateY, 0);
+        this.rotateZ = Mth.lerp(weight, this.rotateZ, 0);
     }
 
     public String getIdentifier(){

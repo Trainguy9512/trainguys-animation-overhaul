@@ -11,16 +11,15 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.*;
-import net.minecraft.world.level.block.Blocks;
 
 import java.util.Arrays;
 import java.util.List;
@@ -192,7 +191,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         entityAnimationData.incrementInTicksFromCondition(CLIMBING_UP_WEIGHT, livingEntity.onClimbable() && entityAnimationData.getValue(DELTA_Y) >= 0, 8, 8);
         entityAnimationData.incrementInTicksFromCondition(CLIMBING_DOWN_WEIGHT, livingEntity.onClimbable() && entityAnimationData.getValue(DELTA_Y) < 0, 8, 8);
 
-        entityAnimationData.incrementInTicksFromCondition(VISUAL_SWIMMING_WEIGHT, livingEntity.isVisuallySwimming(), 16, 16);
+        entityAnimationData.setValue(VISUAL_SWIMMING_WEIGHT, livingEntity.getSwimAmount(1));
 
         entityAnimationData.incrementInTicksFromCondition(IN_WATER_WEIGHT, livingEntity.isInWater(), 8, 8);
         entityAnimationData.incrementInTicksFromCondition(UNDER_WATER_WEIGHT, livingEntity.isUnderWater(), 8, 8);
@@ -214,10 +213,10 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
 
         entityAnimationData.incrementInFramesOrResetFromCondition(IS_PASSENGER_TIMER, !livingEntity.isPassenger(), 17);
 
-        entityAnimationData.incrementInTicksFromCondition(FALL_FLYING_WEIGHT, livingEntity.isFallFlying(), 12, 12);
+        entityAnimationData.incrementInTicksFromCondition(FALL_FLYING_WEIGHT, livingEntity.getFallFlyingTicks() > 0, 12, 12);
 
-        boolean shouldRepeatAttack = (livingEntity.getAttackAnim(this.partialTicks) != 0 && entityAnimationData.getValue(ATTACK_TIMER) == 1);
-        boolean shouldResetAttack = (livingEntity.getAttackAnim(this.partialTicks) == 0 || entityAnimationData.getValue(ATTACK_TIMER) == 1) && (entityAnimationData.getValue(ATTACK_TIMER) == 0 || entityAnimationData.getValue(ATTACK_TIMER) == 1);
+        boolean shouldRepeatAttack = (livingEntity.getAttackAnim(1) != 0 && entityAnimationData.getValue(ATTACK_TIMER) == 1);
+        boolean shouldResetAttack = (livingEntity.getAttackAnim(1) == 0 || entityAnimationData.getValue(ATTACK_TIMER) == 1) && (entityAnimationData.getValue(ATTACK_TIMER) == 0 || entityAnimationData.getValue(ATTACK_TIMER) == 1);
         entityAnimationData.incrementInTicksOrResetFromCondition(ATTACK_TIMER, shouldResetAttack, 6);
         if(shouldRepeatAttack){
             entityAnimationData.setValue(ATTACK_TIMER, 0.001F);
@@ -316,8 +315,8 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         TimelineGroupData.TimelineGroup holdNormalMainHandTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "hold_normal_mainhand");
         TimelineGroupData.TimelineGroup holdNormalOffHandTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "hold_normal_offhand");
 
-        float holdNormalMainHandTimer = getDataValueLerped(HOLD_NORMAL_MAIN_WEIGHT) * (1 - getDataValueEasedQuad(ATTACK_WEIGHT));
-        float holdNormalOffHandTimer = getDataValueLerped(HOLD_NORMAL_OFF_WEIGHT) * (1 - getDataValueEasedQuad(ATTACK_WEIGHT));
+        float holdNormalMainHandTimer = getDataValue(HOLD_NORMAL_MAIN_WEIGHT) * (1 - getDataValueEasedQuad(ATTACK_WEIGHT));
+        float holdNormalOffHandTimer = getDataValue(HOLD_NORMAL_OFF_WEIGHT) * (1 - getDataValueEasedQuad(ATTACK_WEIGHT));
 
         float holdNormalMainHandWeight = 1 - getDataValueEasedQuad(ATTACK_WEIGHT);
         float holdNormalOffHandWeight = 1 - getDataValueEasedQuad(ATTACK_WEIGHT_OFFHAND);
@@ -331,8 +330,8 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
                 ATTACK_WEIGHT_PUNCH, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "attack_punch"),
                 ATTACK_WEIGHT_PICKAXE, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "attack_pickaxe")
         );
-        float attackTimer = getDataValueLerped(ATTACK_TIMER);
-        boolean isAttacking = getDataValueLerped(ATTACK_TIMER) != 0 || livingEntity.attackAnim != 0;
+        float attackTimer = getDataValue(ATTACK_TIMER);
+        boolean isAttacking = getDataValue(ATTACK_TIMER) != 0 || livingEntity.attackAnim != 0;
         for(EntityAnimationData.DataKey<Float> dataKey : attackTimelineGroups.keySet()){
             this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, attackTimelineGroups.get(dataKey), attackTimer, getDataValueEasedCondition(dataKey, Easing.CubicBezier.bezierOutQuart(), Easing.CubicBezier.bezierInQuart(), isAttacking), isLeftHanded());
         }
@@ -344,7 +343,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         float turnLeftWeight = getDataValueEasedQuad(TURNING_LEFT_WEIGHT);
         float turnRightWeight = getDataValueEasedQuad(TURNING_RIGHT_WEIGHT);
 
-        float turnLeftTimer = (getDataValueLerped(BODY_Y_ROT) % 90F) / 90F;
+        float turnLeftTimer = (getDataValue(BODY_Y_ROT) % 90F) / 90F;
         turnLeftTimer = turnLeftTimer < 0 ? 1 + turnLeftTimer : turnLeftTimer;
         float turnRightTimer = 1 - turnLeftTimer;
 
@@ -356,11 +355,11 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         TimelineGroupData.TimelineGroup sleepMasterTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "sleep_master");
         TimelineGroupData.TimelineGroup sleepStartTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "sleep_start");
 
-        float sleepIdleTimer = new TimerProcessor(this.livingEntity.tickCount + this.partialTicks)
+        float sleepIdleTimer = new TimerProcessor(this.livingEntity.tickCount)
                 .speedUp(1)
                 .repeat(sleepMasterTimelineGroup)
                 .getValue();
-        float sleepStartTimer = getDataValueLerped(SLEEP_TIMER);
+        float sleepStartTimer = getDataValue(SLEEP_TIMER);
 
         float sleepWeight = livingEntity.getPose() == Pose.SLEEPING ? 1 : 0;
 
@@ -374,15 +373,15 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
             TimelineGroupData.TimelineGroup minecartIdleTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "minecart_master");
             TimelineGroupData.TimelineGroup minecartStartTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "minecart_start");
 
-            float minecartIdleTimer = new TimerProcessor(this.livingEntity.tickCount + this.partialTicks)
+            float minecartIdleTimer = new TimerProcessor(this.livingEntity.tickCount)
                     .repeat(minecartIdleTimelineGroup)
                     .getValue();
-            float minecartStartTimer = getDataValueLerped(IS_PASSENGER_TIMER);
+            float minecartStartTimer = getDataValue(IS_PASSENGER_TIMER);
             float lookVerticalTimer = 1 - getLookUpDownTimer();
 
             this.locatorRig.weightedClearTransforms(locatorListMaster, 1);
 
-            locatorHead.xRot = getDataValueLerped(HEAD_X_ROT);
+            locatorHead.rotateX = getDataValue(HEAD_X_ROT);
             this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "look_vertical"), lookVerticalTimer, 1, false);
             this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, minecartIdleTimelineGroup, minecartIdleTimer, 1, isLeftHanded());
             this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, minecartStartTimelineGroup, minecartStartTimer, 1, isLeftHanded());
@@ -394,10 +393,10 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         TimelineGroupData.TimelineGroup boatStartTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "minecart_start");
         if(livingEntity.isPassenger() && livingEntity.getVehicle() instanceof Boat){
 
-            float boatIdleTimer = new TimerProcessor(this.livingEntity.tickCount + this.partialTicks)
+            float boatIdleTimer = new TimerProcessor(this.livingEntity.tickCount)
                     .repeat(boatIdleTimelineGroup)
                     .getValue();
-            float boatStartTimer = getDataValueLerped(IS_PASSENGER_TIMER);
+            float boatStartTimer = getDataValue(IS_PASSENGER_TIMER);
 
             this.locatorRig.weightedClearTransforms(locatorListMaster, 1);
             addPoseLayerLook();
@@ -411,10 +410,10 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         TimelineGroupData.TimelineGroup mountStartTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "minecart_start");
         if(livingEntity.isPassenger() && livingEntity.getVehicle() instanceof LivingEntity){
 
-            float mountIdleTimer = new TimerProcessor(this.livingEntity.tickCount + this.partialTicks)
+            float mountIdleTimer = new TimerProcessor(this.livingEntity.tickCount)
                     .repeat(mountIdleTimelineGroup)
                     .getValue();
-            float mountStartTimer = getDataValueLerped(IS_PASSENGER_TIMER);
+            float mountStartTimer = getDataValue(IS_PASSENGER_TIMER);
 
             this.locatorRig.weightedClearTransforms(locatorListMaster, 1);
             addPoseLayerLook();
@@ -429,8 +428,8 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
     }
 
     private void addPoseLayerLook(){
-        locatorHead.xRot = getDataValueLerped(HEAD_X_ROT);
-        locatorHead.yRot = getDataValueLerped(HEAD_Y_ROT);
+        locatorHead.rotateX = getDataValue(HEAD_X_ROT);
+        locatorHead.rotateY = getDataValue(HEAD_Y_ROT);
 
         float lookWeight =
                 (1 - getDataValueEasedQuad(CLIMBING_DOWN_WEIGHT))
@@ -449,15 +448,15 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         TimelineGroupData.TimelineGroup walkCrouchTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "walk_crouch");
         TimelineGroupData.TimelineGroup walkTrudgeTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "walk_trudge");
 
-        float walkNormalTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION))
+        float walkNormalTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION))
                 .speedUp(1.4F)
                 .repeat(walkNormalTimelineGroup)
                 .getValue();
-        float walkCrouchTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION))
+        float walkCrouchTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION))
                 .speedUp(2.5F)
                 .repeat(walkCrouchTimelineGroup)
                 .getValue();
-        float walkTrudgeTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION))
+        float walkTrudgeTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION))
                 .speedUp(2.25F)
                 .repeat(walkCrouchTimelineGroup)
                 .getValue();
@@ -465,25 +464,25 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         //walkCrouchTimer = Mth.lerp(getAnimationTimerEasedSine(DIRECTION_SHIFT), walkCrouchTimer, 1 - walkCrouchTimer);
 
         float walkNormalWeight = (1 - getDataValueEasedQuad(SPRINT_WEIGHT))
-                * Math.min(getDataValueLerped(ANIMATION_SPEED) / 0.86F, 1)
+                * Math.min(getDataValue(ANIMATION_SPEED) / 0.86F, 1)
                 * (1 - getDataValueEasedQuad(JUMP_WEIGHT))
                 * (1 - getDataValueEasedQuad(CROUCH_WEIGHT))
                 * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
                 * (1 - getDataValueEasedQuad(TRUDGE_WEIGHT))
-                * (1 - getDataValueLerped(ANIMATION_SPEED_Y));
-        float walkCrouchWeight = Math.min(getDataValueLerped(ANIMATION_SPEED) / 0.2F, 1)
+                * (1 - getDataValue(ANIMATION_SPEED_Y));
+        float walkCrouchWeight = Math.min(getDataValue(ANIMATION_SPEED) / 0.2F, 1)
                 * (1 - getDataValueEasedQuad(JUMP_WEIGHT))
                 * (1 - getDataValueEasedQuad(TRUDGE_WEIGHT))
                 * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
                 * getDataValueEasedQuad(CROUCH_WEIGHT)
-                * (1 - getDataValueLerped(ANIMATION_SPEED_Y));
+                * (1 - getDataValue(ANIMATION_SPEED_Y));
 
-        float walkTrudgeWeight = Math.min(getDataValueLerped(ANIMATION_SPEED) / 0.1F, 1)
+        float walkTrudgeWeight = Math.min(getDataValue(ANIMATION_SPEED) / 0.1F, 1)
                 * (1 - getDataValueEasedQuad(JUMP_WEIGHT))
                 * getDataValueEasedQuad(ON_GROUND_WEIGHT)
                 * getDataValueEasedQuad(TRUDGE_WEIGHT)
                 * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
-                * (1 - getDataValueLerped(ANIMATION_SPEED_Y));
+                * (1 - getDataValue(ANIMATION_SPEED_Y));
 
         List<Locator> legLocators = Arrays.asList(locatorLeftLeg, locatorRightLeg);
         List<Locator> nonReversibleWalkLocatorsNoArms = Arrays.asList(locatorBody, locatorHead, locatorCloak);
@@ -528,20 +527,20 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         TimelineGroupData.TimelineGroup walkNormalTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "walk_normal");
         TimelineGroupData.TimelineGroup sprintNormalTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "sprint_normal");
 
-        float sprintNormalTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION))
+        float sprintNormalTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION))
                 .speedUp(1.4F)
                 .repeat(walkNormalTimelineGroup)
                 .getValue();
 
         float sprintNormalWeight = getDataValueEasedQuad(SPRINT_WEIGHT)
-                * Math.min(getDataValueLerped(ANIMATION_SPEED) / 0.86F, 1)
+                * Math.min(getDataValue(ANIMATION_SPEED) / 0.86F, 1)
                 * (1 - getDataValueEasedQuad(JUMP_WEIGHT))
                 * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
                 * (1 - getDataValueEasedQuad(IN_WATER_WEIGHT))
                 * (1 - getDataValueEasedQuad(TRUDGE_WEIGHT))
                 * (1 - getDataValueEasedQuad(UNDER_WATER_WEIGHT))
                 * (1 - getDataValueEasedQuad(CROUCH_WEIGHT))
-                * (1 - getDataValueLerped(ANIMATION_SPEED_Y));
+                * (1 - getDataValue(ANIMATION_SPEED_Y));
 
 
         List<Locator> locatorsRightArm = List.of(locatorRightArm, locatorRightHand);
@@ -566,7 +565,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
                 * (1 - getDataValueEasedQuad(FALL_WEIGHT));
         float sprintJumpWeight = jumpWeight * getDataValueEasedQuad(SPRINT_WEIGHT);
         float walkJumpWeight = jumpWeight * (1 - getDataValueEasedQuad(SPRINT_WEIGHT));
-        float jumpTimer = getDataValueLerped(JUMP_TIMER);
+        float jumpTimer = getDataValue(JUMP_TIMER);
 
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, sprintJumpTimelineGroup, jumpTimer, sprintJumpWeight, getDataValue(JUMP_REVERSER));
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, walkJumpTimelineGroup, jumpTimer, walkJumpWeight, getDataValue(JUMP_REVERSER));
@@ -576,9 +575,9 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         TimelineGroupData.TimelineGroup fallSlowTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "fall_short");
         TimelineGroupData.TimelineGroup fallFastTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "fall_fast");
 
-        float fastFallLerp = getDataValueLerped(FAST_FALL_WEIGHT);
+        float fastFallLerp = getDataValue(FAST_FALL_WEIGHT);
         float fallWeight = getDataValueEasedQuad(FALL_WEIGHT)
-                * getDataValueLerped(ANIMATION_SPEED_Y)
+                * getDataValue(ANIMATION_SPEED_Y)
                 * (1 - getDataValueEasedQuad(CLIMBING_UP_WEIGHT))
                 * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
                 * (1 - getDataValueEasedQuad(IN_WATER_WEIGHT))
@@ -587,11 +586,11 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         float slowFallWeight = fallWeight * (1 - fastFallLerp);
         float fastFallWeight = fallWeight * fastFallLerp;
 
-        float fallSlowTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION_Y))
+        float fallSlowTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION_Y))
                 .speedUp(1)
                 .repeat(fallSlowTimelineGroup)
                 .getValue();
-        float fallFastTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION_Y))
+        float fallFastTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION_Y))
                 .speedUp(1.5F)
                 .repeat(fallFastTimelineGroup)
                 .getValue();
@@ -614,12 +613,12 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
                 * (1 - getDataValueEasedQuad(UNDER_WATER_WEIGHT))
                 * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
                 * (1 - getDataValueEasedQuad(ON_GROUND_WEIGHT));
-        float climbUpTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION_Y))
+        float climbUpTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION_Y))
                 .speedUp(1.75F)
                 .repeat(climbUpTimelineGroup)
                 .getValue();
 
-        float climbDownTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION_Y))
+        float climbDownTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION_Y))
                 .speedUp(1.5F)
                 .repeat(climbDownTimelineGroup)
                 .getValue();
@@ -632,18 +631,18 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         TimelineGroupData.TimelineGroup crawlMasterTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "crawl_master");
         TimelineGroupData.TimelineGroup crawlTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "crawl");
 
-        float visualCrawlTimer = getDataValueLerped(VISUAL_SWIMMING_WEIGHT)
+        float visualCrawlTimer = getDataValue(VISUAL_SWIMMING_WEIGHT)
                 * (1 - getDataValueEasedQuad(UNDER_WATER_WEIGHT))
                 * getDataValueEasedQuad(ON_GROUND_WEIGHT);
 
 
-        float crawlWeight = Easing.CubicBezier.bezierInOutSine().ease(getDataValueLerped(VISUAL_SWIMMING_WEIGHT) * 4 - 3)
+        float crawlWeight = Easing.CubicBezier.bezierInOutSine().ease(getDataValue(VISUAL_SWIMMING_WEIGHT) * 4 - 3)
                 * (1 - getDataValueEasedQuad(IN_WATER_WEIGHT))
                 * (1 - getDataValueEasedQuad(UNDER_WATER_WEIGHT));
         float crawlForwardWeight = Mth.lerp(getDataValueEasedQuad(DIRECTION_SHIFT), crawlWeight, 0);
         float crawlBackwardsWeight = Mth.lerp(getDataValueEasedQuad(DIRECTION_SHIFT), 0, crawlWeight);
 
-        float crawlTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION))
+        float crawlTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION))
                 .speedUp(5)
                 .repeat(crawlTimelineGroup)
                 .getValue();
@@ -662,7 +661,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         float swimUpWeight =
                 (1 - getDataValueEasedQuad(ON_GROUND_WEIGHT))
                         * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
-                        * (1 - Math.min(getDataValueLerped(ANIMATION_SPEED) / 0.25F, 1))
+                        * (1 - Math.min(getDataValue(ANIMATION_SPEED) / 0.25F, 1))
                         * getDataValueEasedQuad(IN_WATER_WEIGHT)
                         * (Math.min(1, getDataValueEasedQuad(MOVING_UP_WEIGHT) + (1 - getDataValueEasedQuad(UNDER_WATER_WEIGHT))));
 
@@ -670,19 +669,19 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
                 (1 - getDataValueEasedQuad(ON_GROUND_WEIGHT))
                         * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
                         * getDataValueEasedQuad(IN_WATER_WEIGHT)
-                        * Math.min(getDataValueLerped(ANIMATION_SPEED) * 4, 1)
+                        * Math.min(getDataValue(ANIMATION_SPEED) * 4, 1)
                         * (Math.min(1, getDataValueEasedQuad(MOVING_UP_WEIGHT) + (1 - getDataValueEasedQuad(UNDER_WATER_WEIGHT))));
 
         float swimIdleWeight =
                 (1 - getDataValueEasedQuad(ON_GROUND_WEIGHT))
                         * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
-                        * (1 - Math.min(getDataValueLerped(ANIMATION_SPEED) / 0.25F, 1))
+                        * (1 - Math.min(getDataValue(ANIMATION_SPEED) / 0.25F, 1))
                         * getDataValueEasedQuad(UNDER_WATER_WEIGHT);
 
         float swimIdleMoveWeight =
                 (1 - getDataValueEasedQuad(ON_GROUND_WEIGHT))
                         * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
-                        * Math.min(getDataValueLerped(ANIMATION_SPEED) * 4, 1)
+                        * Math.min(getDataValue(ANIMATION_SPEED) * 4, 1)
                         * getDataValueEasedQuad(UNDER_WATER_WEIGHT);
 
 
@@ -692,11 +691,11 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         float swimIdleUpForwardWeight = Mth.lerp(getDataValueEasedQuad(DIRECTION_SHIFT), swimUpMoveWeight, 0);
         float swimIdleUpBackwardsWeight = Mth.lerp(getDataValueEasedQuad(DIRECTION_SHIFT), 0, swimUpMoveWeight);
 
-        float swimIdleSlowTimer = new TimerProcessor(this.livingEntity.tickCount + this.partialTicks)
+        float swimIdleSlowTimer = new TimerProcessor(this.livingEntity.tickCount)
                 .repeat(swimIdleTimelineGroup)
                 .getValue();
 
-        float swimIdleUpTimer = new TimerProcessor(this.livingEntity.tickCount + this.partialTicks)
+        float swimIdleUpTimer = new TimerProcessor(this.livingEntity.tickCount)
                 .speedUp(1.5F)
                 .repeat(swimIdleTimelineGroup)
                 .getValue();
@@ -721,8 +720,8 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         float swimMasterWeight = getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT)
                 * getDataValueEasedQuad(IN_WATER_WEIGHT);
 
-        float swimMasterTimer = (float) Mth.clamp((Math.toRadians(Mth.lerp(this.partialTicks, livingEntity.xRotO, livingEntity.getXRot())) / Mth.PI) + 0.5F, 0, 1);
-        float swimFastTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION_XYZ))
+        float swimMasterTimer = (float) Mth.clamp((Math.toRadians(livingEntity.getXRot()) / Mth.PI) + 0.5F, 0, 1);
+        float swimFastTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION_XYZ))
                 .speedUp(1.5F)
                 .repeat(swimFastTimelineGroup)
                 .getValue();
@@ -744,21 +743,21 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         TimelineGroupData.TimelineGroup fallFlyingSlowTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "fall_fast");
 
         float fallFlyingMasterWeight = getDataValueEasedQuad(FALL_FLYING_WEIGHT);
-        float fallFlyingFastWeight = getDataValueLerped(FLYING_SPEED);
+        float fallFlyingFastWeight = getDataValue(FLYING_SPEED);
 
-        float fallFlyingMasterTimer = (float) Mth.clamp((Math.toRadians(Mth.lerp(this.partialTicks, livingEntity.xRotO, livingEntity.getXRot())) / Mth.PI) + 0.5F, 0, 1);
-        float fallFlyingSlowTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION_XYZ))
+        float fallFlyingMasterTimer = (float) Mth.clamp((Math.toRadians(livingEntity.getXRot()) / Mth.PI) + 0.5F, 0, 1);
+        float fallFlyingSlowTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION_XYZ))
                 .speedUp(1.5F)
                 .repeat(fallFlyingSlowTimelineGroup)
                 .getValue();
-        float fallFlyingFastTimer = new TimerProcessor(getDataValueLerped(ANIMATION_POSITION_XYZ))
+        float fallFlyingFastTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION_XYZ))
                 .speedUp(1.5F)
                 .repeat(fallFlyingFastTimelineGroup)
                 .getValue();
 
         this.locatorRig.weightedClearTransforms(locatorListMaster, fallFlyingMasterWeight);
-        this.locatorHead.xRot -= Mth.HALF_PI * fallFlyingMasterWeight;
-        this.locatorMaster.yRot += getDataValueLerped(HEAD_Y_ROT) * -fallFlyingMasterWeight * fallFlyingFastWeight;
+        this.locatorHead.rotateX -= Mth.HALF_PI * fallFlyingMasterWeight;
+        this.locatorMaster.rotateY += getDataValue(HEAD_Y_ROT) * -fallFlyingMasterWeight * fallFlyingFastWeight;
         this.locatorRig.animateMultipleLocatorsAdditive(List.of(locatorMaster), fallFlyingMasterTimelineGroup, fallFlyingMasterTimer, fallFlyingMasterWeight, false);
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, fallFlyingSlowTimelineGroup, fallFlyingSlowTimer, (1 - fallFlyingFastWeight) * fallFlyingMasterWeight, isLeftHanded());
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, fallFlyingFastTimelineGroup, fallFlyingFastTimer, (fallFlyingFastWeight) * fallFlyingMasterWeight, isLeftHanded());
@@ -770,28 +769,22 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         TimelineGroupData.TimelineGroup idleCrouchTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "idle_crouch");
         TimelineGroupData.TimelineGroup idleCrouchTransitionTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "idle_crouch_transition");
 
-        float idleNormalTimer = new TimerProcessor(this.livingEntity.tickCount + this.partialTicks)
+        float idleNormalTimer = new TimerProcessor(this.livingEntity.tickCount)
                 .repeat(idleNormalTimelineGroup)
                 .getValue();
 
-        float idleWeight = (1 - Math.min(getDataValueLerped(ANIMATION_SPEED) / 0.2F, 1))
+        float idleWeight = (1 - Math.min(getDataValue(ANIMATION_SPEED) / 0.2F, 1))
                 * (getDataValueEasedQuad(ON_GROUND_WEIGHT))
                 * (1 - getDataValueEasedQuad(VISUAL_SWIMMING_WEIGHT))
-                * (1 - getDataValueLerped(ANIMATION_SPEED_Y));
+                * (1 - getDataValue(ANIMATION_SPEED_Y));
 
         float idleNormalWeight = Mth.lerp(getDataValueEasedQuad(CROUCH_WEIGHT), idleWeight, 0);
         float idleCrouchWeight = Mth.lerp(getDataValueEasedQuad(CROUCH_WEIGHT), 0, idleWeight);
 
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleNormalTimelineGroup, idleNormalTimer, idleNormalWeight, isLeftHanded());
         this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleCrouchTimelineGroup, idleNormalTimer, idleCrouchWeight, isLeftHanded());
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleCrouchTransitionTimelineGroup, getDataValueLerped(CROUCH_WEIGHT), idleWeight, false);
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, idleCrouchTransitionTimelineGroup, getDataValue(CROUCH_WEIGHT), idleWeight, false);
 
-        // Removes the vanilla transformation done for the crouch pose
-        if(this.entityModel.crouching){
-            for(Locator locator : locatorListAll){
-                locator.y -= 2;
-            }
-        }
     }
 
     @Override
@@ -803,6 +796,12 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         rootModelPart.getChild("jacket").copyFrom(rootModelPart.getChild("body"));
         rootModelPart.getChild("hat").copyFrom(rootModelPart.getChild("head"));
         rootModelPart.getChild("cloak").xRot *= -1F;
+        // Removes the vanilla transformation done for the crouch pose
+        if(this.entityModel.crouching){
+            for(ModelPart modelPart : rootModelPart.getAllParts().toList()){
+                modelPart.y -= 2;
+            }
+        }
     }
 
     private static HumanoidModel.ArmPose getArmPose(LivingEntity livingEntity, InteractionHand interactionHand) {

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import gg.moonflower.animationoverhaul.animations.AnimatorDispatcher;
 import gg.moonflower.animationoverhaul.animations.entity.LivingEntityPartAnimator;
+import gg.moonflower.animationoverhaul.util.animation.BakedPose;
 import gg.moonflower.animationoverhaul.util.animation.LocatorRig;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -50,9 +51,9 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
         //poseStack.translate(Mth.sin(bob / 6), 0, 0);
         //poseStack.mulPose(Vector3f.ZP.rotation(Mth.sin(bob / 6) / 4));
 
-        LocatorRig locatorRig = AnimatorDispatcher.INSTANCE.getLocatorRig(livingEntity.getUUID());
+        BakedPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
 
-        if(shouldUseAlternateRotations(locatorRig)){
+        if(shouldUseAlternateRotations(bakedPose)){
 
             poseStack.popPose();
             poseStack.pushPose();
@@ -76,8 +77,8 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
 
     @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V", ordinal = 0))
     private void removeBedTranslation(PoseStack instance, double d, double e, double f, T livingEntity){
-        LocatorRig locatorRig = AnimatorDispatcher.INSTANCE.getLocatorRig(livingEntity.getUUID());
-        if(shouldUseAlternateRotations(locatorRig)){
+        BakedPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
+        if(shouldUseAlternateRotations(bakedPose)){
 
         } else {
             instance.translate(d, e, f);
@@ -86,18 +87,17 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
 
     @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V"))
     private void translateAndRotateAfterScale(T livingEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
-
-        LocatorRig locatorRig = AnimatorDispatcher.INSTANCE.getLocatorRig(livingEntity.getUUID());
-        if(shouldUseAlternateRotations(locatorRig)){
+        BakedPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
+        if(shouldUseAlternateRotations(bakedPose)){
             poseStack.translate(0, -1.5, 0);
-            locatorRig.getLocator(ROOT, false).translateAndRotatePoseStack(poseStack);
+            bakedPose.getLocator(ROOT, g).translateAndRotatePoseStack(poseStack);
             poseStack.translate(0, 1.5, 0);
         }
     }
 
-    private boolean shouldUseAlternateRotations(LocatorRig locatorRig){
-        if(locatorRig != null){
-            if(locatorRig.containsLocator(ROOT)){
+    private boolean shouldUseAlternateRotations(BakedPose bakedPose){
+        if(bakedPose != null){
+            if(bakedPose.containsLocator(ROOT)){
                 return true;
             }
         }
