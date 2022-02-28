@@ -9,6 +9,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.HitResult;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -55,6 +56,12 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
         Entity entity = AnimationOverhaulMain.debugEntity;
 
         entity = minecraft.player;
+
+        for(Entity entity1 : minecraft.level.entitiesForRendering()){
+            if(entity1.getType() == EntityType.CREEPER){
+                entity = entity1;
+            }
+        }
 
         if(entity != null){
 

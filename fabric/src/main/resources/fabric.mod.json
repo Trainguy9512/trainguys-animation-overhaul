@@ -30,6 +30,6 @@
   "depends": {
     "fabric": "*",
     "minecraft": "1.18.x",
-    "pollen": "1.0.0"
+    "pollen": "1.x"
   }
 }

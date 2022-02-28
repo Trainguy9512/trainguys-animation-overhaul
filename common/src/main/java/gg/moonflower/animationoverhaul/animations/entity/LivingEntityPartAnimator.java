@@ -85,16 +85,14 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
 
         BakedPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
 
-        //this.entityAnimationData = entityAnimationData;
-        //this.locatorRig.resetRig();
-        //this.partialTicks = partialTicks;
-
-        //poseLocatorRig();
-        ModelPart rootModelPart = ((ModelAccess)entityModel).getRootModelPart();
+        ModelPart rootModelPart = getRoot(entityModel);
         bakedPose.bakeToModelParts(rootModelPart, partialTicks);
-        //this.locatorRig.bakeRig(rootModelPart);
         finalizeModelParts(rootModelPart);
 
+    }
+
+    protected ModelPart getRoot(M entityModel){
+        return ((ModelAccess)entityModel).getRootModelPart();
     }
 
     /**
@@ -186,6 +184,10 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
     public static final EntityAnimationData.DataKey<Float> BODY_Y_ROT = new EntityAnimationData.DataKey<>("body_y_rot", 0F);
     protected static final EntityAnimationData.DataKey<Float> TURNING_LEFT_WEIGHT = new EntityAnimationData.DataKey<>("turning_left_weight", 0F);
     protected static final EntityAnimationData.DataKey<Float> TURNING_RIGHT_WEIGHT = new EntityAnimationData.DataKey<>("turning_right_weight", 0F);
+
+    protected void tickBodyRotationTimersNormal(LivingEntity livingEntity, EntityAnimationData entityAnimationData){
+        entityAnimationData.setValue(BODY_Y_ROT, (float) Mth.rotLerp(0.75f, entityAnimationData.getValue(BODY_Y_ROT), livingEntity.yBodyRot));
+    }
 
     protected void tickGeneralMovementTimers(LivingEntity livingEntity, EntityAnimationData entityAnimationData){
         float deltaY = (float) (livingEntity.getY() - livingEntity.yo);
@@ -296,8 +298,8 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
             k = j - h;
         }
 
-        entityAnimationData.setValue(HEAD_X_ROT, (float) Math.toRadians(livingEntity.getXRot()));
-        entityAnimationData.setValue(HEAD_Y_ROT, (float) Math.toRadians(k));
+        entityAnimationData.setValue(HEAD_X_ROT, (float) Mth.lerp(0.75, entityAnimationData.getValue(HEAD_X_ROT), Math.toRadians(livingEntity.getXRot())));
+        entityAnimationData.setValue(HEAD_Y_ROT, (float) Mth.lerp(0.75, entityAnimationData.getValue(HEAD_Y_ROT), Math.toRadians(k)));
     }
 
     protected void tickHurtTimers(LivingEntity livingEntity, EntityAnimationData entityAnimationData, int numberOfTimers){

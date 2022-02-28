@@ -1,5 +1,6 @@
 package gg.moonflower.animationoverhaul;
 
+import gg.moonflower.animationoverhaul.animations.entity.CreeperPartAnimator;
 import gg.moonflower.animationoverhaul.animations.entity.PlayerPartAnimator;
 import gg.moonflower.animationoverhaul.render.*;
 import gg.moonflower.animationoverhaul.util.data.TimelineGroupDataLoader;
@@ -36,7 +37,7 @@ public class AnimationOverhaulMain {
 	public static void onClientInit() {
 		registerTimelineGroupLoader();
 		registerEntityAnimators();
-		registerBlockRenderers();
+		//registerBlockRenderers();
 	}
 
 	public static void onClientPostInit(Platform.ModSetupContext ctx) {
@@ -54,7 +55,7 @@ public class AnimationOverhaulMain {
 
 	private static void registerEntityAnimators(){
 		ENTITY_ANIMATORS.register(EntityType.PLAYER, new PlayerPartAnimator());
-		//ENTITY_ANIMATORS.register(EntityType.ZOMBIFIED_PIGLIN, new ZombifiedPiglinAnimator());
+		//ENTITY_ANIMATORS.register(EntityType.CREEPER, new CreeperPartAnimator());
 	}
 
 	private static void registerBlockRenderers(){

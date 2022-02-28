@@ -52,6 +52,10 @@ public class AnimatorDispatcher {
         return new BakedPose();
     }
 
+    public boolean hasAnimationData(UUID uuid){
+        return this.entityAnimationDataMap.containsKey(uuid);
+    }
+
     public EntityAnimationData getEntityAnimationData(UUID uuid){
         if(entityAnimationDataMap.containsKey(uuid)){
             return entityAnimationDataMap.get(uuid);

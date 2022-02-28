@@ -69,6 +69,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
     private static final EntityAnimationData.DataKey<Float> ATTACK_TIMER = new EntityAnimationData.DataKey<>("attack_timer", 0F);
     private static final EntityAnimationData.DataKey<PlayerPartAnimator.AttackType> ATTACK_TYPE = new EntityAnimationData.DataKey<>("attack_type", PlayerPartAnimator.AttackType.PUNCH);
 
+    private static final EntityAnimationData.DataKey<Float> TICKS_SINCE_ATTACKING = new EntityAnimationData.DataKey<>("ticks_since_attacking", 0F);
     private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT = new EntityAnimationData.DataKey<>("attack_weight", 0F);
     private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT_PUNCH = new EntityAnimationData.DataKey<>("attack_weight_punch", 0F);
     private static final EntityAnimationData.DataKey<Float> ATTACK_WEIGHT_OFFHAND = new EntityAnimationData.DataKey<>("attack_weight_offhand", 0F);
@@ -86,7 +87,6 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
 
     @Override
     protected void buildRig(LocatorRig locatorRig) {
-        super.buildRig(locatorRig);
 
 
         this.locatorMaster = new Locator("root");
@@ -120,6 +120,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
     public void tick(LivingEntity livingEntity, EntityAnimationData entityAnimationData) {
         tickGeneralMovementTimers(livingEntity, entityAnimationData);
         tickHeadTimers(livingEntity, entityAnimationData);
+        tickBodyRotationTimersNormal(livingEntity, entityAnimationData);
 
         boolean isCrouching = livingEntity.isCrouching();
         boolean isSprinting = livingEntity.isSprinting();
@@ -215,12 +216,7 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
 
         entityAnimationData.incrementInTicksFromCondition(FALL_FLYING_WEIGHT, livingEntity.getFallFlyingTicks() > 0, 12, 12);
 
-        boolean shouldRepeatAttack = (livingEntity.getAttackAnim(1) != 0 && entityAnimationData.getValue(ATTACK_TIMER) == 1);
-        boolean shouldResetAttack = (livingEntity.getAttackAnim(1) == 0 || entityAnimationData.getValue(ATTACK_TIMER) == 1) && (entityAnimationData.getValue(ATTACK_TIMER) == 0 || entityAnimationData.getValue(ATTACK_TIMER) == 1);
-        entityAnimationData.incrementInTicksOrResetFromCondition(ATTACK_TIMER, shouldResetAttack, 6);
-        if(shouldRepeatAttack){
-            entityAnimationData.setValue(ATTACK_TIMER, 0.001F);
-        }
+        entityAnimationData.setValue(ATTACK_TIMER, livingEntity.attackAnim);
         if(entityAnimationData.getValue(ATTACK_TIMER) <= 0.001F){
             PlayerPartAnimator.AttackType attackType;
             if(livingEntity.swingingArm == InteractionHand.MAIN_HAND){
@@ -246,17 +242,18 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
             entityAnimationData.setValue(ATTACK_TYPE, attackType);
         }
 
-        boolean isAttacking = entityAnimationData.getValue(ATTACK_TIMER) != 0 || livingEntity.attackAnim != 0;
+        entityAnimationData.setValue(TICKS_SINCE_ATTACKING, livingEntity.attackAnim == 0 ? entityAnimationData.getValue(TICKS_SINCE_ATTACKING) + 1 : 0);
+        boolean isAttacking = entityAnimationData.getValue(TICKS_SINCE_ATTACKING) <= 1;
         PlayerPartAnimator.AttackType attackType = entityAnimationData.getValue(ATTACK_TYPE);
-        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT, isAttacking, 3, 3);
-        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_PUNCH, isAttacking && attackType == PlayerPartAnimator.AttackType.PUNCH, 3, 6);
-        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_OFFHAND, isAttacking && attackType == PlayerPartAnimator.AttackType.OFFHAND, 3, 6);
-        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_PICKAXE, isAttacking && attackType == PlayerPartAnimator.AttackType.PICKAXE, 3, 6);
-        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_SHOVEL, isAttacking && attackType == PlayerPartAnimator.AttackType.SHOVEL, 3, 6);
-        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_AXE, isAttacking && attackType == PlayerPartAnimator.AttackType.AXE, 3, 6);
-        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_HOE, isAttacking && attackType == PlayerPartAnimator.AttackType.HOE, 3, 6);
-        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_SWORD, isAttacking && attackType == PlayerPartAnimator.AttackType.SWORD, 3, 6);
-        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_PLACE, isAttacking && attackType == PlayerPartAnimator.AttackType.PLACE, 3, 6);
+        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT, isAttacking, 3, 10);
+        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_PUNCH, isAttacking && attackType == PlayerPartAnimator.AttackType.PUNCH, 3, 10);
+        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_OFFHAND, isAttacking && attackType == PlayerPartAnimator.AttackType.OFFHAND, 3, 10);
+        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_PICKAXE, isAttacking && attackType == PlayerPartAnimator.AttackType.PICKAXE, 3, 10);
+        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_SHOVEL, isAttacking && attackType == PlayerPartAnimator.AttackType.SHOVEL, 3, 10);
+        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_AXE, isAttacking && attackType == PlayerPartAnimator.AttackType.AXE, 3, 10);
+        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_HOE, isAttacking && attackType == PlayerPartAnimator.AttackType.HOE, 3, 10);
+        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_SWORD, isAttacking && attackType == PlayerPartAnimator.AttackType.SWORD, 3, 10);
+        entityAnimationData.incrementInTicksFromCondition(ATTACK_WEIGHT_PLACE, isAttacking && attackType == PlayerPartAnimator.AttackType.PLACE, 3, 10);
 
         entityAnimationData.incrementInTicksFromCondition(HOLD_NORMAL_MAIN_WEIGHT, getArmPose(livingEntity, InteractionHand.MAIN_HAND) == HumanoidModel.ArmPose.ITEM, 10, 10);
         entityAnimationData.incrementInTicksFromCondition(HOLD_NORMAL_OFF_WEIGHT, getArmPose(livingEntity, InteractionHand.OFF_HAND) == HumanoidModel.ArmPose.ITEM, 10, 10);
@@ -265,7 +262,6 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
 
     @Override
     protected void poseLocatorRig() {
-        super.poseLocatorRig();
         addPoseLayerLook();
         addPoseLayerWalk();
         addPoseLayerSprint();
@@ -326,15 +322,20 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
     }
 
     private void addPoseLayerAttack(){
+        TimelineGroupData.TimelineGroup attackLeanTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "attack_lean");
         Map<EntityAnimationData.DataKey<Float>, TimelineGroupData.TimelineGroup> attackTimelineGroups = Map.of(
                 ATTACK_WEIGHT_PUNCH, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "attack_punch"),
-                ATTACK_WEIGHT_PICKAXE, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "attack_pickaxe")
+                ATTACK_WEIGHT_PICKAXE, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "attack_pickaxe"),
+                ATTACK_WEIGHT_PLACE, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "attack_place"),
+                ATTACK_WEIGHT_AXE, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "attack_axe"),
+                ATTACK_WEIGHT_SWORD, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "attack_sword")
         );
         float attackTimer = getDataValue(ATTACK_TIMER);
         boolean isAttacking = getDataValue(ATTACK_TIMER) != 0 || livingEntity.attackAnim != 0;
         for(EntityAnimationData.DataKey<Float> dataKey : attackTimelineGroups.keySet()){
             this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, attackTimelineGroups.get(dataKey), attackTimer, getDataValueEasedCondition(dataKey, Easing.CubicBezier.bezierOutQuart(), Easing.CubicBezier.bezierInQuart(), isAttacking), isLeftHanded());
         }
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, attackLeanTimelineGroup, 1 - getLookUpDownTimer(), getDataValueEasedCondition(ATTACK_WEIGHT, Easing.CubicBezier.bezierOutQuart(), Easing.CubicBezier.bezierInQuart(), isAttacking));
     }
 
     private void addPoseLayerTurn(){
@@ -567,8 +568,19 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         float walkJumpWeight = jumpWeight * (1 - getDataValueEasedQuad(SPRINT_WEIGHT));
         float jumpTimer = getDataValue(JUMP_TIMER);
 
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, sprintJumpTimelineGroup, jumpTimer, sprintJumpWeight, getDataValue(JUMP_REVERSER));
-        this.locatorRig.animateMultipleLocatorsAdditive(locatorListAll, walkJumpTimelineGroup, jumpTimer, walkJumpWeight, getDataValue(JUMP_REVERSER));
+
+        List<Locator> locatorsRightArm = List.of(locatorRightArm, locatorRightHand);
+        List<Locator> locatorsLeftArm = List.of(locatorLeftArm, locatorLeftHand);
+        List<Locator> locatorsNoArms = List.of(locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak);
+
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorsNoArms, sprintJumpTimelineGroup, jumpTimer, sprintJumpWeight, getDataValue(JUMP_REVERSER));
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorsNoArms, walkJumpTimelineGroup, jumpTimer, walkJumpWeight, getDataValue(JUMP_REVERSER));
+
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorsLeftArm, sprintJumpTimelineGroup, jumpTimer, sprintJumpWeight * leftArmCancelWeight(), getDataValue(JUMP_REVERSER));
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorsLeftArm, walkJumpTimelineGroup, jumpTimer, walkJumpWeight * leftArmCancelWeight(), getDataValue(JUMP_REVERSER));
+
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorsRightArm, sprintJumpTimelineGroup, jumpTimer, sprintJumpWeight * rightArmCancelWeight(), getDataValue(JUMP_REVERSER));
+        this.locatorRig.animateMultipleLocatorsAdditive(locatorsRightArm, walkJumpTimelineGroup, jumpTimer, walkJumpWeight * rightArmCancelWeight(), getDataValue(JUMP_REVERSER));
     }
 
     private void addPoseLayerFall(){

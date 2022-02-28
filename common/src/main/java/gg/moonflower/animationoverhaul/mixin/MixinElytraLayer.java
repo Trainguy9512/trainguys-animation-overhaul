@@ -1,6 +1,7 @@
 package gg.moonflower.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import gg.moonflower.animationoverhaul.animations.AnimatorDispatcher;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -23,7 +24,7 @@ public abstract class MixinElytraLayer<T extends LivingEntity, M extends EntityM
 
     @Inject(method = "render", at = @At("HEAD"))
     private void transformElytra(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, T livingEntity, float f, float g, float h, float j, float k, float l, CallbackInfo ci){
-        if(this.getParentModel() instanceof HumanoidModel){
+        if(this.getParentModel() instanceof HumanoidModel && isValidForElytraTransformation(livingEntity)){
             poseStack.pushPose();
             ModelPart body = ((HumanoidModel<?>) this.getParentModel()).body;
             body.translateAndRotate(poseStack);
@@ -32,8 +33,12 @@ public abstract class MixinElytraLayer<T extends LivingEntity, M extends EntityM
 
     @Inject(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V", at = @At("RETURN"))
     private void transformElytraFinalized(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, T livingEntity, float f, float g, float h, float j, float k, float l, CallbackInfo ci){
-        if(this.getParentModel() instanceof HumanoidModel){
+        if(this.getParentModel() instanceof HumanoidModel && isValidForElytraTransformation(livingEntity)){
             poseStack.popPose();
         }
+    }
+
+    private boolean isValidForElytraTransformation(LivingEntity livingEntity){
+        return AnimatorDispatcher.INSTANCE.hasAnimationData(livingEntity.getUUID());
     }
 }
