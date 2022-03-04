@@ -55,7 +55,7 @@ public class AnimationOverhaulMain {
 
 	private static void registerEntityAnimators(){
 		ENTITY_ANIMATORS.register(EntityType.PLAYER, new PlayerPartAnimator());
-		//ENTITY_ANIMATORS.register(EntityType.CREEPER, new CreeperPartAnimator());
+		ENTITY_ANIMATORS.register(EntityType.CREEPER, new CreeperPartAnimator());
 	}
 
 	private static void registerBlockRenderers(){

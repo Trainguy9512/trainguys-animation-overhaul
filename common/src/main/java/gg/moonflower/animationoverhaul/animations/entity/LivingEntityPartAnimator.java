@@ -156,16 +156,18 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
         return this.livingEntity.getMainArm() == HumanoidArm.LEFT;
     }
 
-    protected float getLookLeftRightTimer(){
-        return Mth.clamp((getDataValue(HEAD_Y_ROT) / Mth.HALF_PI) + 0.5F, 0, 1);
+    protected float getLookLeftRightTimer(EntityAnimationData.DataKey<Float> dataKey){
+        return Mth.clamp((getDataValue(dataKey) / Mth.HALF_PI) + 0.5F, 0, 1);
     }
 
-    protected float getLookUpDownTimer(){
-        return Mth.clamp((getDataValue(HEAD_X_ROT) / Mth.PI) + 0.5F, 0, 1);
+    protected float getLookUpDownTimer(EntityAnimationData.DataKey<Float> dataKey){
+        return Mth.clamp((getDataValue(dataKey) / Mth.PI) + 0.5F, 0, 1);
     }
 
     protected static final EntityAnimationData.DataKey<Float> HEAD_X_ROT = new EntityAnimationData.DataKey<>("head_x_rot", 0F);
     protected static final EntityAnimationData.DataKey<Float> HEAD_Y_ROT = new EntityAnimationData.DataKey<>("head_y_rot", 0F);
+    protected static final EntityAnimationData.DataKey<Float> LEAN_X_ROT = new EntityAnimationData.DataKey<>("lean_x_rot", 0F);
+    protected static final EntityAnimationData.DataKey<Float> LEAN_Y_ROT = new EntityAnimationData.DataKey<>("lean_y_rot", 0F);
     protected static final EntityAnimationData.DataKey<Float> DELTA_Y = new EntityAnimationData.DataKey<>("delta_y", 0F);
     protected static final EntityAnimationData.DataKey<Float> DELTA_Y_OLD = new EntityAnimationData.DataKey<>("delta_y_old", 0F);
     protected static final EntityAnimationData.DataKey<Float> ANIMATION_SPEED = new EntityAnimationData.DataKey<>("animation_speed", 0F);
@@ -298,8 +300,13 @@ public class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityMo
             k = j - h;
         }
 
-        entityAnimationData.setValue(HEAD_X_ROT, (float) Mth.lerp(0.75, entityAnimationData.getValue(HEAD_X_ROT), Math.toRadians(livingEntity.getXRot())));
-        entityAnimationData.setValue(HEAD_Y_ROT, (float) Mth.lerp(0.75, entityAnimationData.getValue(HEAD_Y_ROT), Math.toRadians(k)));
+        entityAnimationData.setValue(HEAD_X_ROT, (float) Mth.lerp(0.75F, entityAnimationData.getValue(HEAD_X_ROT), Math.toRadians(livingEntity.getXRot())));
+        entityAnimationData.setValue(HEAD_Y_ROT, (float) Mth.lerp(0.75F, entityAnimationData.getValue(HEAD_Y_ROT), Math.toRadians(k)));
+    }
+
+    protected void tickLeanTimers(EntityAnimationData entityAnimationData){
+        entityAnimationData.setValue(LEAN_X_ROT, Mth.lerp(0.25F, entityAnimationData.getValue(LEAN_X_ROT), entityAnimationData.getValue(HEAD_X_ROT)));
+        entityAnimationData.setValue(LEAN_Y_ROT, Mth.lerp(0.25F, entityAnimationData.getValue(LEAN_Y_ROT), entityAnimationData.getValue(HEAD_Y_ROT)));
     }
 
     protected void tickHurtTimers(LivingEntity livingEntity, EntityAnimationData entityAnimationData, int numberOfTimers){

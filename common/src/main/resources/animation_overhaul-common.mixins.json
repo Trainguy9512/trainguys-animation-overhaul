@@ -16,8 +16,8 @@
     "MixinLivingEntityRenderer",
     "debug.MixinAbstractClientPlayer",
     "debug.MixinDebugScreenOverlay",
-    "models.MixinPlayerModel",
-    "models.MixinPiglinModel"
+    "models.MixinPiglinModel",
+    "models.MixinPlayerModel"
   ],
   "injectors": {
     "defaultRequire": 1

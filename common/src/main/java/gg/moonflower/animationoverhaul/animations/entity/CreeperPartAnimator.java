@@ -9,16 +9,13 @@ import gg.moonflower.animationoverhaul.util.time.TimerProcessor;
 import net.minecraft.client.model.CreeperModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
-import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
-public class CreeperPartAnimator extends LivingEntityPartAnimator<Creeper, CreeperModel<Creeper>> {
+public class CreeperPartAnimator extends NPCPartAnimator<Creeper, CreeperModel<Creeper>> {
 
     private Locator locatorMaster;
     private Locator locatorHead;
@@ -65,14 +62,23 @@ public class CreeperPartAnimator extends LivingEntityPartAnimator<Creeper, Creep
         tickBodyRotationTimersNormal(livingEntity, entityAnimationData);
         tickGeneralMovementTimers(livingEntity, entityAnimationData);
         tickHeadTimers(livingEntity, entityAnimationData);
+        tickLeanTimers(entityAnimationData);
+        tickWalkToStopTimer(entityAnimationData, 0.3F, 8);
+        tickAggroTimers(entityAnimationData, livingEntity, TimelineGroupData.INSTANCE.get(AnimationOverhaulMain.MOD_ID, EntityType.CREEPER, "aggro_start").getFrameLength(), 10);
     }
 
     @Override
     protected void poseLocatorRig() {
-        addPoseLayerWalk();
+        poseHeadRotation(this.locatorHead);
+        poseLookLean(locatorListAll, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "look_vertical"), getTimelineGroup(AnimationOverhaulMain.MOD_ID, "look_horizontal"));
+
+        poseWalkCycle();
+        poseWalkToStop(locatorListAll, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "walk_to_stop"));
+
+        poseAggro(locatorListAll, getTimelineGroup(AnimationOverhaulMain.MOD_ID, "aggro_loop"), getTimelineGroup(AnimationOverhaulMain.MOD_ID, "aggro_start"));
     }
 
-    private void addPoseLayerWalk() {
+    private void poseWalkCycle() {
         TimelineGroupData.TimelineGroup walkNormalTimelineGroup = getTimelineGroup(AnimationOverhaulMain.MOD_ID, "walk_normal");
 
         float walkNormalTimer = new TimerProcessor(getDataValue(ANIMATION_POSITION))
