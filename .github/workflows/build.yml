@@ -35,10 +35,6 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
 
-      - name: Make gradle wrapper executable
-        if: ${{ runner.os != 'Windows' }}
-        run: chmod +x ./gradlew
-
       - name: Build
         run: ./gradlew :fabric:build :forge:build
 
