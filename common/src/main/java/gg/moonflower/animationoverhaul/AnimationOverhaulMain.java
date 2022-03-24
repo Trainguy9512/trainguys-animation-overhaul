@@ -59,18 +59,18 @@ public class AnimationOverhaulMain {
 	}
 
 	private static void registerBlockRenderers(){
-		registerBlockRenderer(new PressurePlateBlockRenderer(), PressurePlateBlockRenderer.PRESSURE_PLATES);
-		registerBlockRenderer(new ButtonBlockRenderer(), ButtonBlockRenderer.BUTTONS);
-		registerBlockRenderer(new TrapDoorBlockRenderer(), TrapDoorBlockRenderer.TRAPDOORS);
-		registerBlockRenderer(new LeverBlockRenderer(), LeverBlockRenderer.LEVERS);
-		registerBlockRenderer(new EndPortalFrameBlockRenderer(), EndPortalFrameBlockRenderer.END_PORTAL_BLOCKS);
-		registerBlockRenderer(new ChainedBlockRenderer(), ChainedBlockRenderer.CHAINED_BLOCKS);
+		//registerBlockRenderer(new PressurePlateBlockRenderer(), PressurePlateBlockRenderer.PRESSURE_PLATES);
+		//registerBlockRenderer(new ButtonBlockRenderer(), ButtonBlockRenderer.BUTTONS);
+		//registerBlockRenderer(new TrapDoorBlockRenderer(), TrapDoorBlockRenderer.TRAPDOORS);
+		//registerBlockRenderer(new LeverBlockRenderer(), LeverBlockRenderer.LEVERS);
+		//registerBlockRenderer(new EndPortalFrameBlockRenderer(), EndPortalFrameBlockRenderer.END_PORTAL_BLOCKS);
+		//registerBlockRenderer(new ChainedBlockRenderer(), ChainedBlockRenderer.CHAINED_BLOCKS);
 		//registerBlockRenderer(new FloatingPlantBlockRenderer(), FloatingPlantBlockRenderer.FLOATING_PLANTS);
 	}
 
 	private static void registerBlockRenderer(TickableBlockRenderer tickableBlockRenderer, Block[] blocks){
 		for(Block block : blocks){
-			BlockRendererRegistry.register(block, tickableBlockRenderer);
+			//BlockRendererRegistry.register(block, tickableBlockRenderer);
 		}
 	}
 }
