@@ -3,6 +3,8 @@ package gg.moonflower.animationoverhaul;
 import gg.moonflower.animationoverhaul.animations.entity.CreeperPartAnimator;
 import gg.moonflower.animationoverhaul.animations.entity.PlayerPartAnimator;
 import gg.moonflower.animationoverhaul.render.*;
+import gg.moonflower.animationoverhaul.util.config.AOConfig;
+import gg.moonflower.animationoverhaul.util.config.GamePaths;
 import gg.moonflower.animationoverhaul.util.data.TimelineGroupDataLoader;
 import gg.moonflower.animationoverhaul.util.data.LivingEntityAnimatorRegistry;
 import gg.moonflower.pollen.api.platform.Platform;
@@ -16,7 +18,21 @@ import net.minecraft.world.level.block.Block;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.file.Path;
+
 public class AnimationOverhaulMain {
+
+	private static AnimationOverhaulMain instance;
+	public static AnimationOverhaulMain getInstance() {
+		return instance;
+	}
+	public AnimationOverhaulMain() {
+		instance = this;
+	}
+	private static AOConfig config;
+	public static AOConfig getConfig() {
+		return config;
+	}
 
 
 	public static final String MOD_ID = "animation_overhaul";
@@ -36,8 +52,13 @@ public class AnimationOverhaulMain {
 
 	public static void onClientInit() {
 		registerTimelineGroupLoader();
-		registerEntityAnimators();
 		//registerBlockRenderers();
+		Path AOFolder = GamePaths.getConfigDirectory().resolve("ao");
+		config = new AOConfig(AOFolder.getParent().resolve("ao.json"), AnimationOverhaulMain.getInstance());
+		config.load();
+		if (getConfig().isEnableMobAnimations()){
+			registerEntityAnimators();
+		}
 	}
 
 	public static void onClientPostInit(Platform.ModSetupContext ctx) {

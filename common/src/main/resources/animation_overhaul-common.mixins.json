@@ -16,6 +16,7 @@
     "MixinLivingEntityRenderer",
     "debug.MixinAbstractClientPlayer",
     "debug.MixinDebugScreenOverlay",
+    "config.MixinPlayerSkinProvider",
     "models.MixinPiglinModel",
     "models.MixinPlayerModel"
   ],
