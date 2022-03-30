@@ -3,7 +3,6 @@ package gg.moonflower.animationoverhaul.util.config;
 import java.nio.file.Path;
 
 import gg.moonflower.animationoverhaul.mixin.config.MixinPlayerSkinProvider;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 
 public class GamePaths {
@@ -11,11 +10,10 @@ public class GamePaths {
     }
 
     public static Path getGameDirectory() {
-        return FabricLoader.getInstance().getGameDir();
+        return Minecraft.getInstance().gameDirectory.toPath();
     }
-
     public static Path getConfigDirectory() {
-        return FabricLoader.getInstance().getConfigDir();
+        return Minecraft.getInstance().gameDirectory.toPath().resolve("config");
     }
 
     public static Path getAssetsDirectory() {
