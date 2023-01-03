@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "animation_overhaul",
+  "version": "${version}",
+
+  "name": "Trainguy's Animation Overhaul",
+  "description": "better name pending",
+  "authors": [
+    "Me!"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+
+  "license": "CC0-1.0",
+  "icon": "assets/animation_overhaul/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.trainguy9512.animationoverhaul.AnimationOverhaulMain"
+    ]
+  },
+  "mixins": [
+    "modid.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.11",
+    "fabric-api": "*",
+    "minecraft": "~1.19.3",
+    "java": ">=17"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

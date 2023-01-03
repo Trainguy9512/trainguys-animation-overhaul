@@ -1,0 +1,24 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.trainguy9512.animationoverhaul.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+  ],
+  "client": [
+    "MixinBlockEntity",
+    "MixinCapeLayer",
+    "MixinElytraLayer",
+    "MixinGameRenderer",
+    "MixinInventoryScreen",
+    "MixinItemInHandLayer",
+    "MixinLivingEntity",
+    "MixinLivingEntityRenderer",
+    "MixinModelPart",
+    "debug.MixinDebugScreenOverlay",
+    "models.MixinPlayerModel"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
