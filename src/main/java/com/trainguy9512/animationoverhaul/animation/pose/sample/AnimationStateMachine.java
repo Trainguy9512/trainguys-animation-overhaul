@@ -3,6 +3,7 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
+import com.trainguy9512.animationoverhaul.util.time.Easing;
 
 import java.util.HashMap;
 
@@ -31,13 +32,25 @@ public class AnimationStateMachine extends SampleableAnimationState {
 
     }
 
-    public class State {
+    private class State {
 
-    }
+        private final String identifier;
+        private final String cachedPoseIdentifier;
 
-    public class StateTransition {
-        private StateTransition(){
+        private State(String identifier, String cachedPoseIdentifier){
+            this.identifier = identifier;
+            this.cachedPoseIdentifier = cachedPoseIdentifier;
+        }
 
+        private class Transition {
+
+            private final float transitionTime;
+            private final Easing easing;
+
+            private Transition(float transitionTime, Easing easing){
+                this.transitionTime = transitionTime;
+                this.easing = easing;
+            }
         }
     }
 }
