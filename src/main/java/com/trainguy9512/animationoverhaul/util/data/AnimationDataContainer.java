@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationBlendSpacePlayer;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationSequencePlayer;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationStateMachine;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.SampleableAnimationState;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
@@ -46,6 +47,10 @@ public class AnimationDataContainer {
     public AnimationBlendSpacePlayer getAnimationBlendSpacePlayer(AnimationBlendSpacePlayer animationBlendSpacePlayer){
         AnimationBlendSpacePlayer sampleableAnimationState = (AnimationBlendSpacePlayer) getAnimationState(animationBlendSpacePlayer);
         return animationBlendSpacePlayer;
+    }
+
+    public AnimationStateMachine getAnimationStateMachine(AnimationStateMachine animationStateMachine){
+        return (AnimationStateMachine) getAnimationState(animationStateMachine);
     }
 
     public AnimationPose sampleAnimationState(LocatorSkeleton locatorSkeleton, SampleableAnimationState sampleableAnimationState){

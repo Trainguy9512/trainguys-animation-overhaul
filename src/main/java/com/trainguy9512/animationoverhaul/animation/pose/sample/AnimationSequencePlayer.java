@@ -58,6 +58,14 @@ public class AnimationSequencePlayer extends SampleableAnimationState {
         this.timeElapsed = 0;
     }
 
+    public void playFromStartOnStateActive(AnimationStateMachine animationStateMachine, String stateIdentifier){
+        if(animationStateMachine.containsState(stateIdentifier)){
+            if(animationStateMachine.getState(stateIdentifier).getWeight() == 0){
+                this.playFromStart();
+            }
+        }
+    }
+
     @Override
     public AnimationPose sample(LocatorSkeleton locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
         return AnimationPose.fromChannelTimeline(locatorSkeleton, TimelineGroupData.INSTANCE.get(timelineGroupResourceLocation), this.getTimeFromTicks(), this.mirrored);
