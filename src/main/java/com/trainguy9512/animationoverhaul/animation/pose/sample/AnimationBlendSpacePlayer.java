@@ -11,14 +11,12 @@ import net.minecraft.util.Mth;
 
 import java.util.TreeMap;
 
-public class AnimationBlendSpacePlayer extends SampleableAnimationState {
+public class AnimationBlendSpacePlayer extends TimeBasedAnimationState {
 
     private final TreeMap<Float, BlendSpaceEntry> blendSpaceEntryTreeMap = new TreeMap<Float, BlendSpaceEntry>();
-    private float playRateMultiplier = 1;
     private float currentValue = 0;
     private boolean mirrored = false;
-
-    private float elapsedTime = 0;
+    private float playRateMultiplier = 1;
 
     private AnimationBlendSpacePlayer(String identifier) {
         super(identifier);
@@ -47,7 +45,7 @@ public class AnimationBlendSpacePlayer extends SampleableAnimationState {
         this.currentValue = value;
     }
 
-    private float getPlayRate(){
+    private float getPlayRateBlended(){
         if(this.blendSpaceEntryTreeMap.entrySet().size() == 0){
             return 0;
         }
@@ -79,18 +77,18 @@ public class AnimationBlendSpacePlayer extends SampleableAnimationState {
         var secondEntry = this.blendSpaceEntryTreeMap.ceilingEntry(this.currentValue);
 
         if (firstEntry == null)
-            return secondEntry.getValue().sampleEntry(locatorSkeleton, this.elapsedTime, this.mirrored);
+            return secondEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed(), this.mirrored);
         if (secondEntry == null)
-            return firstEntry.getValue().sampleEntry(locatorSkeleton, this.elapsedTime, this.mirrored);
+            return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed(), this.mirrored);
 
         // If they're both the same frame
         if (firstEntry.getKey().equals(secondEntry.getKey()))
-            return firstEntry.getValue().sampleEntry(locatorSkeleton, this.elapsedTime, this.mirrored);
+            return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed(), this.mirrored);
 
         float relativeTime = (this.currentValue - firstEntry.getKey()) / (secondEntry.getKey() - firstEntry.getKey());
         return AnimationPose.blendLinear(
-                firstEntry.getValue().sampleEntry(locatorSkeleton, this.elapsedTime, this.mirrored),
-                secondEntry.getValue().sampleEntry(locatorSkeleton, this.elapsedTime, this.mirrored),
+                firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed(), this.mirrored),
+                secondEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed(), this.mirrored),
                 1 - relativeTime);
     }
 
@@ -99,28 +97,22 @@ public class AnimationBlendSpacePlayer extends SampleableAnimationState {
         // Update current value
 
         // Advance time
-        this.elapsedTime += this.getPlayRate() * this.playRateMultiplier;
+        this.setPlayRate(this.getPlayRateBlended() * this.playRateMultiplier);
+        super.tick();
     }
 
-    private class BlendSpaceEntry {
-        private final ResourceLocation resourceLocation;
-        private final float playRate;
+    private record BlendSpaceEntry(ResourceLocation resourceLocation, float playRate) {
 
-        private BlendSpaceEntry(ResourceLocation resourceLocation, float playRate){
-            this.resourceLocation = resourceLocation;
-            this.playRate = playRate;
-        }
-
-        private float getPlayRate(){
+        private float getPlayRate() {
             return this.playRate;
         }
 
-        private float getTimeFromTicks(float time){
+        private float getTimeFromTicks(float time) {
             float frameLength = TimelineGroupData.INSTANCE.get(this.resourceLocation).getFrameLength();
             return (time % frameLength) / frameLength;
         }
 
-        private AnimationPose sampleEntry(LocatorSkeleton locatorSkeleton, float time, boolean mirrored){
+        private AnimationPose sampleEntry(LocatorSkeleton locatorSkeleton, float time, boolean mirrored) {
             return AnimationPose.fromChannelTimeline(locatorSkeleton, TimelineGroupData.INSTANCE.get(resourceLocation), this.getTimeFromTicks(time), mirrored);
         }
     }

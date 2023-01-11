@@ -7,14 +7,11 @@ import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
-public class AnimationSequencePlayer extends SampleableAnimationState {
+public class AnimationSequencePlayer extends TimeBasedAnimationState {
 
-    private float playRate = 1;
     private boolean looping = true;
     private boolean mirrored = false;
     ResourceLocation timelineGroupResourceLocation;
-
-    private float timeElapsed;
 
     private AnimationSequencePlayer(String identifier, ResourceLocation resourceLocation) {
         super(identifier);
@@ -25,18 +22,16 @@ public class AnimationSequencePlayer extends SampleableAnimationState {
         return new AnimationSequencePlayer(identifier, resourceLocation);
     }
 
-
     @Override
     public void tick(){
-
-        this.timeElapsed += this.playRate;
+        super.tick();
     }
 
     private float getTimeFromTicks(){
         float frameLength = TimelineGroupData.INSTANCE.get(timelineGroupResourceLocation).getFrameLength();
         return this.looping ?
-                (timeElapsed % frameLength) / frameLength :
-                Mth.clamp(timeElapsed / frameLength, 0, 1);
+                (this.getTimeElapsed() % frameLength) / frameLength :
+                Mth.clamp(this.getTimeElapsed() / frameLength, 0, 1);
     }
 
     public AnimationSequencePlayer setLooping(boolean looping){
@@ -49,19 +44,15 @@ public class AnimationSequencePlayer extends SampleableAnimationState {
         return this;
     }
 
-    public AnimationSequencePlayer setPlayRate(float newPlayRate){
-        this.playRate = newPlayRate;
+    public AnimationSequencePlayer setDefaultPlayRate(float newPlayRate){
+        this.setPlayRate(newPlayRate);
         return this;
-    }
-
-    public void playFromStart(){
-        this.timeElapsed = 0;
     }
 
     public void playFromStartOnStateActive(AnimationStateMachine animationStateMachine, String stateIdentifier){
         if(animationStateMachine.containsState(stateIdentifier)){
             if(animationStateMachine.getState(stateIdentifier).getWeight() == 0){
-                this.playFromStart();
+                this.resetTime();
             }
         }
     }

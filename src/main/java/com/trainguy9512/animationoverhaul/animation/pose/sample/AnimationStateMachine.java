@@ -11,12 +11,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class AnimationStateMachine extends SampleableAnimationState {
+public class AnimationStateMachine extends TimeBasedAnimationState {
 
     private final HashMap<String, State> statesHashMap = Maps.newHashMap();
     private final ArrayList<String> activeStates = new ArrayList<String>();
 
-    private int timeElapsedInState = 0;
+    //private int timeElapsedInState = 0;
 
     private AnimationStateMachine(String identifier){
         super(identifier);
@@ -30,10 +30,6 @@ public class AnimationStateMachine extends SampleableAnimationState {
      */
     public static AnimationStateMachine of(String identifier){
         return new AnimationStateMachine(identifier);
-    }
-
-    public float getElapsedStateTime(){
-        return this.timeElapsedInState;
     }
 
     @Nullable
@@ -215,7 +211,7 @@ public class AnimationStateMachine extends SampleableAnimationState {
         }
 
         // Add to the current elapsed ticks
-        this.timeElapsedInState++;
+        super.tick();
 
         // Get the previous active state
         State currentActiveState = this.statesHashMap.get(this.activeStates.get(this.activeStates.size() - 1));
@@ -239,7 +235,7 @@ public class AnimationStateMachine extends SampleableAnimationState {
 
         // Set all states to inactive except the new destination state. Also set the transition to all states for when they're ticked
         if(canEnterTransition){
-            this.timeElapsedInState = 0;
+            this.resetTime();
             for(String stateIdentifier : this.statesHashMap.keySet()){
                 this.statesHashMap.get(stateIdentifier).setCurrentTransition(stateTransition);
                 this.statesHashMap.get(stateIdentifier).setIsActive(false);

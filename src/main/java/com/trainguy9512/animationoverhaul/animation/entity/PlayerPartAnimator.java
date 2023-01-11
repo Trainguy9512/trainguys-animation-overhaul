@@ -70,11 +70,11 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
     );
 
     private static final AnimationSequencePlayer RUN_CYCLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("run_loop", new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/sprint_normal"))
-            .setPlayRate(1.6F);
+            .setDefaultPlayRate(1.6F);
     private static final AnimationSequencePlayer IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("idle_loop", new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/attack_pickaxe"))
-            .setPlayRate(1.2F);
+            .setDefaultPlayRate(1.2F);
     private static final AnimationSequencePlayer MOVING_START_SEQUENCE_PLAYER = AnimationSequencePlayer.of("moving_start", new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/sprint_jump"))
-            .setPlayRate(1.3F)
+            .setDefaultPlayRate(1.3F)
             .setLooping(false);
     private static final AnimationBlendSpacePlayer TEST_BLEND_SPACE = AnimationBlendSpacePlayer.of("test_blendspace")
             .addEntry(0F, new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/walk_normal"), 0.5F)
@@ -113,10 +113,10 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData) {
         this.entityAnimationData.getAnimationBlendSpacePlayer(TEST_BLEND_SPACE).setValue(Mth.sin(this.livingEntity.tickCount / 12F) * 0.5F + 0.5F);
 
-        this.entityAnimationData.getAnimationSequencePlayer(RUN_CYCLE_SEQUENCE_PLAYER).playFromStartOnStateActive(this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE), "moving");
+        //this.entityAnimationData.getAnimationSequencePlayer(RUN_CYCLE_SEQUENCE_PLAYER).playFromStartOnStateActive(this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE), "moving");
         this.entityAnimationData.getAnimationSequencePlayer(MOVING_START_SEQUENCE_PLAYER).playFromStartOnStateActive(this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE), "moving_start");
         this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setTransitionCondition("idle_to_moving_start", this.livingEntity.animationSpeed > 0.2);
-        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setTransitionCondition("moving_start_to_moving", this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).getElapsedStateTime() > TickTimeUtils.ticksFromSeconds(0.5F));
+        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setTransitionCondition("moving_start_to_moving", this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromSeconds(0.5F));
         this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setTransitionCondition("moving_to_idle", this.livingEntity.animationSpeed < 0.2);
     }
 
@@ -130,9 +130,9 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
         //AnimationPose animationPose = AnimationPose.blendBoolean(animationPoseIdle, animationPoseRun, this.livingEntity.animationSpeed > 0.5);
                 //AnimationPose.fromChannelTimeline(this.locatorSkeleton, TimelineGroupData.INSTANCE.get(AnimationOverhaulMain.MOD_ID, "player/sprint_normal"), 0, false);
 
-        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setPose("idle", animationPoseIdle);
+        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setPose("idle", animationPoseRun);
         this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setPose("moving_start", animationPoseMovingStart);
-        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setPose("moving", animationPoseRun);
+        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setPose("moving", blendSpacePose);
         AnimationPose animationPose = this.entityAnimationData.sampleAnimationState(this.locatorSkeleton, TEST_STATE_MACHINE);
 
         return animationPose;
