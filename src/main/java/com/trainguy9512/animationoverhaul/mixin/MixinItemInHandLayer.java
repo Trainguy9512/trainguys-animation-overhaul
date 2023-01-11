@@ -42,7 +42,7 @@ public abstract class MixinItemInHandLayer<T extends LivingEntity, M extends Ent
             //AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID()).getLocator(locatorIdentifier, Minecraft.getInstance().getFrameTime()).translateAndRotatePoseStack(poseStack);
 
             BakedAnimationPose bakedAnimationPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
-            bakedAnimationPose.getBlendedPose(Minecraft.getInstance().getFrameTime()).getLocatorPose(bakedAnimationPose.getLocator(locatorIdentifier)).translateAndRotatePoseStack(poseStack);
+            bakedAnimationPose.getBlendedPose(Minecraft.getInstance().getFrameTime()).getLocatorPose(locatorIdentifier).translateAndRotatePoseStack(poseStack);
 
         poseStack.mulPose(Axis.XP.rotationDegrees(-90));
             poseStack.mulPose(Axis.YP.rotationDegrees(180));

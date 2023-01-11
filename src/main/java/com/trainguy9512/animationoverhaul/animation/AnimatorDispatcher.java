@@ -9,6 +9,7 @@ import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -44,11 +45,12 @@ public class AnimatorDispatcher {
         this.bakedPoseMap.put(uuid, bakedPose);
     }
 
+    @Nullable
     public BakedAnimationPose getBakedPose(UUID uuid){
         if(this.bakedPoseMap.containsKey(uuid)){
             return this.bakedPoseMap.get(uuid);
         }
-        return new BakedAnimationPose();
+        return null;
     }
 
     public boolean hasAnimationData(UUID uuid){

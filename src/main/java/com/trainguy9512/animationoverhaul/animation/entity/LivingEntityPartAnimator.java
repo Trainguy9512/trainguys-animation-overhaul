@@ -59,6 +59,9 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
         this.tick(livingEntity, entityAnimationData);
         this.entityAnimationData.tickAnimationStates();
 
+        if(bakedPose == null){
+            bakedPose = new BakedAnimationPose();
+        }
         if(!bakedPose.hasPose){
             bakedPose.setPose(new AnimationPose(this.locatorSkeleton));
             bakedPose.hasPose = true;

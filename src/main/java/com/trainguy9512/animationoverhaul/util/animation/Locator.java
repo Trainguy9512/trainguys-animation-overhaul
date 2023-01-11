@@ -8,6 +8,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.util.Mth;
 import org.joml.Vector3f;
 
+@Deprecated
 public class Locator {
 
     public float translateX;

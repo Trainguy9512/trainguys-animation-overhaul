@@ -34,7 +34,7 @@ public class BakedAnimationPose {
                 for(String individualPartString : locatorEntry.getModelPartIdentifier().split("\\.")){
                     finalModelPart = finalModelPart.getChild(individualPartString);
                 }
-                finalModelPart.loadPose(blendedPose.getLocatorPose(locatorEntry.getLocator()).asPartPose());
+                finalModelPart.loadPose(blendedPose.getLocatorPose(locatorEntry.getLocatorIdentifier()).asPartPose());
             }
         }
     }
@@ -50,21 +50,11 @@ public class BakedAnimationPose {
         locatorNew.rotateZ = Mth.rotLerp(value, locatorOld.rotateZ, locator.rotateZ);
         return locatorNew;
     }
+    public String getLocator(String identifier){
+        return this.pose.getSkeleton().containsLocator(identifier) ? identifier : "null";
+    }
 
      */
-
-    public Locator getLocator(String identifier){
-        return this.pose.getSkeleton().getLocator(identifier, false);
-        /*
-        for(LocatorSkeleton.LocatorEntry locatorEntry : this.pose.getSkeleton().getLocatorEntries()){
-            if(Objects.equals(locatorEntry.getLocator().getIdentifier(), identifier)){
-                return Locator.fromPartPose(lerpPartPose(partialTicks, this.poseOld.get(locatorEntry), this.pose.get(locatorEntry)), identifier);
-            }
-        }
-        return new Locator("null");
-
-         */
-    }
 
     public boolean containsLocator(String identifier){
         return this.pose.getSkeleton().containsLocator(identifier);

@@ -25,20 +25,49 @@ import java.util.List;
 
 public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerModel<Player>> {
 
-    private Locator locatorMaster;
-    private Locator locatorHead;
-    private Locator locatorBody;
-    private Locator locatorLeftLeg;
-    private Locator locatorRightLeg;
-    private Locator locatorLeftArm;
-    private Locator locatorRightArm;
-    private Locator locatorCloak;
-    private Locator locatorLeftHand;
-    private Locator locatorRightHand;
+    private static final String LOCATOR_ROOT = "root";
+    private static final String LOCATOR_HEAD = "head";
+    private static final String LOCATOR_BODY = "body";
+    private static final String LOCATOR_LEFT_LEG = "leftLeg";
+    private static final String LOCATOR_RIGHT_LEG = "rightLeg";
+    private static final String LOCATOR_LEFT_ARM = "leftArm";
+    private static final String LOCATOR_RIGHT_ARM = "rightArm";
+    private static final String LOCATOR_CAPE = "cape";
+    private static final String LOCATOR_LEFT_HAND = "leftHand";
+    private static final String LOCATOR_RIGHT_HAND = "rightHand";
 
-    private List<Locator> locatorListAll;
-    private List<Locator> locatorListNoHands;
-    private List<Locator> locatorListMaster;
+    private static final List<String> LOCATOR_LIST_ALL = List.of(
+            LOCATOR_HEAD,
+            LOCATOR_BODY,
+            LOCATOR_LEFT_LEG,
+            LOCATOR_RIGHT_LEG,
+            LOCATOR_LEFT_ARM,
+            LOCATOR_RIGHT_ARM,
+            LOCATOR_CAPE,
+            LOCATOR_LEFT_HAND,
+            LOCATOR_RIGHT_HAND
+    );
+    private static final List<String> LOCATOR_LIST_NO_HANDS = List.of(
+            LOCATOR_HEAD,
+            LOCATOR_BODY,
+            LOCATOR_LEFT_LEG,
+            LOCATOR_RIGHT_LEG,
+            LOCATOR_LEFT_ARM,
+            LOCATOR_RIGHT_ARM,
+            LOCATOR_CAPE
+    );
+    private static final List<String> LOCATOR_LIST_MASTER = List.of(
+            LOCATOR_ROOT,
+            LOCATOR_HEAD,
+            LOCATOR_BODY,
+            LOCATOR_LEFT_LEG,
+            LOCATOR_RIGHT_LEG,
+            LOCATOR_LEFT_ARM,
+            LOCATOR_RIGHT_ARM,
+            LOCATOR_CAPE,
+            LOCATOR_LEFT_HAND,
+            LOCATOR_RIGHT_HAND
+    );
 
     private static final AnimationSequencePlayer RUN_CYCLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("run_loop", new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/sprint_normal"))
             .setPlayRate(1.6F);
@@ -68,31 +97,16 @@ public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerM
 
     @Override
     protected void buildRig(LocatorSkeleton locatorRig) {
-        this.locatorMaster = new Locator("root");
-        this.locatorHead = new Locator("head");
-        this.locatorBody = new Locator("body");
-        this.locatorLeftLeg = new Locator("leftLeg");
-        this.locatorRightLeg = new Locator("rightLeg");
-        this.locatorLeftArm = new Locator("leftArm");
-        this.locatorRightArm = new Locator("rightArm");
-        this.locatorCloak = new Locator("cape");
-        this.locatorLeftHand = new Locator("leftHand");
-        this.locatorRightHand = new Locator("rightHand");
-
-        this.locatorListAll = List.of(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak, locatorLeftHand, locatorRightHand);
-        this.locatorListNoHands = List.of(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak);
-        this.locatorListMaster = List.of(locatorLeftArm, locatorRightArm, locatorLeftLeg, locatorRightLeg, locatorBody, locatorHead, locatorCloak, locatorLeftHand, locatorRightHand, locatorMaster);
-
-        locatorRig.addLocator(locatorMaster);
-        locatorRig.addLocatorModelPart(locatorHead, "head");
-        locatorRig.addLocatorModelPart(locatorBody, "body");
-        locatorRig.addLocatorModelPart(locatorLeftLeg, locatorRightLeg, "left_leg", PartPose.offset(1.9f, 12.0f, 0.0f));
-        locatorRig.addLocatorModelPart(locatorRightLeg, locatorLeftLeg, "right_leg", PartPose.offset(-1.9f, 12.0f, 0.0f));
-        locatorRig.addLocatorModelPart(locatorLeftArm, locatorRightArm, "left_arm", PartPose.offset(5.0f, 2.0f, 0.0f));
-        locatorRig.addLocatorModelPart(locatorRightArm, locatorLeftArm, "right_arm", PartPose.offset(-5.0f, 2.0f, 0.0f));
-        locatorRig.addLocatorModelPart(locatorCloak, "cloak", PartPose.offsetAndRotation(0, 0, 2, 0, Mth.PI, 0));
-        locatorRig.addLocator(locatorLeftHand, locatorRightHand);
-        locatorRig.addLocator(locatorRightHand, locatorLeftHand);
+        locatorRig.addLocator(LOCATOR_ROOT);
+        locatorRig.addLocatorModelPart(LOCATOR_HEAD, "head");
+        locatorRig.addLocatorModelPart(LOCATOR_BODY, "body");
+        locatorRig.addLocatorModelPart(LOCATOR_LEFT_LEG, LOCATOR_RIGHT_LEG, "left_leg", PartPose.offset(1.9f, 12.0f, 0.0f));
+        locatorRig.addLocatorModelPart(LOCATOR_RIGHT_LEG, LOCATOR_LEFT_LEG, "right_leg", PartPose.offset(-1.9f, 12.0f, 0.0f));
+        locatorRig.addLocatorModelPart(LOCATOR_LEFT_ARM, LOCATOR_RIGHT_ARM, "left_arm", PartPose.offset(5.0f, 2.0f, 0.0f));
+        locatorRig.addLocatorModelPart(LOCATOR_RIGHT_ARM, LOCATOR_LEFT_ARM, "right_arm", PartPose.offset(-5.0f, 2.0f, 0.0f));
+        locatorRig.addLocatorModelPart(LOCATOR_CAPE, "cloak", PartPose.offsetAndRotation(0, 0, 2, 0, Mth.PI, 0));
+        locatorRig.addLocator(LOCATOR_LEFT_HAND, LOCATOR_RIGHT_HAND);
+        locatorRig.addLocator(LOCATOR_RIGHT_HAND, LOCATOR_LEFT_HAND);
     }
 
     @Override

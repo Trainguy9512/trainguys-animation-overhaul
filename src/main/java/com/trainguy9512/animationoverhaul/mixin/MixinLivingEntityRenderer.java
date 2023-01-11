@@ -87,7 +87,7 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
         BakedAnimationPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
         if(shouldUseAlternateRotations(bakedPose)){
             poseStack.translate(0, -1.5, 0);
-            bakedPose.getBlendedPose(g).getLocatorPose(bakedPose.getLocator(ROOT)).translateAndRotatePoseStack(poseStack);
+            bakedPose.getBlendedPose(g).getLocatorPose(ROOT).translateAndRotatePoseStack(poseStack);
             poseStack.translate(0, 1.5, 0);
         }
     }

@@ -15,19 +15,19 @@ import java.util.HashMap;
 public class AnimationPose {
 
     private final LocatorSkeleton locatorSkeleton;
-    private final HashMap<Locator, MutablePartPose> pose = Maps.newHashMap();
+    private final HashMap<String, MutablePartPose> pose = Maps.newHashMap();
 
     public AnimationPose(LocatorSkeleton locatorSkeleton){
         this.locatorSkeleton = locatorSkeleton;
         for(LocatorSkeleton.LocatorEntry locatorEntry : locatorSkeleton.getLocatorEntries()){
-            pose.put(locatorEntry.getLocator(), MutablePartPose.ZERO);
+            pose.put(locatorEntry.getLocatorIdentifier(), MutablePartPose.ZERO);
         }
     }
 
     public AnimationPose getCopy(){
         AnimationPose copiedAnimationPose = new AnimationPose(this.locatorSkeleton);
         for(LocatorSkeleton.LocatorEntry locatorEntry : this.getSkeleton().getLocatorEntries()){
-            copiedAnimationPose.setLocatorPose(locatorEntry.getLocator(), this.getLocatorPose(locatorEntry.getLocator()));
+            copiedAnimationPose.setLocatorPose(locatorEntry.getLocatorIdentifier(), this.getLocatorPose(locatorEntry.getLocatorIdentifier()));
         }
         return copiedAnimationPose;
     }
@@ -39,23 +39,23 @@ public class AnimationPose {
     public void applyDefaultPoseOffset(){
         for(LocatorSkeleton.LocatorEntry locatorEntry : this.getSkeleton().getLocatorEntries()){
             MutablePartPose offset = MutablePartPose.fromPartPose(locatorEntry.getDefaultPose());
-            setLocatorPose(locatorEntry.getLocator(), MutablePartPose.add(getLocatorPose(locatorEntry.getLocator()), offset));
+            this.setLocatorPose(locatorEntry.getLocatorIdentifier(), MutablePartPose.add(getLocatorPose(locatorEntry.getLocatorIdentifier()), offset));
         }
     }
 
-    public void setLocatorPose(Locator locator, MutablePartPose mutablePartPose){
-        this.pose.put(locator, mutablePartPose);
+    public void setLocatorPose(String locatorIdentifier, MutablePartPose mutablePartPose){
+        this.pose.put(locatorIdentifier, mutablePartPose);
     }
 
-    public MutablePartPose getLocatorPose(Locator locator){
-        return this.pose.get(locator);
+    public MutablePartPose getLocatorPose(String locatorIdentifier){
+        return this.pose.get(locatorIdentifier);
     }
 
     public static AnimationPose blend(AnimationPose animationPoseA, AnimationPose animationPoseB, float alpha, Easing easing){
         float easedAlpha = easing.ease(alpha);
         for(LocatorSkeleton.LocatorEntry locatorEntry : animationPoseA.getSkeleton().getLocatorEntries()){
-            MutablePartPose mutablePartPoseA = animationPoseA.getLocatorPose(locatorEntry.getLocator());
-            MutablePartPose mutablePartPoseB = animationPoseB.getLocatorPose(locatorEntry.getLocator());
+            MutablePartPose mutablePartPoseA = animationPoseA.getLocatorPose(locatorEntry.getLocatorIdentifier());
+            MutablePartPose mutablePartPoseB = animationPoseB.getLocatorPose(locatorEntry.getLocatorIdentifier());
 
             if(mutablePartPoseA.xRot - mutablePartPoseB.xRot > Mth.PI){
                 mutablePartPoseA = MutablePartPose.fromTranslationAndRotation(mutablePartPoseA.x, mutablePartPoseA.y, mutablePartPoseA.z, mutablePartPoseA.xRot - Mth.TWO_PI, mutablePartPoseA.yRot, mutablePartPoseA.zRot);
@@ -72,7 +72,7 @@ public class AnimationPose {
             if(Math.abs(mutablePartPoseA.zRot - mutablePartPoseB.zRot) > Mth.PI){
                 AnimationOverhaulMain.LOGGER.warn("Snapping on the Z axis of {} degrees", Math.toDegrees(Math.abs(mutablePartPoseA.zRot - mutablePartPoseB.zRot)));
             }
-            animationPoseA.setLocatorPose(locatorEntry.getLocator(), MutablePartPose.fromTranslationAndRotation(
+            animationPoseA.setLocatorPose(locatorEntry.getLocatorIdentifier(), MutablePartPose.fromTranslationAndRotation(
                     Mth.lerp(easedAlpha, mutablePartPoseB.x, mutablePartPoseA.x),
                     Mth.lerp(easedAlpha, mutablePartPoseB.y, mutablePartPoseA.y),
                     Mth.lerp(easedAlpha, mutablePartPoseB.z, mutablePartPoseA.z),
@@ -96,10 +96,10 @@ public class AnimationPose {
         AnimationPose animationPose = new AnimationPose(locatorSkeleton);
         float mirrorMultiplier = mirrored ? -1 : 1;
         for(LocatorSkeleton.LocatorEntry locatorEntry : locatorSkeleton.getLocatorEntries()){
-            Locator locator = mirrored ? locatorEntry.getLocatorMirrored() : locatorEntry.getLocator();
+            String locator = mirrored ? locatorEntry.getMirroedLocatorIdentifier() : locatorEntry.getLocatorIdentifier();
             if(timelineGroup != null){
-                if(timelineGroup.containsPart(locator.getIdentifier())){
-                    ChannelTimeline channelTimeline = timelineGroup.getPartTimeline(locator.getIdentifier());
+                if(timelineGroup.containsPart(locator)){
+                    ChannelTimeline channelTimeline = timelineGroup.getPartTimeline(locator);
                     MutablePartPose mutablePartPose = MutablePartPose.fromTranslationAndRotation(
                             channelTimeline.getValueAt(TransformChannel.x, time) * mirrorMultiplier,
                             channelTimeline.getValueAt(TransformChannel.y, time),
