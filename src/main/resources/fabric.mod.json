@@ -6,11 +6,11 @@
   "name": "Trainguy's Animation Overhaul",
   "description": "better name pending",
   "authors": [
-    "Me!"
+    "Trainguy9512"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/Trainguy9512/trainguys-animation-overhaul/",
+    "sources": "https://github.com/Trainguy9512/trainguys-animation-overhaul/"
   },
 
   "license": "CC0-1.0",
@@ -33,6 +33,5 @@
     "java": ">=17"
   },
   "suggests": {
-    "another-mod": "*"
   }
 }
