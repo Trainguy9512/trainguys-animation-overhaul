@@ -13,7 +13,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Random;
 
-public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityModel<T>> {
+public abstract class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<T>> {
 
     protected T livingEntity;
     protected M entityModel;
@@ -22,7 +22,7 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
     protected AnimationDataContainer entityAnimationData;
     protected final Random random = new Random();
 
-    public LivingEntityPartAnimator(){
+    public LivingEntityAnimator(){
         this.locatorSkeleton = new LocatorSkeleton();
         buildRig(this.locatorSkeleton);
     }
@@ -50,14 +50,19 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
     protected void finalizeModelParts(ModelPart rootModelPart){
     }
 
+    protected AnimationDataContainer getEntityAnimationData(){
+        return this.entityAnimationData;
+    }
+
     public void tick(LivingEntity livingEntity){
         BakedAnimationPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
         AnimationDataContainer entityAnimationData = AnimatorDispatcher.INSTANCE.getEntityAnimationData(livingEntity.getUUID());
         this.entityAnimationData = entityAnimationData;
-        this.livingEntity = (T)livingEntity;
+        this.setEntity((T)livingEntity);
+        //this.livingEntity = (T)livingEntity;
 
         this.tick(livingEntity, entityAnimationData);
-        this.entityAnimationData.tickAnimationStates();
+        getEntityAnimationData().tickAnimationStates();
 
         if(bakedPose == null){
             bakedPose = new BakedAnimationPose();

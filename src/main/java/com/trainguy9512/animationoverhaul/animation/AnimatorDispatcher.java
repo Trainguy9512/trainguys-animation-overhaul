@@ -3,7 +3,7 @@ package com.trainguy9512.animationoverhaul.animation;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
-import com.trainguy9512.animationoverhaul.animation.entity.LivingEntityPartAnimator;
+import com.trainguy9512.animationoverhaul.animation.entity.LivingEntityAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
 import net.minecraft.client.model.EntityModel;
@@ -23,7 +23,7 @@ public class AnimatorDispatcher {
     public AnimatorDispatcher(){
     }
 
-    public void tickEntity(LivingEntity livingEntity, LivingEntityPartAnimator<?, ?> livingEntityPartAnimator){
+    public void tickEntity(LivingEntity livingEntity, LivingEntityAnimator<?, ?> livingEntityPartAnimator){
         if(!entityAnimationDataMap.containsKey(livingEntity.getUUID())){
             entityAnimationDataMap.put(livingEntity.getUUID(), new AnimationDataContainer());
         }
@@ -33,7 +33,7 @@ public class AnimatorDispatcher {
     public <T extends LivingEntity, M extends EntityModel<T>> boolean animateEntity(T livingEntity, M entityModel, PoseStack poseStack, float partialTicks){
         if(entityAnimationDataMap.containsKey(livingEntity.getUUID())){
             if(AnimationOverhaulMain.ENTITY_ANIMATORS.contains(livingEntity.getType())){
-                LivingEntityPartAnimator<T, M> livingEntityPartAnimator = (LivingEntityPartAnimator<T, M>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(livingEntity.getType());
+                LivingEntityAnimator<T, M> livingEntityPartAnimator = (LivingEntityAnimator<T, M>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(livingEntity.getType());
                 livingEntityPartAnimator.applyBakedPose(livingEntity, entityModel, poseStack, entityAnimationDataMap.get(livingEntity.getUUID()), partialTicks);
                 return true;
             }

@@ -48,7 +48,7 @@ public class AnimationPose {
     }
 
     public MutablePartPose getLocatorPose(String locatorIdentifier){
-        return this.pose.get(locatorIdentifier);
+        return this.pose.getOrDefault(locatorIdentifier, MutablePartPose.ZERO);
     }
 
     public static AnimationPose blend(AnimationPose animationPoseA, AnimationPose animationPoseB, float alpha, Easing easing){

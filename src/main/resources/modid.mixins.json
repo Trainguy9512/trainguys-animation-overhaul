@@ -4,6 +4,7 @@
   "package": "com.trainguy9512.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "MixinItemInHandRenderer"
   ],
   "client": [
     "MixinBlockEntity",

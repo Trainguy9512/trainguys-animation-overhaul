@@ -5,8 +5,6 @@ import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationBlendSpacePlayer;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationSequencePlayer;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationStateMachine;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.TestReferenceSampler;
-import com.trainguy9512.animationoverhaul.util.animation.Locator;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.time.TickTimeUtils;
@@ -15,15 +13,12 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.util.TimeUtil;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.List;
 
-public class PlayerPartAnimator extends LivingEntityPartAnimator<Player, PlayerModel<Player>> {
+public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel<Player>> {
 
     private static final String LOCATOR_ROOT = "root";
     private static final String LOCATOR_HEAD = "head";
