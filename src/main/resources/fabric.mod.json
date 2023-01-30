@@ -13,7 +13,7 @@
     "sources": "https://github.com/Trainguy9512/trainguys-animation-overhaul/"
   },
 
-  "license": "ARR",
+  "license": "LGPLv3",
   "icon": "assets/animation_overhaul/icon.png",
 
   "environment": "*",
