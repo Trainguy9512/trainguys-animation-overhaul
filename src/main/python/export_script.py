@@ -210,16 +210,7 @@ def exportAnimation(frameStart, frameEnd, entityKey, exportJoints, directory):
     splittedName = fileName.split('_')
     finalName = '_'.join(splittedName[1:len(splittedName)])[0:-3]
     animationKey = finalName
-    
-    ## REMOVE THIS
-    ## REMOVE THIS
-    ## REMOVE THIS
-    ## REMOVE THIS
-    ## REMOVE THIS
-    ## REMOVE THIS
-    ## REMOVE THIS
-    ## REMOVE THIS
-    animationKey = "test_camera_anim"
+   
     
     attributes = ['translateX', 'translateY', 'translateZ', 'rotateX', 'rotateY', 'rotateZ']
     attributesJava = ['x', 'y', 'z', 'xRot', 'yRot', 'zRot']
@@ -228,8 +219,8 @@ def exportAnimation(frameStart, frameEnd, entityKey, exportJoints, directory):
     partsList = []
     
     for joint in exportJoints:
-        #partName = joint.split(':')[1].split('_')[0]
-        partName = joint.split('_')[0]
+        partName = joint.split(':')[1].split('_')[0]
+        #partName = joint.split('_')[0]
         partDict = {"name": partName}
         keyframesDict = {}
         for i in range((frameEnd * 1) + 1):
