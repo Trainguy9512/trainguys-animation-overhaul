@@ -4,6 +4,7 @@ import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationSequencePlayer;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationStateMachine;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.time.TickTimeUtils;
@@ -14,7 +15,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
+import java.util.List;
 import java.util.Random;
 
 public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer, PlayerModel<LocalPlayer>>{
@@ -31,10 +34,35 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public static final String LOCATOR_RIGHT_HAND = "rightHand";
     public static final String LOCATOR_LEFT_HAND = "leftHand";
 
-    private static final String TEST_NOTIFY = "test_notify";
-    private static final AnimationSequencePlayer TEST_SEQUENCE_PLAYER = AnimationSequencePlayer.of("test_camera_anim", new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/fp_right_empty_idle"))
-            .setDefaultPlayRate(1F)
-            .addAnimNotify(TEST_NOTIFY, 40);
+    public static final AnimationDataContainer.DataKey<ItemStack> MAIN_HAND_ITEM_STACK = new AnimationDataContainer.DataKey<ItemStack>("main_hand_item_stack", ItemStack.EMPTY);
+
+    private static final String ITEM_SWITCH_NOTIFY = "item_switch_notify";
+    private static final AnimationSequencePlayer MAIN_EMPTY_RAISE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_raise_sequence_player", new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/fp_right_empty_raise"))
+            .setLooping(false)
+            .setDefaultPlayRate(1.5F);
+    private static final AnimationSequencePlayer MAIN_EMPTY_LOWER_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_lower_sequence_player", new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/fp_right_empty_lower"))
+            .addAnimNotify(ITEM_SWITCH_NOTIFY, 7)
+            .setLooping(false)
+            .setDefaultPlayRate(1.6F);
+    private static final AnimationSequencePlayer MAIN_EMPTY_IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_idle_sequence_player", new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/fp_right_empty_idle"))
+            .setDefaultPlayRate(0.8F);
+
+    private static final String STATE_EMPTY = "empty";
+    private static final String STATE_LOWERING = "lowering";
+    private static final String STATE_EMPTY_RAISING = "empty_raising";
+    private static final String STATE_TRANSITION_EMPTY_TO_LOWERING = "empty_to_lowering";
+    private static final String STATE_TRANSITION_LOWERING_TO_EMPTY_RAISING = "lowering_to_empty_raising";
+    private static final String STATE_TRANSITION_EMPTY_RAISING_TO_EMPTY = "empty_raising_to_empty";
+    private static final AnimationStateMachine MAIN_HAND_STATE_MACHINE = AnimationStateMachine.of("main_hand_state_machine")
+            .addStates(List.of(
+                    STATE_EMPTY,
+                    STATE_LOWERING,
+                    STATE_EMPTY_RAISING
+            ))
+            .setDefaultState(STATE_EMPTY)
+            .addStateTransition(STATE_TRANSITION_EMPTY_TO_LOWERING, STATE_EMPTY, STATE_LOWERING, TickTimeUtils.ticksFromMayaFrames(1))
+            .addStateTransition(STATE_TRANSITION_LOWERING_TO_EMPTY_RAISING, STATE_LOWERING, STATE_EMPTY_RAISING, TickTimeUtils.ticksFromMayaFrames(1))
+            .addStateTransition(STATE_TRANSITION_EMPTY_RAISING_TO_EMPTY, STATE_EMPTY_RAISING, STATE_EMPTY, TickTimeUtils.ticksFromMayaFrames(4));
 
     public FirstPersonPlayerAnimator(){
         super();
@@ -58,23 +86,30 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
             AnimationOverhaulMain.LOGGER.info("Notify hit on frame 40! Here's a random number: {}", random.nextInt(100));
         }
          */
+        if(getAnimationSequencePlayer(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).isAnimNotityActive(ITEM_SWITCH_NOTIFY)){
+            setEntityAnimationVariable(MAIN_HAND_ITEM_STACK, this.livingEntity.getMainHandItem());
+        }
 
-        return getEntityAnimationData().sampleAnimationState(this.locatorSkeleton, TEST_SEQUENCE_PLAYER);
+        getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setPose(STATE_EMPTY, sampleAnimationState(MAIN_EMPTY_IDLE_SEQUENCE_PLAYER));
+        getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setPose(STATE_EMPTY_RAISING, sampleAnimationState(MAIN_EMPTY_RAISE_SEQUENCE_PLAYER));
+        getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setPose(STATE_LOWERING, sampleAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER));
+        return sampleAnimationState(MAIN_HAND_STATE_MACHINE);
     }
 
     private float testFloat = 0;
 
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData){
-        /*
-        testFloat++;
-        getEntityAnimationData().getAnimationSequencePlayer(TEST_SEQUENCE_PLAYER).setPlayRate((Mth.sin(testFloat * 4) * 0.5F + 0.5F) * 3 + 0.5F);
-        AnimationOverhaulMain.LOGGER.info("Current frame: {}", TickTimeUtils.mayaFramesFromTicks(getEntityAnimationData().getAnimationSequencePlayer(TEST_SEQUENCE_PLAYER).getTimeElapsedLooped()));
+        getAnimationSequencePlayer(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).playFromStartOnStateActive(getAnimationStateMachine(MAIN_HAND_STATE_MACHINE), STATE_LOWERING);
+        getAnimationSequencePlayer(MAIN_EMPTY_RAISE_SEQUENCE_PLAYER).playFromStartOnStateActive(getAnimationStateMachine(MAIN_HAND_STATE_MACHINE), STATE_EMPTY_RAISING);
 
-         */
+        getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setTransitionCondition(STATE_TRANSITION_EMPTY_TO_LOWERING, getEntityAnimationVariable(MAIN_HAND_ITEM_STACK) != this.livingEntity.getMainHandItem());
+        getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setTransitionCondition(STATE_TRANSITION_EMPTY_RAISING_TO_EMPTY, getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4));
+        getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setTransitionCondition(STATE_TRANSITION_LOWERING_TO_EMPTY_RAISING, getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4)/* && getEntityAnimationVariable(MAIN_HAND_ITEM_STACK) == ItemStack.EMPTY*/);
     }
 
     public void tickExternal(){
         LocalPlayer player = Minecraft.getInstance().player;
+        this.setEntity(player);
 
         this.tick(player, getEntityAnimationData());
         getEntityAnimationData().tickAnimationStates();

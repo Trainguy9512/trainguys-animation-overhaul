@@ -86,7 +86,7 @@ public abstract class MixinItemInHandRenderer {
             poseStack.popPose();
 
              */
-            this.renderItemInHand(abstractClientPlayer, Items.STICK.getDefaultInstance(), poseStack, HumanoidArm.RIGHT, animationPose, bufferSource, i);
+            this.renderItemInHand(abstractClientPlayer, FirstPersonPlayerAnimator.INSTANCE.localAnimationDataContainer.get(FirstPersonPlayerAnimator.MAIN_HAND_ITEM_STACK).get(), poseStack, HumanoidArm.RIGHT, animationPose, bufferSource, i);
             this.renderItemInHand(abstractClientPlayer, Items.SHIELD.getDefaultInstance(), poseStack, HumanoidArm.LEFT, animationPose, bufferSource, i);
 
             //playerRenderer.renderRightHand(poseStack, bufferSource, i, abstractClientPlayer);

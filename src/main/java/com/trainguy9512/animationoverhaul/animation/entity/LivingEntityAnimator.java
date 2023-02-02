@@ -5,6 +5,9 @@ import com.trainguy9512.animationoverhaul.access.ModelAccess;
 import com.trainguy9512.animationoverhaul.animation.AnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationSequencePlayer;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationStateMachine;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.SampleableAnimationState;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
 import net.minecraft.client.model.EntityModel;
@@ -52,6 +55,26 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
 
     protected AnimationDataContainer getEntityAnimationData(){
         return this.entityAnimationData;
+    }
+
+    protected <D> D getEntityAnimationVariable(AnimationDataContainer.DataKey<D> dataKey){
+        return getEntityAnimationData().get(dataKey).get();
+    }
+
+    protected <D> void setEntityAnimationVariable(AnimationDataContainer.DataKey<D> dataKey, D value){
+        getEntityAnimationData().setValue(dataKey, value);
+    }
+
+    protected AnimationPose sampleAnimationState(SampleableAnimationState sampleableAnimationState){
+        return getEntityAnimationData().sampleAnimationState(this.locatorSkeleton, sampleableAnimationState);
+    }
+
+    protected AnimationSequencePlayer getAnimationSequencePlayer(AnimationSequencePlayer animationSequencePlayer){
+        return getEntityAnimationData().getAnimationSequencePlayer(animationSequencePlayer);
+    }
+
+    protected AnimationStateMachine getAnimationStateMachine(AnimationStateMachine animationStateMachine){
+        return getEntityAnimationData().getAnimationStateMachine(animationStateMachine);
     }
 
     public void tick(LivingEntity livingEntity){
