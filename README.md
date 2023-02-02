@@ -1,6 +1,6 @@
 # 🏃 Trainguy's Animation Overhaul
 
-Repository for a 1.19.3+ Minecraft mod centered around improving the game's character animations via a realtime animation system. The primary focus is third and first person character animation improvements
+Repository for a 1.19.3+ Minecraft mod centered around improving the game's character animations via a realtime animation system, included in the Moonflower suite of mods. The primary focus is third and first person character animation improvements, and once those are done the mod will be released and I will move on to entity and block animations.
 
 > **Warning**
 > This project is still in heavy development! You are free to compile yourself and try it out, but keep in mind that there will be missing animations, placeholders, and debugging visuals that will not look correct. **This mod is not in a playable state!**
