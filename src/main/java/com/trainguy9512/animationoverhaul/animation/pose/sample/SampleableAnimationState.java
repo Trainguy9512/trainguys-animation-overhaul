@@ -16,6 +16,10 @@ public class SampleableAnimationState {
         return new AnimationPose(locatorSkeleton);
     }
 
+    public AnimationPose sampleFromInputPose(AnimationPose inputPose, LocatorSkeleton locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
+        return this.sample(locatorSkeleton, cachedPoseContainer);
+    }
+
     public void tick(){
 
     }

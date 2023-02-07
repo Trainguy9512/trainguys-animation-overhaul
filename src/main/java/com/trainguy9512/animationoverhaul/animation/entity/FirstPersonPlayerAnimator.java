@@ -3,6 +3,8 @@ package com.trainguy9512.animationoverhaul.animation.entity;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationMontage;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationMontageTrack;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationSequencePlayer;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationStateMachine;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
@@ -64,6 +66,11 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
             .addStateTransition(STATE_TRANSITION_LOWERING_TO_EMPTY_RAISING, STATE_LOWERING, STATE_EMPTY_RAISING, TickTimeUtils.ticksFromMayaFrames(1))
             .addStateTransition(STATE_TRANSITION_EMPTY_RAISING_TO_EMPTY, STATE_EMPTY_RAISING, STATE_EMPTY, TickTimeUtils.ticksFromMayaFrames(4));
 
+    private static final AnimationMontageTrack MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK = AnimationMontageTrack.of("main_hand_empty_punch_montage_track");
+    private static final AnimationMontage MAIN_HAND_EMPTY_PUNCH_MONTAGE = AnimationMontage.of(TickTimeUtils.ticksFromMayaFrames(12F), new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/fp_right_empty_punch"))
+            .setBlendInDuration(1)
+            .setBlendOutDuration(TickTimeUtils.ticksFromMayaFrames(8F));
+
     public FirstPersonPlayerAnimator(){
         super();
     }
@@ -93,7 +100,10 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setPose(STATE_EMPTY, sampleAnimationState(MAIN_EMPTY_IDLE_SEQUENCE_PLAYER));
         getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setPose(STATE_EMPTY_RAISING, sampleAnimationState(MAIN_EMPTY_RAISE_SEQUENCE_PLAYER));
         getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setPose(STATE_LOWERING, sampleAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER));
-        return sampleAnimationState(MAIN_HAND_STATE_MACHINE);
+
+        return sampleAnimationStateFromInputPose(MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK, sampleAnimationState(MAIN_EMPTY_IDLE_SEQUENCE_PLAYER));
+
+        //return sampleAnimationState(MAIN_HAND_STATE_MACHINE);
     }
 
     private float testFloat = 0;
@@ -105,6 +115,10 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setTransitionCondition(STATE_TRANSITION_EMPTY_TO_LOWERING, getEntityAnimationVariable(MAIN_HAND_ITEM_STACK) != this.livingEntity.getMainHandItem());
         getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setTransitionCondition(STATE_TRANSITION_EMPTY_RAISING_TO_EMPTY, getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4));
         getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setTransitionCondition(STATE_TRANSITION_LOWERING_TO_EMPTY_RAISING, getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4)/* && getEntityAnimationVariable(MAIN_HAND_ITEM_STACK) == ItemStack.EMPTY*/);
+
+        if(this.livingEntity.attackAnim > 0.16 && this.livingEntity.attackAnim < 0.17){
+            getAnimationMontageTrack(MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK).playMontage(MAIN_HAND_EMPTY_PUNCH_MONTAGE);
+        }
     }
 
     public void tickExternal(){

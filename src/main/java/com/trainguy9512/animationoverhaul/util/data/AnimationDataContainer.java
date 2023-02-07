@@ -2,11 +2,8 @@ package com.trainguy9512.animationoverhaul.util.data;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationBlendSpacePlayer;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationSequencePlayer;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationStateMachine;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.SampleableAnimationState;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.util.Mth;
 
@@ -53,6 +50,10 @@ public class AnimationDataContainer {
         return (AnimationStateMachine) getAnimationState(animationStateMachine);
     }
 
+    public AnimationMontageTrack getAnimationMontageTrack(AnimationMontageTrack animationMontageTrack){
+        return (AnimationMontageTrack) getAnimationState(animationMontageTrack);
+    }
+
     public AnimationPose sampleAnimationState(LocatorSkeleton locatorSkeleton, SampleableAnimationState sampleableAnimationState){
         for(String identifier : this.entitySampleableAnimationStates.keySet()){
             if (Objects.equals(sampleableAnimationState.getIdentifier(), identifier)){
@@ -61,6 +62,16 @@ public class AnimationDataContainer {
         }
         this.entitySampleableAnimationStates.put(sampleableAnimationState.getIdentifier(), sampleableAnimationState);
         return (this.entitySampleableAnimationStates.get(sampleableAnimationState.getIdentifier())).sample(locatorSkeleton, cachedPoseContainer);
+    }
+
+    public AnimationPose sampleAnimationStateFromInputPose(AnimationPose inputPose, LocatorSkeleton locatorSkeleton, SampleableAnimationState sampleableAnimationState){
+        for(String identifier : this.entitySampleableAnimationStates.keySet()){
+            if (Objects.equals(sampleableAnimationState.getIdentifier(), identifier)){
+                return this.entitySampleableAnimationStates.get(identifier).sampleFromInputPose(inputPose, locatorSkeleton, cachedPoseContainer);
+            }
+        }
+        this.entitySampleableAnimationStates.put(sampleableAnimationState.getIdentifier(), sampleableAnimationState);
+        return (this.entitySampleableAnimationStates.get(sampleableAnimationState.getIdentifier())).sampleFromInputPose(inputPose, locatorSkeleton, cachedPoseContainer);
     }
 
     public void saveCachedPose(String identifier, AnimationPose animationPose){

@@ -1,0 +1,117 @@
+package com.trainguy9512.animationoverhaul.animation.pose.sample;
+
+import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
+import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
+import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+
+public class AnimationMontage {
+    private final float length;
+    private final ResourceLocation resourceLocation;
+
+    private float playRate = 1;
+    private boolean mirrored = false;
+    private float blendInDuration = 1;
+    private float blendOutDuration = 1;
+
+    public float timeElapsed = 0;
+    private boolean active = true;
+    private float blendWeight = 0;
+
+    private AnimationMontage(float length, ResourceLocation resourceLocation){
+        this.length = length;
+        this.resourceLocation = resourceLocation;
+    }
+
+    public static AnimationMontage of(float length, ResourceLocation resourceLocation){
+        return new AnimationMontage(length, resourceLocation);
+    }
+
+    public void tick(){
+        // Tick time forwards using the playrare
+        this.timeElapsed += this.playRate;
+
+        // Only make the active state changable when its active. Once it becomes deactive, it will be destroyed upon blendWeight == 0
+        if(isActive()){
+            setActive(this.timeElapsed < this.length);
+        }
+
+        // Adjust the current blend weight
+        setBlendWeight(Mth.clamp(isActive() ? getBlendWeight() + getBlendSpeed(true) : getBlendWeight() - getBlendSpeed(false), 0, 1));
+    }
+
+    public AnimationPose getAnimationPose(LocatorSkeleton locatorSkeleton){
+        return AnimationPose.fromChannelTimeline(locatorSkeleton, TimelineGroupData.INSTANCE.get(resourceLocation), this.timeElapsed / TimelineGroupData.INSTANCE.get(resourceLocation).getFrameLength(), this.mirrored);
+    }
+
+    /**
+     * Forces the montage to be inactive, regardless of whether it's currently active or not.
+     * Used when a new montage is pushed on the front layer of a montage track
+     *
+     * @param newBlendOutTime the new blend out time
+     */
+    public void forceInactive(float newBlendOutTime){
+        setActive(false);
+        setBlendDuration(newBlendOutTime, false);
+    }
+
+    public float getBlendWeight(){
+        return this.blendWeight;
+    }
+
+    public boolean isActive(){
+        return this.active;
+    }
+
+    private float getBlendSpeed(boolean in){
+        return getBlendDuration(in) != 0 ? 1 / getBlendDuration(in) : 1;
+    }
+
+    public float getBlendDuration(boolean in){
+        return in ? this.blendInDuration : this.blendOutDuration;
+    }
+
+    public void setBlendWeight(float blendWeight){
+        this.blendWeight = blendWeight;
+    }
+
+    public void setActive(boolean active){
+        this.active = active;
+    }
+
+    public void setBlendDuration(float blendDuration, boolean in){
+        if(in){
+            this.blendInDuration = blendDuration;
+        } else {
+            this.blendOutDuration = blendDuration;
+        }
+    }
+
+    public AnimationMontage setPlayRate(float playRate){
+        this.playRate = playRate;
+        return this;
+    }
+
+    public AnimationMontage setBlendInDuration(float blendInDuration){
+        this.blendInDuration = blendInDuration;
+        return this;
+    }
+
+    public AnimationMontage setBlendOutDuration(float blendOutDuration){
+        this.blendOutDuration = blendOutDuration;
+        return this;
+    }
+
+    public AnimationMontage setMirrored(boolean mirrored){
+        this.mirrored = mirrored;
+        return this;
+    }
+
+    public AnimationMontage copy(){
+        return AnimationMontage.of(this.length, this.resourceLocation)
+                .setBlendInDuration(this.blendInDuration)
+                .setBlendOutDuration(this.blendOutDuration)
+                .setPlayRate(this.playRate);
+    }
+}
