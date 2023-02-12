@@ -3,13 +3,10 @@ package com.trainguy9512.animationoverhaul.mixin;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.entity.FirstPersonPlayerAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.MutablePartPose;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
@@ -21,14 +18,10 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -86,7 +79,7 @@ public abstract class MixinItemInHandRenderer {
             poseStack.popPose();
 
              */
-            this.renderItemInHand(abstractClientPlayer, FirstPersonPlayerAnimator.INSTANCE.localAnimationDataContainer.get(FirstPersonPlayerAnimator.MAIN_HAND_ITEM_STACK).get(), poseStack, HumanoidArm.RIGHT, animationPose, bufferSource, i);
+            this.renderItemInHand(abstractClientPlayer, FirstPersonPlayerAnimator.INSTANCE.localAnimationDataContainer.get(FirstPersonPlayerAnimator.MAIN_HAND_ITEM).get(), poseStack, HumanoidArm.RIGHT, animationPose, bufferSource, i);
             this.renderItemInHand(abstractClientPlayer, Items.SHIELD.getDefaultInstance(), poseStack, HumanoidArm.LEFT, animationPose, bufferSource, i);
 
             //playerRenderer.renderRightHand(poseStack, bufferSource, i, abstractClientPlayer);

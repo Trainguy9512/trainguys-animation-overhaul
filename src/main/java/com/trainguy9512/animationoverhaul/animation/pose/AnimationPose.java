@@ -2,7 +2,6 @@ package com.trainguy9512.animationoverhaul.animation.pose;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
-import com.trainguy9512.animationoverhaul.util.animation.Locator;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
 import com.trainguy9512.animationoverhaul.util.data.TransformChannel;
@@ -10,6 +9,7 @@ import com.trainguy9512.animationoverhaul.util.time.ChannelTimeline;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.util.Mth;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class AnimationPose {
@@ -51,11 +51,22 @@ public class AnimationPose {
         return this.pose.getOrDefault(locatorIdentifier, MutablePartPose.ZERO);
     }
 
-    public static AnimationPose blend(AnimationPose animationPoseA, AnimationPose animationPoseB, float alpha, Easing easing){
+    /*
+    public void subtractPose(AnimationPose animationPose){
+        for(LocatorSkeleton.LocatorEntry locatorEntry : animationPose.getSkeleton().getLocatorEntries()){
+            this.setLocatorPose(locatorEntry.getLocatorIdentifier(), MutablePartPose);
+        }
+    }
+
+     */
+
+    public AnimationPose blend(AnimationPose animationPose, float alpha, Easing easing){
+        // Simple inverting solution for now.
+        //alpha = 1 - alpha;
         float easedAlpha = easing.ease(alpha);
-        for(LocatorSkeleton.LocatorEntry locatorEntry : animationPoseA.getSkeleton().getLocatorEntries()){
-            MutablePartPose mutablePartPoseA = animationPoseA.getLocatorPose(locatorEntry.getLocatorIdentifier());
-            MutablePartPose mutablePartPoseB = animationPoseB.getLocatorPose(locatorEntry.getLocatorIdentifier());
+        for(LocatorSkeleton.LocatorEntry locatorEntry : this.getSkeleton().getLocatorEntries()){
+            MutablePartPose mutablePartPoseA = animationPose.getLocatorPose(locatorEntry.getLocatorIdentifier());
+            MutablePartPose mutablePartPoseB = this.getLocatorPose(locatorEntry.getLocatorIdentifier());
 
             if(mutablePartPoseA.xRot - mutablePartPoseB.xRot > Mth.PI){
                 mutablePartPoseA = MutablePartPose.fromTranslationAndRotation(mutablePartPoseA.x, mutablePartPoseA.y, mutablePartPoseA.z, mutablePartPoseA.xRot - Mth.TWO_PI, mutablePartPoseA.yRot, mutablePartPoseA.zRot);
@@ -72,7 +83,7 @@ public class AnimationPose {
             if(Math.abs(mutablePartPoseA.zRot - mutablePartPoseB.zRot) > Mth.PI){
                 AnimationOverhaulMain.LOGGER.warn("Snapping on the Z axis of {} degrees", Math.toDegrees(Math.abs(mutablePartPoseA.zRot - mutablePartPoseB.zRot)));
             }
-            animationPoseA.setLocatorPose(locatorEntry.getLocatorIdentifier(), MutablePartPose.fromTranslationAndRotation(
+            this.setLocatorPose(locatorEntry.getLocatorIdentifier(), MutablePartPose.fromTranslationAndRotation(
                     Mth.lerp(easedAlpha, mutablePartPoseB.x, mutablePartPoseA.x),
                     Mth.lerp(easedAlpha, mutablePartPoseB.y, mutablePartPoseA.y),
                     Mth.lerp(easedAlpha, mutablePartPoseB.z, mutablePartPoseA.z),
@@ -81,15 +92,42 @@ public class AnimationPose {
                     Mth.rotLerp(easedAlpha, mutablePartPoseB.zRot, mutablePartPoseA.zRot))
             );
         }
-        return animationPoseA;
+        return this;
     }
 
-    public static AnimationPose blendLinear(AnimationPose animationPoseA, AnimationPose animationPoseB, float alpha){
-        return blend(animationPoseA, animationPoseB, alpha, Easing.Linear.linear());
+    public AnimationPose blendLinear(AnimationPose animationPose, float alpha){
+        return this.blend(animationPose, alpha, Easing.Linear.of());
     }
 
-    public static AnimationPose blendBoolean(AnimationPose animationPoseA, AnimationPose animationPoseB, boolean value){
-        return blendLinear(animationPoseA, animationPoseB, value ? 0 : 1);
+    public AnimationPose blendBoolean(AnimationPose animationPose, boolean value){
+        return this.blendLinear(animationPose, value ? 0 : 1);
+    }
+
+    public AnimationPose mirror(){
+        return mirrorBlended(1);
+    }
+
+    public AnimationPose mirrorBlended(float alpha){
+        HashMap<String, MutablePartPose> mirroredPose = Maps.newHashMap();
+        for(String identifier : this.pose.keySet()){
+            MutablePartPose mutablePartPose = this.pose.get(identifier);
+            MutablePartPose mirroredMutablePartPose = this.pose.get(this.locatorSkeleton.getMirroredLocator(identifier));
+            float mirrorMultiplier = mutablePartPose == this.pose.get(identifier) ? -1 : 1;
+
+            //TODO: Add proper mutable part pose blend function
+            MutablePartPose newMutablePartPose = mirroredMutablePartPose.getCopy();
+            newMutablePartPose.x = Mth.lerp(alpha, mutablePartPose.x, mirroredMutablePartPose.x * mirrorMultiplier);
+            newMutablePartPose.y = Mth.lerp(alpha, mutablePartPose.y, mirroredMutablePartPose.y);
+            newMutablePartPose.z = Mth.lerp(alpha, mutablePartPose.z, mirroredMutablePartPose.z);
+            newMutablePartPose.xRot = Mth.rotLerp(alpha, mutablePartPose.xRot, mirroredMutablePartPose.xRot);
+            newMutablePartPose.yRot = Mth.rotLerp(alpha, mutablePartPose.yRot, mirroredMutablePartPose.yRot * -1);
+            newMutablePartPose.zRot = Mth.rotLerp(alpha, mutablePartPose.zRot, mirroredMutablePartPose.zRot * -1);
+            mirroredPose.put(identifier, newMutablePartPose);
+        }
+        for(String identifier : this.pose.keySet()){
+            this.pose.put(identifier, mirroredPose.get(identifier));
+        }
+        return this;
     }
 
     public static AnimationPose fromChannelTimeline(LocatorSkeleton locatorSkeleton, TimelineGroupData.TimelineGroup timelineGroup, float time, boolean mirrored){
@@ -118,4 +156,11 @@ public class AnimationPose {
     public static AnimationPose fromChannelTimeline(LocatorSkeleton locatorSkeleton, TimelineGroupData.TimelineGroup timelineGroup, float time){
         return fromChannelTimeline(locatorSkeleton, timelineGroup, time, false);
     }
+
+    /*
+    public static AnimationPose makeDynamicAdditivePose(AnimationPose referencePose, AnimationPose additivePose){
+
+    }
+
+     */
 }

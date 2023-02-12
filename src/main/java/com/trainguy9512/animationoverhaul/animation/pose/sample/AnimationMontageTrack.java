@@ -30,7 +30,7 @@ public class AnimationMontageTrack extends SampleableAnimationState {
             for(AnimationMontage animationMontage : activeMontages){
                 animationMontage.tick();
                 // If the montage has a weight of 0, add it to the list of montages to remove
-                if(animationMontage.getBlendWeight() == 0){
+                if(animationMontage.getBlendWeightEased() == 0){
                     montagesToRemove.add(animationMontage);
                 }
             }
@@ -63,23 +63,16 @@ public class AnimationMontageTrack extends SampleableAnimationState {
                 if(i == 0){
                     animationPose = animationMontage.getAnimationPose(locatorSkeleton);
                 } else {
-                    animationPose = AnimationPose.blendLinear(
-                            animationMontage.getAnimationPose(locatorSkeleton),
-                            animationPose,
-                            animationMontage.getBlendWeight()
+                    animationPose.blendLinear(animationMontage.getAnimationPose(locatorSkeleton), animationMontage.getBlendWeightEased()
                     );
                 }
             }
             float totalBlendWeight = 0;
             for(AnimationMontage animationMontage : this.activeMontages){
-                totalBlendWeight = Mth.clamp(totalBlendWeight + animationMontage.getBlendWeight(), 0, 1);
+                totalBlendWeight = Mth.clamp(totalBlendWeight + animationMontage.getBlendWeightEased(), 0, 1);
             }
             //AnimationOverhaulMain.LOGGER.info("{}, {}", this.activeMontages.get(0).timeElapsed, totalBlendWeight);
-            animationPose = AnimationPose.blendLinear(
-                    animationPose,
-                    inputPose,
-                    totalBlendWeight
-            );
+            animationPose = inputPose.blendLinear(animationPose, totalBlendWeight);
         } else {
             return inputPose;
         }

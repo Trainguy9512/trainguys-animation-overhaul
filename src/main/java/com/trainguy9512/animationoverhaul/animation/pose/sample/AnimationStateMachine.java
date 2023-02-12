@@ -137,7 +137,7 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
      * @return The animation state machine
      */
     public AnimationStateMachine addStateTransition(String identifier, String origin, String desination, float transitionTime, int priority){
-        return this.addStateTransition(identifier, origin, desination, transitionTime, Easing.Linear.linear(), priority);
+        return this.addStateTransition(identifier, origin, desination, transitionTime, Easing.Linear.of(), priority);
     }
 
     /**
@@ -150,7 +150,7 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
      * @return The animation state machine
      */
     public AnimationStateMachine addStateTransition(String identifier, String origin, String desination, float transitionTime){
-        return this.addStateTransition(identifier, origin, desination, transitionTime, Easing.Linear.linear(), 50);
+        return this.addStateTransition(identifier, origin, desination, transitionTime, Easing.Linear.of(), 50);
     }
 
     public AnimationStateMachine setTransitionCondition(String transitionIdentifier, boolean condition){
@@ -192,7 +192,10 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
             AnimationPose animationPose = this.getPoseFromState(this.activeStates.get(0), locatorSkeleton);
             if(this.activeStates.size() > 1){
                 for(String stateIdentifier : this.activeStates){
-                    animationPose = AnimationPose.blend(this.getPoseFromState(stateIdentifier, locatorSkeleton), animationPose, this.statesHashMap.get(stateIdentifier).getWeight(), this.statesHashMap.get(stateIdentifier).getCurrentTransition().getEasing());
+                    animationPose.blend(
+                            this.getPoseFromState(stateIdentifier, locatorSkeleton),
+                            this.statesHashMap.get(stateIdentifier).getWeight(),
+                            this.statesHashMap.get(stateIdentifier).getCurrentTransition().getEasing());
                 }
             }
             //AnimationOverhaulMain.LOGGER.info(this.activeStates.toString());

@@ -3,6 +3,7 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
+import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
@@ -14,6 +15,8 @@ public class AnimationMontage {
     private boolean mirrored = false;
     private float blendInDuration = 1;
     private float blendOutDuration = 1;
+    private Easing blendInEasing = Easing.Linear.of();
+    private Easing blendOutEasing = Easing.Linear.of();
 
     public float timeElapsed = 0;
     private boolean active = true;
@@ -56,8 +59,12 @@ public class AnimationMontage {
         setBlendDuration(newBlendOutTime, false);
     }
 
-    public float getBlendWeight(){
+    private float getBlendWeight(){
         return this.blendWeight;
+    }
+
+    public float getBlendWeightEased(){
+        return (isActive() ? this.blendInEasing : this.blendOutEasing).ease(getBlendWeight());
     }
 
     public boolean isActive(){
@@ -80,12 +87,17 @@ public class AnimationMontage {
         this.active = active;
     }
 
-    public void setBlendDuration(float blendDuration, boolean in){
+    public void setBlendDuration(float blendDuration, boolean in, Easing easing){
         if(in){
             this.blendInDuration = blendDuration;
+            this.blendInEasing = easing;
         } else {
             this.blendOutDuration = blendDuration;
+            this.blendOutEasing = easing;
         }
+    }
+    public void setBlendDuration(float blendDuration, boolean in){
+        setBlendDuration(blendDuration, in, Easing.Linear.of());
     }
 
     public AnimationMontage setPlayRate(float playRate){

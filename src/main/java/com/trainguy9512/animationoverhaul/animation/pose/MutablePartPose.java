@@ -60,6 +60,17 @@ public class MutablePartPose {
         );
     }
 
+    public static MutablePartPose subtract(MutablePartPose partPoseA, MutablePartPose partPoseB){
+        return fromTranslationAndRotation(
+                partPoseA.x - partPoseB.x,
+                partPoseA.y - partPoseB.y,
+                partPoseA.z - partPoseB.z,
+                partPoseA.xRot - partPoseB.xRot,
+                partPoseA.yRot - partPoseB.yRot,
+                partPoseA.zRot - partPoseB.zRot
+        );
+    }
+
     public static MutablePartPose fromPartPose(PartPose partPose){
         return fromTranslationAndRotation(
                 partPose.x,
@@ -69,6 +80,10 @@ public class MutablePartPose {
                 partPose.yRot,
                 partPose.zRot
         );
+    }
+
+    public MutablePartPose getCopy(){
+        return MutablePartPose.fromPartPose(this.asPartPose());
     }
 
     public void translatePoseStack(PoseStack poseStack){

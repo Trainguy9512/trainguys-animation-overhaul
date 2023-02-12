@@ -8,7 +8,7 @@ public abstract class Easing {
 
     public static class Linear extends Easing {
 
-        public static Linear linear() {
+        public static Linear of() {
             return new Linear();
         }
 

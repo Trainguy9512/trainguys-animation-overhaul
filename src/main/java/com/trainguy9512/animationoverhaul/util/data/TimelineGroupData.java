@@ -33,6 +33,10 @@ public class TimelineGroupData {
         }
     }
 
+    public TimelineGroup getNative(String path){
+        return get(AnimationOverhaulMain.MOD_ID, path);
+    }
+
     public TimelineGroup get(String namespace, String path){
         return get(new ResourceLocation(namespace, path));
     }

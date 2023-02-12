@@ -55,8 +55,12 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
         return this.entityAnimationData;
     }
 
+    protected <D> AnimationDataContainer.Variable<D> getEntityAnimationVariableObject(AnimationDataContainer.DataKey<D> dataKey){
+        return getEntityAnimationData().get(dataKey);
+    }
+
     protected <D> D getEntityAnimationVariable(AnimationDataContainer.DataKey<D> dataKey){
-        return getEntityAnimationData().get(dataKey).get();
+        return getEntityAnimationVariableObject(dataKey).get();
     }
 
     protected <D> void setEntityAnimationVariable(AnimationDataContainer.DataKey<D> dataKey, D value){
@@ -74,6 +78,10 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
 
     protected AnimationSequencePlayer getAnimationSequencePlayer(AnimationSequencePlayer animationSequencePlayer){
         return getEntityAnimationData().getAnimationSequencePlayer(animationSequencePlayer);
+    }
+
+    protected AnimationBlendSpacePlayer getAnimationBlendSpacePlayer(AnimationBlendSpacePlayer animationBlendSpacePlayer){
+        return getEntityAnimationData().getAnimationBlendSpacePlayer(animationBlendSpacePlayer);
     }
 
     protected AnimationStateMachine getAnimationStateMachine(AnimationStateMachine animationStateMachine){
