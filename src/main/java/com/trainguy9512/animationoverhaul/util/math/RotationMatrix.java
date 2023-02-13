@@ -1,6 +1,5 @@
 package com.trainguy9512.animationoverhaul.util.math;
 
-import com.mojang.math.Axis;
 import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;

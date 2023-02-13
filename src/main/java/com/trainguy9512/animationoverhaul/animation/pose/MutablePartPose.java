@@ -2,9 +2,22 @@ package com.trainguy9512.animationoverhaul.animation.pose;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.mojang.math.Transformation;
+import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
+import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
+import com.trainguy9512.animationoverhaul.util.data.TransformChannel;
+import com.trainguy9512.animationoverhaul.util.math.RotationMatrix;
+import com.trainguy9512.animationoverhaul.util.time.ChannelTimeline;
+import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
-import org.joml.Quaternionf;
+import net.minecraft.core.Rotations;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.Rotation;
+import org.joml.*;
+
+import java.lang.Math;
 
 public class MutablePartPose {
     public float x = 0;
@@ -49,6 +62,42 @@ public class MutablePartPose {
         );
     }
 
+    public MutablePartPose translate(Vector3f translation, boolean localSpace){
+        if(translation.x() != 0 || translation.y() != 0 || translation.z() != 0){
+            if(localSpace){
+                Quaternionf quaternionf = new Quaternionf().rotationZYX(this.zRot, this.yRot, this.xRot);
+                translation.rotate(quaternionf);
+            }
+            this.x += translation.x();
+            this.y += translation.y();
+            this.z += translation.z();
+        }
+        return this.getCopy();
+    }
+
+    public MutablePartPose rotate(Vector3f rotation, boolean localSpace){
+        if(rotation.x() != 0 || rotation.y() != 0 || rotation.z() != 0){
+            if(localSpace){
+                this.xRot += rotation.x();
+                this.yRot += rotation.y();
+                this.zRot += rotation.z();
+            } else {
+                Vector3f baseRotation = new Vector3f(this.xRot, this.yRot, this.zRot);
+
+                RotationMatrix baseRotationMatrix = RotationMatrix.fromEulerAngles(baseRotation);
+                RotationMatrix multRotationMatrix = RotationMatrix.fromEulerAngles(rotation);
+
+                baseRotationMatrix.mult(multRotationMatrix);
+
+                Vector3f finalRotation = baseRotationMatrix.toEulerAngles();
+                this.xRot = finalRotation.x();
+                this.yRot = finalRotation.y();
+                this.zRot = finalRotation.z();
+            }
+        }
+        return this;
+    }
+
     public static MutablePartPose add(MutablePartPose partPoseA, MutablePartPose partPoseB){
         return fromTranslationAndRotation(
                 partPoseA.x + partPoseB.x,
@@ -68,6 +117,76 @@ public class MutablePartPose {
                 partPoseA.xRot - partPoseB.xRot,
                 partPoseA.yRot - partPoseB.yRot,
                 partPoseA.zRot - partPoseB.zRot
+        );
+    }
+
+    public MutablePartPose blend(MutablePartPose partPose, float alpha, Easing easing){
+        /*
+        if(partPose.xRot - this.xRot > Mth.PI){
+            partPose.rotate(new Vector3f(-Mth.TWO_PI, 0, 0), true);
+        }
+        if(partPose.xRot - this.xRot < -Mth.PI){
+            partPose.rotate(new Vector3f(Mth.TWO_PI, 0, 0), true);
+        }
+        if(partPose.yRot - this.yRot > Mth.PI){
+            partPose.rotate(new Vector3f(0, -Mth.TWO_PI, 0), true);
+        }
+        if(partPose.yRot - this.yRot < -Mth.PI){
+            partPose.rotate(new Vector3f(0, Mth.TWO_PI, 0), true);
+        }
+        if(partPose.zRot - this.zRot > Mth.PI){
+            partPose.rotate(new Vector3f(0, 0, -Mth.TWO_PI), true);
+        }
+        if(partPose.zRot - this.zRot < -Mth.PI){
+            partPose.rotate(new Vector3f(0, 0, Mth.TWO_PI), true);
+        }
+        if(Math.abs(partPose.xRot - this.xRot) > Mth.PI || Math.abs(partPose.xRot - this.xRot) < -Mth.PI){
+            AnimationOverhaulMain.LOGGER.warn("Snapping on the X axis of {} degrees", Math.toDegrees(Math.abs(partPose.xRot - this.xRot)));
+        }
+        if(Math.abs(partPose.yRot - this.yRot) > Mth.PI || Math.abs(partPose.yRot - this.yRot) < -Mth.PI){
+            AnimationOverhaulMain.LOGGER.warn("Snapping on the Y axis of {} degrees", Math.toDegrees(Math.abs(partPose.yRot - this.yRot)));
+        }
+        if(Math.abs(partPose.zRot - this.zRot) > Mth.PI || Math.abs(partPose.zRot - this.zRot) < -Mth.PI){
+            AnimationOverhaulMain.LOGGER.warn("Snapping on the Z axis of {} degrees", Math.toDegrees(Math.abs(partPose.zRot - this.zRot)));
+        }
+
+         */
+        alpha = easing.ease(alpha);
+
+        Quaternionf quaternionA = new Quaternionf().rotationXYZ(this.xRot, this.yRot, this.zRot);
+        Quaternionf quaternionB = new Quaternionf().rotationXYZ(partPose.xRot, partPose.yRot, partPose.zRot);
+        quaternionA.slerp(quaternionB, alpha);
+
+        Vector3f vector3f = new Vector3f();
+        quaternionA.getEulerAnglesXYZ(vector3f);
+
+        this.x = Mth.lerp(alpha, this.x, partPose.x);
+        this.y = Mth.lerp(alpha, this.y, partPose.y);
+        this.z = Mth.lerp(alpha, this.z, partPose.z);
+        this.xRot = vector3f.x();
+        this.yRot = vector3f.y();
+        this.zRot = vector3f.z();
+        /*
+        this.xRot = Mth.lerp(alpha, this.xRot, partPose.xRot);
+        this.yRot = Mth.lerp(alpha, this.yRot, partPose.yRot);
+        this.zRot = Mth.lerp(alpha, this.zRot, partPose.zRot);
+         */
+        return this;
+    }
+
+    public MutablePartPose blendLinear(MutablePartPose partPose, float alpha){
+        return this.blend(partPose, alpha, Easing.Linear.of());
+    }
+
+    public static MutablePartPose getMutablePartPoseFromChannelTimeline(ResourceLocation resourceLocation, String partName, float time){
+        ChannelTimeline channelTimeline = TimelineGroupData.INSTANCE.get(resourceLocation).getPartTimeline(partName);
+        return new MutablePartPose(
+                channelTimeline.getValueAt(TransformChannel.x, time),
+                channelTimeline.getValueAt(TransformChannel.y, time),
+                channelTimeline.getValueAt(TransformChannel.z, time),
+                channelTimeline.getValueAt(TransformChannel.xRot, time),
+                channelTimeline.getValueAt(TransformChannel.yRot, time),
+                channelTimeline.getValueAt(TransformChannel.zRot, time)
         );
     }
 

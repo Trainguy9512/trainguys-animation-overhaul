@@ -15,7 +15,6 @@ public class AnimationBlendSpacePlayer extends TimeBasedAnimationState {
 
     private final TreeMap<Float, BlendSpaceEntry> blendSpaceEntryTreeMap = new TreeMap<Float, BlendSpaceEntry>();
     private float currentValue = 0;
-    private boolean mirrored = false;
     private float playRateMultiplier = 1;
 
     private AnimationBlendSpacePlayer(String identifier) {
@@ -33,11 +32,6 @@ public class AnimationBlendSpacePlayer extends TimeBasedAnimationState {
 
     public AnimationBlendSpacePlayer setPlayRateMultipler(float newPlayRate){
         this.playRateMultiplier = newPlayRate;
-        return this;
-    }
-
-    public AnimationBlendSpacePlayer setMirrored(boolean mirrored){
-        this.mirrored = mirrored;
         return this;
     }
 
@@ -77,17 +71,17 @@ public class AnimationBlendSpacePlayer extends TimeBasedAnimationState {
         var secondEntry = this.blendSpaceEntryTreeMap.ceilingEntry(this.currentValue);
 
         if (firstEntry == null)
-            return secondEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed(), this.mirrored);
+            return secondEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed());
         if (secondEntry == null)
-            return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed(), this.mirrored);
+            return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed());
 
         // If they're both the same frame
         if (firstEntry.getKey().equals(secondEntry.getKey()))
-            return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed(), this.mirrored);
+            return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed());
 
         float relativeTime = (this.currentValue - firstEntry.getKey()) / (secondEntry.getKey() - firstEntry.getKey());
-        return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed(), this.mirrored).blendLinear(
-                secondEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed(), this.mirrored),
+        return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed()).blendLinear(
+                secondEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed()),
                 relativeTime
         );
     }
@@ -112,8 +106,8 @@ public class AnimationBlendSpacePlayer extends TimeBasedAnimationState {
             return (time % frameLength) / frameLength;
         }
 
-        private AnimationPose sampleEntry(LocatorSkeleton locatorSkeleton, float time, boolean mirrored) {
-            return AnimationPose.fromChannelTimeline(locatorSkeleton, TimelineGroupData.INSTANCE.get(resourceLocation), this.getTimeFromTicks(time), mirrored);
+        private AnimationPose sampleEntry(LocatorSkeleton locatorSkeleton, float time) {
+            return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, this.getTimeFromTicks(time));
         }
     }
 }

@@ -67,7 +67,7 @@ public class TimelineGroupData {
         }
 
         public ChannelTimeline getPartTimeline(String partName){
-            return partTimelines.get(partName);
+            return partTimelines.getOrDefault(partName, new ChannelTimeline());
         }
 
         public float getFrameLength(){

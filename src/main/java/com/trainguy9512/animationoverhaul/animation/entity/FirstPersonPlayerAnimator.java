@@ -11,8 +11,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Vector3f;
 
 import java.util.List;
 
@@ -110,8 +112,22 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setPose(STATE_EMPTY_RAISING, sampleAnimationState(MAIN_EMPTY_RAISE_SEQUENCE_PLAYER));
         getAnimationStateMachine(MAIN_HAND_STATE_MACHINE).setPose(STATE_LOWERING, sampleAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER));
 
-        return sampleAnimationState(MAIN_HAND_STATE_MACHINE).mirrorBlended(this.livingEntity.animationSpeed);
+        AnimationPose raiseLowerStatePose = sampleAnimationState(MAIN_HAND_STATE_MACHINE);
+        raiseLowerStatePose.getLocatorPose(LOCATOR_RIGHT_ARM);
+        raiseLowerStatePose.setLocatorPose(LOCATOR_RIGHT_ARM, raiseLowerStatePose.getLocatorPose(LOCATOR_RIGHT_ARM).translate(new Vector3f(0, 0, -20F), false));
+
+
+        setEntityAnimationVariable(TEST_VALUE, getEntityAnimationVariable(TEST_VALUE) + 0.15F);
+        AnimationPose testAnimPose = new AnimationPose(this.locatorSkeleton);
+        testAnimPose.setLocatorPose(LOCATOR_RIGHT_ARM, testAnimPose.getLocatorPose(LOCATOR_RIGHT_ARM).translate(new Vector3f(0F, 0F, -20F), false));
+        testAnimPose.setLocatorPose(LOCATOR_LEFT_ARM, testAnimPose.getLocatorPose(LOCATOR_LEFT_ARM).translate(new Vector3f(0F, -20F, 0F), false));
+        testAnimPose.setLocatorPose(LOCATOR_RIGHT_ARM, testAnimPose.getLocatorPose(LOCATOR_RIGHT_ARM).rotate(new Vector3f(0F, (getEntityAnimationVariable(TEST_VALUE) % Mth.TWO_PI) - Mth.PI, 0F), false));
+
+
+        return raiseLowerStatePose;
     }
+
+    public static final AnimationDataContainer.DataKey<Float> TEST_VALUE = new AnimationDataContainer.DataKey<>("test_value", 0F);
 
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData){
         getAnimationSequencePlayer(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).playFromStartOnStateActive(getAnimationStateMachine(MAIN_HAND_STATE_MACHINE), STATE_LOWERING);

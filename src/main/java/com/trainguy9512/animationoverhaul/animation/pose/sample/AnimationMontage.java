@@ -12,7 +12,6 @@ public class AnimationMontage {
     private final ResourceLocation resourceLocation;
 
     private float playRate = 1;
-    private boolean mirrored = false;
     private float blendInDuration = 1;
     private float blendOutDuration = 1;
     private Easing blendInEasing = Easing.Linear.of();
@@ -45,7 +44,7 @@ public class AnimationMontage {
     }
 
     public AnimationPose getAnimationPose(LocatorSkeleton locatorSkeleton){
-        return AnimationPose.fromChannelTimeline(locatorSkeleton, TimelineGroupData.INSTANCE.get(resourceLocation), this.timeElapsed / TimelineGroupData.INSTANCE.get(resourceLocation).getFrameLength(), this.mirrored);
+        return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, this.timeElapsed / TimelineGroupData.INSTANCE.get(resourceLocation).getFrameLength());
     }
 
     /**
@@ -112,11 +111,6 @@ public class AnimationMontage {
 
     public AnimationMontage setBlendOutDuration(float blendOutDuration){
         this.blendOutDuration = blendOutDuration;
-        return this;
-    }
-
-    public AnimationMontage setMirrored(boolean mirrored){
-        this.mirrored = mirrored;
         return this;
     }
 

@@ -14,16 +14,15 @@ import java.util.HashMap;
 public class AnimationSequencePlayer extends TimeBasedAnimationState {
 
     private boolean looping = true;
-    private boolean mirrored = false;
-    private ResourceLocation timelineGroupResourceLocation;
+    private ResourceLocation resourceLocation;
     private float frameLength;
 
     HashMap<String, AnimNotify> animNotifyMap = Maps.newHashMap();
 
     private AnimationSequencePlayer(String identifier, ResourceLocation resourceLocation) {
         super(identifier);
-        this.timelineGroupResourceLocation = resourceLocation;
-        this.frameLength = TimelineGroupData.INSTANCE.get(timelineGroupResourceLocation).getFrameLength();
+        this.resourceLocation = resourceLocation;
+        this.frameLength = TimelineGroupData.INSTANCE.get(this.resourceLocation).getFrameLength();
     }
 
     public static AnimationSequencePlayer of(String identifier, ResourceLocation resourceLocation){
@@ -61,11 +60,6 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
         return this;
     }
 
-    public AnimationSequencePlayer setMirroed(boolean mirrored){
-        this.mirrored = mirrored;
-        return this;
-    }
-
     public AnimationSequencePlayer setDefaultPlayRate(float newPlayRate){
         this.setPlayRate(newPlayRate);
         return this;
@@ -93,7 +87,7 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
 
     @Override
     public AnimationPose sample(LocatorSkeleton locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
-        return AnimationPose.fromChannelTimeline(locatorSkeleton, TimelineGroupData.INSTANCE.get(timelineGroupResourceLocation), this.getTimeFromTicks(), this.mirrored);
+        return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, this.getTimeFromTicks());
         //return super.sample(locatorSkeleton);
     }
 
