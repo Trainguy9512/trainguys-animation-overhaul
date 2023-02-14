@@ -22,6 +22,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -101,7 +102,11 @@ public abstract class MixinGameRenderer {
                 //poseStack.translate(cameraPose.y / 16F, cameraPose.x / -16F, cameraPose.z / -16F);
 
                 PoseStack poseStack1 = new PoseStack();
-                poseStack1.mulPose(new Quaternionf().rotationXYZ(cameraPose.xRot, cameraPose.yRot, -cameraPose.zRot));
+                Vector3f cameraRot = cameraPose.getEulerRotation();
+                cameraRot.z *= -1;
+                cameraPose.setEulerRotation(cameraRot);
+
+                poseStack1.mulPose(cameraPose.rotation);
                 poseStack1.translate(cameraPose.x / 16F, cameraPose.y / 16F, cameraPose.z / -16F);
                 Matrix4f matrix4f = poseStack1.last().pose();
 

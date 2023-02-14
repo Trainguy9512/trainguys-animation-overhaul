@@ -91,13 +91,10 @@ public class AnimationPose {
         for(String identifier : this.pose.keySet()){
             MutablePartPose mutablePartPose = this.pose.get(identifier);
             MutablePartPose mirroredMutablePartPose = this.pose.get(this.locatorSkeleton.getMirroredLocator(identifier));
-            float mirrorMultiplier = Objects.equals(identifier, this.locatorSkeleton.getMirroredLocator(identifier)) ? 1 : -1;
+            boolean mirrorXTranslation = Objects.equals(identifier, this.locatorSkeleton.getMirroredLocator(identifier));
 
             //TODO: Add proper mutable part pose blend function
-            MutablePartPose newMutablePartPose = mutablePartPose.getCopy().blendLinear(mirroredMutablePartPose, alpha);
-            newMutablePartPose.x = Mth.lerp(alpha, mutablePartPose.x, mirroredMutablePartPose.x * mirrorMultiplier);
-            newMutablePartPose.yRot = Mth.rotLerp(alpha, mutablePartPose.yRot, mirroredMutablePartPose.yRot * -1);
-            newMutablePartPose.zRot = Mth.rotLerp(alpha, mutablePartPose.zRot, mirroredMutablePartPose.zRot * -1);
+            MutablePartPose newMutablePartPose = mutablePartPose.getCopy().blendLinear(mirroredMutablePartPose.getMirrored(), alpha);
             mirroredPose.put(identifier, newMutablePartPose);
         }
         this.pose.replaceAll((key, pose) -> mirroredPose.get(key));
