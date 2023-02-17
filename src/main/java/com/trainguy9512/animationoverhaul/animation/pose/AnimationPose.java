@@ -1,17 +1,12 @@
 package com.trainguy9512.animationoverhaul.animation.pose;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
-import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
-import com.trainguy9512.animationoverhaul.util.data.TransformChannel;
-import com.trainguy9512.animationoverhaul.util.time.ChannelTimeline;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 public class AnimationPose {
@@ -41,7 +36,7 @@ public class AnimationPose {
     public void applyDefaultPoseOffset(){
         for(LocatorSkeleton.LocatorEntry locatorEntry : this.getSkeleton().getLocatorEntries()){
             MutablePartPose offset = MutablePartPose.fromPartPose(locatorEntry.getDefaultPose());
-            this.setLocatorPose(locatorEntry.getLocatorIdentifier(), MutablePartPose.add(getLocatorPose(locatorEntry.getLocatorIdentifier()), offset));
+            this.setLocatorPose(locatorEntry.getLocatorIdentifier(), getLocatorPose(locatorEntry.getLocatorIdentifier()).add(offset));
         }
     }
 
@@ -62,31 +57,83 @@ public class AnimationPose {
 
      */
 
-    public AnimationPose blend(AnimationPose animationPose, float alpha, Easing easing){
+    public void blend(AnimationPose animationPose, float alpha, Easing easing){
         // Simple inverting solution for now.
         //alpha = 1 - alpha;
         for(LocatorSkeleton.LocatorEntry locatorEntry : this.getSkeleton().getLocatorEntries()){
-            MutablePartPose mutablePartPoseA = animationPose.getLocatorPose(locatorEntry.getLocatorIdentifier());
-            MutablePartPose mutablePartPoseB = this.getLocatorPose(locatorEntry.getLocatorIdentifier());
-
-            this.setLocatorPose(locatorEntry.getLocatorIdentifier(), mutablePartPoseB.getCopy().blend(mutablePartPoseA, alpha, easing));
+            MutablePartPose mutablePartPoseA = this.getLocatorPose(locatorEntry.getLocatorIdentifier());
+            MutablePartPose mutablePartPoseB = animationPose.getLocatorPose(locatorEntry.getLocatorIdentifier());
+            this.setLocatorPose(locatorEntry.getLocatorIdentifier(), mutablePartPoseA.getCopy().blend(mutablePartPoseB, alpha, easing));
         }
-        return this;
+        //return this;
     }
 
-    public AnimationPose blendLinear(AnimationPose animationPose, float alpha){
-        return this.blend(animationPose, alpha, Easing.Linear.of());
+    public void blendLinear(AnimationPose animationPose, float alpha){
+        this.blend(animationPose, alpha, Easing.Linear.of());
     }
 
-    public AnimationPose blendBoolean(AnimationPose animationPose, boolean value){
-        return this.blendLinear(animationPose, value ? 0 : 1);
+    public AnimationPose getBlended(AnimationPose animationPose, float alpha, Easing easing){
+        AnimationPose newAnimationPose = this.getCopy();
+        newAnimationPose.blend(animationPose, alpha, easing);
+        return newAnimationPose;
     }
 
-    public AnimationPose mirror(){
-        return mirrorBlended(1);
+    public AnimationPose getBlendedLinear(AnimationPose animationPose, float alpha){
+        return this.getBlended(animationPose, alpha, Easing.Linear.of());
     }
 
-    public AnimationPose mirrorBlended(float alpha){
+    public AnimationPose getBlendedByLocators(AnimationPose animationPose, List<String> locators, float alpha, Easing easing){
+        AnimationPose newAnimationPose = this.getCopy();
+        for(String locator : locators){
+            if(newAnimationPose.locatorSkeleton.containsLocator(locator)){
+                MutablePartPose mutablePartPoseA = newAnimationPose.getLocatorPose(locator);
+                MutablePartPose mutablePartPoseB = animationPose.getLocatorPose(locator);
+                newAnimationPose.setLocatorPose(locator, mutablePartPoseA.getCopy().blend(mutablePartPoseB, alpha, easing));
+            }
+        }
+        return newAnimationPose;
+    }
+
+    public AnimationPose getBlendedByLocatorsLinear(AnimationPose animationPose, List<String> locators, float alpha){
+        return this.getBlendedByLocators(animationPose, locators, alpha, Easing.Linear.of());
+    }
+
+    public AnimationPose getSelectedByLocators(AnimationPose animationPose, List<String> locators){
+        return this.getBlendedByLocatorsLinear(animationPose, locators, 1);
+    }
+
+    public void subtract(AnimationPose animationPose){
+        for(LocatorSkeleton.LocatorEntry locatorEntry : this.getSkeleton().getLocatorEntries()){
+            String locator = locatorEntry.getLocatorIdentifier();
+            this.setLocatorPose(locator, this.getLocatorPose(locator).subtract(animationPose.getLocatorPose(locator)));
+        }
+    }
+
+    public AnimationPose getSubtracted(AnimationPose animationPose){
+        AnimationPose newAnimationPose = this.getCopy();
+        newAnimationPose.subtract(animationPose);
+        return newAnimationPose;
+    }
+
+
+    public void add(AnimationPose animationPose){
+        for(LocatorSkeleton.LocatorEntry locatorEntry : this.getSkeleton().getLocatorEntries()){
+            String locator = locatorEntry.getLocatorIdentifier();
+            this.setLocatorPose(locator, this.getLocatorPose(locator).add(animationPose.getLocatorPose(locator)));
+        }
+    }
+
+    public AnimationPose getAdded(AnimationPose animationPose){
+        AnimationPose newAnimationPose = this.getCopy();
+        newAnimationPose.add(animationPose);
+        return newAnimationPose;
+    }
+
+    public AnimationPose getMirrored(){
+        return getMirroredBlended(1);
+    }
+
+    public AnimationPose getMirroredBlended(float alpha){
         HashMap<String, MutablePartPose> mirroredPose = Maps.newHashMap();
         for(String identifier : this.pose.keySet()){
             MutablePartPose mutablePartPose = this.pose.get(identifier);

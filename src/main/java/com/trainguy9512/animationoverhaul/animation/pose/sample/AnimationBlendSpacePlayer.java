@@ -80,7 +80,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedAnimationState {
             return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed());
 
         float relativeTime = (this.currentValue - firstEntry.getKey()) / (secondEntry.getKey() - firstEntry.getKey());
-        return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed()).blendLinear(
+        return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed()).getBlendedLinear(
                 secondEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed()),
                 relativeTime
         );

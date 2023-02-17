@@ -106,13 +106,13 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
 
     @Override
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData) {
-        this.entityAnimationData.getAnimationBlendSpacePlayer(TEST_BLEND_SPACE).setValue(Mth.sin(this.livingEntity.tickCount / 12F) * 0.5F + 0.5F);
+        this.entityAnimationData.getAnimationState(TEST_BLEND_SPACE).setValue(Mth.sin(this.livingEntity.tickCount / 12F) * 0.5F + 0.5F);
 
         //this.entityAnimationData.getAnimationSequencePlayer(RUN_CYCLE_SEQUENCE_PLAYER).playFromStartOnStateActive(this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE), "moving");
-        this.entityAnimationData.getAnimationSequencePlayer(MOVING_START_SEQUENCE_PLAYER).playFromStartOnStateActive(this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE), "moving_start");
-        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setTransitionCondition("idle_to_moving_start", this.livingEntity.animationSpeed > 0.2);
-        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setTransitionCondition("moving_start_to_moving", this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromSeconds(0.5F));
-        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setTransitionCondition("moving_to_idle", this.livingEntity.animationSpeed < 0.2);
+        this.entityAnimationData.getAnimationState(MOVING_START_SEQUENCE_PLAYER).playFromStartOnStateActive(this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE), "moving_start");
+        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setTransitionCondition("idle_to_moving_start", this.livingEntity.animationSpeed > 0.2);
+        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setTransitionCondition("moving_start_to_moving", this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromSeconds(0.5F));
+        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setTransitionCondition("moving_to_idle", this.livingEntity.animationSpeed < 0.2);
     }
 
     @Override
@@ -125,9 +125,9 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
         //AnimationPose animationPose = AnimationPose.blendBoolean(animationPoseIdle, animationPoseRun, this.livingEntity.animationSpeed > 0.5);
                 //AnimationPose.fromChannelTimeline(this.locatorSkeleton, TimelineGroupData.INSTANCE.get(AnimationOverhaulMain.MOD_ID, "player/sprint_normal"), 0, false);
 
-        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setPose("idle", animationPoseRun);
-        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setPose("moving_start", animationPoseMovingStart);
-        this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE).setPose("moving", blendSpacePose);
+        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setPose("idle", animationPoseRun);
+        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setPose("moving_start", animationPoseMovingStart);
+        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setPose("moving", blendSpacePose);
         AnimationPose animationPose = this.entityAnimationData.sampleAnimationState(this.locatorSkeleton, TEST_STATE_MACHINE);
 
         return animationPose;

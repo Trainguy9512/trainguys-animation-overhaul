@@ -72,7 +72,7 @@ public class AnimationMontageTrack extends SampleableAnimationState {
                 totalBlendWeight = Mth.clamp(totalBlendWeight + animationMontage.getBlendWeightEased(), 0, 1);
             }
             //AnimationOverhaulMain.LOGGER.info("{}, {}", this.activeMontages.get(0).timeElapsed, totalBlendWeight);
-            animationPose = inputPose.blendLinear(animationPose, totalBlendWeight);
+            animationPose = inputPose.getBlendedLinear(animationPose, totalBlendWeight);
         } else {
             return inputPose;
         }

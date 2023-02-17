@@ -72,24 +72,11 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
     }
 
     protected AnimationPose sampleAnimationStateFromInputPose(SampleableAnimationState sampleableAnimationState, AnimationPose inputPose){
-        return getEntityAnimationData().sampleAnimationStateFromInputPose(inputPose, this.locatorSkeleton, sampleableAnimationState);
+        return getEntityAnimationData().sampleAnimationStateFromInputPose(inputPose.getCopy(), this.locatorSkeleton, sampleableAnimationState);
     }
 
-
-    protected AnimationSequencePlayer getAnimationSequencePlayer(AnimationSequencePlayer animationSequencePlayer){
-        return getEntityAnimationData().getAnimationSequencePlayer(animationSequencePlayer);
-    }
-
-    protected AnimationBlendSpacePlayer getAnimationBlendSpacePlayer(AnimationBlendSpacePlayer animationBlendSpacePlayer){
-        return getEntityAnimationData().getAnimationBlendSpacePlayer(animationBlendSpacePlayer);
-    }
-
-    protected AnimationStateMachine getAnimationStateMachine(AnimationStateMachine animationStateMachine){
-        return getEntityAnimationData().getAnimationStateMachine(animationStateMachine);
-    }
-
-    protected AnimationMontageTrack getAnimationMontageTrack(AnimationMontageTrack animationMontageTrack){
-        return getEntityAnimationData().getAnimationMontageTrack(animationMontageTrack);
+    protected <D extends SampleableAnimationState> D getAnimationState(D sampleableAnimationState){
+        return getEntityAnimationData().getAnimationState(sampleableAnimationState);
     }
 
     public void tick(LivingEntity livingEntity){

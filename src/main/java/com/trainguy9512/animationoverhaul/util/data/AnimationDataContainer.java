@@ -27,32 +27,14 @@ public class AnimationDataContainer {
         }
     }
 
-    public SampleableAnimationState getAnimationState(SampleableAnimationState sampleableAnimationState){
+    public <D extends SampleableAnimationState> D getAnimationState(D sampleableAnimationState){
         for(String identifier : this.entitySampleableAnimationStates.keySet()){
             if (Objects.equals(sampleableAnimationState.getIdentifier(), identifier)){
-                return this.entitySampleableAnimationStates.get(identifier);
+                return (D) this.entitySampleableAnimationStates.get(identifier);
             }
         }
         this.entitySampleableAnimationStates.put(sampleableAnimationState.getIdentifier(), sampleableAnimationState);
         return sampleableAnimationState;
-    }
-
-    public AnimationSequencePlayer getAnimationSequencePlayer(AnimationSequencePlayer animationSequencePlayer){
-        AnimationSequencePlayer sampleableAnimationState = (AnimationSequencePlayer) getAnimationState(animationSequencePlayer);
-        return animationSequencePlayer;
-    }
-
-    public AnimationBlendSpacePlayer getAnimationBlendSpacePlayer(AnimationBlendSpacePlayer animationBlendSpacePlayer){
-        AnimationBlendSpacePlayer sampleableAnimationState = (AnimationBlendSpacePlayer) getAnimationState(animationBlendSpacePlayer);
-        return animationBlendSpacePlayer;
-    }
-
-    public AnimationStateMachine getAnimationStateMachine(AnimationStateMachine animationStateMachine){
-        return (AnimationStateMachine) getAnimationState(animationStateMachine);
-    }
-
-    public AnimationMontageTrack getAnimationMontageTrack(AnimationMontageTrack animationMontageTrack){
-        return (AnimationMontageTrack) getAnimationState(animationMontageTrack);
     }
 
     public AnimationPose sampleAnimationState(LocatorSkeleton locatorSkeleton, SampleableAnimationState sampleableAnimationState){

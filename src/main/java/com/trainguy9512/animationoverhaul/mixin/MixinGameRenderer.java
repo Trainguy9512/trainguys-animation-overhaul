@@ -97,7 +97,7 @@ public abstract class MixinGameRenderer {
                 AnimationPose animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
                 MutablePartPose cameraPose = animationPose.getLocatorPose("camera");
                 MutablePartPose rootPose = animationPose.getLocatorPose("root");
-                cameraPose = MutablePartPose.add(cameraPose, rootPose);
+                cameraPose.add(rootPose);
 
                 //poseStack.translate(cameraPose.y / 16F, cameraPose.x / -16F, cameraPose.z / -16F);
 

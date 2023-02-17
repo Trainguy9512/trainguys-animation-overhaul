@@ -271,6 +271,10 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
         }
     }
 
+    public String getActiveStatesDebugString(){
+        return this.activeStates.toString();
+    }
+
     public class State {
 
         private boolean isActive;

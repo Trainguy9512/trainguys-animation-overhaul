@@ -16,6 +16,8 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
     private boolean looping = true;
     private ResourceLocation resourceLocation;
     private float frameLength;
+    private float startTime = 0;
+    private float endTime;
 
     HashMap<String, AnimNotify> animNotifyMap = Maps.newHashMap();
 
@@ -23,6 +25,7 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
         super(identifier);
         this.resourceLocation = resourceLocation;
         this.frameLength = TimelineGroupData.INSTANCE.get(this.resourceLocation).getFrameLength();
+        this.endTime = this.frameLength;
     }
 
     public static AnimationSequencePlayer of(String identifier, ResourceLocation resourceLocation){
@@ -47,8 +50,8 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
 
     private float getTimeFromTicks(){
         return this.looping ?
-                (this.getTimeElapsed() % this.frameLength) / this.frameLength :
-                Mth.clamp(this.getTimeElapsed() / this.frameLength, 0, 1);
+                (((this.getTimeElapsed()) % (this.endTime - this.startTime)) + this.startTime) / this.frameLength :
+                Mth.clamp(this.getTimeElapsed(), 0, this.endTime) / this.frameLength;
     }
 
     public float getTimeElapsedLooped(){
@@ -63,6 +66,21 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
     public AnimationSequencePlayer setDefaultPlayRate(float newPlayRate){
         this.setPlayRate(newPlayRate);
         return this;
+    }
+
+    public AnimationSequencePlayer setStartTime(float startTime){
+        this.startTime = startTime;
+        return this;
+    }
+
+    public AnimationSequencePlayer setEndTime(float endTime){
+        this.endTime = endTime;
+        return this;
+    }
+
+    @Override
+    public void resetTime() {
+        this.setTimeElapsed(this.startTime);
     }
 
     public AnimationSequencePlayer addAnimNotify(String identifier, float frame){

@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.datafixers.kinds.IdF;
 import com.mojang.math.Axis;
 import com.mojang.math.Transformation;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
@@ -34,10 +35,14 @@ public class MutablePartPose {
     public static final MutablePartPose ZERO = fromPartPose(PartPose.ZERO);
 
     private MutablePartPose(float x, float y, float z, float xRot, float yRot, float zRot){
+        this(x, y, z, new Quaternionf().rotationXYZ(xRot, yRot, zRot));
+    }
+
+    private MutablePartPose(float x, float y, float z, Quaternionf rotation){
         this.x = x;
         this.y = y;
         this.z = z;
-        this.rotation = new Quaternionf().rotationXYZ(xRot, yRot, zRot);
+        this.rotation = rotation;
     }
 
     public static MutablePartPose fromTranslation(float x, float y, float z){
@@ -50,6 +55,14 @@ public class MutablePartPose {
 
     public static MutablePartPose fromTranslationAndRotation(float x, float y, float z, float xRot, float yRot, float zRot){
         return new MutablePartPose(x, y, z, xRot, yRot, zRot);
+    }
+
+    public Quaternionf getRotation(){
+        return this.getCopy().rotation;
+    }
+
+    public void setRotation(Quaternionf quaternionf){
+        this.rotation = quaternionf;
     }
 
     public Vector3f getEulerRotation(){
@@ -83,35 +96,47 @@ public class MutablePartPose {
             this.y += translation.y();
             this.z += translation.z();
         }
-        return this.getCopy();
+        return this;
     }
 
-    public MutablePartPose rotate(Vector3f rotation, boolean localSpace){
-        if(rotation.x() != 0 || rotation.y() != 0 || rotation.z() != 0){
-            if(localSpace){
-                Vector3f rotationOriginal = this.getEulerRotation();
-                rotationOriginal.add(rotation);
-                this.setEulerRotation(rotationOriginal);
-            } else {
-                Vector3f baseRotation = getEulerRotation();
+    public MutablePartPose rotate(Quaternionf rotation, boolean localSpace){
+        if(localSpace){
+            Vector3f rotationOriginal = this.getEulerRotation();
+            Vector3f rotationAdded = rotation.getEulerAnglesXYZ(new Vector3f());
+            rotationOriginal.add(rotationAdded);
+            this.setEulerRotation(rotationOriginal);
+        } else {
+            /*
+            Vector3f baseRotation = getEulerRotation();
 
-                RotationMatrix baseRotationMatrix = RotationMatrix.fromEulerAngles(baseRotation);
-                RotationMatrix multRotationMatrix = RotationMatrix.fromEulerAngles(rotation);
+            RotationMatrix baseRotationMatrix = RotationMatrix.fromEulerAngles(baseRotation);
+            RotationMatrix multRotationMatrix = RotationMatrix.fromEulerAngles(rotation.getEulerAnglesXYZ(new Vector3f()));
 
-                baseRotationMatrix.mult(multRotationMatrix);
+            baseRotationMatrix.mult(multRotationMatrix);
 
-                Vector3f finalRotation = baseRotationMatrix.toEulerAngles();
-                this.setEulerRotation(finalRotation);
-            }
+            Vector3f finalRotation = baseRotationMatrix.toEulerAngles();
+            this.setEulerRotation(finalRotation);
+
+             */
+            this.rotation.mul(rotation);
         }
         return this;
     }
 
-    public static MutablePartPose add(MutablePartPose partPoseA, MutablePartPose partPoseB){
-        MutablePartPose mutablePartPose = partPoseA.getCopy();
-        mutablePartPose.translate(new Vector3f(partPoseB.x, partPoseB.y, partPoseB.z), false);
-        mutablePartPose.rotate(partPoseB.getEulerRotation(), true);
-        return mutablePartPose;
+    public MutablePartPose rotate(Vector3f rotation, boolean localSpace){
+        return this.rotate(new Quaternionf().rotationXYZ(rotation.x(), rotation.y(), rotation.z()), localSpace);
+    }
+
+    public MutablePartPose add(MutablePartPose partPose){
+        this.translate(new Vector3f(partPose.x, partPose.y, partPose.z), false);
+        this.rotate(partPose.rotation, false);
+        return this;
+    }
+
+    public MutablePartPose subtract(MutablePartPose partPose){
+        this.translate(new Vector3f(-partPose.x, -partPose.y, -partPose.z), false);
+        this.rotate(partPose.rotation.invert(), false);
+        return this;
     }
 
     public MutablePartPose getMirrored(){
@@ -151,9 +176,7 @@ public class MutablePartPose {
                 channelTimeline.getValueAt(TransformChannel.x, time),
                 channelTimeline.getValueAt(TransformChannel.y, time),
                 channelTimeline.getValueAt(TransformChannel.z, time),
-                channelTimeline.getValueAt(TransformChannel.xRot, time),
-                channelTimeline.getValueAt(TransformChannel.yRot, time),
-                channelTimeline.getValueAt(TransformChannel.zRot, time)
+                channelTimeline.getRotationAt(time)
         );
     }
 
