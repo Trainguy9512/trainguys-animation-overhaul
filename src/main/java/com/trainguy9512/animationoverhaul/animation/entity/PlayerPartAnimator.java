@@ -64,28 +64,6 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
             LOCATOR_RIGHT_HAND
     );
 
-    private static final AnimationSequencePlayer RUN_CYCLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("run_loop", new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/sprint_normal"))
-            .setDefaultPlayRate(1.6F);
-    private static final AnimationSequencePlayer IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("idle_loop", new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/attack_pickaxe"))
-            .setDefaultPlayRate(1.2F);
-    private static final AnimationSequencePlayer MOVING_START_SEQUENCE_PLAYER = AnimationSequencePlayer.of("moving_start", new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/sprint_jump"))
-            .setDefaultPlayRate(1.3F)
-            .setLooping(false);
-    private static final AnimationBlendSpacePlayer TEST_BLEND_SPACE = AnimationBlendSpacePlayer.of("test_blendspace")
-            .addEntry(0F, new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/walk_normal"), 0.5F)
-            .addEntry(0.8F, new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/walk_normal"), 1F)
-            .addEntry(1F, new ResourceLocation(AnimationOverhaulMain.MOD_ID, "player/sprint_normal"), 2F);
-    private static final AnimationStateMachine TEST_STATE_MACHINE = AnimationStateMachine.of("test_state_machine")
-            .addStates(List.of(
-                    "idle",
-                    "moving",
-                    "moving_start"
-            ))
-            .setDefaultState("idle")
-            .addStateTransition("idle_to_moving_start", "idle", "moving_start", TickTimeUtils.ticksFromSeconds(0.1F))
-            .addStateTransition("moving_start_to_moving", "moving_start", "moving", TickTimeUtils.ticksFromSeconds(0.5F))
-            .addStateTransition("moving_to_idle", "moving", "idle", TickTimeUtils.ticksFromSeconds(0.2F));
-
     public PlayerPartAnimator(){
         super();
     }
@@ -106,31 +84,12 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
 
     @Override
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData) {
-        this.entityAnimationData.getAnimationState(TEST_BLEND_SPACE).setValue(Mth.sin(this.livingEntity.tickCount / 12F) * 0.5F + 0.5F);
 
-        //this.entityAnimationData.getAnimationSequencePlayer(RUN_CYCLE_SEQUENCE_PLAYER).playFromStartOnStateActive(this.entityAnimationData.getAnimationStateMachine(TEST_STATE_MACHINE), "moving");
-        this.entityAnimationData.getAnimationState(MOVING_START_SEQUENCE_PLAYER).playFromStartOnStateActive(this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE), "moving_start");
-        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setTransitionCondition("idle_to_moving_start", this.livingEntity.animationSpeed > 0.2);
-        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setTransitionCondition("moving_start_to_moving", this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromSeconds(0.5F));
-        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setTransitionCondition("moving_to_idle", this.livingEntity.animationSpeed < 0.2);
     }
 
     @Override
     protected AnimationPose calculatePose() {
-        AnimationPose animationPoseRun = this.entityAnimationData.sampleAnimationState(this.locatorSkeleton, RUN_CYCLE_SEQUENCE_PLAYER);
-        AnimationPose animationPoseIdle = this.entityAnimationData.sampleAnimationState(this.locatorSkeleton, IDLE_SEQUENCE_PLAYER);
-        AnimationPose animationPoseMovingStart = this.entityAnimationData.sampleAnimationState(this.locatorSkeleton, MOVING_START_SEQUENCE_PLAYER);
-        this.entityAnimationData.saveCachedPose("test", animationPoseRun);
-        AnimationPose blendSpacePose = this.entityAnimationData.sampleAnimationState(this.locatorSkeleton, TEST_BLEND_SPACE);
-        //AnimationPose animationPose = AnimationPose.blendBoolean(animationPoseIdle, animationPoseRun, this.livingEntity.animationSpeed > 0.5);
-                //AnimationPose.fromChannelTimeline(this.locatorSkeleton, TimelineGroupData.INSTANCE.get(AnimationOverhaulMain.MOD_ID, "player/sprint_normal"), 0, false);
-
-        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setPose("idle", animationPoseRun);
-        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setPose("moving_start", animationPoseMovingStart);
-        this.entityAnimationData.getAnimationState(TEST_STATE_MACHINE).setPose("moving", blendSpacePose);
-        AnimationPose animationPose = this.entityAnimationData.sampleAnimationState(this.locatorSkeleton, TEST_STATE_MACHINE);
-
-        return animationPose;
+        return new AnimationPose(this.locatorSkeleton);
     }
 
     @Override

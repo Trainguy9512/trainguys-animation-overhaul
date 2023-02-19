@@ -67,7 +67,7 @@ public class MutablePartPose {
 
     public Vector3f getEulerRotation(){
         Vector3f vector3f = new Vector3f();
-        return this.rotation.getEulerAnglesXYZ(vector3f);
+        return this.rotation.getEulerAnglesZYX(vector3f);
     }
 
     public void setEulerRotation(Vector3f vector3f){
@@ -246,8 +246,7 @@ public class MutablePartPose {
 
     public void transformPoseStack(PoseStack poseStack, float transformMultiplier){
         poseStack.translate(this.x / transformMultiplier, this.y / transformMultiplier, this.z / transformMultiplier);
-        Vector3f vector3f = this.getEulerRotation();
-        poseStack.mulPose(new Quaternionf().rotationZYX(vector3f.z(), vector3f.y(), vector3f.x()));
+        poseStack.mulPose(this.rotation);
         /*
         if (this.xRot != 0.0f || this.yRot != 0.0f || this.zRot != 0.0f) {
             poseStack.mulPose(new Quaternionf().rotationZYX(this.zRot, this.yRot, this.xRot));

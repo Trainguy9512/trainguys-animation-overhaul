@@ -42,16 +42,16 @@ public class ChannelTimeline {
         }
 
         Quaternionf rotationFirst = new Quaternionf()
-                .rotationXYZ(
-                        this.getKeyframeValue(TransformChannel.xRot, time, true),
+                .rotationZYX(
+                        this.getKeyframeValue(TransformChannel.zRot, time, true),
                         this.getKeyframeValue(TransformChannel.yRot, time, true),
-                        this.getKeyframeValue(TransformChannel.zRot, time, true)
+                        this.getKeyframeValue(TransformChannel.xRot, time, true)
                 );
         Quaternionf rotationSecond = new Quaternionf()
-                .rotationXYZ(
-                        this.getKeyframeValue(TransformChannel.xRot, time, false),
+                .rotationZYX(
+                        this.getKeyframeValue(TransformChannel.zRot, time, false),
                         this.getKeyframeValue(TransformChannel.yRot, time, false),
-                        this.getKeyframeValue(TransformChannel.zRot, time, false)
+                        this.getKeyframeValue(TransformChannel.xRot, time, false)
                         );
 
         if (firstKeyframe.getKey().equals(secondKeyframe.getKey()))

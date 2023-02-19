@@ -8,9 +8,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 public class AnimationMontage {
-    private final float length;
     private final ResourceLocation resourceLocation;
 
+    private float length;
+    private float startOffset;
     private float playRate = 1;
     private float blendInDuration = 1;
     private float blendOutDuration = 1;
@@ -21,13 +22,13 @@ public class AnimationMontage {
     private boolean active = true;
     private float blendWeight = 0;
 
-    private AnimationMontage(float length, ResourceLocation resourceLocation){
-        this.length = length;
+    private AnimationMontage(ResourceLocation resourceLocation){
         this.resourceLocation = resourceLocation;
+        this.length = TimelineGroupData.INSTANCE.get(resourceLocation).getFrameLength();
     }
 
-    public static AnimationMontage of(float length, ResourceLocation resourceLocation){
-        return new AnimationMontage(length, resourceLocation);
+    public static AnimationMontage of(ResourceLocation resourceLocation){
+        return new AnimationMontage(resourceLocation);
     }
 
     public void tick(){
@@ -44,7 +45,7 @@ public class AnimationMontage {
     }
 
     public AnimationPose getAnimationPose(LocatorSkeleton locatorSkeleton){
-        return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, this.timeElapsed / TimelineGroupData.INSTANCE.get(resourceLocation).getFrameLength());
+        return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / TimelineGroupData.INSTANCE.get(resourceLocation).getFrameLength());
     }
 
     /**
@@ -95,8 +96,19 @@ public class AnimationMontage {
             this.blendOutEasing = easing;
         }
     }
+
     public void setBlendDuration(float blendDuration, boolean in){
         setBlendDuration(blendDuration, in, Easing.Linear.of());
+    }
+
+    public AnimationMontage setLength(float length){
+        this.length = length;
+        return this;
+    }
+
+    public AnimationMontage setStartOffset(float startOffset){
+        this.startOffset = startOffset;
+        return this;
     }
 
     public AnimationMontage setPlayRate(float playRate){
@@ -115,7 +127,9 @@ public class AnimationMontage {
     }
 
     public AnimationMontage copy(){
-        return AnimationMontage.of(this.length, this.resourceLocation)
+        return AnimationMontage.of(this.resourceLocation)
+                .setLength(this.length)
+                .setStartOffset(this.startOffset)
                 .setBlendInDuration(this.blendInDuration)
                 .setBlendOutDuration(this.blendOutDuration)
                 .setPlayRate(this.playRate);

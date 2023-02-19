@@ -16,7 +16,6 @@
     "MixinItemInHandLayer",
     "MixinLivingEntity",
     "MixinLivingEntityRenderer",
-    "MixinModelPart",
     "debug.MixinDebugScreenOverlay",
     "models.MixinPlayerModel"
   ],

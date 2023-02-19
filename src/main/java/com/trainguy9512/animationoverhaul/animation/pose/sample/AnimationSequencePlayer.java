@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class AnimationSequencePlayer extends TimeBasedAnimationState {
 
@@ -95,11 +96,21 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
         return false;
     }
 
-    public void playFromStartOnStateActive(AnimationStateMachine animationStateMachine, String stateIdentifier){
-        if(animationStateMachine.containsState(stateIdentifier)){
-            if(animationStateMachine.getState(stateIdentifier).getWeight() == 0){
-                this.resetTime();
+    public <S extends Enum<S>> void playFromStartOnStateActive(AnimationStateMachine<S> animationStateMachine, Enum<S> stateIdentifier){
+        this.playFromStartOnStateActive(animationStateMachine, List.of(stateIdentifier));
+    }
+
+    public <S extends Enum<S>> void playFromStartOnStateActive(AnimationStateMachine<S> animationStateMachine, List<Enum<S>> stateIdentifiers){
+        boolean statesActive = false;
+        for(Enum<S> stateIdentifier : stateIdentifiers){
+            if(!statesActive){
+                if(animationStateMachine.containsState(stateIdentifier)){
+                    statesActive = animationStateMachine.getState(stateIdentifier).getWeight() != 0;
+                }
             }
+        }
+        if(!statesActive){
+            this.resetTime();
         }
     }
 

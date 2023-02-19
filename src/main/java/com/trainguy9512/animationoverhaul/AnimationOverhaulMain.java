@@ -55,7 +55,7 @@ public class AnimationOverhaulMain implements ModInitializer {
 
 
 	private static void registerEntityAnimators(){
-		ENTITY_ANIMATORS.register(EntityType.PLAYER, new PlayerPartAnimator());
+		//ENTITY_ANIMATORS.register(EntityType.PLAYER, new PlayerPartAnimator());
 	}
 
 	/*

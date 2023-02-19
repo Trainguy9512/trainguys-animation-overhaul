@@ -11,14 +11,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class AnimationStateMachine extends TimeBasedAnimationState {
+// Enum S is for state defintions, Enum T is for transition definitions
 
-    private final HashMap<String, State> statesHashMap = Maps.newHashMap();
-    private final ArrayList<String> activeStates = new ArrayList<String>();
+public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimationState {
+
+    private final HashMap<Enum<S>, State> statesHashMap = Maps.newHashMap();
+    private final ArrayList<Enum<S>> activeStates = new ArrayList<>();
 
     //private int timeElapsedInState = 0;
 
-    private AnimationStateMachine(String identifier){
+    public AnimationStateMachine(String identifier){
         super(identifier);
     }
 
@@ -28,31 +30,32 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
      * @param identifier Unique identifier, must be unique between this and other sampleable animation sampleables present in the entity animator
      * @return The animation state machine
      */
-    public static AnimationStateMachine of(String identifier){
-        return new AnimationStateMachine(identifier);
+    public static <S extends Enum<S>> AnimationStateMachine<S> of(String identifier, Enum<S>[] states){
+        return new AnimationStateMachine<S>(identifier).addStates(states);
     }
 
-    @Nullable
-    public State getState(String stateIdentifier){
+    public State getState(Enum<S> stateIdentifier){
         return this.statesHashMap.get(stateIdentifier);
     }
 
-    public boolean containsState(String stateIdentifier){
+    public boolean containsState(Enum<S> stateIdentifier){
         return this.statesHashMap.containsKey(stateIdentifier);
     }
 
-    private Set<String> getAllTransitions(){
-        HashSet<String> transitions = new HashSet<>(Set.of());
-        for(String identifier : this.statesHashMap.keySet()){
-            transitions.addAll(this.statesHashMap.get(identifier).getTransitions());
+    /*
+    private Set<Enum<S>> getAllTransitions(){
+        HashSet<Enum<S>> transitions = new HashSet<>(Set.of());
+        for(Enum<?> identifier : this.statesHashMap.keySet()){
+            transitions.addAll(this.statesHashMap.get(identifier).getTransitionTargets());
         }
         return transitions;
     }
+     */
 
-    private boolean containsStateTransition(String identifier){
-        if(this.getAllTransitions().contains(identifier)){
-            for(String stateIdentifier : this.statesHashMap.keySet()){
-                if(this.statesHashMap.get(stateIdentifier).getTransitions().contains(identifier)){
+    private boolean isValidTransition(Enum<S> origin, Enum<S> destination){
+        for(Enum<S> originStateIdentifier : this.statesHashMap.keySet()){
+            for(Enum<S> destinationStateIdentifier : this.statesHashMap.get(originStateIdentifier).getTransitionTargets()){
+                if(origin == originStateIdentifier && destination == destinationStateIdentifier){
                     return true;
                 }
             }
@@ -60,49 +63,51 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
         return false;
     }
 
+    /*
+    private boolean containsStateTransition(Enum<?> identifier){
+        if(this.getAllTransitions().contains(identifier)){
+            for(Enum<?> stateIdentifier : this.statesHashMap.keySet()){
+                if(this.statesHashMap.get(stateIdentifier).getTransitionTargets().contains(identifier)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+     */
+
     @Nullable
-    private StateTransition getStateTransition(String identifier){
+    private StateTransition getStateTransition(Enum<S> origin, Enum<S> destination){
+        if(isValidTransition(origin, destination)){
+            return this.statesHashMap.get(origin).getTransition(destination);
+        }
+        /*
         for(String stateIdentifier : this.statesHashMap.keySet()){
-            if(this.statesHashMap.get(stateIdentifier).getTransitions().contains(identifier)){
+            if(this.statesHashMap.get(stateIdentifier).getTransitionTargets().contains(identifier)){
                 return this.statesHashMap.get(stateIdentifier).getTransition(identifier);
             }
         }
-        AnimationOverhaulMain.LOGGER.error("Could not get state transition {} in state machine {}", identifier, this.getIdentifier());
+
+         */
+        AnimationOverhaulMain.LOGGER.error("Could not get state transition origin {} destination {} in state machine {}", origin, destination, this.getIdentifier());
         return null;
     }
 
     /**
      * Adds states to the state machine via a list of string identifiers, called on construction. The default identifier will be the first list entry
      *
-     * @param identifiers       List of identifiers
+     * @param identifiers List of identifiers
      * @return The animation state machine
      */
-    public AnimationStateMachine addStates(List<String> identifiers){
-        for(int i = 0; i < identifiers.size(); i++){
-            State state = new State(i == 0 ? 1 : 0);
-            this.statesHashMap.put(identifiers.get(i), state);
-            if(i == 0){
-                this.activeStates.add(identifiers.get(i));
-            }
-        }
-        return this;
-    }
+    private AnimationStateMachine<S> addStates(Enum<S>[] identifiers){
 
-    /**
-     * Sets the default state on construction
-     *
-     * @param identifier Identifier of default state. Must have already been added in construction
-     * @return The animation state machine
-     */
-    public AnimationStateMachine setDefaultState(String identifier){
-        if(this.statesHashMap.containsKey(identifier)){
-            this.activeStates.clear();
-            this.activeStates.add(identifier);
-            for(String identifier1 : this.statesHashMap.keySet()){
-                this.statesHashMap.get(identifier1).setWeight(Objects.equals(identifier1, identifier) ? 1 : 0);
+        for(int i = 0; i < identifiers.length; i++){
+            State state = new State(i == 0 ? 1 : 0);
+            this.statesHashMap.put(identifiers[i], state);
+            if(i == 0){
+                this.activeStates.add(identifiers[i]);
             }
-        } else {
-            AnimationOverhaulMain.LOGGER.error("Failed to set default state for state machine {} due to state {} not being present", this.getIdentifier(), identifier);
         }
         return this;
     }
@@ -117,73 +122,61 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
      * @param priority       Priority in which states are chosen, in the case that multiple transitions are available. Lowest gets priority
      * @return The animation state machine
      */
-    public AnimationStateMachine addStateTransition(String identifier, String origin, String desination, float transitionTime, Easing easing, int priority){
-        if(this.statesHashMap.containsKey(origin) && this.statesHashMap.containsKey(origin)){
-            this.statesHashMap.get(origin).addStateTransition(identifier, new StateTransition(transitionTime, easing, priority, desination));
-        } else {
-            AnimationOverhaulMain.LOGGER.error("Tried adding a state transition to state machine {} which contains invalid origin {} or destination {}", this.getIdentifier(), origin, desination);
-        }
+    public AnimationStateMachine<S> addStateTransition(Enum<S> origin, Enum<S> desination, float transitionTime, Easing easing, int priority){
+        this.statesHashMap.get(origin).addStateTransition(desination, new StateTransition(transitionTime, easing, priority));
         return this;
     }
 
     /**
      * Adds a potential transition between two states with linear easing and specified transition time. Must be called after states are defined in the constructor
      *
-     * @param identifier     Transition identifier
      * @param origin         Origin state identifer
      * @param desination     Destination state identifier
      * @param transitionTime Time in ticks to transition from origin to destination
      * @param priority       Priority in which states are chosen, in the case that multiple transitions are available. Lowest gets priority
      * @return The animation state machine
      */
-    public AnimationStateMachine addStateTransition(String identifier, String origin, String desination, float transitionTime, int priority){
-        return this.addStateTransition(identifier, origin, desination, transitionTime, Easing.Linear.of(), priority);
+    public AnimationStateMachine<S> addStateTransition(Enum<S> origin, Enum<S> desination, float transitionTime, int priority){
+        return this.addStateTransition(origin, desination, transitionTime, Easing.Linear.of(), priority);
     }
 
     /**
      * Adds a potential transition between two states with linear easing and specified transition time. Must be called after states are defined in the constructor
      *
-     * @param identifier     Transition identifier
      * @param origin         Origin state identifer
      * @param desination     Destination state identifier
      * @param transitionTime Time in ticks to transition from origin to destination
      * @return The animation state machine
      */
-    public AnimationStateMachine addStateTransition(String identifier, String origin, String desination, float transitionTime){
-        return this.addStateTransition(identifier, origin, desination, transitionTime, Easing.Linear.of(), 50);
+    public AnimationStateMachine<S> addStateTransition(Enum<S> origin, Enum<S> desination, float transitionTime){
+        return this.addStateTransition(origin, desination, transitionTime, Easing.Linear.of(), 50);
     }
 
-    public AnimationStateMachine setTransitionCondition(String transitionIdentifier, boolean condition){
-        if(this.getAllTransitions().contains(transitionIdentifier)){
-            if(this.containsStateTransition(transitionIdentifier)){
-                StateTransition stateTransition = this.getStateTransition(transitionIdentifier);
-                if(stateTransition != null){
-                    stateTransition.setCondition(condition);
-                } else {
-                    AnimationOverhaulMain.LOGGER.error("State transition {} still returned null. ???", transitionIdentifier);
-                }
+    public void setTransitionCondition(Enum<S> origin, Enum<S> destination, boolean condition){
+        if(isValidTransition(origin, destination)){
+            StateTransition stateTransition = this.getStateTransition(origin, destination);
+            if(stateTransition != null){
+                stateTransition.setCondition(condition);
             }
-        } else {
-            AnimationOverhaulMain.LOGGER.error("Cannot set state transition condition, transition identifier {} not found in state machine {}", transitionIdentifier, this.getIdentifier());
-        }
-        return this;
-    }
-
-    public void setPose(String stateIdentifier, AnimationPose animationPose){
-        if(this.statesHashMap.containsKey(stateIdentifier)){
-            this.statesHashMap.get(stateIdentifier).setAnimationPose(animationPose);
-        } else {
-            AnimationOverhaulMain.LOGGER.error("Tried setting pose to invalid state {} in state machine {}", stateIdentifier, this.getIdentifier());
         }
     }
 
-    private AnimationPose getPoseFromState(String stateIdentifier, LocatorSkeleton locatorSkeleton){
-        AnimationPose animationPose = this.statesHashMap.get(stateIdentifier).getAnimationPose();
-        if(animationPose != null) {
-            return animationPose;
+    public void setPoses(Map<Enum<S>, AnimationPose> poses){
+        for(Enum<S> stateIdentifier : poses.keySet()){
+            setPose(stateIdentifier, poses.get(stateIdentifier));
         }
-        AnimationOverhaulMain.LOGGER.warn("Animation state {} returned an invalid pose", stateIdentifier);
-        return new AnimationPose(locatorSkeleton);
+    }
+
+    private void setPose(Enum<S> identifier, AnimationPose animationPose){
+        if(this.statesHashMap.containsKey(identifier)){
+            this.statesHashMap.get(identifier).setAnimationPose(animationPose);
+        } else {
+            AnimationOverhaulMain.LOGGER.error("Tried setting pose to invalid state {} in state machine {}", identifier, this.getIdentifier());
+        }
+    }
+
+    private AnimationPose getPoseFromState(Enum<S> identifier, LocatorSkeleton locatorSkeleton){
+        return this.statesHashMap.get(identifier).getAnimationPose(locatorSkeleton);
     }
 
     @Override
@@ -191,7 +184,7 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
         if(this.activeStates.size() > 0){
             AnimationPose animationPose = this.getPoseFromState(this.activeStates.get(0), locatorSkeleton);
             if(this.activeStates.size() > 1){
-                for(String stateIdentifier : this.activeStates){
+                for(Enum<S> stateIdentifier : this.activeStates){
                     animationPose.blend(
                             this.getPoseFromState(stateIdentifier, locatorSkeleton),
                             this.statesHashMap.get(stateIdentifier).getWeight(),
@@ -217,12 +210,32 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
         super.tick();
 
         // Get the previous active state
-        State currentActiveState = this.statesHashMap.get(this.activeStates.get(this.activeStates.size() - 1));
+        Enum<S> currentActiveStateIdentifier = this.activeStates.get(this.activeStates.size() - 1);
+        State currentActiveState = this.statesHashMap.get(currentActiveStateIdentifier);
 
         // Determine if the current state can transition, and get that state transition object
         boolean canEnterTransition = false;
         StateTransition stateTransition = null;
-        for(String stateTransitionIdentifier : currentActiveState.getTransitions()){
+        Enum<S> destinationStateIdentifier = null;
+        for(Enum<S> stateIdentifier : currentActiveState.getTransitionTargets()){
+            if(isValidTransition(currentActiveStateIdentifier, stateIdentifier)){
+                StateTransition currentStateTransition = currentActiveState.getTransition(stateIdentifier);
+                assert currentStateTransition != null;
+                if(currentStateTransition.getCondition()){
+                    // If the loop has already determined a state transition to be true, update the transition IF the new one has a higher priority
+                    if(canEnterTransition && currentStateTransition.getPriority() < stateTransition.getPriority()){
+                        stateTransition = currentStateTransition;
+                        destinationStateIdentifier = stateIdentifier;
+                    } else if(!canEnterTransition){
+                        stateTransition = currentStateTransition;
+                        destinationStateIdentifier = stateIdentifier;
+                        canEnterTransition = true;
+                    }
+                }
+            }
+        }
+        /*
+        for(String stateTransitionIdentifier : currentActiveState.getTransitionTargets()){
             StateTransition stateTransitionTest = currentActiveState.getTransition(stateTransitionIdentifier);
             if(stateTransitionTest.getCondition()){
                 if(canEnterTransition){
@@ -236,21 +249,21 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
             }
         }
 
+         */
+
         // Set all states to inactive except the new destination state. Also set the transition to all states for when they're ticked
         if(canEnterTransition){
             this.resetTime();
-            for(String stateIdentifier : this.statesHashMap.keySet()){
+            for(Enum<S> stateIdentifier : this.statesHashMap.keySet()){
                 this.statesHashMap.get(stateIdentifier).setCurrentTransition(stateTransition);
                 this.statesHashMap.get(stateIdentifier).setIsActive(false);
             }
-            String destinationStateIdentifier = stateTransition.destinationStateIdentifier;
+            //Enum<S> destinationStateIdentifier = stateTransition.;
             this.statesHashMap.get(destinationStateIdentifier).setIsActive(true);
 
             // Update the active states array
             // Make sure there already isn't this state present in active states
-            if(activeStates.contains(destinationStateIdentifier)){
-                activeStates.remove(destinationStateIdentifier);
-            }
+            this.activeStates.remove(destinationStateIdentifier);
             this.activeStates.add(destinationStateIdentifier);
         }
 
@@ -260,13 +273,13 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
         }
 
         // Evaluated last, remove states from the active state list that have a weight of 0.
-        ArrayList<String> statesToRemove = new ArrayList<>();
-        for(String stateIdentifier : this.activeStates){
+        ArrayList<Enum<S>> statesToRemove = new ArrayList<>();
+        for(Enum<S> stateIdentifier : this.activeStates){
             if(this.statesHashMap.get(stateIdentifier).getWeight() == 0){
                 statesToRemove.add(stateIdentifier);
             }
         }
-        for(String stateIdentifier : statesToRemove){
+        for(Enum<S> stateIdentifier : statesToRemove){
             this.activeStates.remove(stateIdentifier);
         }
     }
@@ -282,8 +295,8 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
 
         private AnimationPose animationPose;
 
-        private float weight;
-        private final HashMap<String, StateTransition> stateTransitions = Maps.newHashMap();
+        private float weight = 0;
+        private final HashMap<Enum<S>, StateTransition> stateTransitions = Maps.newHashMap();
 
         private State(float defaultWeight){
             this.weight = defaultWeight;
@@ -297,8 +310,8 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
         }
 
         @Nullable
-        public AnimationPose getAnimationPose(){
-            return this.animationPose;
+        public AnimationPose getAnimationPose(LocatorSkeleton locatorSkeleton){
+            return this.animationPose != null ? this.animationPose : new AnimationPose(locatorSkeleton);
         }
 
         public void setAnimationPose(AnimationPose animationPose){
@@ -329,16 +342,16 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
             this.weight = weight;
         }
 
-        public void addStateTransition(String identifier, StateTransition transition){
-            this.stateTransitions.put(identifier, transition);
+        public void addStateTransition(Enum<S> target, StateTransition transition){
+            this.stateTransitions.put(target, transition);
         }
 
-        public Set<String> getTransitions(){
+        public Set<Enum<S>> getTransitionTargets(){
             return this.stateTransitions.keySet();
         }
 
         @Nullable
-        public StateTransition getTransition(String identifier){
+        public StateTransition getTransition(Enum<?> identifier){
             if(this.stateTransitions.containsKey(identifier)){
                 return this.stateTransitions.get(identifier);
             }
@@ -352,15 +365,15 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
         private final float transitionTime;
         private final Easing easing;
         private final int priority;
-        private final String destinationStateIdentifier;
+        //private final Enum<S> destinationStateIdentifier;
 
         private boolean condition = false;
 
-        private StateTransition(float transitionTime, Easing easing, int priority, String destinationStateIdentifier) {
+        private StateTransition(float transitionTime, Easing easing, int priority/*, Enum<S> destinationStateIdentifier*/) {
             this.transitionTime = transitionTime;
             this.easing = easing;
             this.priority = priority;
-            this.destinationStateIdentifier = destinationStateIdentifier;
+            //this.destinationStateIdentifier = destinationStateIdentifier;
         }
 
         public Easing getEasing(){
@@ -371,9 +384,12 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
             return this.transitionTime;
         }
 
-        public String getDestinationStateIdentifier(){
+        /*
+        public Enum<S> getDestinationStateIdentifier(){
             return this.destinationStateIdentifier;
         }
+
+         */
 
         public void setCondition(boolean condition){
             this.condition = condition;
