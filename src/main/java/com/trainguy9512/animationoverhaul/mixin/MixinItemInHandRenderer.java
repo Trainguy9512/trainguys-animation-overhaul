@@ -43,11 +43,11 @@ public abstract class MixinItemInHandRenderer {
     private void overwriteItemInHandRendering(float f, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, LocalPlayer localPlayer, int i, CallbackInfo ci){
 
         if(FirstPersonPlayerAnimator.INSTANCE.localBakedPose != null){
-            AnimationPose<FirstPersonPlayerAnimator.ModelPartLocators> animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-            MutablePartPose rightArmPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.rightArm);
-            MutablePartPose leftArmPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.leftArm);
-            MutablePartPose rightHandPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.rightHand);
-            MutablePartPose leftHandPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.leftHand);
+            AnimationPose<FirstPersonPlayerAnimator.FPPlayerLocators> animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
+            MutablePartPose rightArmPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.rightArm);
+            MutablePartPose leftArmPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.leftArm);
+            MutablePartPose rightHandPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.rightHand);
+            MutablePartPose leftHandPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.leftHand);
 
             poseStack.pushPose();
             poseStack.mulPose(Axis.ZP.rotationDegrees(180));
@@ -64,8 +64,8 @@ public abstract class MixinItemInHandRenderer {
 
             playerModel.rightArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkinTextureLocation())), i, OverlayTexture.NO_OVERLAY);
             playerModel.rightSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkinTextureLocation())), i, OverlayTexture.NO_OVERLAY);
-            playerModel.leftArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkinTextureLocation())), i, OverlayTexture.NO_OVERLAY);
-            playerModel.leftSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkinTextureLocation())), i, OverlayTexture.NO_OVERLAY);
+            //playerModel.leftArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkinTextureLocation())), i, OverlayTexture.NO_OVERLAY);
+            //playerModel.leftSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkinTextureLocation())), i, OverlayTexture.NO_OVERLAY);
 
             /*
             poseStack.pushPose();
@@ -79,8 +79,12 @@ public abstract class MixinItemInHandRenderer {
             poseStack.popPose();
 
              */
+
+
+
             this.renderItemInHand(abstractClientPlayer, FirstPersonPlayerAnimator.INSTANCE.localAnimationDataContainer.get(FirstPersonPlayerAnimator.MAIN_HAND_ITEM).get(), poseStack, HumanoidArm.RIGHT, animationPose, bufferSource, i);
-            this.renderItemInHand(abstractClientPlayer, Items.SHIELD.getDefaultInstance(), poseStack, HumanoidArm.LEFT, animationPose, bufferSource, i);
+            //this.renderItemInHand(abstractClientPlayer, ItemStack.EMPTY, poseStack, HumanoidArm.LEFT, animationPose, bufferSource, i);
+
 
             //playerRenderer.renderRightHand(poseStack, bufferSource, i, abstractClientPlayer);
             poseStack.popPose();
@@ -90,10 +94,10 @@ public abstract class MixinItemInHandRenderer {
         ci.cancel();
     }
 
-    private void renderItemInHand(AbstractClientPlayer abstractClientPlayer, ItemStack itemStack, PoseStack poseStack, HumanoidArm humanoidArm, AnimationPose<FirstPersonPlayerAnimator.ModelPartLocators> animationPose, MultiBufferSource multiBufferSource, int i){
+    private void renderItemInHand(AbstractClientPlayer abstractClientPlayer, ItemStack itemStack, PoseStack poseStack, HumanoidArm humanoidArm, AnimationPose<FirstPersonPlayerAnimator.FPPlayerLocators> animationPose, MultiBufferSource multiBufferSource, int i){
 
-        MutablePartPose armPose = animationPose.getLocatorPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.ModelPartLocators.leftArm : FirstPersonPlayerAnimator.ModelPartLocators.rightArm);
-        MutablePartPose handPose = animationPose.getLocatorPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.ModelPartLocators.leftHand : FirstPersonPlayerAnimator.ModelPartLocators.rightHand);
+        MutablePartPose armPose = animationPose.getLocatorPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.FPPlayerLocators.leftArm : FirstPersonPlayerAnimator.FPPlayerLocators.rightArm);
+        MutablePartPose handPose = animationPose.getLocatorPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.FPPlayerLocators.leftHand : FirstPersonPlayerAnimator.FPPlayerLocators.rightHand);
 
         poseStack.pushPose();
         armPose.transformPoseStack(poseStack);

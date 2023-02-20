@@ -15,8 +15,8 @@ import java.util.*;
 
 public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimationState {
 
-    private final HashMap<Enum<S>, State> statesHashMap = Maps.newHashMap();
-    private final ArrayList<Enum<S>> activeStates = new ArrayList<>();
+    private final HashMap<S, State> statesHashMap = Maps.newHashMap();
+    private final ArrayList<S> activeStates = new ArrayList<>();
 
     //private int timeElapsedInState = 0;
 
@@ -30,12 +30,16 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
      * @param identifier Unique identifier, must be unique between this and other sampleable animation sampleables present in the entity animator
      * @return The animation state machine
      */
-    public static <S extends Enum<S>> AnimationStateMachine<S> of(String identifier, Enum<S>[] states){
+    public static <S extends Enum<S>> AnimationStateMachine<S> of(String identifier, S[] states){
         return new AnimationStateMachine<S>(identifier).addStates(states);
     }
 
-    public State getState(Enum<S> stateIdentifier){
+    public State getState(S stateIdentifier){
         return this.statesHashMap.get(stateIdentifier);
+    }
+
+    public S getActiveState(){
+        return this.activeStates.get(this.activeStates.size() - 1);
     }
 
     public boolean containsState(Enum<S> stateIdentifier){
@@ -100,7 +104,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
      * @param identifiers List of identifiers
      * @return The animation state machine
      */
-    private AnimationStateMachine<S> addStates(Enum<S>[] identifiers){
+    private AnimationStateMachine<S> addStates(S[] identifiers){
 
         for(int i = 0; i < identifiers.length; i++){
             State state = new State(i == 0 ? 1 : 0);
@@ -122,7 +126,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
      * @param priority       Priority in which states are chosen, in the case that multiple transitions are available. Lowest gets priority
      * @return The animation state machine
      */
-    public AnimationStateMachine<S> addStateTransition(Enum<S> origin, Enum<S> desination, float transitionTime, Easing easing, int priority){
+    public AnimationStateMachine<S> addStateTransition(S origin, S desination, float transitionTime, Easing easing, int priority){
         this.statesHashMap.get(origin).addStateTransition(desination, new StateTransition(transitionTime, easing, priority));
         return this;
     }
@@ -136,7 +140,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
      * @param priority       Priority in which states are chosen, in the case that multiple transitions are available. Lowest gets priority
      * @return The animation state machine
      */
-    public AnimationStateMachine<S> addStateTransition(Enum<S> origin, Enum<S> desination, float transitionTime, int priority){
+    public AnimationStateMachine<S> addStateTransition(S origin, S desination, float transitionTime, int priority){
         return this.addStateTransition(origin, desination, transitionTime, Easing.Linear.of(), priority);
     }
 
@@ -148,31 +152,27 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
      * @param transitionTime Time in ticks to transition from origin to destination
      * @return The animation state machine
      */
-    public AnimationStateMachine<S> addStateTransition(Enum<S> origin, Enum<S> desination, float transitionTime){
+    public AnimationStateMachine<S> addStateTransition(S origin, S desination, float transitionTime){
         return this.addStateTransition(origin, desination, transitionTime, Easing.Linear.of(), 50);
     }
 
-    public void setTransitionCondition(Enum<S> origin, Enum<S> destination, boolean condition){
+    public AnimationStateMachine<S> setTransitionCondition(Enum<S> origin, Enum<S> destination, boolean condition){
         if(isValidTransition(origin, destination)){
             StateTransition stateTransition = this.getStateTransition(origin, destination);
             if(stateTransition != null){
                 stateTransition.setCondition(condition);
             }
         }
+        return this;
     }
 
-    public void setPoses(Map<Enum<S>, AnimationPose> poses){
-        for(Enum<S> stateIdentifier : poses.keySet()){
-            setPose(stateIdentifier, poses.get(stateIdentifier));
-        }
-    }
-
-    private <L extends Enum<L>> void setPose(Enum<S> identifier, AnimationPose<L> animationPose){
+    public <L extends Enum<L>> AnimationStateMachine<S> setPose(S identifier, AnimationPose<L> animationPose){
         if(this.statesHashMap.containsKey(identifier)){
             this.statesHashMap.get(identifier).setAnimationPose(animationPose);
         } else {
             AnimationOverhaulMain.LOGGER.error("Tried setting pose to invalid state {} in state machine {}", identifier, this.getIdentifier());
         }
+        return this;
     }
 
     private <L extends Enum<L>> AnimationPose<L> getPoseFromState(Enum<S> identifier, LocatorSkeleton<L> locatorSkeleton){
@@ -216,8 +216,8 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
         // Determine if the current state can transition, and get that state transition object
         boolean canEnterTransition = false;
         StateTransition stateTransition = null;
-        Enum<S> destinationStateIdentifier = null;
-        for(Enum<S> stateIdentifier : currentActiveState.getTransitionTargets()){
+        S destinationStateIdentifier = null;
+        for(S stateIdentifier : currentActiveState.getTransitionTargets()){
             if(isValidTransition(currentActiveStateIdentifier, stateIdentifier)){
                 StateTransition currentStateTransition = currentActiveState.getTransition(stateIdentifier);
                 assert currentStateTransition != null;
@@ -296,7 +296,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
         private AnimationPose<?> animationPose;
 
         private float weight = 0;
-        private final HashMap<Enum<S>, StateTransition> stateTransitions = Maps.newHashMap();
+        private final HashMap<S, StateTransition> stateTransitions = Maps.newHashMap();
 
         private State(float defaultWeight){
             this.weight = defaultWeight;
@@ -342,11 +342,11 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
             this.weight = weight;
         }
 
-        public void addStateTransition(Enum<S> target, StateTransition transition){
+        public void addStateTransition(S target, StateTransition transition){
             this.stateTransitions.put(target, transition);
         }
 
-        public Set<Enum<S>> getTransitionTargets(){
+        public Set<S> getTransitionTargets(){
             return this.stateTransitions.keySet();
         }
 

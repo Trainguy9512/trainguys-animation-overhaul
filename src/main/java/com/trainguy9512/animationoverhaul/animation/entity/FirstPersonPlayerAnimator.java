@@ -1,9 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.entity;
 
-import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.LocatorEnum;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
@@ -11,33 +9,36 @@ import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
 import com.trainguy9512.animationoverhaul.util.time.TickTimeUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import org.spongepowered.asm.mixin.Interface;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer, PlayerModel<LocalPlayer>, FirstPersonPlayerAnimator.ModelPartLocators>{
+public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer, PlayerModel<LocalPlayer>, FirstPersonPlayerAnimator.FPPlayerLocators>{
 
     public static FirstPersonPlayerAnimator INSTANCE = new FirstPersonPlayerAnimator();
 
     public AnimationDataContainer localAnimationDataContainer = new AnimationDataContainer();
-    public BakedAnimationPose<ModelPartLocators> localBakedPose;
+    public BakedAnimationPose<FPPlayerLocators> localBakedPose;
 
 
-    public enum ModelPartLocators {
+    public enum FPPlayerLocators {
         root,
         camera,
         rightArm,
         leftArm,
         rightHand,
-        leftHand
+        leftHand;
+
+        public static final FPPlayerLocators[] arms = new FPPlayerLocators[] {
+                rightArm,
+                leftArm,
+                rightHand,
+                leftHand
+        };
     }
 
 
@@ -47,6 +48,7 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_PUNCH = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_punch");
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_WALK = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_walk");
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_JUMP = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_jump");
+    public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_MINE = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_mine");
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_FALLING = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_falling");
     public static final ResourceLocation ANIMATION_FP_RIGHT_BASICITEM_POSE = TimelineGroupData.getNativeResourceLocation("player/fp_right_basicitem_pose");
 
@@ -81,22 +83,33 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
             .setEndTime(TickTimeUtils.ticksFromMayaFrames(30));
     private static final AnimationSequencePlayer MAIN_EMPTY_FALLING_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_falling_sequence_player", ANIMATION_FP_RIGHT_EMPTY_FALLING)
             .setDefaultPlayRate(1F);
+    private static final AnimationSequencePlayer MAIN_EMPTY_MINING_BEGIN_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_mining_begin_sequence_player", ANIMATION_FP_RIGHT_EMPTY_MINE)
+            .setDefaultPlayRate(1F)
+            .setLooping(false)
+            .setStartTime(0)
+            .setEndTime(TickTimeUtils.ticksFromMayaFrames(6));
+    private static final AnimationSequencePlayer MAIN_EMPTY_MINING_LOOP_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_mining_loop_sequence_player", ANIMATION_FP_RIGHT_EMPTY_MINE)
+            .setDefaultPlayRate(1F)
+            .setLooping(true)
+            .setStartTime(TickTimeUtils.ticksFromMayaFrames(7))
+            .setEndTime(TickTimeUtils.ticksFromMayaFrames(12));
 
 
-    enum MainItemSwitchStates{
+    enum ItemSwitchStates {
         EMPTY,
         EMPTY_RAISING,
         BASIC_ITEM,
         BASIC_ITEM_RAISING,
         LOWERING
     }
-    private static final AnimationStateMachine<MainItemSwitchStates> MAINITEMSWITCH_STATE_MACHINE = AnimationStateMachine.of("main_hand_state_machine", MainItemSwitchStates.values())
-            .addStateTransition(MainItemSwitchStates.EMPTY, MainItemSwitchStates.LOWERING, TickTimeUtils.ticksFromMayaFrames(1))
-            .addStateTransition(MainItemSwitchStates.LOWERING, MainItemSwitchStates.EMPTY_RAISING, TickTimeUtils.ticksFromMayaFrames(1), 2)
-            .addStateTransition(MainItemSwitchStates.EMPTY_RAISING, MainItemSwitchStates.EMPTY, TickTimeUtils.ticksFromMayaFrames(4))
-            .addStateTransition(MainItemSwitchStates.BASIC_ITEM, MainItemSwitchStates.LOWERING, TickTimeUtils.ticksFromMayaFrames(3))
-            .addStateTransition(MainItemSwitchStates.LOWERING, MainItemSwitchStates.BASIC_ITEM_RAISING, TickTimeUtils.ticksFromMayaFrames(1), 1)
-            .addStateTransition(MainItemSwitchStates.BASIC_ITEM_RAISING, MainItemSwitchStates.BASIC_ITEM, TickTimeUtils.ticksFromMayaFrames(4));
+    private static final AnimationStateMachine<ItemSwitchStates> MAINHAND_ITEMSWITCH_STATE_MACHINE = AnimationStateMachine.of("main_hand_state_machine", ItemSwitchStates.values())
+            .addStateTransition(ItemSwitchStates.EMPTY, ItemSwitchStates.LOWERING, TickTimeUtils.ticksFromMayaFrames(1))
+            .addStateTransition(ItemSwitchStates.LOWERING, ItemSwitchStates.EMPTY_RAISING, TickTimeUtils.ticksFromMayaFrames(1), 2)
+            .addStateTransition(ItemSwitchStates.EMPTY_RAISING, ItemSwitchStates.EMPTY, TickTimeUtils.ticksFromMayaFrames(3))
+            .addStateTransition(ItemSwitchStates.BASIC_ITEM, ItemSwitchStates.LOWERING, TickTimeUtils.ticksFromMayaFrames(3))
+            .addStateTransition(ItemSwitchStates.LOWERING, ItemSwitchStates.BASIC_ITEM_RAISING, TickTimeUtils.ticksFromMayaFrames(1), 1)
+            .addStateTransition(ItemSwitchStates.BASIC_ITEM_RAISING, ItemSwitchStates.BASIC_ITEM, TickTimeUtils.ticksFromMayaFrames(3));
+
 
 
     enum JumpingStates {
@@ -116,6 +129,19 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
             .addStateTransition(JumpingStates.LANDING, JumpingStates.ON_GROUND, TickTimeUtils.ticksFromMayaFrames(4), 1);
 
 
+    enum MiningStates {
+        IDLE,
+        BEGIN,
+        LOOPING
+    }
+    private static final AnimationStateMachine<MiningStates> MINING_STATE_MACHINE = AnimationStateMachine.of("mining_state_machine", MiningStates.values())
+            .addStateTransition(MiningStates.IDLE, MiningStates.BEGIN, TickTimeUtils.ticksFromMayaFrames(3))
+            .addStateTransition(MiningStates.BEGIN, MiningStates.LOOPING, TickTimeUtils.ticksFromMayaFrames(1))
+            .addStateTransition(MiningStates.BEGIN, MiningStates.IDLE, TickTimeUtils.ticksFromMayaFrames(3))
+            .addStateTransition(MiningStates.LOOPING, MiningStates.IDLE, TickTimeUtils.ticksFromMayaFrames(3));
+
+
+
     private static final AnimationMontageTrack MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK = AnimationMontageTrack.of("main_hand_empty_punch_montage_track");
     private static final AnimationMontage MAIN_HAND_EMPTY_PUNCH_MONTAGE = AnimationMontage.of(ANIMATION_FP_RIGHT_EMPTY_PUNCH)
             .setLength(TickTimeUtils.ticksFromMayaFrames(10F))
@@ -131,71 +157,99 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     }
 
     @Override
-    protected LocatorSkeleton<ModelPartLocators> buildRig() {
-        return LocatorSkeleton.of(ModelPartLocators.values())
-                .setLocatorMirror(ModelPartLocators.rightArm, ModelPartLocators.leftArm)
-                .setLocatorMirror(ModelPartLocators.leftArm, ModelPartLocators.rightArm)
-                .setLocatorMirror(ModelPartLocators.rightHand, ModelPartLocators.leftHand)
-                .setLocatorMirror(ModelPartLocators.leftHand, ModelPartLocators.rightHand);
+    protected LocatorSkeleton<FPPlayerLocators> buildRig() {
+        return LocatorSkeleton.of(FPPlayerLocators.values())
+                .setLocatorMirror(FPPlayerLocators.rightArm, FPPlayerLocators.leftArm)
+                .setLocatorMirror(FPPlayerLocators.leftArm, FPPlayerLocators.rightArm)
+                .setLocatorMirror(FPPlayerLocators.rightHand, FPPlayerLocators.leftHand)
+                .setLocatorMirror(FPPlayerLocators.leftHand, FPPlayerLocators.rightHand);
     }
 
     @Override
-    protected AnimationPose<ModelPartLocators> calculatePose() {
+    protected AnimationPose<FPPlayerLocators> calculatePose() {
+        // Update main hand item based on the anim notify
         if(getAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).isAnimNotityActive(ITEM_SWITCH_NOTIFY)){
             setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
         }
 
-        getAnimationState(MAINITEMSWITCH_STATE_MACHINE).setPoses(Map.ofEntries(
-                Map.entry(MainItemSwitchStates.EMPTY, getMainEmptyLocomotionPose(getStaticMainEmptyPose(), true)),
-                Map.entry(MainItemSwitchStates.EMPTY_RAISING, getMainHandRaisePose(getStaticMainEmptyPose())),
-                Map.entry(MainItemSwitchStates.BASIC_ITEM, getMainEmptyLocomotionPose(getStaticMainBasicItemPose(), true)),
-                Map.entry(MainItemSwitchStates.BASIC_ITEM_RAISING, getMainHandRaisePose(getStaticMainBasicItemPose())),
-                Map.entry(MainItemSwitchStates.LOWERING, getMainHandLowerPose(getStaticMainEmptyPose()))
-        ));
-        AnimationPose<ModelPartLocators> raiseLowerStatePose = sampleAnimationState(MAINITEMSWITCH_STATE_MACHINE);
+        // Set the poses for the main hand item switch state machine
+        getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE)
+                .setPose(ItemSwitchStates.EMPTY, getMainEmptyLocomotionPose(getStaticMainEmptyPose(), true, false))
+                .setPose(ItemSwitchStates.EMPTY_RAISING, getMainHandRaisePose(getStaticMainEmptyPose()))
+                .setPose(ItemSwitchStates.BASIC_ITEM, getMainEmptyLocomotionPose(getStaticMainBasicItemPose(), true, true))
+                .setPose(ItemSwitchStates.BASIC_ITEM_RAISING, getMainHandRaisePose(getStaticMainBasicItemPose()))
+                .setPose(ItemSwitchStates.LOWERING, getMainHandLowerPose(getStaticMainEmptyPose()));
 
-        return raiseLowerStatePose;
+        AnimationPose<FPPlayerLocators> pose = sampleAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE);
+        pose = pose.getSelectedByLocators(getCameraPose(), List.of(FPPlayerLocators.camera));
+
+        return pose;
     }
 
-    private AnimationPose<ModelPartLocators> getMainEmptyLocomotionPose(AnimationPose<ModelPartLocators> basePose, boolean applyPunch){
-        AnimationPose<ModelPartLocators> pose = sampleAnimationState(MAIN_EMPTY_IDLE_SEQUENCE_PLAYER);
+    // Gets the camera pose
+    private AnimationPose<FPPlayerLocators> getCameraPose(){
+        return getMainEmptyLocomotionPose(this.getStaticMainEmptyPose(), true, false);
+    }
+
+    private AnimationPose<FPPlayerLocators> getMainEmptyLocomotionPose(AnimationPose<FPPlayerLocators> basePose, boolean applyPunch, boolean applyAdditive){
+        AnimationPose<FPPlayerLocators> pose = sampleAnimationState(MAIN_EMPTY_IDLE_SEQUENCE_PLAYER);
         pose.blendLinear(sampleAnimationState(MAIN_HAND_EMPTY_WALK_BLENDSPACE_PLAYER), getEntityAnimationVariable(WALK_WEIGHT));
 
-        getAnimationState(JUMP_STATE_MACHINE).setPoses(Map.ofEntries(
-                Map.entry(JumpingStates.ON_GROUND, pose),
-                Map.entry(JumpingStates.JUMPING, sampleAnimationState(MAIN_EMPTY_JUMP_SEQUENCE_PLAYER)),
-                Map.entry(JumpingStates.FALLING, AnimationPose.fromChannelTimeline(this.locatorSkeleton, ANIMATION_FP_RIGHT_EMPTY_JUMP, 0.5F).getBlendedLinear(sampleAnimationState(MAIN_EMPTY_FALLING_SEQUENCE_PLAYER), Mth.clampedMap(this.livingEntity.fallDistance, 0, 10, 0.5F, 1.2F))),
-                Map.entry(JumpingStates.LANDING, sampleAnimationState(MAIN_EMPTY_LAND_SEQUENCE_PLAYER))
-        ));
+        getAnimationState(JUMP_STATE_MACHINE)
+                .setPose(JumpingStates.ON_GROUND, pose)
+                .setPose(JumpingStates.JUMPING, sampleAnimationState(MAIN_EMPTY_JUMP_SEQUENCE_PLAYER))
+                .setPose(JumpingStates.FALLING,
+                        AnimationPose.fromChannelTimeline(this.locatorSkeleton, ANIMATION_FP_RIGHT_EMPTY_JUMP, 0.5F)
+                                .getBlendedLinear(
+                                        sampleAnimationState(MAIN_EMPTY_FALLING_SEQUENCE_PLAYER),
+                                        Mth.clampedMap(
+                                                this.livingEntity.fallDistance,
+                                                0,
+                                                10,
+                                                0.5F,
+                                                1.2F
+                                        )
+                                ))
+                .setPose(JumpingStates.LANDING, sampleAnimationState(MAIN_EMPTY_LAND_SEQUENCE_PLAYER));
         pose = sampleAnimationState(JUMP_STATE_MACHINE);
 
 
         if(applyPunch){
             pose = sampleAnimationStateFromInputPose(MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK, pose);
+
+            getAnimationState(MINING_STATE_MACHINE)
+                    .setPose(MiningStates.IDLE, pose)
+                    .setPose(MiningStates.BEGIN, sampleAnimationState(MAIN_EMPTY_MINING_BEGIN_SEQUENCE_PLAYER))
+                    .setPose(MiningStates.LOOPING, sampleAnimationState(MAIN_EMPTY_MINING_LOOP_SEQUENCE_PLAYER));
+            pose = sampleAnimationState(MINING_STATE_MACHINE);
         }
 
         //AnimationPose additivePose = basePose.getSubtracted(getStaticMainEmptyPose());
         //return pose.getAdded(additivePose);
-        AnimationPose unAddedPose = pose.getSubtracted(getStaticMainEmptyPose());
-        return unAddedPose.getAdded(basePose);
+        if(applyAdditive) {
+            AnimationPose<FPPlayerLocators> unAddedPose = pose.getSubtracted(getStaticMainEmptyPose());
+            pose = unAddedPose.getAdded(basePose);
+        }
+        return pose;
+
     }
 
-    private AnimationPose getMainHandRaisePose(AnimationPose basePose){
-        AnimationPose pose = sampleAnimationState(MAIN_EMPTY_RAISE_SEQUENCE_PLAYER);
+    private AnimationPose<FPPlayerLocators> getMainHandRaisePose(AnimationPose<FPPlayerLocators> basePose){
+        AnimationPose<FPPlayerLocators> pose = sampleAnimationState(MAIN_EMPTY_RAISE_SEQUENCE_PLAYER);
         return pose.getSubtracted(getStaticMainEmptyPose()).getAdded(basePose);
     }
 
-    private AnimationPose<ModelPartLocators> getMainHandLowerPose(AnimationPose<ModelPartLocators> basePose){
-        AnimationPose<ModelPartLocators> pose = sampleAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER);
+    private AnimationPose<FPPlayerLocators> getMainHandLowerPose(AnimationPose<FPPlayerLocators> basePose){
+        AnimationPose<FPPlayerLocators> pose = sampleAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER);
         return pose.getSubtracted(getStaticMainEmptyPose()).getAdded(basePose);
     }
 
 
-    private AnimationPose<ModelPartLocators> getStaticMainEmptyPose(){
+    private AnimationPose<FPPlayerLocators> getStaticMainEmptyPose(){
         return AnimationPose.fromChannelTimeline(this.locatorSkeleton, ANIMATION_FP_RIGHT_EMPTY_PUNCH, 0);
     }
 
-    private AnimationPose<ModelPartLocators> getStaticMainBasicItemPose(){
+    private AnimationPose<FPPlayerLocators> getStaticMainBasicItemPose(){
         return AnimationPose.fromChannelTimeline(this.locatorSkeleton, ANIMATION_FP_RIGHT_BASICITEM_POSE, 0);
     }
 
@@ -204,33 +258,25 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData){
 
         // Tick the main hand lower/empty sequence players based on active states
-        getAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).playFromStartOnStateActive(getAnimationState(MAINITEMSWITCH_STATE_MACHINE),
-                MainItemSwitchStates.LOWERING);
-        getAnimationState(MAIN_EMPTY_RAISE_SEQUENCE_PLAYER).playFromStartOnStateActive(getAnimationState(MAINITEMSWITCH_STATE_MACHINE), List.of(
-                MainItemSwitchStates.EMPTY_RAISING,
-                MainItemSwitchStates.BASIC_ITEM_RAISING
+        getAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).playFromStartOnStateActive(getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE),
+                ItemSwitchStates.LOWERING);
+        getAnimationState(MAIN_EMPTY_RAISE_SEQUENCE_PLAYER).playFromStartOnStateActive(getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE), List.of(
+                ItemSwitchStates.EMPTY_RAISING,
+                ItemSwitchStates.BASIC_ITEM_RAISING
         ));
 
-        // Update the conditions for
-        getAnimationState(MAINITEMSWITCH_STATE_MACHINE).setTransitionCondition(MainItemSwitchStates.EMPTY, MainItemSwitchStates.LOWERING, this.compareVariableItemStackWithEntityItemStack(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem()));
-        getAnimationState(MAINITEMSWITCH_STATE_MACHINE).setTransitionCondition(MainItemSwitchStates.EMPTY_RAISING, MainItemSwitchStates.EMPTY, getAnimationState(MAINITEMSWITCH_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4));
-        getAnimationState(MAINITEMSWITCH_STATE_MACHINE).setTransitionCondition(MainItemSwitchStates.LOWERING, MainItemSwitchStates.EMPTY_RAISING, getAnimationState(MAINITEMSWITCH_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4) && getEntityAnimationVariable(MAIN_HAND_ITEM).isEmpty());
-        getAnimationState(MAINITEMSWITCH_STATE_MACHINE).setTransitionCondition(MainItemSwitchStates.BASIC_ITEM, MainItemSwitchStates.LOWERING, this.compareVariableItemStackWithEntityItemStack(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem()));
-        getAnimationState(MAINITEMSWITCH_STATE_MACHINE).setTransitionCondition(MainItemSwitchStates.BASIC_ITEM_RAISING, MainItemSwitchStates.BASIC_ITEM, getAnimationState(MAINITEMSWITCH_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4));
-        getAnimationState(MAINITEMSWITCH_STATE_MACHINE).setTransitionCondition(MainItemSwitchStates.LOWERING, MainItemSwitchStates.BASIC_ITEM_RAISING, getAnimationState(MAINITEMSWITCH_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4) && !getEntityAnimationVariable(MAIN_HAND_ITEM).isEmpty());
+        // Update the conditions for the maind hand empty item switching
+        getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).setTransitionCondition(ItemSwitchStates.EMPTY, ItemSwitchStates.LOWERING, this.compareVariableItemStackWithEntityItemStack(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem()));
+        getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).setTransitionCondition(ItemSwitchStates.EMPTY_RAISING, ItemSwitchStates.EMPTY, getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4));
+        getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).setTransitionCondition(ItemSwitchStates.LOWERING, ItemSwitchStates.EMPTY_RAISING, getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4) && getEntityAnimationVariable(MAIN_HAND_ITEM).isEmpty());
+        getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).setTransitionCondition(ItemSwitchStates.BASIC_ITEM, ItemSwitchStates.LOWERING, this.compareVariableItemStackWithEntityItemStack(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem()));
+        getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).setTransitionCondition(ItemSwitchStates.BASIC_ITEM_RAISING, ItemSwitchStates.BASIC_ITEM, getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4));
+        getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).setTransitionCondition(ItemSwitchStates.LOWERING, ItemSwitchStates.BASIC_ITEM_RAISING, getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4) && !getEntityAnimationVariable(MAIN_HAND_ITEM).isEmpty());
+        // Debug
         //AnimationOverhaulMain.LOGGER.info("Current: {} New: {} Condition: {}", getEntityAnimationVariable(MAIN_HAND_ITEM).getItem(), this.livingEntity.getMainHandItem().getItem(), this.compareVariableItemStackWithEntityItemStack(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem()));
 
 
-        /*
-        private static final String STATE_TRANSITION_JUMP_GROUND_TO_JUMPING = "ground_to_jumping";
-        private static final String STATE_TRANSITION_JUMP_GROUND_TO_FALLING = "ground_to_falling";
-        private static final String STATE_TRANSITION_JUMP_JUMPING_TO_FALLING = "jumping_to_falling";
-        private static final String STATE_TRANSITION_JUMP_FALLING_TO_LANDING = "falling_to_landing";
-        private static final String STATE_TRANSITION_JUMP_LANDING_TO_JUMPING = "landing_to_jumping";
-        private static final String STATE_TRANSITION_JUMP_LANDING_TO_FALLING = "landing_to_falling";
-        private static final String STATE_TRANSITION_JUMP_LANDING_TO_GROUND = "landing_to_ground";
-
-         */
+        // Set variables for jumping and falling
         setEntityAnimationVariable(IS_JUMPING,
                 this.livingEntity.input.jumping
                 && !this.livingEntity.getAbilities().flying
@@ -238,23 +284,46 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         );
         setEntityAnimationVariable(IS_FALLING,
                 !this.livingEntity.isOnGround()
+                && !this.livingEntity.onClimbable()
         );
-        getAnimationState(JUMP_STATE_MACHINE).setTransitionCondition(JumpingStates.ON_GROUND, JumpingStates.JUMPING, getEntityAnimationVariable(IS_FALLING) && getEntityAnimationVariable(IS_JUMPING));
-        getAnimationState(JUMP_STATE_MACHINE).setTransitionCondition(JumpingStates.ON_GROUND, JumpingStates.FALLING, getEntityAnimationVariable(IS_FALLING));
-        getAnimationState(JUMP_STATE_MACHINE).setTransitionCondition(JumpingStates.JUMPING, JumpingStates.FALLING, getAnimationState(JUMP_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(6) && getEntityAnimationVariable(IS_FALLING));
-        getAnimationState(JUMP_STATE_MACHINE).setTransitionCondition(JumpingStates.JUMPING, JumpingStates.LANDING, !getEntityAnimationVariable(IS_FALLING));
-        getAnimationState(JUMP_STATE_MACHINE).setTransitionCondition(JumpingStates.FALLING, JumpingStates.LANDING, !getEntityAnimationVariable(IS_FALLING));
-        getAnimationState(JUMP_STATE_MACHINE).setTransitionCondition(JumpingStates.LANDING, JumpingStates.JUMPING, getEntityAnimationVariable(IS_FALLING) && getEntityAnimationVariable(IS_JUMPING));
-        getAnimationState(JUMP_STATE_MACHINE).setTransitionCondition(JumpingStates.LANDING, JumpingStates.FALLING, getEntityAnimationVariable(IS_FALLING));
-        getAnimationState(JUMP_STATE_MACHINE).setTransitionCondition(JumpingStates.LANDING, JumpingStates.ON_GROUND, getAnimationState(JUMP_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(3) && !getEntityAnimationVariable(IS_FALLING));
+        getAnimationState(JUMP_STATE_MACHINE)
+                .setTransitionCondition(JumpingStates.ON_GROUND, JumpingStates.JUMPING, getEntityAnimationVariable(IS_FALLING) && getEntityAnimationVariable(IS_JUMPING))
+                .setTransitionCondition(JumpingStates.ON_GROUND, JumpingStates.FALLING, getEntityAnimationVariable(IS_FALLING))
+                .setTransitionCondition(JumpingStates.JUMPING, JumpingStates.FALLING, getAnimationState(JUMP_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(6) && getEntityAnimationVariable(IS_FALLING))
+                .setTransitionCondition(JumpingStates.JUMPING, JumpingStates.LANDING, !getEntityAnimationVariable(IS_FALLING))
+                .setTransitionCondition(JumpingStates.FALLING, JumpingStates.LANDING, !getEntityAnimationVariable(IS_FALLING))
+                .setTransitionCondition(JumpingStates.LANDING, JumpingStates.JUMPING, getEntityAnimationVariable(IS_FALLING) && getEntityAnimationVariable(IS_JUMPING))
+                .setTransitionCondition(JumpingStates.LANDING, JumpingStates.FALLING, getEntityAnimationVariable(IS_FALLING))
+                .setTransitionCondition(JumpingStates.LANDING, JumpingStates.ON_GROUND, getAnimationState(JUMP_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(3) && !getEntityAnimationVariable(IS_FALLING));
         getAnimationState(MAIN_EMPTY_JUMP_SEQUENCE_PLAYER).playFromStartOnStateActive(JUMP_STATE_MACHINE, JumpingStates.JUMPING);
         getAnimationState(MAIN_EMPTY_LAND_SEQUENCE_PLAYER).playFromStartOnStateActive(JUMP_STATE_MACHINE, JumpingStates.LANDING);
         getAnimationState(MAIN_EMPTY_FALLING_SEQUENCE_PLAYER).setPlayRate(Mth.clampedMap(this.livingEntity.fallDistance, 0, 20, 1, 2));
 
 
-        if(getEntityAnimationVariable(IS_ATTACKING) && !getEntityAnimationVariable(IS_MINING) && !getEntityAnimationData().get(IS_MINING).getOld()){
+
+        // Set the conditions for the mining state machine, and reset the two animation sequences based on the state status
+        getAnimationState(MINING_STATE_MACHINE)
+                .setTransitionCondition(MiningStates.IDLE, MiningStates.BEGIN, getEntityAnimationVariable(IS_MINING))
+                .setTransitionCondition(MiningStates.BEGIN, MiningStates.LOOPING, getAnimationState(MINING_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4))
+                .setTransitionCondition(MiningStates.BEGIN, MiningStates.IDLE, !getEntityAnimationVariable(IS_MINING))
+                .setTransitionCondition(MiningStates.LOOPING, MiningStates.IDLE, !getEntityAnimationVariable(IS_MINING));
+        getAnimationState(MAIN_EMPTY_MINING_BEGIN_SEQUENCE_PLAYER).playFromStartOnStateActive(MINING_STATE_MACHINE, MiningStates.BEGIN);
+        getAnimationState(MAIN_EMPTY_MINING_LOOP_SEQUENCE_PLAYER).playFromStartOnStateActive(MINING_STATE_MACHINE, MiningStates.LOOPING);
+
+        if(getEntityAnimationVariable(IS_ATTACKING) && !getEntityAnimationVariable(IS_MINING)){
             setEntityAnimationVariable(IS_ATTACKING, false);
-            getAnimationState(MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK).playMontage(MAIN_HAND_EMPTY_PUNCH_MONTAGE);
+
+            // Only play the attack animation if not mining
+            if(getAnimationState(MINING_STATE_MACHINE).getActiveState() == MiningStates.IDLE){
+
+                // Play the attack montage based on the main hand item switch state. Does not play for raising/lowering states.
+                ItemSwitchStates state = getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).getActiveState();
+                switch (state){
+                    case EMPTY, BASIC_ITEM:
+                        getAnimationState(MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK).playMontage(MAIN_HAND_EMPTY_PUNCH_MONTAGE);
+                }
+            }
+
         }
         //AnimationOverhaulMain.LOGGER.info(getEntityAnimationVariable(IS_MINING));
 

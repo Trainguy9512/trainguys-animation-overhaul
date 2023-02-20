@@ -10,13 +10,7 @@ import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.MutablePartPose;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.MapRenderer;
-import net.minecraft.client.model.geom.PartPose;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -90,9 +84,9 @@ public abstract class MixinGameRenderer {
     private void injectCameraRotation(float f, long l, PoseStack poseStack, CallbackInfo ci){
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
             if(FirstPersonPlayerAnimator.INSTANCE.localBakedPose != null){
-                AnimationPose<FirstPersonPlayerAnimator.ModelPartLocators> animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-                MutablePartPose cameraPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.camera);
-                MutablePartPose rootPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.root);
+                AnimationPose<FirstPersonPlayerAnimator.FPPlayerLocators> animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
+                MutablePartPose cameraPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.camera);
+                MutablePartPose rootPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.root);
                 cameraPose.add(rootPose);
 
                 //poseStack.translate(cameraPose.y / 16F, cameraPose.x / -16F, cameraPose.z / -16F);

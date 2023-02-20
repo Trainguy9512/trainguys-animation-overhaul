@@ -96,13 +96,13 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
         return false;
     }
 
-    public <S extends Enum<S>> void playFromStartOnStateActive(AnimationStateMachine<S> animationStateMachine, Enum<S> stateIdentifier){
+    public <S extends Enum<S>> void playFromStartOnStateActive(AnimationStateMachine<S> animationStateMachine, S stateIdentifier){
         this.playFromStartOnStateActive(animationStateMachine, List.of(stateIdentifier));
     }
 
-    public <S extends Enum<S>> void playFromStartOnStateActive(AnimationStateMachine<S> animationStateMachine, List<Enum<S>> stateIdentifiers){
+    public <S extends Enum<S>> void playFromStartOnStateActive(AnimationStateMachine<S> animationStateMachine, List<S> stateIdentifiers){
         boolean statesActive = false;
-        for(Enum<S> stateIdentifier : stateIdentifiers){
+        for(S stateIdentifier : stateIdentifiers){
             if(!statesActive){
                 if(animationStateMachine.containsState(stateIdentifier)){
                     statesActive = animationStateMachine.getState(stateIdentifier).getWeight() != 0;
@@ -115,7 +115,7 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
     }
 
     @Override
-    public AnimationPose sample(LocatorSkeleton locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
+    public <L extends Enum<L>> AnimationPose<L> sample(LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
         return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, this.getTimeFromTicks());
         //return super.sample(locatorSkeleton);
     }
