@@ -34,7 +34,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
-    @Shadow @Final private Minecraft minecraft;
+    @Shadow @Final Minecraft minecraft;
 
 
 
@@ -61,8 +61,6 @@ public abstract class MixinGameRenderer {
 
     @Shadow @Final private Camera mainCamera;
 
-    @Shadow public abstract MapRenderer getMapRenderer();
-
     @Inject(method = "tick", at = @At("TAIL"))
     private void tickEntityInformation(CallbackInfo ci){
         if(this.minecraft.level != null){
@@ -70,7 +68,7 @@ public abstract class MixinGameRenderer {
                 if(entity instanceof LivingEntity){
                     EntityType<?> entityType = entity.getType();
                     if(AnimationOverhaulMain.ENTITY_ANIMATORS.contains(entityType)){
-                        LivingEntityAnimator<?, ?> livingEntityAnimator = AnimationOverhaulMain.ENTITY_ANIMATORS.get(entityType);
+                        LivingEntityAnimator<?, ?, ?> livingEntityAnimator = AnimationOverhaulMain.ENTITY_ANIMATORS.get(entityType);
                         AnimatorDispatcher.INSTANCE.tickEntity((LivingEntity) entity, livingEntityAnimator);
                     }
                 }
@@ -78,8 +76,6 @@ public abstract class MixinGameRenderer {
             FirstPersonPlayerAnimator.INSTANCE.tickExternal();
         }
     }
-
-    private float time = 0;
 
     @Redirect(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionf;)V"),
             slice = @Slice(
@@ -94,9 +90,9 @@ public abstract class MixinGameRenderer {
     private void injectCameraRotation(float f, long l, PoseStack poseStack, CallbackInfo ci){
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
             if(FirstPersonPlayerAnimator.INSTANCE.localBakedPose != null){
-                AnimationPose animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-                MutablePartPose cameraPose = animationPose.getLocatorPose("camera");
-                MutablePartPose rootPose = animationPose.getLocatorPose("root");
+                AnimationPose<FirstPersonPlayerAnimator.ModelPartLocators> animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
+                MutablePartPose cameraPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.camera);
+                MutablePartPose rootPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.root);
                 cameraPose.add(rootPose);
 
                 //poseStack.translate(cameraPose.y / 16F, cameraPose.x / -16F, cameraPose.z / -16F);

@@ -4,10 +4,10 @@ import com.trainguy9512.animationoverhaul.util.animation.Locator;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import net.minecraft.client.model.geom.ModelPart;
 
-public class BakedAnimationPose {
+public class BakedAnimationPose<L extends Enum<L>> {
 
-    private AnimationPose pose;
-    private AnimationPose poseOld;
+    private AnimationPose<L> pose;
+    private AnimationPose<L> poseOld;
     public boolean hasPose;
 
     public BakedAnimationPose(){
@@ -18,25 +18,25 @@ public class BakedAnimationPose {
         this.poseOld = this.pose.getCopy();
     }
 
-    public void setPose(AnimationPose animationPose){
+    public void setPose(AnimationPose<L> animationPose){
         this.pose = animationPose;
     }
 
-    public AnimationPose getBlendedPose(float partialTicks){
+    public AnimationPose<L> getBlendedPose(float partialTicks){
         // uncomment this for debugging
         //partialTicks = 0;
         return this.poseOld.getBlendedLinear(this.pose, partialTicks);
     }
 
     public void bakeToModelParts(ModelPart rootModelPart, float partialTicks){
-        AnimationPose blendedPose = getBlendedPose(partialTicks);
-        for(LocatorSkeleton.LocatorEntry locatorEntry : pose.getSkeleton().getLocatorEntries()){
-            if(locatorEntry.getModelPartIdentifier() != null){
+        AnimationPose<L> blendedPose = getBlendedPose(partialTicks);
+        for(Enum<L> locator : this.pose.getSkeleton().getLocators()){
+            if(this.pose.getSkeleton().getLocatorUsesModelPart(locator)){
                 ModelPart finalModelPart = rootModelPart;
-                for(String individualPartString : locatorEntry.getModelPartIdentifier().split("\\.")){
+                for(String individualPartString : this.pose.getSkeleton().getLocatorModelPartIdentifier(locator).split("\\.")){
                     finalModelPart = finalModelPart.getChild(individualPartString);
                 }
-                finalModelPart.loadPose(blendedPose.getLocatorPose(locatorEntry.getLocatorIdentifier()).asPartPose());
+                finalModelPart.loadPose(blendedPose.getLocatorPose(locator).asPartPose());
             }
         }
     }
@@ -58,7 +58,10 @@ public class BakedAnimationPose {
 
      */
 
+    /*
     public boolean containsLocator(String identifier){
         return this.pose.getSkeleton().containsLocator(identifier);
     }
+
+     */
 }

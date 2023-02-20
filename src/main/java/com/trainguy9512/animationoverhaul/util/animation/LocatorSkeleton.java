@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.util.animation;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationStateMachine;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import org.jetbrains.annotations.Blocking;
@@ -9,22 +10,54 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
-public class LocatorSkeleton {
+public class LocatorSkeleton<L extends Enum<L>> {
 
-    private final HashMap<String, LocatorEntry> locatorHashMap = Maps.newHashMap();
+    private final HashMap<Enum<L>, LocatorEntry<L>> locatorHashMap = Maps.newHashMap();
 
     public LocatorSkeleton(){
 
     }
 
-    public List<LocatorEntry> getLocatorEntries(){
-        return locatorHashMap.values().stream().toList();
+    public static <L extends Enum<L>> LocatorSkeleton<L> of(Enum<L>[] locators){
+        return new LocatorSkeleton<L>().addLocators(locators);
     }
 
-    public PartPose getLocatorDefaultPose(String locatorIdentifier){
-        return locatorHashMap.get(locatorIdentifier).defaultPose;
+    private LocatorSkeleton<L> addLocators(Enum<L>[] locators){
+        for(Enum<L> locator : locators){
+            this.locatorHashMap.put(locator, new LocatorEntry<L>(locator));
+        }
+        return this;
     }
+
+    public Set<Enum<L>> getLocators(){
+        return locatorHashMap.keySet();
+    }
+
+    public PartPose getLocatorDefaultPose(Enum<L> locator){
+        return locatorHashMap.get(locator).defaultPose;
+    }
+
+    public LocatorSkeleton<L> setLocatorMirror(Enum<L> locator, Enum<L> mirrored){
+        this.locatorHashMap.get(locator).setMirroedLocatorIdentifier(mirrored);
+        return this;
+    }
+
+    public String getLocatorModelPartIdentifier(Enum<L> locator){
+        return this.locatorHashMap.get(locator).getModelPartIdentifier();
+    }
+
+    public boolean getLocatorUsesModelPart(Enum<L> locator){
+        return this.locatorHashMap.get(locator).getUsesModelPart();
+    }
+
+    public LocatorSkeleton<L> setLocatorDefaultPose(Enum<L> locator, PartPose pose){
+        this.locatorHashMap.get(locator).setDefaultPose(pose);
+        return this;
+    }
+
+    /*
 
     public void addLocatorModelPart(String locator, String locatorMirrored, String modelPartIdentifier, PartPose defaultPose){
         locatorHashMap.putIfAbsent(locator, new LocatorEntry(locator, locatorMirrored, modelPartIdentifier, defaultPose));
@@ -50,46 +83,61 @@ public class LocatorSkeleton {
         addLocator(locator, locator);
     }
 
-    @Nullable
-    public String getMirroredLocator(String identifier){
-        return this.locatorHashMap.get(identifier).getMirroedLocatorIdentifier();
+     */
+
+    public Enum<L> getMirroredLocator(Enum<L> locator){
+        return this.locatorHashMap.get(locator).getMirroedLocatorIdentifier();
     }
 
+    /*
     @Nullable
-    private LocatorEntry getLocatorEntry(String identifier){
+    private getLocatorEntry(String identifier){
         return this.locatorHashMap.get(identifier);
     }
 
+     */
+
+    /*
     public boolean containsLocator(String identifier){
         return this.locatorHashMap.containsKey(identifier);
     }
 
-    public static class LocatorEntry {
-        private final String locatorIdentifier;
-        private final String mirroedLocatorIdentifier;
-        @Nullable
-        private final String modelPartIdentifier;
-        private final boolean usesModelPart;
-        private final PartPose defaultPose;
+     */
 
-        public LocatorEntry(String locatorIdentifier, String mirroedLocatorIdentifier, @Nullable String modelPartIdentifier, PartPose defaultPose){
-            this.locatorIdentifier = locatorIdentifier;
-            this.mirroedLocatorIdentifier = mirroedLocatorIdentifier;
+    public static class LocatorEntry<L extends Enum<L>> {
+        //private final String locatorIdentifier;
+        private Enum<L> mirroedLocatorIdentifier;
+        @Nullable
+        private String modelPartIdentifier;
+        private boolean usesModelPart;
+        private PartPose defaultPose;
+
+        public LocatorEntry(Enum<L> mirroedLocator, @Nullable String modelPartIdentifier, PartPose defaultPose){
+            //this.locatorIdentifier = locatorIdentifier;
+            this.mirroedLocatorIdentifier = mirroedLocator;
             this.modelPartIdentifier = modelPartIdentifier;
             this.usesModelPart = modelPartIdentifier != null;
             this.defaultPose = defaultPose;
         }
 
-        public String getLocatorIdentifier(){
-            return this.locatorIdentifier;
+        public LocatorEntry(Enum<L> mirroredLocator){
+            this(mirroredLocator, null, PartPose.ZERO);
         }
 
-        public String getMirroedLocatorIdentifier(){
+        public Enum<L> getMirroedLocatorIdentifier(){
             return this.mirroedLocatorIdentifier;
         }
 
+        public void setMirroedLocatorIdentifier(Enum<L> locator){
+            this.mirroedLocatorIdentifier = locator;
+        }
+
+        public void setDefaultPose(PartPose pose){
+            this.defaultPose = pose;
+        }
+
         public String getModelPartIdentifier(){
-            return this.modelPartIdentifier;
+            return this.usesModelPart ? this.modelPartIdentifier : "null";
         }
 
         public boolean getUsesModelPart(){

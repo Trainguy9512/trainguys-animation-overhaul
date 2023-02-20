@@ -14,7 +14,7 @@ public class AnimationDataContainer {
 
     private final HashMap<DataKey<?>, Variable<?>> entityAnimationVariables;
     private final HashMap<String, SampleableAnimationState> entitySampleableAnimationStates;
-    private final CachedPoseContainer cachedPoseContainer = new CachedPoseContainer();
+    private CachedPoseContainer cachedPoseContainer = new CachedPoseContainer();
 
     public AnimationDataContainer(){
         this.entityAnimationVariables = Maps.newHashMap();
@@ -37,7 +37,7 @@ public class AnimationDataContainer {
         return sampleableAnimationState;
     }
 
-    public AnimationPose sampleAnimationState(LocatorSkeleton locatorSkeleton, SampleableAnimationState sampleableAnimationState){
+    public <L extends Enum<L>> AnimationPose<L> sampleAnimationState(LocatorSkeleton<L> locatorSkeleton, SampleableAnimationState sampleableAnimationState){
         for(String identifier : this.entitySampleableAnimationStates.keySet()){
             if (Objects.equals(sampleableAnimationState.getIdentifier(), identifier)){
                 return this.entitySampleableAnimationStates.get(identifier).sample(locatorSkeleton, cachedPoseContainer);
@@ -47,7 +47,7 @@ public class AnimationDataContainer {
         return (this.entitySampleableAnimationStates.get(sampleableAnimationState.getIdentifier())).sample(locatorSkeleton, cachedPoseContainer);
     }
 
-    public AnimationPose sampleAnimationStateFromInputPose(AnimationPose inputPose, LocatorSkeleton locatorSkeleton, SampleableAnimationState sampleableAnimationState){
+    public <L extends Enum<L>> AnimationPose<L> sampleAnimationStateFromInputPose(AnimationPose<L> inputPose, LocatorSkeleton<L> locatorSkeleton, SampleableAnimationState sampleableAnimationState){
         for(String identifier : this.entitySampleableAnimationStates.keySet()){
             if (Objects.equals(sampleableAnimationState.getIdentifier(), identifier)){
                 return this.entitySampleableAnimationStates.get(identifier).sampleFromInputPose(inputPose, locatorSkeleton, cachedPoseContainer);
@@ -57,30 +57,29 @@ public class AnimationDataContainer {
         return (this.entitySampleableAnimationStates.get(sampleableAnimationState.getIdentifier())).sampleFromInputPose(inputPose, locatorSkeleton, cachedPoseContainer);
     }
 
-    public void saveCachedPose(String identifier, AnimationPose animationPose){
+    public <L extends Enum<L>> void saveCachedPose(String identifier, AnimationPose<L> animationPose){
         this.cachedPoseContainer.saveCachedPose(identifier, animationPose);
     }
 
-    public AnimationPose getCachedPose(String identifier, LocatorSkeleton locatorSkeleton){
+    public <L extends Enum<L>> AnimationPose<?> getCachedPose(String identifier, LocatorSkeleton<L> locatorSkeleton){
         return this.cachedPoseContainer.getCachedPose(identifier, locatorSkeleton);
     }
 
     public class CachedPoseContainer {
-        private final HashMap<String, AnimationPose> poses = Maps.newHashMap();
+        private final HashMap<String, AnimationPose<?>> poses = Maps.newHashMap();
 
         public CachedPoseContainer(){
-
         }
 
-        public void saveCachedPose(String identifier, AnimationPose animationPose){
+        public void saveCachedPose(String identifier, AnimationPose<?> animationPose){
             this.poses.put(identifier, animationPose);
         }
 
-        public AnimationPose getCachedPose(String identifier, LocatorSkeleton locatorSkeleton){
+        public AnimationPose<?> getCachedPose(String identifier, LocatorSkeleton<?> locatorSkeleton){
             if(this.poses.containsKey(identifier)){
                 return this.poses.get(identifier);
             }
-            return new AnimationPose(locatorSkeleton);
+            return AnimationPose.of(locatorSkeleton);
         }
     }
 

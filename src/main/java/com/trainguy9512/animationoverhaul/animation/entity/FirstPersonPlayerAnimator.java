@@ -11,6 +11,7 @@ import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
 import com.trainguy9512.animationoverhaul.util.time.TickTimeUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -22,20 +23,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer, PlayerModel<LocalPlayer>>{
+public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer, PlayerModel<LocalPlayer>, FirstPersonPlayerAnimator.ModelPartLocators>{
 
     public static FirstPersonPlayerAnimator INSTANCE = new FirstPersonPlayerAnimator();
 
     public AnimationDataContainer localAnimationDataContainer = new AnimationDataContainer();
-    public BakedAnimationPose localBakedPose;
+    public BakedAnimationPose<ModelPartLocators> localBakedPose;
 
 
-    public static final String LOCATOR_ROOT = "root";
-    public static final String LOCATOR_CAMERA = "camera";
-    public static final String LOCATOR_RIGHT_ARM = "rightArm";
-    public static final String LOCATOR_LEFT_ARM = "leftArm";
-    public static final String LOCATOR_RIGHT_HAND = "rightHand";
-    public static final String LOCATOR_LEFT_HAND = "leftHand";
+    public enum ModelPartLocators {
+        root,
+        camera,
+        rightArm,
+        leftArm,
+        rightHand,
+        leftHand
+    }
 
 
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_RAISE = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_raise");
@@ -47,14 +50,14 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_FALLING = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_falling");
     public static final ResourceLocation ANIMATION_FP_RIGHT_BASICITEM_POSE = TimelineGroupData.getNativeResourceLocation("player/fp_right_basicitem_pose");
 
-    public static final AnimationDataContainer.DataKey<ItemStack> MAIN_HAND_ITEM = new AnimationDataContainer.DataKey<ItemStack>("main_hand_item_stack", ItemStack.EMPTY);
-    public static final AnimationDataContainer.DataKey<Boolean> IS_ATTACKING = new AnimationDataContainer.DataKey<Boolean>("is_attacking", false);
-    public static final AnimationDataContainer.DataKey<Boolean> IS_USING_ITEM = new AnimationDataContainer.DataKey<Boolean>("is_using_item", false);
-    public static final AnimationDataContainer.DataKey<Boolean> IS_MINING = new AnimationDataContainer.DataKey<Boolean>("is_mining", false);
-    public static final AnimationDataContainer.DataKey<Float> WALK_WEIGHT = new AnimationDataContainer.DataKey<Float>("walk_weight", 0F);
+    public static final AnimationDataContainer.DataKey<ItemStack> MAIN_HAND_ITEM = new AnimationDataContainer.DataKey<>("main_hand_item_stack", ItemStack.EMPTY);
+    public static final AnimationDataContainer.DataKey<Boolean> IS_ATTACKING = new AnimationDataContainer.DataKey<>("is_attacking", false);
+    public static final AnimationDataContainer.DataKey<Boolean> IS_USING_ITEM = new AnimationDataContainer.DataKey<>("is_using_item", false);
+    public static final AnimationDataContainer.DataKey<Boolean> IS_MINING = new AnimationDataContainer.DataKey<>("is_mining", false);
+    public static final AnimationDataContainer.DataKey<Float> WALK_WEIGHT = new AnimationDataContainer.DataKey<>("walk_weight", 0F);
 
-    public static final AnimationDataContainer.DataKey<Boolean> IS_FALLING = new AnimationDataContainer.DataKey<Boolean>("is_falling", false);
-    public static final AnimationDataContainer.DataKey<Boolean> IS_JUMPING = new AnimationDataContainer.DataKey<Boolean>("is_jumping", false);
+    public static final AnimationDataContainer.DataKey<Boolean> IS_FALLING = new AnimationDataContainer.DataKey<>("is_falling", false);
+    public static final AnimationDataContainer.DataKey<Boolean> IS_JUMPING = new AnimationDataContainer.DataKey<>("is_jumping", false);
 
     private static final String ITEM_SWITCH_NOTIFY = "item_switch_notify";
     private static final AnimationSequencePlayer MAIN_EMPTY_RAISE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_raise_sequence_player", ANIMATION_FP_RIGHT_EMPTY_RAISE)
@@ -102,18 +105,6 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         LANDING,
         ON_GROUND
     }
-    private static final String STATE_JUMP_JUMPING = "jumping";
-    private static final String STATE_JUMP_FALLING = "falling";
-    private static final String STATE_JUMP_LANDING = "landing";
-    private static final String STATE_JUMP_ON_GROUND = "on_ground";
-    private static final String STATE_TRANSITION_JUMP_GROUND_TO_JUMPING = "ground_to_jumping";
-    private static final String STATE_TRANSITION_JUMP_GROUND_TO_FALLING = "ground_to_falling";
-    private static final String STATE_TRANSITION_JUMP_JUMPING_TO_FALLING = "jumping_to_falling";
-    private static final String STATE_TRANSITION_JUMP_JUMPING_TO_LANDING = "jumping_to_landing";
-    private static final String STATE_TRANSITION_JUMP_FALLING_TO_LANDING = "falling_to_landing";
-    private static final String STATE_TRANSITION_JUMP_LANDING_TO_JUMPING = "landing_to_jumping";
-    private static final String STATE_TRANSITION_JUMP_LANDING_TO_FALLING = "landing_to_falling";
-    private static final String STATE_TRANSITION_JUMP_LANDING_TO_GROUND = "landing_to_ground";
     private static final AnimationStateMachine<JumpingStates> JUMP_STATE_MACHINE = AnimationStateMachine.of("jump_state_machine", JumpingStates.values())
             .addStateTransition(JumpingStates.ON_GROUND, JumpingStates.JUMPING, TickTimeUtils.ticksFromMayaFrames(1), 1)
             .addStateTransition(JumpingStates.ON_GROUND, JumpingStates.FALLING, TickTimeUtils.ticksFromMayaFrames(3), 2)
@@ -140,17 +131,16 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     }
 
     @Override
-    protected void buildRig(LocatorSkeleton locatorRig) {
-        locatorRig.addLocator(LOCATOR_ROOT);
-        locatorRig.addLocator(LOCATOR_CAMERA);
-        locatorRig.addLocator(LOCATOR_RIGHT_ARM, LOCATOR_LEFT_ARM);
-        locatorRig.addLocator(LOCATOR_LEFT_ARM, LOCATOR_RIGHT_ARM);
-        locatorRig.addLocator(LOCATOR_RIGHT_HAND, LOCATOR_LEFT_HAND);
-        locatorRig.addLocator(LOCATOR_LEFT_HAND, LOCATOR_RIGHT_HAND);
+    protected LocatorSkeleton<ModelPartLocators> buildRig() {
+        return LocatorSkeleton.of(ModelPartLocators.values())
+                .setLocatorMirror(ModelPartLocators.rightArm, ModelPartLocators.leftArm)
+                .setLocatorMirror(ModelPartLocators.leftArm, ModelPartLocators.rightArm)
+                .setLocatorMirror(ModelPartLocators.rightHand, ModelPartLocators.leftHand)
+                .setLocatorMirror(ModelPartLocators.leftHand, ModelPartLocators.rightHand);
     }
 
     @Override
-    protected AnimationPose calculatePose() {
+    protected AnimationPose<ModelPartLocators> calculatePose() {
         if(getAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).isAnimNotityActive(ITEM_SWITCH_NOTIFY)){
             setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
         }
@@ -162,13 +152,13 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
                 Map.entry(MainItemSwitchStates.BASIC_ITEM_RAISING, getMainHandRaisePose(getStaticMainBasicItemPose())),
                 Map.entry(MainItemSwitchStates.LOWERING, getMainHandLowerPose(getStaticMainEmptyPose()))
         ));
-        AnimationPose raiseLowerStatePose = sampleAnimationState(MAINITEMSWITCH_STATE_MACHINE);
+        AnimationPose<ModelPartLocators> raiseLowerStatePose = sampleAnimationState(MAINITEMSWITCH_STATE_MACHINE);
 
         return raiseLowerStatePose;
     }
 
-    private AnimationPose getMainEmptyLocomotionPose(AnimationPose basePose, boolean applyPunch){
-        AnimationPose pose = sampleAnimationState(MAIN_EMPTY_IDLE_SEQUENCE_PLAYER);
+    private AnimationPose<ModelPartLocators> getMainEmptyLocomotionPose(AnimationPose<ModelPartLocators> basePose, boolean applyPunch){
+        AnimationPose<ModelPartLocators> pose = sampleAnimationState(MAIN_EMPTY_IDLE_SEQUENCE_PLAYER);
         pose.blendLinear(sampleAnimationState(MAIN_HAND_EMPTY_WALK_BLENDSPACE_PLAYER), getEntityAnimationVariable(WALK_WEIGHT));
 
         getAnimationState(JUMP_STATE_MACHINE).setPoses(Map.ofEntries(
@@ -195,17 +185,17 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         return pose.getSubtracted(getStaticMainEmptyPose()).getAdded(basePose);
     }
 
-    private AnimationPose getMainHandLowerPose(AnimationPose basePose){
-        AnimationPose pose = sampleAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER);
+    private AnimationPose<ModelPartLocators> getMainHandLowerPose(AnimationPose<ModelPartLocators> basePose){
+        AnimationPose<ModelPartLocators> pose = sampleAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER);
         return pose.getSubtracted(getStaticMainEmptyPose()).getAdded(basePose);
     }
 
 
-    private AnimationPose getStaticMainEmptyPose(){
+    private AnimationPose<ModelPartLocators> getStaticMainEmptyPose(){
         return AnimationPose.fromChannelTimeline(this.locatorSkeleton, ANIMATION_FP_RIGHT_EMPTY_PUNCH, 0);
     }
 
-    private AnimationPose getStaticMainBasicItemPose(){
+    private AnimationPose<ModelPartLocators> getStaticMainBasicItemPose(){
         return AnimationPose.fromChannelTimeline(this.locatorSkeleton, ANIMATION_FP_RIGHT_BASICITEM_POSE, 0);
     }
 
@@ -285,17 +275,17 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
 
         if(this.localBakedPose == null){
             this.localBakedPose = new BakedAnimationPose();
-            this.localBakedPose.setPose(new AnimationPose(this.locatorSkeleton));
+            this.localBakedPose.setPose(AnimationPose.of(this.locatorSkeleton));
         }
         if(!this.localBakedPose.hasPose){
-            this.localBakedPose.setPose(new AnimationPose(this.locatorSkeleton));
+            this.localBakedPose.setPose(AnimationPose.of(this.locatorSkeleton));
             this.localBakedPose.hasPose = true;
         }
         this.localBakedPose.pushToOld();
 
         AnimationPose animationPose = this.calculatePose();
         if (animationPose == null){
-            animationPose = new AnimationPose(this.locatorSkeleton);
+            animationPose = AnimationPose.of(this.locatorSkeleton);
         }
         animationPose.applyDefaultPoseOffset();
 

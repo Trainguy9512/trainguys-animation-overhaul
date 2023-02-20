@@ -46,7 +46,7 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
         //poseStack.translate(Mth.sin(bob / 6), 0, 0);
         //poseStack.mulPose(Vector3f.ZP.rotation(Mth.sin(bob / 6) / 4));
 
-        BakedAnimationPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
+        BakedAnimationPose<?> bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
 
         if(shouldUseAlternateRotations(bakedPose)){
 
@@ -74,7 +74,7 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
 
     @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V", ordinal = 0))
     private void removeBedTranslation(PoseStack instance, float d, float e, float f, T livingEntity){
-        BakedAnimationPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
+        BakedAnimationPose<?> bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
         if(shouldUseAlternateRotations(bakedPose)){
 
         } else {
@@ -84,20 +84,27 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
 
     @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
     private void translateAndRotateAfterScale(T livingEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
+        /*
         BakedAnimationPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
         if(shouldUseAlternateRotations(bakedPose)){
             poseStack.translate(0, -1.5, 0);
             bakedPose.getBlendedPose(g).getLocatorPose(ROOT).translateAndRotatePoseStack(poseStack);
             poseStack.translate(0, 1.5, 0);
         }
+
+         */
     }
 
-    private boolean shouldUseAlternateRotations(BakedAnimationPose bakedPose){
+    private boolean shouldUseAlternateRotations(BakedAnimationPose<?> bakedPose){
+        /*
         if(bakedPose != null){
             if(bakedPose.containsLocator(ROOT)){
                 return true;
             }
         }
+        return false;
+
+         */
         return false;
     }
 

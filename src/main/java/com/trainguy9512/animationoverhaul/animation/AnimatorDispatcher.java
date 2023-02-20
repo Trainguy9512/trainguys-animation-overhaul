@@ -18,22 +18,22 @@ public class AnimatorDispatcher {
     public static final AnimatorDispatcher INSTANCE = new AnimatorDispatcher();
 
     private final HashMap<UUID, AnimationDataContainer> entityAnimationDataMap = Maps.newHashMap();
-    private final HashMap<UUID, BakedAnimationPose> bakedPoseMap = Maps.newHashMap();
+    private final HashMap<UUID, BakedAnimationPose<?>> bakedPoseMap = Maps.newHashMap();
 
     public AnimatorDispatcher(){
     }
 
-    public void tickEntity(LivingEntity livingEntity, LivingEntityAnimator<?, ?> livingEntityPartAnimator){
+    public void tickEntity(LivingEntity livingEntity, LivingEntityAnimator<?, ?, ?> livingEntityPartAnimator){
         if(!entityAnimationDataMap.containsKey(livingEntity.getUUID())){
             entityAnimationDataMap.put(livingEntity.getUUID(), new AnimationDataContainer());
         }
         livingEntityPartAnimator.tick(livingEntity);
     }
 
-    public <T extends LivingEntity, M extends EntityModel<T>> boolean animateEntity(T livingEntity, M entityModel, PoseStack poseStack, float partialTicks){
+    public <T extends LivingEntity, M extends EntityModel<T>, L extends Enum<L>> boolean animateEntity(T livingEntity, M entityModel, PoseStack poseStack, float partialTicks){
         if(entityAnimationDataMap.containsKey(livingEntity.getUUID())){
             if(AnimationOverhaulMain.ENTITY_ANIMATORS.contains(livingEntity.getType())){
-                LivingEntityAnimator<T, M> livingEntityPartAnimator = (LivingEntityAnimator<T, M>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(livingEntity.getType());
+                LivingEntityAnimator<T, M, L> livingEntityPartAnimator = (LivingEntityAnimator<T, M, L>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(livingEntity.getType());
                 livingEntityPartAnimator.applyBakedPose(livingEntity, entityModel, poseStack, entityAnimationDataMap.get(livingEntity.getUUID()), partialTicks);
                 return true;
             }
@@ -46,9 +46,9 @@ public class AnimatorDispatcher {
     }
 
     @Nullable
-    public BakedAnimationPose getBakedPose(UUID uuid){
+    public <L extends Enum<L>> BakedAnimationPose<L> getBakedPose(UUID uuid){
         if(this.bakedPoseMap.containsKey(uuid)){
-            return this.bakedPoseMap.get(uuid);
+            return (BakedAnimationPose<L>) this.bakedPoseMap.get(uuid);
         }
         return null;
     }

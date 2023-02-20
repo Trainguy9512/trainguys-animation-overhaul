@@ -14,18 +14,17 @@ import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Random;
 
-public abstract class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<T>> {
+public abstract class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<T>, L extends Enum<L>> {
 
     protected T livingEntity;
     protected M entityModel;
-    protected final LocatorSkeleton locatorSkeleton;
+    protected final LocatorSkeleton<L> locatorSkeleton;
 
     protected AnimationDataContainer entityAnimationData;
     protected final Random random = new Random();
 
     public LivingEntityAnimator(){
-        this.locatorSkeleton = new LocatorSkeleton();
-        buildRig(this.locatorSkeleton);
+        this.locatorSkeleton = buildRig();
     }
 
     public void setEntity(T livingEntity){
@@ -36,15 +35,15 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
         this.entityModel = entityModel;
     }
 
-    protected void buildRig(LocatorSkeleton locatorRig){
-
+    protected LocatorSkeleton<L> buildRig(){
+        return new LocatorSkeleton<L>();
     }
 
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData){
 
     }
 
-    protected AnimationPose calculatePose(){
+    protected AnimationPose<L> calculatePose(){
         return null;
     }
 
@@ -67,11 +66,11 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
         getEntityAnimationData().setValue(dataKey, value);
     }
 
-    protected AnimationPose sampleAnimationState(SampleableAnimationState sampleableAnimationState){
+    protected AnimationPose<L> sampleAnimationState(SampleableAnimationState sampleableAnimationState){
         return getEntityAnimationData().sampleAnimationState(this.locatorSkeleton, sampleableAnimationState);
     }
 
-    protected AnimationPose sampleAnimationStateFromInputPose(SampleableAnimationState sampleableAnimationState, AnimationPose inputPose){
+    protected AnimationPose<L> sampleAnimationStateFromInputPose(SampleableAnimationState sampleableAnimationState, AnimationPose inputPose){
         return getEntityAnimationData().sampleAnimationStateFromInputPose(inputPose.getCopy(), this.locatorSkeleton, sampleableAnimationState);
     }
 
@@ -80,7 +79,7 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
     }
 
     public void tick(LivingEntity livingEntity){
-        BakedAnimationPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
+        BakedAnimationPose<L> bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
         AnimationDataContainer entityAnimationData = AnimatorDispatcher.INSTANCE.getEntityAnimationData(livingEntity.getUUID());
         this.entityAnimationData = entityAnimationData;
         this.setEntity((T)livingEntity);
@@ -90,18 +89,18 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
         getEntityAnimationData().tickAnimationStates();
 
         if(bakedPose == null){
-            bakedPose = new BakedAnimationPose();
+            bakedPose = new BakedAnimationPose<L>();
         }
         if(!bakedPose.hasPose){
-            bakedPose.setPose(new AnimationPose(this.locatorSkeleton));
+            bakedPose.setPose(AnimationPose.of(this.locatorSkeleton));
             bakedPose.hasPose = true;
         }
         bakedPose.pushToOld();
 
         //this.locatorRig.resetRig();
-        AnimationPose animationPose = this.calculatePose();
+        AnimationPose<L> animationPose = this.calculatePose();
         if (animationPose == null){
-            animationPose = new AnimationPose(this.locatorSkeleton);
+            animationPose = AnimationPose.of(this.locatorSkeleton);
         }
         animationPose.applyDefaultPoseOffset();
 
@@ -113,9 +112,10 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
         setEntity(livingEntity);
         setEntityModel(entityModel);
 
-        BakedAnimationPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
+        BakedAnimationPose<L> bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
 
         ModelPart rootModelPart = getRoot(entityModel);
+        assert bakedPose != null;
         bakedPose.bakeToModelParts(rootModelPart, partialTicks);
         finalizeModelParts(rootModelPart);
     }

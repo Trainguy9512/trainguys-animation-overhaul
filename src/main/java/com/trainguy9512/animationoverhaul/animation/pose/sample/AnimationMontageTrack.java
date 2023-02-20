@@ -1,14 +1,10 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-
 import java.util.ArrayList;
-import java.util.List;
 
 public class AnimationMontageTrack extends SampleableAnimationState {
 
@@ -42,18 +38,18 @@ public class AnimationMontageTrack extends SampleableAnimationState {
     }
 
     @Override
-    public AnimationPose sample(LocatorSkeleton locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
-        return new AnimationPose(locatorSkeleton);
+    public <L extends Enum<L>> AnimationPose<L> sample(LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
+        return AnimationPose.of(locatorSkeleton);
     }
 
     @Override
-    public AnimationPose sampleFromInputPose(AnimationPose inputPose, LocatorSkeleton locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
+    public <L extends Enum<L>> AnimationPose<L> sampleFromInputPose(AnimationPose<L> inputPose, LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
         return getBlendedPose(inputPose, locatorSkeleton);
     }
 
-    private AnimationPose getBlendedPose(AnimationPose inputPose, LocatorSkeleton locatorSkeleton){
+    private <L extends Enum<L>> AnimationPose<L> getBlendedPose(AnimationPose<L> inputPose, LocatorSkeleton<L> locatorSkeleton){
         // Initialize the animation pose
-        AnimationPose animationPose = new AnimationPose(locatorSkeleton);
+        AnimationPose<L> animationPose = AnimationPose.of(locatorSkeleton);
 
         // Only do this stuff if there's any loaded animation montages
         if(this.activeMontages.size() > 0){

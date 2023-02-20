@@ -12,11 +12,11 @@ public class SampleableAnimationState {
         this.identifier = identifier;
     }
 
-    public AnimationPose sample(LocatorSkeleton locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
-        return new AnimationPose(locatorSkeleton);
+    public <L extends Enum<L>> AnimationPose<L> sample(LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
+        return AnimationPose.of(locatorSkeleton);
     }
 
-    public AnimationPose sampleFromInputPose(AnimationPose inputPose, LocatorSkeleton locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
+    public <L extends Enum<L>> AnimationPose<L> sampleFromInputPose(AnimationPose<L> inputPose, LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
         return this.sample(locatorSkeleton, cachedPoseContainer);
     }
 

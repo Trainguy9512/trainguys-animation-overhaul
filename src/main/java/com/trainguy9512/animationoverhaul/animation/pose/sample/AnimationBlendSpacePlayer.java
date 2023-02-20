@@ -1,7 +1,5 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
-import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
@@ -62,9 +60,9 @@ public class AnimationBlendSpacePlayer extends TimeBasedAnimationState {
     }
 
     @Override
-    public AnimationPose sample(LocatorSkeleton locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
+    public <L extends Enum<L>> AnimationPose<L> sample(LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
         if(this.blendSpaceEntryTreeMap.entrySet().size() == 0){
-            return new AnimationPose(locatorSkeleton);
+            return AnimationPose.of(locatorSkeleton);
         }
 
         var firstEntry = this.blendSpaceEntryTreeMap.floorEntry(this.currentValue);
@@ -106,7 +104,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedAnimationState {
             return (time % frameLength) / frameLength;
         }
 
-        private AnimationPose sampleEntry(LocatorSkeleton locatorSkeleton, float time) {
+        private<L extends Enum<L>>  AnimationPose<L> sampleEntry(LocatorSkeleton<L> locatorSkeleton, float time) {
             return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, this.getTimeFromTicks(time));
         }
     }

@@ -43,11 +43,11 @@ public abstract class MixinItemInHandRenderer {
     private void overwriteItemInHandRendering(float f, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, LocalPlayer localPlayer, int i, CallbackInfo ci){
 
         if(FirstPersonPlayerAnimator.INSTANCE.localBakedPose != null){
-            AnimationPose animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-            MutablePartPose rightArmPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.LOCATOR_RIGHT_ARM);
-            MutablePartPose leftArmPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.LOCATOR_LEFT_ARM);
-            MutablePartPose rightHandPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.LOCATOR_RIGHT_HAND);
-            MutablePartPose leftHandPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.LOCATOR_LEFT_HAND);
+            AnimationPose<FirstPersonPlayerAnimator.ModelPartLocators> animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
+            MutablePartPose rightArmPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.rightArm);
+            MutablePartPose leftArmPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.leftArm);
+            MutablePartPose rightHandPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.rightHand);
+            MutablePartPose leftHandPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.ModelPartLocators.leftHand);
 
             poseStack.pushPose();
             poseStack.mulPose(Axis.ZP.rotationDegrees(180));
@@ -90,10 +90,10 @@ public abstract class MixinItemInHandRenderer {
         ci.cancel();
     }
 
-    private void renderItemInHand(AbstractClientPlayer abstractClientPlayer, ItemStack itemStack, PoseStack poseStack, HumanoidArm humanoidArm, AnimationPose animationPose, MultiBufferSource multiBufferSource, int i){
+    private void renderItemInHand(AbstractClientPlayer abstractClientPlayer, ItemStack itemStack, PoseStack poseStack, HumanoidArm humanoidArm, AnimationPose<FirstPersonPlayerAnimator.ModelPartLocators> animationPose, MultiBufferSource multiBufferSource, int i){
 
-        MutablePartPose armPose = animationPose.getLocatorPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.LOCATOR_LEFT_ARM : FirstPersonPlayerAnimator.LOCATOR_RIGHT_ARM);
-        MutablePartPose handPose = animationPose.getLocatorPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.LOCATOR_LEFT_HAND : FirstPersonPlayerAnimator.LOCATOR_RIGHT_HAND);
+        MutablePartPose armPose = animationPose.getLocatorPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.ModelPartLocators.leftArm : FirstPersonPlayerAnimator.ModelPartLocators.rightArm);
+        MutablePartPose handPose = animationPose.getLocatorPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.ModelPartLocators.leftHand : FirstPersonPlayerAnimator.ModelPartLocators.rightHand);
 
         poseStack.pushPose();
         armPose.transformPoseStack(poseStack);

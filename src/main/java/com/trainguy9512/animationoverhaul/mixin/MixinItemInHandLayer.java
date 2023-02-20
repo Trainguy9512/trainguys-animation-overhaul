@@ -3,6 +3,8 @@ package com.trainguy9512.animationoverhaul.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.trainguy9512.animationoverhaul.animation.AnimatorDispatcher;
+import com.trainguy9512.animationoverhaul.animation.entity.FirstPersonPlayerAnimator;
+import com.trainguy9512.animationoverhaul.animation.entity.PlayerPartAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -33,15 +35,19 @@ public abstract class MixinItemInHandLayer<T extends LivingEntity, M extends Ent
     @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"))
     private void transformItemInHandLayer(LivingEntity livingEntity, ItemStack itemStack, ItemTransforms.TransformType transformType, HumanoidArm humanoidArm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
         if(shouldTransformItemInHand(livingEntity)){
+
+
+            //TODO: Redo how hand stuff works, add override functions to living entity animators.
+            /*
             poseStack.popPose();
             poseStack.pushPose();
             ((ArmedModel)this.getParentModel()).translateToHand(humanoidArm, poseStack);
             poseStack.translate((humanoidArm == HumanoidArm.LEFT ? 1 : -1) /16F, 8/16F, 0);
 
-            String locatorIdentifier = humanoidArm == HumanoidArm.LEFT ? "leftHand" : "rightHand";
+            Enum<> locatorIdentifier = humanoidArm == HumanoidArm.LEFT ? PlayerPartAnimator.ModelPartLocators.leftHand : PlayerPartAnimator.ModelPartLocators.rightHand;
             //AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID()).getLocator(locatorIdentifier, Minecraft.getInstance().getFrameTime()).translateAndRotatePoseStack(poseStack);
 
-            BakedAnimationPose bakedAnimationPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
+            BakedAnimationPose<L> bakedAnimationPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
             bakedAnimationPose.getBlendedPose(Minecraft.getInstance().getFrameTime()).getLocatorPose(locatorIdentifier).translateAndRotatePoseStack(poseStack);
 
         poseStack.mulPose(Axis.XP.rotationDegrees(-90));
@@ -49,9 +55,13 @@ public abstract class MixinItemInHandLayer<T extends LivingEntity, M extends Ent
 
             //poseStack.mulPose(Vector3f.XP.rotationDegrees(Util.getMillis() / 10F));
             poseStack.translate(0, 2/16F, -2/16F);
+
+             */
         }
     }
     private boolean shouldTransformItemInHand(LivingEntity livingEntity){
+        return false;
+        /*
         BakedAnimationPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
         if(bakedPose != null){
             if(bakedPose.containsLocator("leftHand") && bakedPose.containsLocator("rightHand")){
@@ -59,5 +69,7 @@ public abstract class MixinItemInHandLayer<T extends LivingEntity, M extends Ent
             }
         }
         return false;
+
+         */
     }
 }

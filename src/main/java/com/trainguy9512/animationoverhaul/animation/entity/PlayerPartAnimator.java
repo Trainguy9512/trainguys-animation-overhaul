@@ -18,7 +18,7 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
 
-public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel<Player>> {
+public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel<Player>, PlayerPartAnimator.ModelPartLocators> {
 
     private static final String LOCATOR_ROOT = "root";
     private static final String LOCATOR_HEAD = "head";
@@ -31,45 +31,27 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
     private static final String LOCATOR_LEFT_HAND = "leftHand";
     private static final String LOCATOR_RIGHT_HAND = "rightHand";
 
-    private static final List<String> LOCATOR_LIST_ALL = List.of(
-            LOCATOR_HEAD,
-            LOCATOR_BODY,
-            LOCATOR_LEFT_LEG,
-            LOCATOR_RIGHT_LEG,
-            LOCATOR_LEFT_ARM,
-            LOCATOR_RIGHT_ARM,
-            LOCATOR_CAPE,
-            LOCATOR_LEFT_HAND,
-            LOCATOR_RIGHT_HAND
-    );
-    private static final List<String> LOCATOR_LIST_NO_HANDS = List.of(
-            LOCATOR_HEAD,
-            LOCATOR_BODY,
-            LOCATOR_LEFT_LEG,
-            LOCATOR_RIGHT_LEG,
-            LOCATOR_LEFT_ARM,
-            LOCATOR_RIGHT_ARM,
-            LOCATOR_CAPE
-    );
-    private static final List<String> LOCATOR_LIST_MASTER = List.of(
-            LOCATOR_ROOT,
-            LOCATOR_HEAD,
-            LOCATOR_BODY,
-            LOCATOR_LEFT_LEG,
-            LOCATOR_RIGHT_LEG,
-            LOCATOR_LEFT_ARM,
-            LOCATOR_RIGHT_ARM,
-            LOCATOR_CAPE,
-            LOCATOR_LEFT_HAND,
-            LOCATOR_RIGHT_HAND
-    );
+    public enum ModelPartLocators{
+        root,
+        head,
+        body,
+        leftLeg,
+        rightLeg,
+        leftArm,
+        rightArm,
+        cape,
+        leftHand,
+        rightHand
+    }
 
     public PlayerPartAnimator(){
         super();
     }
 
     @Override
-    protected void buildRig(LocatorSkeleton locatorRig) {
+    protected LocatorSkeleton<ModelPartLocators> buildRig() {
+        return LocatorSkeleton.of(ModelPartLocators.values());
+        /*
         locatorRig.addLocator(LOCATOR_ROOT);
         locatorRig.addLocatorModelPart(LOCATOR_HEAD, "head");
         locatorRig.addLocatorModelPart(LOCATOR_BODY, "body");
@@ -80,6 +62,8 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
         locatorRig.addLocatorModelPart(LOCATOR_CAPE, "cloak", PartPose.offsetAndRotation(0, 0, 2, 0, Mth.PI, 0));
         locatorRig.addLocator(LOCATOR_LEFT_HAND, LOCATOR_RIGHT_HAND);
         locatorRig.addLocator(LOCATOR_RIGHT_HAND, LOCATOR_LEFT_HAND);
+
+         */
     }
 
     @Override
@@ -88,8 +72,8 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
     }
 
     @Override
-    protected AnimationPose calculatePose() {
-        return new AnimationPose(this.locatorSkeleton);
+    protected AnimationPose<ModelPartLocators> calculatePose() {
+        return AnimationPose.of(this.locatorSkeleton);
     }
 
     @Override

@@ -44,7 +44,7 @@ public class AnimationMontage {
         setBlendWeight(Mth.clamp(isActive() ? getBlendWeight() + getBlendSpeed(true) : getBlendWeight() - getBlendSpeed(false), 0, 1));
     }
 
-    public AnimationPose getAnimationPose(LocatorSkeleton locatorSkeleton){
+    public <L extends Enum<L>> AnimationPose<L> getAnimationPose(LocatorSkeleton<L> locatorSkeleton){
         return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / TimelineGroupData.INSTANCE.get(resourceLocation).getFrameLength());
     }
 

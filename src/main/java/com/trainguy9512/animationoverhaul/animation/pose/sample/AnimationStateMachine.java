@@ -167,7 +167,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
         }
     }
 
-    private void setPose(Enum<S> identifier, AnimationPose animationPose){
+    private <L extends Enum<L>> void setPose(Enum<S> identifier, AnimationPose<L> animationPose){
         if(this.statesHashMap.containsKey(identifier)){
             this.statesHashMap.get(identifier).setAnimationPose(animationPose);
         } else {
@@ -175,14 +175,14 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
         }
     }
 
-    private AnimationPose getPoseFromState(Enum<S> identifier, LocatorSkeleton locatorSkeleton){
-        return this.statesHashMap.get(identifier).getAnimationPose(locatorSkeleton);
+    private <L extends Enum<L>> AnimationPose<L> getPoseFromState(Enum<S> identifier, LocatorSkeleton<L> locatorSkeleton){
+        return (AnimationPose<L>) this.statesHashMap.get(identifier).getAnimationPose(locatorSkeleton);
     }
 
     @Override
-    public AnimationPose sample(LocatorSkeleton locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
+    public <L extends Enum<L>> AnimationPose<L> sample(LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
         if(this.activeStates.size() > 0){
-            AnimationPose animationPose = this.getPoseFromState(this.activeStates.get(0), locatorSkeleton);
+            AnimationPose<L> animationPose = this.getPoseFromState(this.activeStates.get(0), locatorSkeleton);
             if(this.activeStates.size() > 1){
                 for(Enum<S> stateIdentifier : this.activeStates){
                     animationPose.blend(
@@ -195,7 +195,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
             return animationPose;
         }
         AnimationOverhaulMain.LOGGER.warn("No active states in state machine {}", this.getIdentifier());
-        return new AnimationPose(locatorSkeleton);
+        return AnimationPose.of(locatorSkeleton);
     }
 
     @Override
@@ -293,7 +293,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
         private boolean isActive;
         private StateTransition currentTransition;
 
-        private AnimationPose animationPose;
+        private AnimationPose<?> animationPose;
 
         private float weight = 0;
         private final HashMap<Enum<S>, StateTransition> stateTransitions = Maps.newHashMap();
@@ -310,11 +310,11 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
         }
 
         @Nullable
-        public AnimationPose getAnimationPose(LocatorSkeleton locatorSkeleton){
-            return this.animationPose != null ? this.animationPose : new AnimationPose(locatorSkeleton);
+        public AnimationPose<?> getAnimationPose(LocatorSkeleton<?> locatorSkeleton){
+            return this.animationPose != null ? this.animationPose : AnimationPose.of(locatorSkeleton);
         }
 
-        public void setAnimationPose(AnimationPose animationPose){
+        public void setAnimationPose(AnimationPose<?> animationPose){
             this.animationPose = animationPose;
         }
 
@@ -369,11 +369,10 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
 
         private boolean condition = false;
 
-        private StateTransition(float transitionTime, Easing easing, int priority/*, Enum<S> destinationStateIdentifier*/) {
+        private StateTransition(float transitionTime, Easing easing, int priority) {
             this.transitionTime = transitionTime;
             this.easing = easing;
             this.priority = priority;
-            //this.destinationStateIdentifier = destinationStateIdentifier;
         }
 
         public Easing getEasing(){
@@ -383,13 +382,6 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
         public float getTransitionTime() {
             return this.transitionTime;
         }
-
-        /*
-        public Enum<S> getDestinationStateIdentifier(){
-            return this.destinationStateIdentifier;
-        }
-
-         */
 
         public void setCondition(boolean condition){
             this.condition = condition;
