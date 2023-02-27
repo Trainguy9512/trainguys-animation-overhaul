@@ -36,6 +36,7 @@ public class MutablePartPose {
 
     private MutablePartPose(float x, float y, float z, float xRot, float yRot, float zRot){
         this(x, y, z, new Quaternionf().rotationXYZ(xRot, yRot, zRot));
+        this.setEulerRotation(new Vector3f(xRot, yRot, zRot));
     }
 
     private MutablePartPose(float x, float y, float z, Quaternionf rotation){
@@ -43,6 +44,10 @@ public class MutablePartPose {
         this.y = y;
         this.z = z;
         this.rotation = rotation;
+    }
+
+    public Vector3f getTranslation(){
+        return new Vector3f(this.x, this.y, this.z);
     }
 
     public static MutablePartPose fromTranslation(float x, float y, float z){
@@ -57,6 +62,17 @@ public class MutablePartPose {
         return new MutablePartPose(x, y, z, xRot, yRot, zRot);
     }
 
+    /*
+    public static Quaternionf getQuaternionFromEuler(Vector3f eulerRotation){
+        return new Quaternionf().rotationXYZ(eulerRotation.x(), eulerRotation.y(), eulerRotation.z());
+    }
+
+    public static Vector3f getEulerFromQuaternion(Quaternionf quaternionf){
+        return quaternionf.getEulerAnglesZYX(new Vector3f());
+    }
+
+     */
+
     public Quaternionf getRotation(){
         return this.getCopy().rotation;
     }
@@ -66,8 +82,7 @@ public class MutablePartPose {
     }
 
     public Vector3f getEulerRotation(){
-        Vector3f vector3f = new Vector3f();
-        return this.rotation.getEulerAnglesZYX(vector3f);
+        return this.rotation.getEulerAnglesXYZ(new Vector3f());
     }
 
     public void setEulerRotation(Vector3f vector3f){
@@ -106,18 +121,6 @@ public class MutablePartPose {
             rotationOriginal.add(rotationAdded);
             this.setEulerRotation(rotationOriginal);
         } else {
-            /*
-            Vector3f baseRotation = getEulerRotation();
-
-            RotationMatrix baseRotationMatrix = RotationMatrix.fromEulerAngles(baseRotation);
-            RotationMatrix multRotationMatrix = RotationMatrix.fromEulerAngles(rotation.getEulerAnglesXYZ(new Vector3f()));
-
-            baseRotationMatrix.mult(multRotationMatrix);
-
-            Vector3f finalRotation = baseRotationMatrix.toEulerAngles();
-            this.setEulerRotation(finalRotation);
-
-             */
             this.rotation.mul(rotation);
         }
         return this;
@@ -128,14 +131,15 @@ public class MutablePartPose {
     }
 
     public MutablePartPose add(MutablePartPose partPose){
-        this.translate(new Vector3f(partPose.x, partPose.y, partPose.z), false);
+        this.translate(partPose.getTranslation(), false);
         this.rotate(partPose.rotation, false);
         return this;
     }
 
     public MutablePartPose subtract(MutablePartPose partPose){
-        this.translate(new Vector3f(-partPose.x, -partPose.y, -partPose.z), false);
-        this.rotate(partPose.rotation.invert(), false);
+        this.translate(partPose.getTranslation().negate(), false);
+        //this.rotate(partPose.rotation.conjugate(), false);
+        this.rotation = this.rotation.difference(partPose.rotation);
         return this;
     }
 
@@ -200,7 +204,14 @@ public class MutablePartPose {
     }
 
     public void rotatePoseStack(PoseStack poseStack){
-        poseStack.mulPose(this.rotation);
+
+        Vector3f vector3f = this.getEulerRotation();
+        poseStack.mulPose(new Quaternionf().rotationZYX(vector3f.z(), vector3f.y(), vector3f.x()));
+
+
+        //poseStack.mulPose(this.rotation);
+
+
         /*
         if (this.zRot != 0.0F) {
             poseStack.mulPose(Axis.ZP.rotation(this.zRot));
@@ -246,7 +257,8 @@ public class MutablePartPose {
 
     public void transformPoseStack(PoseStack poseStack, float transformMultiplier){
         poseStack.translate(this.x / transformMultiplier, this.y / transformMultiplier, this.z / transformMultiplier);
-        poseStack.mulPose(this.rotation);
+        this.rotatePoseStack(poseStack);
+        //poseStack.mulPose(this.rotation);
         /*
         if (this.xRot != 0.0f || this.yRot != 0.0f || this.zRot != 0.0f) {
             poseStack.mulPose(new Quaternionf().rotationZYX(this.zRot, this.yRot, this.xRot));

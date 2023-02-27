@@ -227,8 +227,11 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         //AnimationPose additivePose = basePose.getSubtracted(getStaticMainEmptyPose());
         //return pose.getAdded(additivePose);
         if(applyAdditive) {
-            AnimationPose<FPPlayerLocators> unAddedPose = pose.getSubtracted(getStaticMainEmptyPose());
-            pose = unAddedPose.getAdded(basePose);
+            AnimationPose<FPPlayerLocators> additivePose = getStaticMainEmptyPose().getSubtracted(basePose);
+            pose = pose.getAdded(additivePose);
+
+            //AnimationPose<FPPlayerLocators> unAddedPose = pose.getSubtracted(getStaticMainEmptyPose());
+            //pose = unAddedPose.getAdded(basePose);
         }
         return pose;
 
@@ -309,6 +312,8 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
                 .setTransitionCondition(MiningStates.LOOPING, MiningStates.IDLE, !getEntityAnimationVariable(IS_MINING));
         getAnimationState(MAIN_EMPTY_MINING_BEGIN_SEQUENCE_PLAYER).playFromStartOnStateActive(MINING_STATE_MACHINE, MiningStates.BEGIN);
         getAnimationState(MAIN_EMPTY_MINING_LOOP_SEQUENCE_PLAYER).playFromStartOnStateActive(MINING_STATE_MACHINE, MiningStates.LOOPING);
+        getAnimationState(MAIN_EMPTY_MINING_LOOP_SEQUENCE_PLAYER).progressTimeIfStateActive(MINING_STATE_MACHINE, MiningStates.LOOPING);
+
 
         if(getEntityAnimationVariable(IS_ATTACKING) && !getEntityAnimationVariable(IS_MINING)){
             setEntityAnimationVariable(IS_ATTACKING, false);
@@ -332,7 +337,8 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
                 this.livingEntity.input.leftImpulse != 0;
         //AnimationOverhaulMain.LOGGER.info("{}, {}", this.livingEntity.input.forwardImpulse, this.livingEntity.animationSpeed);
         getEntityAnimationData().incrementInFramesFromCondition(WALK_WEIGHT, isInputtingMovement, 2, 4);
-        getAnimationState(MAIN_HAND_EMPTY_WALK_BLENDSPACE_PLAYER).setValue(this.livingEntity.animationSpeed);
+        getAnimationState(MAIN_HAND_EMPTY_WALK_BLENDSPACE_PLAYER).setValue(this.getWalkAnimationState().speed());
+
     }
 
     public void tickExternal(){

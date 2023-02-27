@@ -96,24 +96,6 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
         return false;
     }
 
-    public <S extends Enum<S>> void playFromStartOnStateActive(AnimationStateMachine<S> animationStateMachine, S stateIdentifier){
-        this.playFromStartOnStateActive(animationStateMachine, List.of(stateIdentifier));
-    }
-
-    public <S extends Enum<S>> void playFromStartOnStateActive(AnimationStateMachine<S> animationStateMachine, List<S> stateIdentifiers){
-        boolean statesActive = false;
-        for(S stateIdentifier : stateIdentifiers){
-            if(!statesActive){
-                if(animationStateMachine.containsState(stateIdentifier)){
-                    statesActive = animationStateMachine.getState(stateIdentifier).getWeight() != 0;
-                }
-            }
-        }
-        if(!statesActive){
-            this.resetTime();
-        }
-    }
-
     @Override
     public <L extends Enum<L>> AnimationPose<L> sample(LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
         return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, this.getTimeFromTicks());

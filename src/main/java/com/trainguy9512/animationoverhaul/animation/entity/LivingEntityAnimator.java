@@ -11,6 +11,7 @@ import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.WalkAnimationState;
 
 import java.util.Random;
 
@@ -76,6 +77,10 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
 
     protected <D extends SampleableAnimationState> D getAnimationState(D sampleableAnimationState){
         return getEntityAnimationData().getAnimationState(sampleableAnimationState);
+    }
+
+    protected WalkAnimationState getWalkAnimationState(){
+        return this.livingEntity != null ? this.livingEntity.walkAnimation : new WalkAnimationState();
     }
 
     public void tick(LivingEntity livingEntity){

@@ -1,5 +1,6 @@
 package com.trainguy9512.animationoverhaul.util.time;
 
+import com.trainguy9512.animationoverhaul.animation.pose.MutablePartPose;
 import com.trainguy9512.animationoverhaul.util.data.TransformChannel;
 import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
@@ -41,6 +42,8 @@ public class ChannelTimeline {
             firstKeyframe = secondKeyframe;
         }
 
+
+        /*
         Quaternionf rotationFirst = new Quaternionf()
                 .rotationZYX(
                         this.getKeyframeValue(TransformChannel.zRot, time, true),
@@ -53,6 +56,33 @@ public class ChannelTimeline {
                         this.getKeyframeValue(TransformChannel.yRot, time, false),
                         this.getKeyframeValue(TransformChannel.xRot, time, false)
                         );
+         */
+
+        Quaternionf rotationFirst = new Quaternionf()
+                .rotationXYZ(
+                        this.getKeyframeValue(TransformChannel.xRot, time, true),
+                        this.getKeyframeValue(TransformChannel.yRot, time, true),
+                        this.getKeyframeValue(TransformChannel.zRot, time, true)
+                );
+        Quaternionf rotationSecond = new Quaternionf()
+                .rotationXYZ(
+                        this.getKeyframeValue(TransformChannel.xRot, time, false),
+                        this.getKeyframeValue(TransformChannel.yRot, time, false),
+                        this.getKeyframeValue(TransformChannel.zRot, time, false)
+                );
+
+
+        /*
+        Quaternionf rotationFirst = new Quaternionf()
+                .rotationY(this.getKeyframeValue(TransformChannel.yRot, time, true))
+                .rotationZ(this.getKeyframeValue(TransformChannel.zRot, time, true))
+                .rotationX(this.getKeyframeValue(TransformChannel.xRot, time, true));
+        Quaternionf rotationSecond = new Quaternionf()
+                .rotationY(this.getKeyframeValue(TransformChannel.yRot, time, false))
+                .rotationZ(this.getKeyframeValue(TransformChannel.zRot, time, false))
+                .rotationX(this.getKeyframeValue(TransformChannel.xRot, time, false));
+
+         */
 
         if (firstKeyframe.getKey().equals(secondKeyframe.getKey()))
             return rotationFirst;
