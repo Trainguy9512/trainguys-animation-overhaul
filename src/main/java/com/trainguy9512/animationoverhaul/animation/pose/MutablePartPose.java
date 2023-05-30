@@ -122,6 +122,11 @@ public class MutablePartPose {
             this.setEulerRotation(rotationOriginal);
         } else {
             this.rotation.mul(rotation);
+
+            //Vector3f rotationOriginal = this.rotation.getEulerAnglesXYZ(new Vector3f());
+            //Vector3f rotationAdded = rotation.getEulerAnglesZYX(new Vector3f());
+            //this.rotation.mul(new Quaternionf().rotationZYX(rotationAdded.z(), rotationAdded.y(), rotationAdded.x()));
+
         }
         return this;
     }
@@ -175,13 +180,17 @@ public class MutablePartPose {
     }
 
     public static MutablePartPose getMutablePartPoseFromChannelTimeline(ResourceLocation resourceLocation, String partName, float time){
-        ChannelTimeline channelTimeline = TimelineGroupData.INSTANCE.get(resourceLocation).getPartTimeline(partName);
-        return new MutablePartPose(
-                channelTimeline.getValueAt(TransformChannel.x, time),
-                channelTimeline.getValueAt(TransformChannel.y, time),
-                channelTimeline.getValueAt(TransformChannel.z, time),
-                channelTimeline.getRotationAt(time)
-        );
+        if(TimelineGroupData.INSTANCE.getHashMap().containsKey(resourceLocation)){
+            ChannelTimeline channelTimeline = TimelineGroupData.INSTANCE.get(resourceLocation).getPartTimeline(partName);
+            return new MutablePartPose(
+                    channelTimeline.getValueAt(TransformChannel.x, time),
+                    channelTimeline.getValueAt(TransformChannel.y, time),
+                    channelTimeline.getValueAt(TransformChannel.z, time),
+                    channelTimeline.getRotationAt(time)
+            );
+        } else {
+            return MutablePartPose.ZERO;
+        }
     }
 
     public static MutablePartPose fromPartPose(PartPose partPose){

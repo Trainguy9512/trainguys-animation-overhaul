@@ -46,20 +46,22 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_LOWER = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_lower");
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_IDLE = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_idle");
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_PUNCH = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_punch");
+    public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_USE_ITEM = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_use");
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_WALK = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_walk");
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_JUMP = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_jump");
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_MINE = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_mine");
     public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_FALLING = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_falling");
     public static final ResourceLocation ANIMATION_FP_RIGHT_BASICITEM_POSE = TimelineGroupData.getNativeResourceLocation("player/fp_right_basicitem_pose");
 
+
     public static final AnimationDataContainer.DataKey<ItemStack> MAIN_HAND_ITEM = new AnimationDataContainer.DataKey<>("main_hand_item_stack", ItemStack.EMPTY);
     public static final AnimationDataContainer.DataKey<Boolean> IS_ATTACKING = new AnimationDataContainer.DataKey<>("is_attacking", false);
     public static final AnimationDataContainer.DataKey<Boolean> IS_USING_ITEM = new AnimationDataContainer.DataKey<>("is_using_item", false);
     public static final AnimationDataContainer.DataKey<Boolean> IS_MINING = new AnimationDataContainer.DataKey<>("is_mining", false);
     public static final AnimationDataContainer.DataKey<Float> WALK_WEIGHT = new AnimationDataContainer.DataKey<>("walk_weight", 0F);
-
     public static final AnimationDataContainer.DataKey<Boolean> IS_FALLING = new AnimationDataContainer.DataKey<>("is_falling", false);
     public static final AnimationDataContainer.DataKey<Boolean> IS_JUMPING = new AnimationDataContainer.DataKey<>("is_jumping", false);
+
 
     private static final String ITEM_SWITCH_NOTIFY = "item_switch_notify";
     private static final AnimationSequencePlayer MAIN_EMPTY_RAISE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_raise_sequence_player", ANIMATION_FP_RIGHT_EMPTY_RAISE)
@@ -147,10 +149,16 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
             .setLength(TickTimeUtils.ticksFromMayaFrames(10F))
             .setBlendInDuration(1)
             .setBlendOutDuration(TickTimeUtils.ticksFromMayaFrames(8F));
+    private static final AnimationMontage MAIN_HAND_EMPTY_USE_ITEM_MONTAGE = AnimationMontage.of(ANIMATION_FP_RIGHT_EMPTY_USE_ITEM)
+            .setLength(TickTimeUtils.ticksFromMayaFrames(9F))
+            .setBlendInDuration(1)
+            .setBlendOutDuration(TickTimeUtils.ticksFromMayaFrames(5F));
+
 
     private static final AnimationBlendSpacePlayer MAIN_HAND_EMPTY_WALK_BLENDSPACE_PLAYER = AnimationBlendSpacePlayer.of("main_hand_empty_walk_blendspace_player")
             .addEntry(0, ANIMATION_FP_RIGHT_EMPTY_WALK, 0F)
             .addEntry(2, ANIMATION_FP_RIGHT_EMPTY_WALK, 2.9F);
+
 
     public FirstPersonPlayerAnimator(){
         super();
@@ -215,7 +223,10 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
 
 
         if(applyPunch){
-            pose = sampleAnimationStateFromInputPose(MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK, pose);
+            AnimationPose<FPPlayerLocators> punchPose = sampleAnimationStateFromInputPose(MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK, pose);
+
+            AnimationPose<FPPlayerLocators> cameraAdditivePose = sampleAnimationStateFromInputPose(MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK, AnimationPose.of(this.locatorSkeleton));
+            pose = punchPose.getSelectedByLocators(pose.getAdded(cameraAdditivePose), List.of(FPPlayerLocators.camera));
 
             getAnimationState(MINING_STATE_MACHINE)
                     .setPose(MiningStates.IDLE, pose)
@@ -306,7 +317,7 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
 
         // Set the conditions for the mining state machine, and reset the two animation sequences based on the state status
         getAnimationState(MINING_STATE_MACHINE)
-                .setTransitionCondition(MiningStates.IDLE, MiningStates.BEGIN, getEntityAnimationVariable(IS_MINING))
+                .setTransitionCondition(MiningStates.IDLE, MiningStates.BEGIN, getEntityAnimationVariable(IS_MINING) && !getAnimationState(MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK).isActive())
                 .setTransitionCondition(MiningStates.BEGIN, MiningStates.LOOPING, getAnimationState(MINING_STATE_MACHINE).getTimeElapsed() > TickTimeUtils.ticksFromMayaFrames(4))
                 .setTransitionCondition(MiningStates.BEGIN, MiningStates.IDLE, !getEntityAnimationVariable(IS_MINING))
                 .setTransitionCondition(MiningStates.LOOPING, MiningStates.IDLE, !getEntityAnimationVariable(IS_MINING));
@@ -328,16 +339,22 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
                         getAnimationState(MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK).playMontage(MAIN_HAND_EMPTY_PUNCH_MONTAGE);
                 }
             }
-
         }
-        //AnimationOverhaulMain.LOGGER.info(getEntityAnimationVariable(IS_MINING));
+        if(getEntityAnimationVariable(IS_USING_ITEM)){
+            setEntityAnimationVariable(IS_USING_ITEM, false);
+            ItemSwitchStates state = getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE).getActiveState();
+            switch (state){
+                case EMPTY, BASIC_ITEM:
+                    getAnimationState(MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK).playMontage(MAIN_HAND_EMPTY_USE_ITEM_MONTAGE);
+            }
+        }
 
         boolean isInputtingMovement =
                 this.livingEntity.input.forwardImpulse != 0 ||
                 this.livingEntity.input.leftImpulse != 0;
         //AnimationOverhaulMain.LOGGER.info("{}, {}", this.livingEntity.input.forwardImpulse, this.livingEntity.animationSpeed);
         getEntityAnimationData().incrementInFramesFromCondition(WALK_WEIGHT, isInputtingMovement, 2, 4);
-        getAnimationState(MAIN_HAND_EMPTY_WALK_BLENDSPACE_PLAYER).setValue(this.getWalkAnimationState().speed());
+        getAnimationState(MAIN_HAND_EMPTY_WALK_BLENDSPACE_PLAYER).setValue(this.getWalkAnimationSpeed());
 
     }
 

@@ -47,6 +47,10 @@ public class AnimationMontageTrack extends SampleableAnimationState {
         return getBlendedPose(inputPose, locatorSkeleton);
     }
 
+    public boolean isActive(){
+        return this.activeMontages.size() > 0;
+    }
+
     private <L extends Enum<L>> AnimationPose<L> getBlendedPose(AnimationPose<L> inputPose, LocatorSkeleton<L> locatorSkeleton){
         // Initialize the animation pose
         AnimationPose<L> animationPose = AnimationPose.of(locatorSkeleton);
