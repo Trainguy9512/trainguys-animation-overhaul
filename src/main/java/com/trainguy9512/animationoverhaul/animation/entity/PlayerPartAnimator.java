@@ -21,16 +21,14 @@ import java.util.List;
 
 public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel<Player>, PlayerPartAnimator.ModelPartLocators> {
 
-    private static final String LOCATOR_ROOT = "root";
-    private static final String LOCATOR_HEAD = "head";
-    private static final String LOCATOR_BODY = "body";
-    private static final String LOCATOR_LEFT_LEG = "leftLeg";
-    private static final String LOCATOR_RIGHT_LEG = "rightLeg";
-    private static final String LOCATOR_LEFT_ARM = "leftArm";
-    private static final String LOCATOR_RIGHT_ARM = "rightArm";
-    private static final String LOCATOR_CAPE = "cape";
-    private static final String LOCATOR_LEFT_HAND = "leftHand";
-    private static final String LOCATOR_RIGHT_HAND = "rightHand";
+    private static final String MODEL_PART_ROOT = "root";
+    private static final String MODEL_PART_HEAD = "head";
+    private static final String MODEL_PART_BODY = "body";
+    private static final String MODEL_PART_LEFT_LEG = "left_leg";
+    private static final String MODEL_PART_RIGHT_LEG = "right_leg";
+    private static final String MODEL_PART_LEFT_ARM = "left_arm";
+    private static final String MODEL_PART_RIGHT_ARM = "right_arm";
+    private static final String MODEL_PART_CAPE = "cloak";
 
     public enum ModelPartLocators{
         root,
@@ -71,6 +69,13 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
     @Override
     protected LocatorSkeleton<ModelPartLocators> buildRig() {
         return LocatorSkeleton.of(ModelPartLocators.values())
+                .setLocatorModelPart(ModelPartLocators.head, MODEL_PART_HEAD)
+                .setLocatorModelPart(ModelPartLocators.leftArm, MODEL_PART_LEFT_ARM)
+                .setLocatorModelPart(ModelPartLocators.rightArm, MODEL_PART_RIGHT_ARM)
+                .setLocatorModelPart(ModelPartLocators.leftLeg, MODEL_PART_LEFT_LEG)
+                .setLocatorModelPart(ModelPartLocators.rightLeg, MODEL_PART_RIGHT_LEG)
+                .setLocatorModelPart(ModelPartLocators.body, MODEL_PART_BODY)
+                .setLocatorModelPart(ModelPartLocators.cape, MODEL_PART_CAPE)
                 .setLocatorDefaultPose(ModelPartLocators.leftLeg, PartPose.offset(1.9f, 12.0f, 0.0f))
                 .setLocatorDefaultPose(ModelPartLocators.rightLeg, PartPose.offset(-1.9f, 12.0f, 0.0f))
                 .setLocatorDefaultPose(ModelPartLocators.leftArm, PartPose.offset(5.0f, 2.0f, 0.0f))
@@ -103,6 +108,7 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
         getAnimationState(TEST_STATE_MACHINE)
                 .setTransitionCondition(TestStates.IDLE, TestStates.WALKING, isWalking)
                 .setTransitionCondition(TestStates.WALKING, TestStates.IDLE, !isWalking);
+        AnimationOverhaulMain.LOGGER.info(this.getAnimationState(ANIM_TEST_IDLE_SEQUENCE_PLAYER).getPlayRate());
 
     }
 

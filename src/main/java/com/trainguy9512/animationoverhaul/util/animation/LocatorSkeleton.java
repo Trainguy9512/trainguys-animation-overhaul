@@ -57,6 +57,11 @@ public class LocatorSkeleton<L extends Enum<L>> {
         return this;
     }
 
+    public LocatorSkeleton<L> setLocatorModelPart(Enum<L> locator, String modelPartIdentifier){
+        this.locatorHashMap.get(locator).setModelPartIdentifier(modelPartIdentifier);
+        return this;
+    }
+
     /*
 
     public void addLocatorModelPart(String locator, String locatorMirrored, String modelPartIdentifier, PartPose defaultPose){
@@ -124,16 +129,27 @@ public class LocatorSkeleton<L extends Enum<L>> {
             this(mirroredLocator, null, PartPose.ZERO);
         }
 
-        public Enum<L> getMirroedLocatorIdentifier(){
-            return this.mirroedLocatorIdentifier;
-        }
-
         public void setMirroedLocatorIdentifier(Enum<L> locator){
             this.mirroedLocatorIdentifier = locator;
         }
 
+        public Enum<L> getMirroedLocatorIdentifier(){
+            return this.mirroedLocatorIdentifier;
+        }
+
         public void setDefaultPose(PartPose pose){
             this.defaultPose = pose;
+        }
+
+        public PartPose getDefaultPose(){
+            return this.defaultPose;
+        }
+
+        public void setModelPartIdentifier(String modelPartIdentifier){
+            if(!Objects.isNull(modelPartIdentifier)){
+                this.modelPartIdentifier = modelPartIdentifier;
+                this.usesModelPart = true;
+            }
         }
 
         public String getModelPartIdentifier(){
@@ -142,10 +158,6 @@ public class LocatorSkeleton<L extends Enum<L>> {
 
         public boolean getUsesModelPart(){
             return this.usesModelPart;
-        }
-
-        public PartPose getDefaultPose(){
-            return this.defaultPose;
         }
     }
 }
