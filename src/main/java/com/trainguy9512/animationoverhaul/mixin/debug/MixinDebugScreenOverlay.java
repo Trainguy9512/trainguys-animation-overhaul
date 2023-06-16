@@ -6,7 +6,7 @@ import com.trainguy9512.animationoverhaul.animation.AnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -22,7 +22,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 @Mixin(DebugScreenOverlay.class)
-public abstract class MixinDebugScreenOverlay extends GuiComponent {
+public abstract class MixinDebugScreenOverlay{
 
     @Shadow @Final private Minecraft minecraft;
 
@@ -37,21 +37,21 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
     @Shadow private HitResult liquid;
 
     @Inject(method = "drawSystemInformation", at = @At("HEAD"), cancellable = true)
-    private void drawTimerDebugInfo(PoseStack poseStack, CallbackInfo ci){
+    private void drawTimerDebugInfo(GuiGraphics guiGraphics, CallbackInfo ci){
 
         if(this.minecraft.options.fov().get() == 72){
-            poseStack.translate(this.minecraft.getWindow().getGuiScaledWidth() / 4F, 0, 0);
-            poseStack.scale(0.75F, 0.75F, 0.75F);
+            guiGraphics.pose().translate(this.minecraft.getWindow().getGuiScaledWidth() / 4F, 0, 0);
+            guiGraphics.pose().scale(0.75F, 0.75F, 0.75F);
 
-            drawTimerDebug(poseStack);
+            drawTimerDebug(guiGraphics);
 
-            poseStack.scale(1/0.75F, 1/0.75F, 1/0.75F);
-            poseStack.translate(-this.minecraft.getWindow().getGuiScaledWidth() / 4F, 0, 0);
+            guiGraphics.pose().scale(1/0.75F, 1/0.75F, 1/0.75F);
+            guiGraphics.pose().translate(-this.minecraft.getWindow().getGuiScaledWidth() / 4F, 0, 0);
             ci.cancel();
         }
     }
 
-    private void drawTimerDebug(PoseStack poseStack){
+    private void drawTimerDebug(GuiGraphics guiGraphics){
         boolean shouldRenderDebugTimers = true;
         Entity entity = AnimationOverhaulMain.debugEntity;
 
@@ -96,9 +96,8 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
                     int k = this.font.width(isWithinRange ? string + " 0.00" : string);
                     int l = this.minecraft.getWindow().getGuiScaledWidth() - 2 - k;
                     Objects.requireNonNull(this.font);
-                    fill(poseStack, l - 1, m - 1, l + k + 1, m + j - 1, -1873784752);
-                    this.font.draw(poseStack, string, (float)l, (float)m, COLOR_GREY);
-
+                     guiGraphics.fill(l - 1, m - 1, l + k + 1, m + j - 1, -1873784752);
+                    guiGraphics.drawCenteredString(this.font,string, l, m, COLOR_GREY);
                     if(isWithinRange){
                         float value = (float) data.get();
                         k = this.font.width("0.00");
@@ -106,8 +105,8 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
                         l = this.minecraft.getWindow().getGuiScaledWidth() - 2 - k;
                         int k2 = (int) (k / value);
                         int l2 = this.minecraft.getWindow().getGuiScaledWidth() - 2 - k;
-                        fill(poseStack, l - 1, m, l + k, m + j - 2, -2);
-                        fill(poseStack, l2 - 1, m, l2 + k2, m + j - 2, COLOR_GREY);
+                        guiGraphics.fill( l - 1, m, l + k, m + j - 2, -2);
+                        guiGraphics.fill(l2 - 1, m, l2 + k2, m + j - 2, COLOR_GREY);
                     }
                 }
 
@@ -118,8 +117,9 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
                 int k = this.font.width(string);
                 int l = this.minecraft.getWindow().getGuiScaledWidth() - 2 - k;
                 Objects.requireNonNull(this.font);
-                fill(poseStack, l - 1, m - 1, l + k + 1, m + j - 1, -1873784752);
-                this.font.draw(poseStack, string, (float)l, (float)m, COLOR_GREY);
+                guiGraphics.fill( l - 1, m - 1, l + k + 1, m + j - 1, -1873784752);
+                guiGraphics.drawCenteredString(this.font,string, l, m, COLOR_GREY);
+
 
             } else {
                 String string = "Animation timers not initiated!";
@@ -128,13 +128,13 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
                 int k = this.font.width(string);
                 int l = this.minecraft.getWindow().getGuiScaledWidth() - 2 - k;
                 int m = 2;
-                fill(poseStack, l - 1, m - 1, l + k + 1, m + j - 1, -1873784752);
-                this.font.draw(poseStack, string, (float)l, (float)m, COLOR_GREY);
+                guiGraphics.fill(l - 1, m - 1, l + k + 1, m + j - 1, -1873784752);
+                guiGraphics.drawCenteredString(this.font,string, l, m, COLOR_GREY);
             }
         }
     }
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    private void testCompassGadget(PoseStack poseStack, CallbackInfo ci){
+    private void testCompassGadget(GuiGraphics guiGraphics, CallbackInfo ci){
         if(this.minecraft.options.fov().get() == 73){
             ci.cancel();
         }

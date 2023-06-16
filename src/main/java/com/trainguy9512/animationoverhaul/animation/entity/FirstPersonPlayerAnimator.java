@@ -297,7 +297,7 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
                 && !this.livingEntity.isPassenger()
         );
         setEntityAnimationVariable(IS_FALLING,
-                !this.livingEntity.isOnGround()
+                !this.livingEntity.onGround()
                 && !this.livingEntity.onClimbable()
         );
         getAnimationState(JUMP_STATE_MACHINE)
