@@ -6,7 +6,6 @@ import com.trainguy9512.animationoverhaul.animation.AnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -21,6 +20,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.text.DecimalFormat;
 import java.util.*;
 
+//TODO: will have to clean this mess up later, dunno what changed with 1.20 and i don't really care toooo much about the debug gui right now so meh
+/*
 @Mixin(DebugScreenOverlay.class)
 public abstract class MixinDebugScreenOverlay extends GuiComponent {
 
@@ -140,3 +141,4 @@ public abstract class MixinDebugScreenOverlay extends GuiComponent {
         }
     }
 }
+*/

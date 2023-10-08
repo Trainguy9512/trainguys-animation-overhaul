@@ -47,7 +47,7 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
     public static final ResourceLocation ANIM_TEST_WALK = TimelineGroupData.getNativeResourceLocation("player/sprint_normal");
 
     private static final AnimationSequencePlayer ANIM_TEST_IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("anim_test_idle_sequence_player", ANIM_TEST_IDLE)
-            .setDefaultPlayRate(1F);
+            .setDefaultPlayRate(0.2F);
     private static final AnimationSequencePlayer ANIM_TEST_WALK_SEQUENCE_PLAYER = AnimationSequencePlayer.of("anim_test_walk_sequence_player", ANIM_TEST_WALK)
             .setDefaultPlayRate(1F);
 
@@ -104,7 +104,7 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
     @Override
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData) {
 
-        boolean isWalking = this.getWalkAnimationSpeed() > 0.05;
+        boolean isWalking = this.getWalkAnimationSpeed() > 0.1;
         getAnimationState(TEST_STATE_MACHINE)
                 .setTransitionCondition(TestStates.IDLE, TestStates.WALKING, isWalking)
                 .setTransitionCondition(TestStates.WALKING, TestStates.IDLE, !isWalking);

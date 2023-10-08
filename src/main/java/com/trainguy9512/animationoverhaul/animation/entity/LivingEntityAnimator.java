@@ -86,11 +86,11 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
      */
 
     protected float getWalkAnimationSpeed(){
-        return this.livingEntity.animationSpeed;
+        return this.livingEntity.walkAnimation.speed();
     }
 
     protected float getWalkAnimationPosition(){
-        return this.livingEntity.animationPosition;
+        return this.livingEntity.walkAnimation.position();
     }
 
     public void tick(LivingEntity livingEntity){
