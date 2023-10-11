@@ -394,8 +394,6 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         }
         animationPose.applyDefaultPoseOffset();
 
-        AnimationOverhaulMain.LOGGER.info(animationPose.getLocatorPose(FPPlayerLocators.rightHand).getEulerRotation());
-
 
 
         this.localBakedPose.setPose(animationPose.getCopy());
