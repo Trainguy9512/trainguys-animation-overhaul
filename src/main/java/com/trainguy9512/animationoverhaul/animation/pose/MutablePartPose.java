@@ -17,8 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Rotation;
 import org.joml.*;
-
-import java.lang.Math;
+import org.joml.Math;
 
 public class MutablePartPose {
     public float x = 0;
@@ -60,6 +59,10 @@ public class MutablePartPose {
 
     public static MutablePartPose fromTranslationAndRotation(float x, float y, float z, float xRot, float yRot, float zRot){
         return new MutablePartPose(x, y, z, xRot, yRot, zRot);
+    }
+
+    public static MutablePartPose fromTranslationAndRotation(float x, float y, float z, Quaternionf rotation){
+        return new MutablePartPose(x, y, z, rotation);
     }
 
     /*
@@ -105,7 +108,12 @@ public class MutablePartPose {
     public MutablePartPose translate(Vector3f translation, boolean localSpace){
         if(translation.x() != 0 || translation.y() != 0 || translation.z() != 0){
             if(localSpace){
-                translation.rotate(this.rotation);
+                translation.rotateX(this.getEulerRotation().x());
+                translation.rotateY(this.getEulerRotation().y());
+                translation.rotateZ(this.getEulerRotation().z());
+
+
+                //translation.rotate(this.rotation);
             }
             this.x += translation.x();
             this.y += translation.y();
@@ -116,10 +124,55 @@ public class MutablePartPose {
 
     public MutablePartPose rotate(Quaternionf rotation, boolean localSpace){
         if(localSpace){
+
+            /*
+            Vector3f eulerRotation = this.getEulerRotation();
+            rotation.rotateX(eulerRotation.x());
+            rotation.rotateY(eulerRotation.y());
+            rotation.rotateZ(eulerRotation.z());
+
+             */
+
+
+
+
+            /*
+            Vector3f eulerRotation = rotation.getEulerAnglesXYZ(new Vector3f());
+
+
+            PoseStack poseStack = new PoseStack();
+            poseStack.pushPose();
+            poseStack.setIdentity();
+            poseStack.mulPose(this.rotation);
+
+            poseStack.pushPose();
+            poseStack.mulPose(rotation);
+
+
+            this.rotation = poseStack.last().pose().getNormalizedRotation(new Quaternionf());
+
+            poseStack.popPose();
+            poseStack.popPose();
+
+             */
+
+
+
+
+            Quaternionf newRotation = new Quaternionf(rotation.x(), rotation.y(), rotation.z(), rotation.w());
+            Quaternionf oldRotation = new Quaternionf(this.rotation.x(), this.rotation.y(), this.rotation.z(), this.rotation.w());
+            this.rotation = newRotation.mul(oldRotation);
+
+
+
+
+            /*
             Vector3f rotationOriginal = this.getEulerRotation();
             Vector3f rotationAdded = rotation.getEulerAnglesXYZ(new Vector3f());
             rotationOriginal.add(rotationAdded);
             this.setEulerRotation(rotationOriginal);
+
+             */
         } else {
             this.rotation.mul(rotation);
 

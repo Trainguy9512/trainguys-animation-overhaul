@@ -68,7 +68,7 @@ public abstract class MixinItemInHandRenderer {
 
             playerModel.rightArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
             playerModel.rightSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
-            //playerModel.leftArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkinTextureLocation())), i, OverlayTexture.NO_OVERLAY);
+            //playerModel.leftArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
             //playerModel.leftSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkinTextureLocation())), i, OverlayTexture.NO_OVERLAY);
 
             /*
@@ -106,13 +106,13 @@ public abstract class MixinItemInHandRenderer {
 
 
         poseStack.pushPose();
-        armPose.transformPoseStack(poseStack);
-        poseStack.translate((humanoidArm == HumanoidArm.LEFT ? 1 : -1) /16F, 9/16F, 0);
+        //armPose.transformPoseStack(poseStack);
+        //poseStack.translate((humanoidArm == HumanoidArm.LEFT ? 1 : -1) /16F, 9/16F, 0);
         handPose.transformPoseStack(poseStack);
 
-        poseStack.mulPose(Axis.XP.rotationDegrees(-90.0f));
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
-        poseStack.translate(0F, 2F/16F, -1F/16F);
+        //poseStack.mulPose(Axis.XP.rotationDegrees(-90.0f));
+        //poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
+        //poseStack.translate(0F, 2F/16F, -1F/16F);
         this.renderItem(abstractClientPlayer, itemStack, humanoidArm == HumanoidArm.LEFT ? ItemDisplayContext.THIRD_PERSON_LEFT_HAND : ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, humanoidArm == HumanoidArm.LEFT, poseStack, multiBufferSource, i);
         //this.renderItem(abstractClientPlayer, itemStack, humanoidArm == HumanoidArm.LEFT ? ItemDisplayContext.THIRD_PERSON_LEFT_HAND : ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, humanoidArm == HumanoidArm.LEFT, poseStack, multiBufferSource, i);
         poseStack.popPose();

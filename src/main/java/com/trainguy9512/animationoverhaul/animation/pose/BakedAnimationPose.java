@@ -25,7 +25,7 @@ public class BakedAnimationPose<L extends Enum<L>> {
     public AnimationPose<L> getBlendedPose(float partialTicks){
         // uncomment this for debugging
         //partialTicks = 0;
-        return this.poseOld.getBlendedLinear(this.pose, partialTicks);
+        return this.poseOld.getBlendedLinear(this.pose, partialTicks).getHierarchyBakedPose();
     }
 
     public void bakeToModelParts(ModelPart rootModelPart, float partialTicks){

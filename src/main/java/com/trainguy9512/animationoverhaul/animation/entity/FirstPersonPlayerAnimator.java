@@ -1,7 +1,9 @@
 package com.trainguy9512.animationoverhaul.animation.entity;
 
+import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
+import com.trainguy9512.animationoverhaul.animation.pose.MutablePartPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
@@ -9,11 +11,13 @@ import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
 import com.trainguy9512.animationoverhaul.util.time.TickTimeUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Vector3f;
 
 import java.util.List;
 
@@ -166,11 +170,16 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
 
     @Override
     protected LocatorSkeleton<FPPlayerLocators> buildRig() {
-        return LocatorSkeleton.of(FPPlayerLocators.values())
+        return LocatorSkeleton.of(FPPlayerLocators.root)
+                .addChildLocator(FPPlayerLocators.camera)
+                .addChildLocator(FPPlayerLocators.leftArm)
+                .addChildLocator(FPPlayerLocators.rightArm)
+                .addChildLocator(FPPlayerLocators.leftArm, FPPlayerLocators.leftHand)
+                .addChildLocator(FPPlayerLocators.rightArm, FPPlayerLocators.rightHand)
+                .setLocatorDefaultPose(FPPlayerLocators.leftHand, PartPose.offsetAndRotation(-1, -2, -8, 0, 0, 0))
+                .setLocatorDefaultPose(FPPlayerLocators.rightHand, PartPose.offsetAndRotation(1, 2, -8, Mth.HALF_PI, 0, Mth.PI))
                 .setLocatorMirror(FPPlayerLocators.rightArm, FPPlayerLocators.leftArm)
-                .setLocatorMirror(FPPlayerLocators.leftArm, FPPlayerLocators.rightArm)
-                .setLocatorMirror(FPPlayerLocators.rightHand, FPPlayerLocators.leftHand)
-                .setLocatorMirror(FPPlayerLocators.leftHand, FPPlayerLocators.rightHand);
+                .setLocatorMirror(FPPlayerLocators.rightHand, FPPlayerLocators.leftHand);
     }
 
     @Override
@@ -190,6 +199,9 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
 
         AnimationPose<FPPlayerLocators> pose = sampleAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE);
         pose = pose.getSelectedByLocators(getCameraPose(), List.of(FPPlayerLocators.camera));
+
+
+
 
         return pose;
     }
@@ -270,6 +282,7 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public static final AnimationDataContainer.DataKey<Float> TEST_VALUE = new AnimationDataContainer.DataKey<>("test_value", 0F);
 
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData){
+
 
         // Tick the main hand lower/empty sequence players based on active states
         getAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).playFromStartOnStateActive(getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE),
@@ -380,6 +393,10 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
             animationPose = AnimationPose.of(this.locatorSkeleton);
         }
         animationPose.applyDefaultPoseOffset();
+
+        AnimationOverhaulMain.LOGGER.info(animationPose.getLocatorPose(FPPlayerLocators.rightHand).getEulerRotation());
+
+
 
         this.localBakedPose.setPose(animationPose.getCopy());
     }

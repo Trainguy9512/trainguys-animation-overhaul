@@ -68,7 +68,14 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
     // Building the locator rig
     @Override
     protected LocatorSkeleton<ModelPartLocators> buildRig() {
-        return LocatorSkeleton.of(ModelPartLocators.values())
+        return LocatorSkeleton.of(ModelPartLocators.root)
+                .addChildLocator(ModelPartLocators.body)
+                .addChildLocator(ModelPartLocators.cape)
+                .addChildLocator(ModelPartLocators.leftArm)
+                .addChildLocator(ModelPartLocators.rightArm)
+                .addChildLocator(ModelPartLocators.leftLeg)
+                .addChildLocator(ModelPartLocators.rightLeg)
+                .addChildLocator(ModelPartLocators.head)
                 .setLocatorModelPart(ModelPartLocators.head, MODEL_PART_HEAD)
                 .setLocatorModelPart(ModelPartLocators.leftArm, MODEL_PART_LEFT_ARM)
                 .setLocatorModelPart(ModelPartLocators.rightArm, MODEL_PART_RIGHT_ARM)
@@ -108,7 +115,7 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
         getAnimationState(TEST_STATE_MACHINE)
                 .setTransitionCondition(TestStates.IDLE, TestStates.WALKING, isWalking)
                 .setTransitionCondition(TestStates.WALKING, TestStates.IDLE, !isWalking);
-        AnimationOverhaulMain.LOGGER.info(this.getAnimationState(ANIM_TEST_IDLE_SEQUENCE_PLAYER).getPlayRate());
+        //AnimationOverhaulMain.LOGGER.info(this.getAnimationState(ANIM_TEST_IDLE_SEQUENCE_PLAYER).getPlayRate());
 
     }
 

@@ -1,10 +1,16 @@
 package com.trainguy9512.animationoverhaul.animation.pose;
 
 import com.google.common.collect.Maps;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.List;
@@ -60,6 +66,48 @@ public class AnimationPose<L extends Enum<L>> {
     }
 
      */
+
+    public AnimationPose<L> getHierarchyBakedPose(){
+        AnimationPose<L> animationPose = this.getCopy();
+        animationPose.transformChildren(this.getSkeleton().getRootLocator());
+        return animationPose;
+    }
+
+    private void transformChildren(Enum<L> parent){
+        MutablePartPose parentPose = this.getLocatorPose(parent);
+
+        for (Enum<L> child : this.getSkeleton().getLocatorChildren(parent)){
+            MutablePartPose childPose = this.getLocatorPose(child).getCopy();
+
+            /*
+            PoseStack poseStack = new PoseStack();
+            parentPose.transformPoseStack(poseStack, 1);
+            poseStack.pushPose();
+            childPose.transformPoseStack(poseStack, 1);
+
+            Matrix4f pose = poseStack.last().pose();
+            Quaternionf rotation = pose.getNormalizedRotation(new Quaternionf());
+            this.setLocatorPose(child, MutablePartPose.fromTranslationAndRotation(
+                    pose.m30(),
+                    pose.m31(),
+                    pose.m32(),
+                    rotation
+            ));
+
+            poseStack.popPose();
+
+             */
+
+
+            this.setLocatorPose(child, parentPose
+                    .getCopy()
+                    .translate(childPose.getTranslation(), true)
+                    .rotate(childPose.getRotation(), true)
+            );
+
+            transformChildren(child);
+        }
+    }
 
     public void blend(AnimationPose<L> animationPose, float alpha, Easing easing){
         for(Enum<L> locator : this.getSkeleton().getLocators()){
