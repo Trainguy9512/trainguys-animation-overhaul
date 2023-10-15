@@ -60,7 +60,7 @@ public class LocatorSkeleton<L extends Enum<L>> {
         return this;
     }
 
-    public LocatorSkeleton<L> addChildLocator(Enum<L> locatorParent, Enum<L> locatorChild){
+    public LocatorSkeleton<L> addChildLocator(Enum<L> locatorChild, Enum<L> locatorParent){
         if(this.locatorHashMap.keySet().contains(locatorParent)){
             this.addLocator(locatorChild);
             this.locatorHashMap.get(locatorParent).addChild(locatorChild);
@@ -69,7 +69,7 @@ public class LocatorSkeleton<L extends Enum<L>> {
     }
 
     public LocatorSkeleton<L> addChildLocator(Enum<L> locatorChild){
-        return this.addChildLocator(this.rootLocator, locatorChild);
+        return this.addChildLocator(locatorChild, this.rootLocator);
     }
 
     public List<Enum<L>> getLocatorChildren(Enum<L> locator){

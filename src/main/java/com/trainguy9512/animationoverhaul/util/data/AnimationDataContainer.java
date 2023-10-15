@@ -173,6 +173,7 @@ public class AnimationDataContainer {
      * @param framesToIncrement  Time in frames to increment from 0 to 1
      * @param framesToDecrement  Time in frames to decrement from 1 to 0
      */
+    @Deprecated
     public void incrementInFramesFromCondition(DataKey<Float> dataKey, boolean condition, float framesToIncrement, float framesToDecrement){
         this.incrementInTicksFromCondition(dataKey, condition, TickTimeUtils.ticksFromMayaFrames(framesToIncrement), TickTimeUtils.ticksFromMayaFrames(framesToDecrement));
     }
@@ -201,6 +202,7 @@ public class AnimationDataContainer {
      * @param condition             Boolean condition to decide whether the value should reset to 0 or increment
      * @param framesToIncrement     Time in frames to increment from 0 to 1
      */
+    @Deprecated
     public void incrementInFramesOrResetFromCondition(DataKey<Float> dataKey, boolean condition, float framesToIncrement){
         this.incrementInTicksOrResetFromCondition(dataKey, condition, TickTimeUtils.ticksFromMayaFrames(framesToIncrement));
     }

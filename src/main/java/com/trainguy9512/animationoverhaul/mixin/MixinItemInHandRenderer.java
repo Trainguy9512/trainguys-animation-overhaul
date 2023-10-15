@@ -68,8 +68,8 @@ public abstract class MixinItemInHandRenderer {
 
             playerModel.rightArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
             playerModel.rightSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
-            //playerModel.leftArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
-            //playerModel.leftSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkinTextureLocation())), i, OverlayTexture.NO_OVERLAY);
+            playerModel.leftArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
+            playerModel.leftSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
 
             /*
             poseStack.pushPose();

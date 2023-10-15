@@ -204,6 +204,14 @@ def executeScript(controlFrameStart, controlFrameEnd, controlEntityKey, controlE
         if frameEnd > frameStart:
             exportAnimation(frameStart, frameEnd, entityKey, exportJoints, directory)
     
+def getFrameRate():
+    value = str(cmds.currentUnit(q=True, time=True))
+    if "film" in value:
+        return 24
+    if "fps" in value:
+        return int(value.split('fps')[0])
+    return 0
+
 def exportAnimation(frameStart, frameEnd, entityKey, exportJoints, directory):
     
     fileName = cmds.file(query=True, sceneName=True, shortName=True)
@@ -215,7 +223,16 @@ def exportAnimation(frameStart, frameEnd, entityKey, exportJoints, directory):
     attributes = ['translateX', 'translateY', 'translateZ', 'rotateX', 'rotateY', 'rotateZ']
     attributesJava = ['x', 'y', 'z', 'xRot', 'yRot', 'zRot']
     
-    masterDict = {"format_version": '0.2', "frame_length": frameEnd - frameStart}
+    
+    # If the framerate is not valid (returns 0), end
+    if getFrameRate() is 0:
+        return
+    
+    masterDict = {
+        "format_version": '0.3', 
+        "frame_length": frameEnd - frameStart,
+        "frame_rate": getFrameRate()
+        }
     partsList = []
     
     for joint in exportJoints:

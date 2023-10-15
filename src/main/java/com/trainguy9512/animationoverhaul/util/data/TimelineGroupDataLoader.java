@@ -29,7 +29,7 @@ public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map
 
     //<Map<ResourceLocation, JsonElement>>
 
-    private static final String FORMAT_VERSION = "0.2";
+    private static final String FORMAT_VERSION = "0.3";
 
     @Override
     public CompletableFuture<Map<ResourceLocation, JsonElement>> load(ResourceManager resourceManager, ProfilerFiller profiler, Executor executor) {
@@ -180,7 +180,6 @@ public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map
 
                 //String entityKey = resourceLocationKey.toString().split("/")[1];
                 //String animationKey = resourceLocationKey.toString().split("/")[2].split("\\.")[0];
-                float frameTime = animationJSON.getAsJsonObject().get("frame_length").getAsFloat() / 1.2F;
                 String formatVersion;
                 if(animationJSON.getAsJsonObject().has("format_version")){
                     formatVersion = animationJSON.getAsJsonObject().get("format_version").getAsString();
@@ -189,6 +188,9 @@ public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map
                 }
 
                 if(Objects.equals(formatVersion, FORMAT_VERSION)){
+                    float frameRate = animationJSON.getAsJsonObject().get("frame_rate").getAsFloat();
+                    float frameTime = animationJSON.getAsJsonObject().get("frame_length").getAsFloat() / (frameRate / 20F);
+
                     TimelineGroupData.TimelineGroup timelineGroup = new TimelineGroupData.TimelineGroup(frameTime);
 
                     JsonArray partArrayJSON = animationJSON.getAsJsonObject().get("parts").getAsJsonArray();

@@ -84,8 +84,8 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
         this.setTimeElapsed(this.startTime);
     }
 
-    public AnimationSequencePlayer addAnimNotify(String identifier, float frame){
-        this.animNotifyMap.put(identifier, new AnimNotify(TickTimeUtils.ticksFromMayaFrames(frame)));
+    public AnimationSequencePlayer addAnimNotify(String identifier, float tick){
+        this.animNotifyMap.put(identifier, new AnimNotify(tick));
         return this;
     }
 

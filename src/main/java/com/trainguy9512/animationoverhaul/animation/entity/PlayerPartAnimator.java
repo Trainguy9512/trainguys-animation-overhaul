@@ -43,23 +43,6 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
         rightHand
     }
 
-    public static final ResourceLocation ANIM_TEST_IDLE = TimelineGroupData.getNativeResourceLocation("player/idle_normal");
-    public static final ResourceLocation ANIM_TEST_WALK = TimelineGroupData.getNativeResourceLocation("player/sprint_normal");
-
-    private static final AnimationSequencePlayer ANIM_TEST_IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("anim_test_idle_sequence_player", ANIM_TEST_IDLE)
-            .setDefaultPlayRate(0.2F);
-    private static final AnimationSequencePlayer ANIM_TEST_WALK_SEQUENCE_PLAYER = AnimationSequencePlayer.of("anim_test_walk_sequence_player", ANIM_TEST_WALK)
-            .setDefaultPlayRate(1F);
-
-    enum TestStates {
-        IDLE,
-        WALKING
-    }
-    private static final AnimationStateMachine<TestStates> TEST_STATE_MACHINE = AnimationStateMachine.of("main_hand_state_machine", TestStates.values())
-            .addStateTransition(TestStates.IDLE, TestStates.WALKING, TickTimeUtils.ticksFromMayaFrames(3))
-            .addStateTransition(TestStates.WALKING, TestStates.IDLE, TickTimeUtils.ticksFromMayaFrames(3));
-
-
 
     public PlayerPartAnimator(){
         super();
@@ -111,25 +94,14 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
     @Override
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData) {
 
-        boolean isWalking = this.getWalkAnimationSpeed() > 0.1;
-        getAnimationState(TEST_STATE_MACHINE)
-                .setTransitionCondition(TestStates.IDLE, TestStates.WALKING, isWalking)
-                .setTransitionCondition(TestStates.WALKING, TestStates.IDLE, !isWalking);
-        //AnimationOverhaulMain.LOGGER.info(this.getAnimationState(ANIM_TEST_IDLE_SEQUENCE_PLAYER).getPlayRate());
+
 
     }
 
     // This is the function for getting the final pose every tick
     @Override
     protected AnimationPose<ModelPartLocators> calculatePose() {
-
-        // Set the poses for each state in the machine, sampling each simple sequence player animation state
-        getAnimationState(TEST_STATE_MACHINE)
-                .setPose(TestStates.IDLE, sampleAnimationState(ANIM_TEST_IDLE_SEQUENCE_PLAYER))
-                .setPose(TestStates.WALKING, sampleAnimationState(ANIM_TEST_WALK_SEQUENCE_PLAYER));
-
-        // Sample the state machine animation state into a pose variable
-        return sampleAnimationState(TEST_STATE_MACHINE);
+        return AnimationPose.of(this.locatorSkeleton);
     }
 
     // Post-processing on the animation, copying stuff to the second layer and whatnot

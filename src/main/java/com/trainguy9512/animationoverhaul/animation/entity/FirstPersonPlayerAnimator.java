@@ -1,9 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.entity;
 
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.MutablePartPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
@@ -17,7 +15,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import org.joml.Vector3f;
 
 import java.util.List;
 
@@ -32,6 +29,8 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public enum FPPlayerLocators {
         root,
         camera,
+        rightArmBuffer,
+        leftArmBuffer,
         rightArm,
         leftArm,
         rightHand,
@@ -40,22 +39,30 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         public static final FPPlayerLocators[] arms = new FPPlayerLocators[] {
                 rightArm,
                 leftArm,
+                rightArmBuffer,
+                leftArmBuffer,
+                rightHand,
+                leftHand
+        };
+
+        public static final FPPlayerLocators[] armBufferLocators = new FPPlayerLocators[] {
+                rightArmBuffer,
+                leftArmBuffer
+        };
+
+        public static final FPPlayerLocators[] armPoseLocators = new FPPlayerLocators[] {
+                rightArm,
+                leftArm
+        };
+
+        public static final FPPlayerLocators[] handLocators = new FPPlayerLocators[] {
                 rightHand,
                 leftHand
         };
     }
 
 
-    public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_RAISE = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_raise");
-    public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_LOWER = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_lower");
-    public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_IDLE = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_idle");
-    public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_PUNCH = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_punch");
-    public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_USE_ITEM = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_use");
-    public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_WALK = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_walk");
-    public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_JUMP = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_jump");
-    public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_MINE = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_mine");
-    public static final ResourceLocation ANIMATION_FP_RIGHT_EMPTY_FALLING = TimelineGroupData.getNativeResourceLocation("player/fp_right_empty_falling");
-    public static final ResourceLocation ANIMATION_FP_RIGHT_BASICITEM_POSE = TimelineGroupData.getNativeResourceLocation("player/fp_right_basicitem_pose");
+    public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = TimelineGroupData.getNativeResourceLocation(TimelineGroupData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
 
 
     public static final AnimationDataContainer.DataKey<ItemStack> MAIN_HAND_ITEM = new AnimationDataContainer.DataKey<>("main_hand_item_stack", ItemStack.EMPTY);
@@ -66,39 +73,7 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public static final AnimationDataContainer.DataKey<Boolean> IS_FALLING = new AnimationDataContainer.DataKey<>("is_falling", false);
     public static final AnimationDataContainer.DataKey<Boolean> IS_JUMPING = new AnimationDataContainer.DataKey<>("is_jumping", false);
 
-
-    private static final String ITEM_SWITCH_NOTIFY = "item_switch_notify";
-    private static final AnimationSequencePlayer MAIN_EMPTY_RAISE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_raise_sequence_player", ANIMATION_FP_RIGHT_EMPTY_RAISE)
-            .setLooping(false)
-            .setDefaultPlayRate(1.5F);
-    private static final AnimationSequencePlayer MAIN_EMPTY_LOWER_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_lower_sequence_player", ANIMATION_FP_RIGHT_EMPTY_LOWER)
-            .addAnimNotify(ITEM_SWITCH_NOTIFY, 7)
-            .setLooping(false)
-            .setDefaultPlayRate(1.6F);
-    private static final AnimationSequencePlayer MAIN_EMPTY_IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_idle_sequence_player", ANIMATION_FP_RIGHT_EMPTY_IDLE)
-            .setDefaultPlayRate(0.8F);
-    private static final AnimationSequencePlayer MAIN_EMPTY_JUMP_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_jump_sequence_player", ANIMATION_FP_RIGHT_EMPTY_JUMP)
-            .setDefaultPlayRate(1F)
-            .setLooping(false)
-            .setStartTime(TickTimeUtils.ticksFromMayaFrames(1))
-            .setEndTime(TickTimeUtils.ticksFromMayaFrames(15));
-    private static final AnimationSequencePlayer MAIN_EMPTY_LAND_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_land_sequence_player", ANIMATION_FP_RIGHT_EMPTY_JUMP)
-            .setDefaultPlayRate(1F)
-            .setLooping(false)
-            .setStartTime(TickTimeUtils.ticksFromMayaFrames(20))
-            .setEndTime(TickTimeUtils.ticksFromMayaFrames(30));
-    private static final AnimationSequencePlayer MAIN_EMPTY_FALLING_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_falling_sequence_player", ANIMATION_FP_RIGHT_EMPTY_FALLING)
-            .setDefaultPlayRate(1F);
-    private static final AnimationSequencePlayer MAIN_EMPTY_MINING_BEGIN_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_mining_begin_sequence_player", ANIMATION_FP_RIGHT_EMPTY_MINE)
-            .setDefaultPlayRate(1F)
-            .setLooping(false)
-            .setStartTime(0)
-            .setEndTime(TickTimeUtils.ticksFromMayaFrames(6));
-    private static final AnimationSequencePlayer MAIN_EMPTY_MINING_LOOP_SEQUENCE_PLAYER = AnimationSequencePlayer.of("main_empty_mining_loop_sequence_player", ANIMATION_FP_RIGHT_EMPTY_MINE)
-            .setDefaultPlayRate(1F)
-            .setLooping(true)
-            .setStartTime(TickTimeUtils.ticksFromMayaFrames(7))
-            .setEndTime(TickTimeUtils.ticksFromMayaFrames(12));
+    private static final AnimationSequencePlayer IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("idle_sequence_player", ANIMATION_FP_PLAYER_IDLE);
 
 
     enum ItemSwitchStates {
@@ -109,12 +84,12 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         LOWERING
     }
     private static final AnimationStateMachine<ItemSwitchStates> MAINHAND_ITEMSWITCH_STATE_MACHINE = AnimationStateMachine.of("main_hand_state_machine", ItemSwitchStates.values())
-            .addStateTransition(ItemSwitchStates.EMPTY, ItemSwitchStates.LOWERING, TickTimeUtils.ticksFromMayaFrames(1))
-            .addStateTransition(ItemSwitchStates.LOWERING, ItemSwitchStates.EMPTY_RAISING, TickTimeUtils.ticksFromMayaFrames(1), 2)
-            .addStateTransition(ItemSwitchStates.EMPTY_RAISING, ItemSwitchStates.EMPTY, TickTimeUtils.ticksFromMayaFrames(3))
-            .addStateTransition(ItemSwitchStates.BASIC_ITEM, ItemSwitchStates.LOWERING, TickTimeUtils.ticksFromMayaFrames(3))
-            .addStateTransition(ItemSwitchStates.LOWERING, ItemSwitchStates.BASIC_ITEM_RAISING, TickTimeUtils.ticksFromMayaFrames(1), 1)
-            .addStateTransition(ItemSwitchStates.BASIC_ITEM_RAISING, ItemSwitchStates.BASIC_ITEM, TickTimeUtils.ticksFromMayaFrames(3));
+            .addStateTransition(ItemSwitchStates.EMPTY, ItemSwitchStates.LOWERING, 2)
+            .addStateTransition(ItemSwitchStates.LOWERING, ItemSwitchStates.EMPTY_RAISING, 1, 2)
+            .addStateTransition(ItemSwitchStates.EMPTY_RAISING, ItemSwitchStates.EMPTY, 2)
+            .addStateTransition(ItemSwitchStates.BASIC_ITEM, ItemSwitchStates.LOWERING, 2)
+            .addStateTransition(ItemSwitchStates.LOWERING, ItemSwitchStates.BASIC_ITEM_RAISING, 1, 1)
+            .addStateTransition(ItemSwitchStates.BASIC_ITEM_RAISING, ItemSwitchStates.BASIC_ITEM, 2);
 
 
 
@@ -125,14 +100,14 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         ON_GROUND
     }
     private static final AnimationStateMachine<JumpingStates> JUMP_STATE_MACHINE = AnimationStateMachine.of("jump_state_machine", JumpingStates.values())
-            .addStateTransition(JumpingStates.ON_GROUND, JumpingStates.JUMPING, TickTimeUtils.ticksFromMayaFrames(1), 1)
-            .addStateTransition(JumpingStates.ON_GROUND, JumpingStates.FALLING, TickTimeUtils.ticksFromMayaFrames(3), 2)
-            .addStateTransition(JumpingStates.JUMPING, JumpingStates.FALLING, TickTimeUtils.ticksFromMayaFrames(4), 1)
-            .addStateTransition(JumpingStates.JUMPING, JumpingStates.LANDING, TickTimeUtils.ticksFromMayaFrames(1), 2)
-            .addStateTransition(JumpingStates.FALLING, JumpingStates.LANDING, TickTimeUtils.ticksFromMayaFrames(1), 1)
-            .addStateTransition(JumpingStates.LANDING, JumpingStates.JUMPING, TickTimeUtils.ticksFromMayaFrames(2), 2)
-            .addStateTransition(JumpingStates.LANDING, JumpingStates.FALLING, TickTimeUtils.ticksFromMayaFrames(3), 3)
-            .addStateTransition(JumpingStates.LANDING, JumpingStates.ON_GROUND, TickTimeUtils.ticksFromMayaFrames(4), 1);
+            .addStateTransition(JumpingStates.ON_GROUND, JumpingStates.JUMPING, 1, 1)
+            .addStateTransition(JumpingStates.ON_GROUND, JumpingStates.FALLING, 3, 2)
+            .addStateTransition(JumpingStates.JUMPING, JumpingStates.FALLING, 4, 1)
+            .addStateTransition(JumpingStates.JUMPING, JumpingStates.LANDING, 1, 2)
+            .addStateTransition(JumpingStates.FALLING, JumpingStates.LANDING, 1, 1)
+            .addStateTransition(JumpingStates.LANDING, JumpingStates.JUMPING, 1, 2)
+            .addStateTransition(JumpingStates.LANDING, JumpingStates.FALLING, 3, 3)
+            .addStateTransition(JumpingStates.LANDING, JumpingStates.ON_GROUND, 4, 1);
 
 
     enum MiningStates {
@@ -141,14 +116,15 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         LOOPING
     }
     private static final AnimationStateMachine<MiningStates> MINING_STATE_MACHINE = AnimationStateMachine.of("mining_state_machine", MiningStates.values())
-            .addStateTransition(MiningStates.IDLE, MiningStates.BEGIN, TickTimeUtils.ticksFromMayaFrames(3))
-            .addStateTransition(MiningStates.BEGIN, MiningStates.LOOPING, TickTimeUtils.ticksFromMayaFrames(1))
-            .addStateTransition(MiningStates.BEGIN, MiningStates.IDLE, TickTimeUtils.ticksFromMayaFrames(3))
-            .addStateTransition(MiningStates.LOOPING, MiningStates.IDLE, TickTimeUtils.ticksFromMayaFrames(3));
+            .addStateTransition(MiningStates.IDLE, MiningStates.BEGIN, 2)
+            .addStateTransition(MiningStates.BEGIN, MiningStates.LOOPING, 1)
+            .addStateTransition(MiningStates.BEGIN, MiningStates.IDLE, 2)
+            .addStateTransition(MiningStates.LOOPING, MiningStates.IDLE, 2);
 
 
 
     private static final AnimationMontageTrack MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK = AnimationMontageTrack.of("main_hand_empty_punch_montage_track");
+    /*
     private static final AnimationMontage MAIN_HAND_EMPTY_PUNCH_MONTAGE = AnimationMontage.of(ANIMATION_FP_RIGHT_EMPTY_PUNCH)
             .setLength(TickTimeUtils.ticksFromMayaFrames(10F))
             .setBlendInDuration(1)
@@ -158,10 +134,16 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
             .setBlendInDuration(1)
             .setBlendOutDuration(TickTimeUtils.ticksFromMayaFrames(5F));
 
+     */
 
+
+
+    /*
     private static final AnimationBlendSpacePlayer MAIN_HAND_EMPTY_WALK_BLENDSPACE_PLAYER = AnimationBlendSpacePlayer.of("main_hand_empty_walk_blendspace_player")
             .addEntry(0, ANIMATION_FP_RIGHT_EMPTY_WALK, 0F)
             .addEntry(2, ANIMATION_FP_RIGHT_EMPTY_WALK, 2.9F);
+
+     */
 
 
     public FirstPersonPlayerAnimator(){
@@ -172,12 +154,14 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     protected LocatorSkeleton<FPPlayerLocators> buildRig() {
         return LocatorSkeleton.of(FPPlayerLocators.root)
                 .addChildLocator(FPPlayerLocators.camera)
-                .addChildLocator(FPPlayerLocators.leftArm)
-                .addChildLocator(FPPlayerLocators.rightArm)
-                .addChildLocator(FPPlayerLocators.leftArm, FPPlayerLocators.leftHand)
-                .addChildLocator(FPPlayerLocators.rightArm, FPPlayerLocators.rightHand)
-                .setLocatorDefaultPose(FPPlayerLocators.leftHand, PartPose.offsetAndRotation(-1, -2, -8, 0, 0, 0))
-                .setLocatorDefaultPose(FPPlayerLocators.rightHand, PartPose.offsetAndRotation(1, 2, -8, Mth.HALF_PI, 0, Mth.PI))
+                .addChildLocator(FPPlayerLocators.leftArmBuffer)
+                .addChildLocator(FPPlayerLocators.rightArmBuffer)
+                .addChildLocator(FPPlayerLocators.leftArm, FPPlayerLocators.leftArmBuffer)
+                .addChildLocator(FPPlayerLocators.rightArm, FPPlayerLocators.rightArmBuffer)
+                .addChildLocator(FPPlayerLocators.leftHand, FPPlayerLocators.leftArm)
+                .addChildLocator(FPPlayerLocators.rightHand, FPPlayerLocators.rightArm)
+                .setLocatorDefaultPose(FPPlayerLocators.leftHand, PartPose.offsetAndRotation(1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
+                .setLocatorDefaultPose(FPPlayerLocators.rightHand, PartPose.offsetAndRotation(-1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
                 .setLocatorMirror(FPPlayerLocators.rightArm, FPPlayerLocators.leftArm)
                 .setLocatorMirror(FPPlayerLocators.rightHand, FPPlayerLocators.leftHand);
     }
@@ -185,32 +169,42 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     @Override
     protected AnimationPose<FPPlayerLocators> calculatePose() {
         // Update main hand item based on the anim notify
+        /*
         if(getAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).isAnimNotityActive(ITEM_SWITCH_NOTIFY)){
             setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
         }
+         */
+
+
 
         // Set the poses for the main hand item switch state machine
+        /*
         getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE)
                 .setPose(ItemSwitchStates.EMPTY, getMainEmptyLocomotionPose(getStaticMainEmptyPose(), true, false))
                 .setPose(ItemSwitchStates.EMPTY_RAISING, getMainHandRaisePose(getStaticMainEmptyPose()))
                 .setPose(ItemSwitchStates.BASIC_ITEM, getMainEmptyLocomotionPose(getStaticMainBasicItemPose(), true, true))
                 .setPose(ItemSwitchStates.BASIC_ITEM_RAISING, getMainHandRaisePose(getStaticMainBasicItemPose()))
                 .setPose(ItemSwitchStates.LOWERING, getMainHandLowerPose(getStaticMainEmptyPose()));
-
         AnimationPose<FPPlayerLocators> pose = sampleAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE);
         pose = pose.getSelectedByLocators(getCameraPose(), List.of(FPPlayerLocators.camera));
+         */
 
 
-
+        AnimationPose<FPPlayerLocators> pose = sampleAnimationState(IDLE_SEQUENCE_PLAYER);
 
         return pose;
     }
 
     // Gets the camera pose
     private AnimationPose<FPPlayerLocators> getCameraPose(){
+        /*
         return getMainEmptyLocomotionPose(this.getStaticMainEmptyPose(), true, false);
+
+         */
+        return AnimationPose.of(this.locatorSkeleton);
     }
 
+    /*
     private AnimationPose<FPPlayerLocators> getMainEmptyLocomotionPose(AnimationPose<FPPlayerLocators> basePose, boolean applyPunch, boolean applyAdditive){
         AnimationPose<FPPlayerLocators> pose = sampleAnimationState(MAIN_EMPTY_IDLE_SEQUENCE_PLAYER);
         pose.blendLinear(sampleAnimationState(MAIN_HAND_EMPTY_WALK_BLENDSPACE_PLAYER), getEntityAnimationVariable(WALK_WEIGHT));
@@ -279,12 +273,13 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         return AnimationPose.fromChannelTimeline(this.locatorSkeleton, ANIMATION_FP_RIGHT_BASICITEM_POSE, 0);
     }
 
-    public static final AnimationDataContainer.DataKey<Float> TEST_VALUE = new AnimationDataContainer.DataKey<>("test_value", 0F);
+     */
 
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData){
 
 
         // Tick the main hand lower/empty sequence players based on active states
+        /*
         getAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).playFromStartOnStateActive(getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE),
                 ItemSwitchStates.LOWERING);
         getAnimationState(MAIN_EMPTY_RAISE_SEQUENCE_PLAYER).playFromStartOnStateActive(getAnimationState(MAINHAND_ITEMSWITCH_STATE_MACHINE), List.of(
@@ -368,6 +363,7 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         //AnimationOverhaulMain.LOGGER.info("{}, {}", this.livingEntity.input.forwardImpulse, this.livingEntity.animationSpeed);
         getEntityAnimationData().incrementInFramesFromCondition(WALK_WEIGHT, isInputtingMovement, 2, 4);
         getAnimationState(MAIN_HAND_EMPTY_WALK_BLENDSPACE_PLAYER).setValue(this.getWalkAnimationSpeed());
+         */
 
     }
 
