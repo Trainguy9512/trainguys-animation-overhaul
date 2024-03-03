@@ -51,6 +51,9 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
     // Building the locator rig
     @Override
     protected LocatorSkeleton<ModelPartLocators> buildRig() {
+
+        //TODO: Adjust rig with proper parenting and no more offsets on the legs.
+
         return LocatorSkeleton.of(ModelPartLocators.root)
                 .addChildLocator(ModelPartLocators.body)
                 .addChildLocator(ModelPartLocators.cape)

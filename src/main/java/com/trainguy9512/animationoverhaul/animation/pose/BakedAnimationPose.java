@@ -1,7 +1,5 @@
 package com.trainguy9512.animationoverhaul.animation.pose;
 
-import com.trainguy9512.animationoverhaul.util.animation.Locator;
-import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import net.minecraft.client.model.geom.ModelPart;
 
 public class BakedAnimationPose<L extends Enum<L>> {
@@ -24,8 +22,8 @@ public class BakedAnimationPose<L extends Enum<L>> {
 
     public AnimationPose<L> getBlendedPose(float partialTicks){
         // uncomment this for debugging
-        //partialTicks = 0;
-        return this.poseOld.getBlendedLinear(this.pose, partialTicks).getHierarchyBakedPose();
+        //partialTicks = 1;
+        return this.poseOld.getBlendedLinear(this.pose, partialTicks).getConvertedFromLocalToWorld();
     }
 
     public void bakeToModelParts(ModelPart rootModelPart, float partialTicks){
@@ -36,7 +34,7 @@ public class BakedAnimationPose<L extends Enum<L>> {
                 for(String individualPartString : this.pose.getSkeleton().getLocatorModelPartIdentifier(locator).split("\\.")){
                     finalModelPart = finalModelPart.getChild(individualPartString);
                 }
-                finalModelPart.loadPose(blendedPose.getLocatorPose(locator).asPartPose());
+                finalModelPart.loadPose(blendedPose.getJointPoseCopy(locator).asPartPose());
             }
         }
     }

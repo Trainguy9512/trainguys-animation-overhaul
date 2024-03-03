@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.util.animation;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import net.minecraft.client.model.geom.PartPose;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,6 +75,24 @@ public class LocatorSkeleton<L extends Enum<L>> {
 
     public List<Enum<L>> getLocatorChildren(Enum<L> locator){
         return this.locatorHashMap.get(locator).getChildren();
+    }
+
+    public void printHierarchy(){
+        printHierarchyChild(this.getRootLocator(), 1);
+        AnimationOverhaulMain.LOGGER.info("--".concat(this.getRootLocator().toString()));
+    }
+
+    private void printHierarchyChild(Enum<L> locator, int size){
+        String dashes = "";
+        for(int i = 0; i <= size; i++){
+            dashes = dashes.concat("--");
+        }
+        for (Enum<L> child : this.locatorHashMap.get(locator).getChildren()){
+            AnimationOverhaulMain.LOGGER.info(dashes.concat(child.toString()));
+            printHierarchyChild(child, size + 1);
+        }
+
+
     }
 
     public Enum<L> getRootLocator(){

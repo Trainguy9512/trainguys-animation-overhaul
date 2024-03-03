@@ -6,7 +6,6 @@ import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
-import com.trainguy9512.animationoverhaul.util.time.TickTimeUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.PartPose;
@@ -15,8 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.List;
+import org.joml.Vector3f;
 
 public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer, PlayerModel<LocalPlayer>, FirstPersonPlayerAnimator.FPPlayerLocators>{
 
@@ -29,6 +27,7 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public enum FPPlayerLocators {
         root,
         camera,
+        armBuffer,
         rightArmBuffer,
         leftArmBuffer,
         rightArm,
@@ -65,6 +64,10 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = TimelineGroupData.getNativeResourceLocation(TimelineGroupData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
 
 
+    public static final AnimationDataContainer.DataKey<Float> CAMERA_ROTATION_X = new AnimationDataContainer.DataKey<>("camera_rotation_x", 0F);
+    public static final AnimationDataContainer.DataKey<Float> CAMERA_ROTATION_Y = new AnimationDataContainer.DataKey<>("camera_rotation_y", 0F);
+    public static final AnimationDataContainer.DataKey<Float> DAMPENED_CAMERA_ROTATION_X = new AnimationDataContainer.DataKey<>("dampened_camera_rotation_x", 0F);
+    public static final AnimationDataContainer.DataKey<Float> DAMPENED_CAMERA_ROTATION_Y = new AnimationDataContainer.DataKey<>("dampened_camera_rotation_y", 0F);
     public static final AnimationDataContainer.DataKey<ItemStack> MAIN_HAND_ITEM = new AnimationDataContainer.DataKey<>("main_hand_item_stack", ItemStack.EMPTY);
     public static final AnimationDataContainer.DataKey<Boolean> IS_ATTACKING = new AnimationDataContainer.DataKey<>("is_attacking", false);
     public static final AnimationDataContainer.DataKey<Boolean> IS_USING_ITEM = new AnimationDataContainer.DataKey<>("is_using_item", false);
@@ -154,8 +157,9 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     protected LocatorSkeleton<FPPlayerLocators> buildRig() {
         return LocatorSkeleton.of(FPPlayerLocators.root)
                 .addChildLocator(FPPlayerLocators.camera)
-                .addChildLocator(FPPlayerLocators.leftArmBuffer)
-                .addChildLocator(FPPlayerLocators.rightArmBuffer)
+                .addChildLocator(FPPlayerLocators.armBuffer)
+                .addChildLocator(FPPlayerLocators.leftArmBuffer, FPPlayerLocators.armBuffer)
+                .addChildLocator(FPPlayerLocators.rightArmBuffer, FPPlayerLocators.armBuffer)
                 .addChildLocator(FPPlayerLocators.leftArm, FPPlayerLocators.leftArmBuffer)
                 .addChildLocator(FPPlayerLocators.rightArm, FPPlayerLocators.rightArmBuffer)
                 .addChildLocator(FPPlayerLocators.leftHand, FPPlayerLocators.leftArm)
@@ -164,11 +168,13 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
                 .setLocatorDefaultPose(FPPlayerLocators.rightHand, PartPose.offsetAndRotation(-1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
                 .setLocatorMirror(FPPlayerLocators.rightArm, FPPlayerLocators.leftArm)
                 .setLocatorMirror(FPPlayerLocators.rightHand, FPPlayerLocators.leftHand);
+
     }
 
     @Override
     protected AnimationPose<FPPlayerLocators> calculatePose() {
         // Update main hand item based on the anim notify
+        setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
         /*
         if(getAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).isAnimNotityActive(ITEM_SWITCH_NOTIFY)){
             setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
@@ -192,6 +198,29 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
 
         AnimationPose<FPPlayerLocators> pose = sampleAnimationState(IDLE_SEQUENCE_PLAYER);
 
+        pose = dampenArmRotation(pose);
+        return pose;
+    }
+
+    /*
+    Get the pose with the added dampened camera rotation
+     */
+    private AnimationPose<FPPlayerLocators> dampenArmRotation(AnimationPose<FPPlayerLocators> pose){
+        float cameraRotationX = getEntityAnimationVariable(CAMERA_ROTATION_X);
+        float cameraRotationY = getEntityAnimationVariable(CAMERA_ROTATION_Y);
+        float dampenedCameraRotationX = getEntityAnimationVariable(DAMPENED_CAMERA_ROTATION_X);
+        float dampenedCameraRotationY = getEntityAnimationVariable(DAMPENED_CAMERA_ROTATION_Y);
+
+        pose.setJointPose(
+                FPPlayerLocators.armBuffer,
+                pose.getJointPoseCopy(FPPlayerLocators.armBuffer).rotate(
+                        new Vector3f(
+                                (dampenedCameraRotationX - cameraRotationX) * -0.005F,
+                                (dampenedCameraRotationY - cameraRotationY) * 0.005F,
+                                0
+                        ),
+                        false
+                ));
         return pose;
     }
 
@@ -276,6 +305,29 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
      */
 
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData){
+
+        /*
+        Tick the dampened camera rotation.
+         */
+
+        // First, set the target camera rotation from the living entity.
+        Vector3f targetRotation = new Vector3f(this.livingEntity.getXRot(), this.livingEntity.getYRot(), 0);
+        setEntityAnimationVariable(CAMERA_ROTATION_X, targetRotation.x());
+        setEntityAnimationVariable(CAMERA_ROTATION_Y, targetRotation.y());
+
+        Vector3f dampenedCameraRotation = new Vector3f(getEntityAnimationVariable(DAMPENED_CAMERA_ROTATION_X), getEntityAnimationVariable(DAMPENED_CAMERA_ROTATION_Y), 0);
+
+        // If the dampened camera rotation is 0 (which is what it is upon initialization), set it to the target
+        if(dampenedCameraRotation.x() == 0F && dampenedCameraRotation.y() == 0F){
+            dampenedCameraRotation = targetRotation;
+        } else {
+            // Lerp the dampened camera rotation towards the normal camera rotation
+            dampenedCameraRotation.lerp(targetRotation, 0.3F);
+        }
+        setEntityAnimationVariable(DAMPENED_CAMERA_ROTATION_X, dampenedCameraRotation.x());
+        setEntityAnimationVariable(DAMPENED_CAMERA_ROTATION_Y, dampenedCameraRotation.y());
+
+
 
 
         // Tick the main hand lower/empty sequence players based on active states
@@ -392,7 +444,8 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
 
 
 
-        this.localBakedPose.setPose(animationPose.getCopy());
+
+        this.localBakedPose.setPose(new AnimationPose(animationPose));
     }
 
     private boolean compareVariableItemStackWithEntityItemStack(AnimationDataContainer.DataKey<ItemStack> itemStackDataKey, ItemStack entityItemStack){

@@ -1,20 +1,17 @@
 package com.trainguy9512.animationoverhaul.mixin;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.trainguy9512.animationoverhaul.animation.entity.FirstPersonPlayerAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.MutablePartPose;
+import com.trainguy9512.animationoverhaul.animation.pose.JointPose;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
@@ -23,7 +20,6 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -48,28 +44,71 @@ public abstract class MixinItemInHandRenderer {
 
         if(FirstPersonPlayerAnimator.INSTANCE.localBakedPose != null){
             AnimationPose<FirstPersonPlayerAnimator.FPPlayerLocators> animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-            MutablePartPose rightArmPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.rightArm);
-            MutablePartPose leftArmPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.leftArm);
-            MutablePartPose rightHandPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.rightHand);
-            MutablePartPose leftHandPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.leftHand);
+            JointPose rightArmPose = animationPose.getJointPoseCopy(FirstPersonPlayerAnimator.FPPlayerLocators.rightArm);
+            JointPose leftArmPose = animationPose.getJointPoseCopy(FirstPersonPlayerAnimator.FPPlayerLocators.leftArm);
+            JointPose rightHandPose = animationPose.getJointPoseCopy(FirstPersonPlayerAnimator.FPPlayerLocators.rightHand);
+            JointPose leftHandPose = animationPose.getJointPoseCopy(FirstPersonPlayerAnimator.FPPlayerLocators.leftHand);
 
             poseStack.pushPose();
             poseStack.mulPose(Axis.ZP.rotationDegrees(180));
+            //poseStack.pushPose();
+
+
 
             AbstractClientPlayer abstractClientPlayer = this.minecraft.player;
             //RenderSystem.setShaderTexture(0, abstractClientPlayer.getSkin().texture());
             PlayerRenderer playerRenderer = (PlayerRenderer)this.entityRenderDispatcher.getRenderer(abstractClientPlayer);
             PlayerModel<AbstractClientPlayer> playerModel = playerRenderer.getModel();
 
+
             rightArmPose.transformModelPart(playerModel.rightArm);
             playerModel.rightSleeve.copyFrom(playerModel.rightArm);
             leftArmPose.transformModelPart(playerModel.leftArm);
             playerModel.leftSleeve.copyFrom(playerModel.leftArm);
 
+            /*
+
+            OLD POSE STACK PUSH STUFF
+
+            playerModel.rightArm.setRotation(0,0,0);
+            playerModel.rightArm.setPos(0,0,0);
+            playerModel.rightSleeve.copyFrom(playerModel.rightArm);
+            playerModel.leftArm.setRotation(0,0,0);
+            playerModel.leftArm.setPos(0,0,0);
+            playerModel.leftSleeve.copyFrom(playerModel.leftArm);
+
+            poseStack.pushPose();
+            animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.armBuffer).transformPoseStack(poseStack);
+            poseStack.pushPose();
+            animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.leftArmBuffer).transformPoseStack(poseStack);
+            poseStack.pushPose();
+            animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.leftArm).transformPoseStack(poseStack);
+            playerModel.leftArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
+            playerModel.leftSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
+
+            poseStack.popPose();
+            poseStack.popPose();
+
+
+            poseStack.pushPose();
+            animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.rightArmBuffer).transformPoseStack(poseStack);
+            poseStack.pushPose();
+            animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.rightArm).transformPoseStack(poseStack);
+            playerModel.rightArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
+            playerModel.rightSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
+
+
+
+            poseStack.popPose();
+
+
+             */
+
             playerModel.rightArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
             playerModel.rightSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
             playerModel.leftArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
             playerModel.leftSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
+
 
             /*
             poseStack.pushPose();
@@ -91,6 +130,7 @@ public abstract class MixinItemInHandRenderer {
 
 
             //playerRenderer.renderRightHand(poseStack, bufferSource, i, abstractClientPlayer);
+            //poseStack.popPose();
             poseStack.popPose();
         }
 
@@ -100,8 +140,8 @@ public abstract class MixinItemInHandRenderer {
 
     private void renderItemInHand(AbstractClientPlayer abstractClientPlayer, ItemStack itemStack, PoseStack poseStack, HumanoidArm humanoidArm, AnimationPose<FirstPersonPlayerAnimator.FPPlayerLocators> animationPose, MultiBufferSource multiBufferSource, int i){
 
-        MutablePartPose armPose = animationPose.getLocatorPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.FPPlayerLocators.leftArm : FirstPersonPlayerAnimator.FPPlayerLocators.rightArm);
-        MutablePartPose handPose = animationPose.getLocatorPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.FPPlayerLocators.leftHand : FirstPersonPlayerAnimator.FPPlayerLocators.rightHand);
+        JointPose armPose = animationPose.getJointPoseCopy(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.FPPlayerLocators.leftArm : FirstPersonPlayerAnimator.FPPlayerLocators.rightArm);
+        JointPose handPose = animationPose.getJointPoseCopy(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerAnimator.FPPlayerLocators.leftHand : FirstPersonPlayerAnimator.FPPlayerLocators.rightHand);
 
 
 

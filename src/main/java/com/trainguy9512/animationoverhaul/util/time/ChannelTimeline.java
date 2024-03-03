@@ -1,10 +1,8 @@
 package com.trainguy9512.animationoverhaul.util.time;
 
-import com.trainguy9512.animationoverhaul.animation.pose.MutablePartPose;
 import com.trainguy9512.animationoverhaul.util.data.TransformChannel;
 import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.TreeMap;
@@ -59,16 +57,16 @@ public class ChannelTimeline {
          */
 
         Quaternionf rotationFirst = new Quaternionf()
-                .rotationXYZ(
-                        this.getKeyframeValue(TransformChannel.xRot, time, true),
+                .rotationZYX(
+                        this.getKeyframeValue(TransformChannel.zRot, time, true),
                         this.getKeyframeValue(TransformChannel.yRot, time, true),
-                        this.getKeyframeValue(TransformChannel.zRot, time, true)
+                        this.getKeyframeValue(TransformChannel.xRot, time, true)
                 );
         Quaternionf rotationSecond = new Quaternionf()
-                .rotationXYZ(
-                        this.getKeyframeValue(TransformChannel.xRot, time, false),
+                .rotationZYX(
+                        this.getKeyframeValue(TransformChannel.zRot, time, false),
                         this.getKeyframeValue(TransformChannel.yRot, time, false),
-                        this.getKeyframeValue(TransformChannel.zRot, time, false)
+                        this.getKeyframeValue(TransformChannel.xRot, time, false)
                 );
 
 

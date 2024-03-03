@@ -7,7 +7,7 @@ import com.trainguy9512.animationoverhaul.animation.AnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.entity.FirstPersonPlayerAnimator;
 import com.trainguy9512.animationoverhaul.animation.entity.LivingEntityAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.MutablePartPose;
+import com.trainguy9512.animationoverhaul.animation.pose.JointPose;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -85,19 +85,19 @@ public abstract class MixinGameRenderer {
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
             if(FirstPersonPlayerAnimator.INSTANCE.localBakedPose != null){
                 AnimationPose<FirstPersonPlayerAnimator.FPPlayerLocators> animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-                MutablePartPose cameraPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.camera);
-                MutablePartPose rootPose = animationPose.getLocatorPose(FirstPersonPlayerAnimator.FPPlayerLocators.root);
-                cameraPose.add(rootPose);
+                JointPose cameraPose = animationPose.getJointPoseCopy(FirstPersonPlayerAnimator.FPPlayerLocators.camera);
+                JointPose rootPose = animationPose.getJointPoseCopy(FirstPersonPlayerAnimator.FPPlayerLocators.root);
+                cameraPose.multiplyPose(rootPose);
 
                 //poseStack.translate(cameraPose.y / 16F, cameraPose.x / -16F, cameraPose.z / -16F);
 
                 PoseStack poseStack1 = new PoseStack();
-                Vector3f cameraRot = cameraPose.getEulerRotation();
+                Vector3f cameraRot = cameraPose.getEulerRotationZYX();
                 cameraRot.z *= -1;
-                cameraPose.setEulerRotation(cameraRot);
+                cameraPose.setEulerRotationXYZ(cameraRot);
 
-                poseStack1.mulPose(cameraPose.rotation);
-                poseStack1.translate(cameraPose.x / 16F, cameraPose.y / 16F, cameraPose.z / -16F);
+                poseStack1.mulPose(cameraPose.getRotation());
+                poseStack1.translate(cameraPose.getTranslation().x / 16F, cameraPose.getTranslation().y / 16F, cameraPose.getTranslation().z / -16F);
                 Matrix4f matrix4f = poseStack1.last().pose();
 
                 poseStack.mulPoseMatrix(matrix4f);
