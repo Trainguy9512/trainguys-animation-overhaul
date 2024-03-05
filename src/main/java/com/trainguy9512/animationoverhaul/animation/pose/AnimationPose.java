@@ -2,6 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.pose;
 
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.resources.ResourceLocation;
@@ -15,6 +16,7 @@ public class AnimationPose<L extends Enum<L>> {
 
     private final LocatorSkeleton<L> locatorSkeleton;
     private final HashMap<Enum<L>, JointPose> pose;
+    private Space poseSpace = Space.LOCAL;
 
     private AnimationPose(LocatorSkeleton<L> locatorSkeleton){
         this.locatorSkeleton = locatorSkeleton;
@@ -28,6 +30,7 @@ public class AnimationPose<L extends Enum<L>> {
     public AnimationPose(AnimationPose<L> animationPose){
         this.locatorSkeleton = animationPose.locatorSkeleton;
         this.pose = new HashMap<>(animationPose.pose);
+        this.poseSpace = animationPose.poseSpace;
     }
 
     public static <L extends Enum<L>> AnimationPose<L> of(LocatorSkeleton<L> locatorSkeleton){
@@ -75,110 +78,59 @@ public class AnimationPose<L extends Enum<L>> {
 
      */
 
-    public AnimationPose<L> getConvertedFromLocalToWorld(){
-        AnimationPose<L> animationPose = new AnimationPose<L>(this);
-        //ArrayList<Quaternionf> rotationStack = new ArrayList<>();
-
-
-
-        animationPose.transformChildren(this.getSkeleton().getRootLocator(), new PoseStack());
-        //animationPose.transformChildren(this.getSkeleton().getRootLocator(), this.getJointPoseCopy(this.getSkeleton().getRootLocator()).getTransformCopy());
-
-        //HashMap<Enum<L>, Matrix4fStack> matrixStackSet = Maps.newHashMap();
-        //ArrayList<Matrix4f> rootMatrixStack = new ArrayList<>();
-        //Matrix4f rootMatrix = new Matrix4f();
-
-        //Enum<L> enumm = this.locatorSkeleton.getLocatorChildren(this.locatorSkeleton.getRootLocator()).get(1);
-        //animationPose.setLocatorPose(enumm, animationPose.getLocatorPose(enumm).rotate(new Vector3f(Mth.PI, 0, 0), false));
-
-        //animationPose.transformChildren(this.getSkeleton().getRootLocator(), rootMatrixStack, this.getCopy(), 200);
-
-        return animationPose;
+    public Space getPoseSpace(){
+        return this.poseSpace;
     }
 
-    private void transformChildren(Enum<L> parent, Matrix4f parentTransform){
-        JointPose parentJointPose = new JointPose(this.getJointPoseCopy(parent));
+    public void setPoseSpace(Space poseSpace){
+        this.poseSpace = poseSpace;
+    }
 
 
-        for (Enum<L> child : this.getSkeleton().getLocatorChildren(parent)){
 
-            JointPose childJointPose = new JointPose(this.getJointPoseCopy(child));
-            Matrix4f multipliedChildTransform = childJointPose.getTransformCopy().mul(parentTransform);
-            this.setJointPose(child, childJointPose.setTransform(multipliedChildTransform));
-
-            transformChildren(child, new Matrix4f(childJointPose.getTransformCopy()));
+    // Local to World
+    public AnimationPose<L> convertSpaceLocalToEntity(){
+        if(this.getPoseSpace() == Space.LOCAL){
+            this.setPoseSpace(Space.ENTITY);
+            this.convertChildrenSpaceLocalToEntity(this.getSkeleton().getRootLocator(), new PoseStack());
         }
+        return this;
     }
 
-
-
-    private void transformChildren(Enum<L> parent, PoseStack poseStack){
+    private void convertChildrenSpaceLocalToEntity(Enum<L> parent, PoseStack poseStack){
         JointPose localParentJointPose = new JointPose(this.getJointPoseCopy(parent));
+
         poseStack.pushPose();
         poseStack.mulPoseMatrix(localParentJointPose.getTransformCopy());
 
-
-
-        //poseStack.translate(localParentJointPose.getTranslation().x(), localParentJointPose.getTranslation().y(), localParentJointPose.getTranslation().z());
-        //poseStack.mulPose(localParentJointPose.getRotation());
-
         for (Enum<L> child : this.getSkeleton().getLocatorChildren(parent)){
-
-
-
-            //Quaternionf composedRotation = new Quaternionf();
-            /*
-            for(Quaternionf childRotation : rotationStack){
-                newChildPose.rotate(childRotation, false);
-            }
-
-             */
-            //this.setLocatorPose(child, newWorldChildPose);
-
-
-
-            /*
-            PoseStack poseStack = new PoseStack();
-            parentPose.transformPoseStack(poseStack, 1);
-            poseStack.pushPose();
-            childPose.transformPoseStack(poseStack, 1);
-
-            Matrix4f pose = poseStack.last().pose();
-            Quaternionf rotation = pose.getNormalizedRotation(new Quaternionf());
-            this.setLocatorPose(child, MutablePartPose.fromTranslationAndRotation(
-                    pose.m30(),
-                    pose.m31(),
-                    pose.m32(),
-                    rotation
-            ));
-
-            poseStack.popPose();
-             */
-            //Quaternionf childRotation = childPose.getCopy().getRotation();
-
-
-            /*
-            for(Quaternionf rotation : rotationStack){
-                childRotation.mul(rotation, childRotation);
-            }
-
-             */
-
-            //MutablePartPose transformedPose = parentPose.getCopy();
-            //transformedPose.translate(childPose.getTranslation(), true);
-            //transformedPose.rotate(childPose.getRotation(), true);
-
-            transformChildren(child, poseStack);
-
-            /*
-            this.setLocatorPose(child, getLocatorPose(child)
-                            //.translate(childPose.getTranslation(), true)
-                    //.rotate(childPose.getRotation(), true)
-            );
-             */
+            convertChildrenSpaceLocalToEntity(child, poseStack);
         }
+
         this.setJointPose(parent, localParentJointPose.setTransform(new Matrix4f(poseStack.last().pose())));
         poseStack.popPose();
+    }
+
+
+
+    // World to Local
+    public AnimationPose<L> convertSpaceEntityToLocal(){
+        if(this.getPoseSpace() == Space.ENTITY){
+            this.setPoseSpace(Space.LOCAL);
+            this.convertChildrenSpaceEntityToLocal(this.getSkeleton().getRootLocator(), new Matrix4f());
+        }
+        return this;
+    }
+
+    private void convertChildrenSpaceEntityToLocal(Enum<L> parent, Matrix4f parentMatrix){
+        JointPose parentJointPose = this.getJointPoseCopy(parent);
+
+        for (Enum<L> child : this.getSkeleton().getLocatorChildren(parent)){
+            convertChildrenSpaceEntityToLocal(child, parentJointPose.getTransformCopy());
+        }
+
+        parentJointPose.transform(parentMatrix.invert(), Space.LOCAL);
+        this.setJointPose(parent, parentJointPose);
     }
 
     public void blend(AnimationPose<L> animationPose, float alpha, Easing easing){
@@ -283,5 +235,10 @@ public class AnimationPose<L extends Enum<L>> {
             animationPose.setJointPose(locator, JointPose.getJointPoseFromChannelTimeline(resourceLocation, locator.toString(), time));
         }
         return animationPose;
+    }
+
+    public enum Space {
+        ENTITY,
+        LOCAL
     }
 }

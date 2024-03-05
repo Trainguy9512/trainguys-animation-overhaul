@@ -199,6 +199,9 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         AnimationPose<FPPlayerLocators> pose = sampleAnimationState(IDLE_SEQUENCE_PLAYER);
 
         pose = dampenArmRotation(pose);
+
+        pose.convertSpaceLocalToEntity();
+        pose.convertSpaceEntityToLocal();
         return pose;
     }
 
@@ -215,11 +218,11 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
                 FPPlayerLocators.armBuffer,
                 pose.getJointPoseCopy(FPPlayerLocators.armBuffer).rotate(
                         new Vector3f(
-                                (dampenedCameraRotationX - cameraRotationX) * -0.005F,
+                                (dampenedCameraRotationX - cameraRotationX) * 0.008F,
                                 (dampenedCameraRotationY - cameraRotationY) * 0.005F,
-                                0
+                                (dampenedCameraRotationY - cameraRotationY) * 0.003F
                         ),
-                        false
+                        AnimationPose.Space.ENTITY
                 ));
         return pose;
     }
@@ -322,7 +325,7 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
             dampenedCameraRotation = targetRotation;
         } else {
             // Lerp the dampened camera rotation towards the normal camera rotation
-            dampenedCameraRotation.lerp(targetRotation, 0.3F);
+            dampenedCameraRotation.lerp(targetRotation, 0.5F);
         }
         setEntityAnimationVariable(DAMPENED_CAMERA_ROTATION_X, dampenedCameraRotation.x());
         setEntityAnimationVariable(DAMPENED_CAMERA_ROTATION_Y, dampenedCameraRotation.y());

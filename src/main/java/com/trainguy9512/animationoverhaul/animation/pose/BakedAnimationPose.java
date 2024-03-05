@@ -23,7 +23,7 @@ public class BakedAnimationPose<L extends Enum<L>> {
     public AnimationPose<L> getBlendedPose(float partialTicks){
         // uncomment this for debugging
         //partialTicks = 1;
-        return this.poseOld.getBlendedLinear(this.pose, partialTicks).getConvertedFromLocalToWorld();
+        return this.poseOld.getBlendedLinear(this.pose, partialTicks).convertSpaceLocalToEntity();
     }
 
     public void bakeToModelParts(ModelPart rootModelPart, float partialTicks){
