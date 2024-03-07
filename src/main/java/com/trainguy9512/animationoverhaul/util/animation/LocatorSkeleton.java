@@ -65,6 +65,7 @@ public class LocatorSkeleton<L extends Enum<L>> {
         if(this.locatorHashMap.keySet().contains(locatorParent)){
             this.addLocator(locatorChild);
             this.locatorHashMap.get(locatorParent).addChild(locatorChild);
+            this.locatorHashMap.get(locatorChild).setParent(locatorParent);
         }
         return this;
     }
@@ -76,6 +77,31 @@ public class LocatorSkeleton<L extends Enum<L>> {
     public List<Enum<L>> getLocatorChildren(Enum<L> locator){
         return this.locatorHashMap.get(locator).getChildren();
     }
+
+    public boolean jointIsParentOfChild(Enum<L> parent, Enum<L> child){
+
+        while(this.locatorHashMap.get(child).getParent() != null){
+            Enum<L> currentChildParent = this.locatorHashMap.get(child).getParent();
+            if(currentChildParent == parent){
+                return true;
+            } else {
+                child = currentChildParent;
+            }
+        }
+
+        return false;
+    }
+
+
+
+    //TODO: SEARCH HEIARCHY FOR IF CHILD IS PARENTED UNDER JOINT!!!!!!!!!
+
+
+
+
+
+
+
 
     public void printHierarchy(){
         printHierarchyChild(this.getRootLocator(), 1);
@@ -238,6 +264,7 @@ public class LocatorSkeleton<L extends Enum<L>> {
         private PartPose defaultPose;
 
         private final List<Enum<L>> children;
+        private Enum<L> parent;
 
         public LocatorEntry(Enum<L> mirroredLocator, @Nullable String modelPartIdentifier, PartPose defaultPose){
             //this.locatorIdentifier = locatorIdentifier;
@@ -245,6 +272,7 @@ public class LocatorSkeleton<L extends Enum<L>> {
             this.modelPartIdentifier = modelPartIdentifier;
             this.usesModelPart = modelPartIdentifier != null;
             this.defaultPose = defaultPose;
+
             this.children = new ArrayList<>();
         }
 
@@ -291,6 +319,15 @@ public class LocatorSkeleton<L extends Enum<L>> {
 
         public List<Enum<L>> getChildren(){
             return this.children;
+        }
+
+        public void setParent(Enum<L> joint){
+            this.parent = joint;
+        }
+
+        @Nullable
+        public Enum<L> getParent(){
+            return this.parent;
         }
     }
 }

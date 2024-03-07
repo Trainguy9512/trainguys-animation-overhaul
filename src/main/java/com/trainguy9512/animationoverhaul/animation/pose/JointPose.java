@@ -14,6 +14,7 @@ public class JointPose {
     //public Vector3f translation;
     //public Quaternionf rotation;
     private Matrix4f matrix4f;
+    private AnimationPose.PoseSpace poseSpace = AnimationPose.PoseSpace.LOCAL;
     /*
     public float xRot = 0;
     public float yRot = 0;
@@ -42,6 +43,7 @@ public class JointPose {
 
     public JointPose(JointPose jointPose){
         this.matrix4f = jointPose.getTransformCopy();
+        this.poseSpace = jointPose.getPoseSpace();
     }
 
     public static JointPose fromMatrix4f(Matrix4f matrix4f){
@@ -74,6 +76,15 @@ public class JointPose {
     }
 
      */
+
+    public AnimationPose.PoseSpace getPoseSpace(){
+        return this.poseSpace;
+    }
+
+    public JointPose setPoseSpace(AnimationPose.PoseSpace poseSpace){
+        this.poseSpace = poseSpace;
+        return this;
+    }
 
     public Matrix4f getTransformCopy(){
         return new Matrix4f(this.matrix4f);
@@ -129,30 +140,32 @@ public class JointPose {
 
     //TODO: Use TranslateLocal Matrix4F
 
-    public JointPose transform(Matrix4f transform, AnimationPose.Space space){
-        switch (space){
-            case ENTITY -> this.getTransformReference().mul(transform);
+    public JointPose transform(Matrix4f transform, AnimationPose.TransformSpace transformSpace){
+        switch (transformSpace){
+            case ENTITY, PARENT -> this.getTransformReference().mul(transform);
             case LOCAL -> this.getTransformReference().mulLocal(transform);
         }
         return this;
     }
 
-    public JointPose translate(Vector3f translation, AnimationPose.Space space){
+    public JointPose translate(Vector3f translation, AnimationPose.TransformSpace transformSpace){
         if(translation.x() != 0 || translation.y() != 0 || translation.z() != 0){
-            if(space == AnimationPose.Space.LOCAL){
-                translation.rotateZ(this.getEulerRotationZYX().z());
-                translation.rotateY(this.getEulerRotationZYX().y());
-                translation.rotateX(this.getEulerRotationZYX().x());
+            if(transformSpace == AnimationPose.TransformSpace.LOCAL){
+                //translation.rotateZ(this.getEulerRotationZYX().z());
+                //translation.rotateY(this.getEulerRotationZYX().y());
+                //translation.rotateX(this.getEulerRotationZYX().x());
 
                 //translation.rotate(this.rotation);
+                this.getTransformReference().translate(translation);
+            } else {
+                this.getTransformReference().translateLocal(translation);
             }
-            this.getTransformReference().translate(translation);
         }
         return this;
     }
 
-    public JointPose rotate(Quaternionf rotation, AnimationPose.Space space){
-        if(space == AnimationPose.Space.LOCAL){
+    public JointPose rotate(Quaternionf rotation, AnimationPose.TransformSpace transformSpace){
+        if(transformSpace == AnimationPose.TransformSpace.LOCAL){
             this.getTransformReference().rotateLocal(rotation);
         } else {
             this.getTransformReference().rotate(rotation);
@@ -160,19 +173,19 @@ public class JointPose {
         return this;
     }
 
-    public JointPose rotate(Vector3f rotation, AnimationPose.Space space){
-        return this.rotate(new Quaternionf().rotationXYZ(rotation.x(), rotation.y(), rotation.z()), space);
+    public JointPose rotate(Vector3f rotation, AnimationPose.TransformSpace transformSpace){
+        return this.rotate(new Quaternionf().rotationXYZ(rotation.x(), rotation.y(), rotation.z()), transformSpace);
     }
 
     public JointPose multiplyPose(JointPose partPose){
-        this.translate(partPose.getTranslation(), AnimationPose.Space.ENTITY);
-        this.rotate(partPose.getRotation(), AnimationPose.Space.ENTITY);
+        this.translate(partPose.getTranslation(), AnimationPose.TransformSpace.ENTITY);
+        this.rotate(partPose.getRotation(), AnimationPose.TransformSpace.ENTITY);
         return this;
     }
 
     public JointPose inverseMultiplyPose(JointPose partPose){
-        this.translate(partPose.getTranslation().negate(), AnimationPose.Space.ENTITY);
-        this.rotate(partPose.getRotation().invert(), AnimationPose.Space.ENTITY);
+        this.translate(partPose.getTranslation().negate(), AnimationPose.TransformSpace.ENTITY);
+        this.rotate(partPose.getRotation().invert(), AnimationPose.TransformSpace.ENTITY);
         return this;
     }
 
