@@ -150,6 +150,9 @@ public class AnimationPose<L extends Enum<L>> {
         }
     }
 
+
+
+
     public void blend(AnimationPose<L> animationPose, float alpha, Easing easing){
         for(Enum<L> locator : this.getSkeleton().getLocators()){
             JointPose jointPoseA = this.getJointPoseCopy(locator);
@@ -229,6 +232,20 @@ public class AnimationPose<L extends Enum<L>> {
             this.getJointPoseReference(joint).setTranslation(translation);
         } else {
             this.getJointPoseReference(joint).translate(translation, transformSpace);
+        }
+        convertSpaceEntityToLocal();
+        return this;
+    }
+
+    public AnimationPose<L> rotateJoint(Enum<L> joint, Vector3f rotationXYZ, TransformSpace transformSpace, boolean replaceExisting){
+        convertSpaceEntityToLocal();
+        if(transformSpace == TransformSpace.ENTITY){
+            convertSpaceLocalToEntity(joint);
+        }
+        if(replaceExisting){
+            this.getJointPoseReference(joint).setEulerRotationXYZ(rotationXYZ);
+        } else {
+            this.getJointPoseReference(joint).rotate(rotationXYZ, transformSpace);
         }
         convertSpaceEntityToLocal();
         return this;

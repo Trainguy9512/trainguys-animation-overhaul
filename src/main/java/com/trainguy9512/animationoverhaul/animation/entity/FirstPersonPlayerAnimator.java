@@ -201,8 +201,10 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         pose = dampenArmRotation(pose);
 
 
-        Vector3f translation = new Vector3f(Mth.sin(getEntityAnimationVariable(TIME_TEST) * 1.3F) * 3F, 0, 0);
-        pose.translateJoint(FPPlayerLocators.rightArm, translation, AnimationPose.TransformSpace.ENTITY, false);
+        Vector3f rotation = new Vector3f(Mth.sin(getEntityAnimationVariable(TIME_TEST) * 0.2F) * Mth.HALF_PI * 0.7f, 0, 0);
+        //Vector3f translation = new Vector3f(Mth.sin(getEntityAnimationVariable(TIME_TEST) * 1.3F) * 3F, 0, 0);
+        //pose.translateJoint(FPPlayerLocators.rightArm, translation, AnimationPose.TransformSpace.ENTITY, false);
+        //pose.rotateJoint(FPPlayerLocators.rightArm, rotation, AnimationPose.TransformSpace.ENTITY, false);
 
 
         return pose;

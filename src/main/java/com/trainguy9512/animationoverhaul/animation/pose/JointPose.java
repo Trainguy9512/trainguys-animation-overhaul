@@ -166,9 +166,10 @@ public class JointPose {
 
     public JointPose rotate(Quaternionf rotation, AnimationPose.TransformSpace transformSpace){
         if(transformSpace == AnimationPose.TransformSpace.LOCAL){
-            this.getTransformReference().rotateLocal(rotation);
-        } else {
             this.getTransformReference().rotate(rotation);
+        } else {
+            //this.getTransformReference().rotateLocal(rotation);
+            this.setRotation(this.getTransformCopy().getNormalizedRotation(new Quaternionf()).premul(rotation));
         }
         return this;
     }
@@ -313,7 +314,7 @@ public class JointPose {
     }
 
     public void transformPoseStack(PoseStack poseStack, float transformMultiplier){
-        poseStack.mulPoseMatrix(this.getTransformCopy());
+        poseStack.mulPoseMatrix(this.getTransformCopy().setTranslation(this.getTranslation().div(new Vector3f(transformMultiplier))));
         //poseStack.translate(this.translation.x / transformMultiplier, this.translation.y / transformMultiplier, this.translation.z / transformMultiplier);
         //this.rotatePoseStack(poseStack);
 
@@ -327,7 +328,7 @@ public class JointPose {
     }
 
     public void transformPoseStack(PoseStack poseStack){
-        this.transformPoseStack(poseStack, 16F);
+        this.transformPoseStack(poseStack, 1F);
     }
 
     public void transformModelPart(ModelPart modelPart){
