@@ -76,7 +76,8 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public static final AnimationDataContainer.DataKey<Boolean> IS_FALLING = new AnimationDataContainer.DataKey<>("is_falling", false);
     public static final AnimationDataContainer.DataKey<Boolean> IS_JUMPING = new AnimationDataContainer.DataKey<>("is_jumping", false);
 
-    private static final AnimationSequencePlayer IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("idle_sequence_player", ANIMATION_FP_PLAYER_IDLE).setDefaultPlayRate(1F);
+    private static final AnimationSequencePlayer IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("idle_sequence_player", ANIMATION_FP_PLAYER_IDLE).setDefaultPlayRate(0F);
+    private static final AnimationSequencePlayer TEST_IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("test_idle_sequence_player", ANIMATION_FP_PLAYER_IDLE).setDefaultPlayRate(0F).setStartTime(50);
 
 
     enum ItemSwitchStates {
