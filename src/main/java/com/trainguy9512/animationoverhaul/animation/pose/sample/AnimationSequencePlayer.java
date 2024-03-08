@@ -69,13 +69,13 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
         return this;
     }
 
-    public AnimationSequencePlayer setStartTime(float startTime){
-        this.startTime = startTime;
+    public AnimationSequencePlayer setStartTime(float startTimeTicks){
+        this.startTime = startTimeTicks;
         return this;
     }
 
-    public AnimationSequencePlayer setEndTime(float endTime){
-        this.endTime = endTime;
+    public AnimationSequencePlayer setEndTime(float endTimeTicks){
+        this.endTime = endTimeTicks;
         return this;
     }
 

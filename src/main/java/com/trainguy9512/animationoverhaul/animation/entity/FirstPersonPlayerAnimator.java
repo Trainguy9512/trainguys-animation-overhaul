@@ -13,6 +13,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
@@ -77,9 +78,21 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public static final AnimationDataContainer.DataKey<Boolean> IS_JUMPING = new AnimationDataContainer.DataKey<>("is_jumping", false);
 
     private static final AnimationSequencePlayer IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("idle_sequence_player", ANIMATION_FP_PLAYER_IDLE).setDefaultPlayRate(0F);
-    private static final AnimationSequencePlayer TEST_IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("test_idle_sequence_player", ANIMATION_FP_PLAYER_IDLE).setDefaultPlayRate(0F).setStartTime(50);
+    private static final AnimationSequencePlayer TEST_IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("test_idle_sequence_player", ANIMATION_FP_PLAYER_IDLE).setDefaultPlayRate(1F).setStartTime(70);
 
 
+
+    enum TestStates {
+        IDLE,
+        MOVING
+    }
+
+
+
+
+
+
+    /*
     enum ItemSwitchStates {
         EMPTY,
         EMPTY_RAISING,
@@ -125,6 +138,8 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
             .addStateTransition(MiningStates.BEGIN, MiningStates.IDLE, 2)
             .addStateTransition(MiningStates.LOOPING, MiningStates.IDLE, 2);
 
+
+     */
 
 
     private static final AnimationMontageTrack MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK = AnimationMontageTrack.of("main_hand_empty_punch_montage_track");
@@ -197,7 +212,7 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
          */
 
 
-        AnimationPose<FPPlayerLocators> pose = sampleAnimationState(IDLE_SEQUENCE_PLAYER);
+        AnimationPose<FPPlayerLocators> pose = sampleAnimationState(TEST_IDLE_SEQUENCE_PLAYER);
 
         pose = dampenArmRotation(pose);
 
