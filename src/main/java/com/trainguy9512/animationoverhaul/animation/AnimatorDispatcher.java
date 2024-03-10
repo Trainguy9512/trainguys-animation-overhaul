@@ -3,7 +3,7 @@ package com.trainguy9512.animationoverhaul.animation;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
-import com.trainguy9512.animationoverhaul.animation.entity.LivingEntityAnimator;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.LivingEntityAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import net.minecraft.client.model.EntityModel;

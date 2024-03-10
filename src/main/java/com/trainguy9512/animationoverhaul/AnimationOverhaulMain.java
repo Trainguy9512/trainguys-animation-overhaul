@@ -1,7 +1,7 @@
 package com.trainguy9512.animationoverhaul;
 
 
-import com.trainguy9512.animationoverhaul.animation.data.LivingEntityAnimatorRegistry;
+import com.trainguy9512.animationoverhaul.animation.LivingEntityAnimatorRegistry;
 import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupDataLoader;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;

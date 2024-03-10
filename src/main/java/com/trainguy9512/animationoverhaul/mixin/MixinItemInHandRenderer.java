@@ -2,7 +2,7 @@ package com.trainguy9512.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.trainguy9512.animationoverhaul.animation.entity.FirstPersonPlayerAnimator;
+import com.trainguy9512.animationoverhaul.animation.animator.FirstPersonPlayerAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointPose;
 import net.minecraft.client.Minecraft;

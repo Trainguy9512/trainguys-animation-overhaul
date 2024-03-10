@@ -1,5 +1,7 @@
-package com.trainguy9512.animationoverhaul.animation.entity;
+package com.trainguy9512.animationoverhaul.animation.animator;
 
+import com.trainguy9512.animationoverhaul.animation.animator.entity.LivingEntityAnimator;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationVariableKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
@@ -16,7 +18,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
-public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer, PlayerModel<LocalPlayer>, FirstPersonPlayerAnimator.FPPlayerLocators>{
+public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer, PlayerModel<LocalPlayer>, FirstPersonPlayerAnimator.FPPlayerLocators> {
 
     public static FirstPersonPlayerAnimator INSTANCE = new FirstPersonPlayerAnimator();
 
@@ -64,16 +66,12 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = TimelineGroupData.getNativeResourceLocation(TimelineGroupData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
 
 
-    public static final AnimationDataContainer.DataKey<Float> TIME_TEST = new AnimationDataContainer.DataKey<>("time_test", 0F);
-    public static final AnimationDataContainer.DataKey<Vector3f> CAMERA_ROTATION = new AnimationDataContainer.DataKey<>("camera_rotation", new Vector3f(0, 0, 0));
-    public static final AnimationDataContainer.DataKey<Vector3f> DAMPENED_CAMERA_ROTATION = new AnimationDataContainer.DataKey<>("camera_rotation", new Vector3f(0, 0, 0));
-    public static final AnimationDataContainer.DataKey<ItemStack> MAIN_HAND_ITEM = new AnimationDataContainer.DataKey<>("main_hand_item_stack", ItemStack.EMPTY);
-    public static final AnimationDataContainer.DataKey<Boolean> IS_ATTACKING = new AnimationDataContainer.DataKey<>("is_attacking", false);
-    public static final AnimationDataContainer.DataKey<Boolean> IS_USING_ITEM = new AnimationDataContainer.DataKey<>("is_using_item", false);
-    public static final AnimationDataContainer.DataKey<Boolean> IS_MINING = new AnimationDataContainer.DataKey<>("is_mining", false);
-    public static final AnimationDataContainer.DataKey<Float> WALK_WEIGHT = new AnimationDataContainer.DataKey<>("walk_weight", 0F);
-    public static final AnimationDataContainer.DataKey<Boolean> IS_FALLING = new AnimationDataContainer.DataKey<>("is_falling", false);
-    public static final AnimationDataContainer.DataKey<Boolean> IS_JUMPING = new AnimationDataContainer.DataKey<>("is_jumping", false);
+    public static final AnimationVariableKey<Float> TIME_TEST = AnimationVariableKey.of(() -> 0F).setDebugIdentifier("time_test").build();
+
+
+
+    public static final AnimationVariableKey<Vector3f> CAMERA_ROTATION = AnimationVariableKey.of(() -> new Vector3f(0, 0, 0)).setDebugIdentifier("camera_rotation").build();
+    public static final AnimationVariableKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationVariableKey.of(() -> new Vector3f(0, 0, 0)).setDebugIdentifier("dampened_camera_rotation").build();
 
     private static final AnimationSequencePlayer IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("idle_sequence_player", ANIMATION_FP_PLAYER_IDLE).setDefaultPlayRate(0F);
     private static final AnimationSequencePlayer TEST_IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("test_idle_sequence_player", ANIMATION_FP_PLAYER_IDLE).setDefaultPlayRate(1F).setStartTime(70);
@@ -188,7 +186,7 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
     @Override
     protected AnimationPose<FPPlayerLocators> calculatePose() {
         // Update main hand item based on the anim notify
-        setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
+        //setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
         /*
         if(getAnimationState(MAIN_EMPTY_LOWER_SEQUENCE_PLAYER).isAnimNotityActive(ITEM_SWITCH_NOTIFY)){
             setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
@@ -483,7 +481,7 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
         this.localBakedPose.setPose(new AnimationPose(animationPose));
     }
 
-    private boolean compareVariableItemStackWithEntityItemStack(AnimationDataContainer.DataKey<ItemStack> itemStackDataKey, ItemStack entityItemStack){
+    private boolean compareVariableItemStackWithEntityItemStack(AnimationVariableKey<ItemStack> itemStackDataKey, ItemStack entityItemStack){
         ItemStack currentItemStack = getEntityAnimationVariable(itemStackDataKey);
         if(currentItemStack.getItem() != null && entityItemStack.getItem() == null || currentItemStack.getItem() == null && entityItemStack.getItem() != null) {
             return true;

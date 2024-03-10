@@ -1,7 +1,7 @@
-package com.trainguy9512.animationoverhaul.animation.data;
+package com.trainguy9512.animationoverhaul.animation;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.animation.entity.LivingEntityAnimator;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.LivingEntityAnimator;
 import net.minecraft.world.entity.EntityType;
 
 import java.util.HashMap;

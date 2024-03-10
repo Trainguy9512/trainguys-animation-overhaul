@@ -1,8 +1,9 @@
-package com.trainguy9512.animationoverhaul.animation.entity;
+package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.animationoverhaul.access.ModelAccess;
 import com.trainguy9512.animationoverhaul.animation.AnimatorDispatcher;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationVariableKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
@@ -54,15 +55,15 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
         return this.entityAnimationData;
     }
 
-    protected <D> AnimationDataContainer.AnimationVariable<D> getEntityAnimationVariableObject(AnimationDataContainer.DataKey<D> dataKey){
+    protected <D> AnimationDataContainer.AnimationVariable<D> getEntityAnimationVariableObject(AnimationVariableKey<D> dataKey){
         return getEntityAnimationData().get(dataKey);
     }
 
-    protected <D> D getEntityAnimationVariable(AnimationDataContainer.DataKey<D> dataKey){
+    protected <D> D getEntityAnimationVariable(AnimationVariableKey<D> dataKey){
         return getEntityAnimationVariableObject(dataKey).get();
     }
 
-    protected <D> void setEntityAnimationVariable(AnimationDataContainer.DataKey<D> dataKey, D value){
+    protected <D> void setEntityAnimationVariable(AnimationVariableKey<D> dataKey, D value){
         getEntityAnimationData().setValue(dataKey, value);
     }
 

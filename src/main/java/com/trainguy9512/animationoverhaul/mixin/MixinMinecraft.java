@@ -1,6 +1,6 @@
 package com.trainguy9512.animationoverhaul.mixin;
 
-import com.trainguy9512.animationoverhaul.animation.entity.FirstPersonPlayerAnimator;
+import com.trainguy9512.animationoverhaul.animation.animator.FirstPersonPlayerAnimator;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

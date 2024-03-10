@@ -1,4 +1,4 @@
-package com.trainguy9512.animationoverhaul.animation.entity;
+package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
 /*
 public class PlayerPartAnimatorOld extends LivingEntityPartAnimator<Player, PlayerModel<Player>> {

@@ -1,4 +1,4 @@
-package com.trainguy9512.animationoverhaul.animation.entity;
+package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;

@@ -1,18 +1,10 @@
 package com.trainguy9512.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
-import com.trainguy9512.animationoverhaul.animation.AnimatorDispatcher;
-import com.trainguy9512.animationoverhaul.animation.entity.FirstPersonPlayerAnimator;
-import com.trainguy9512.animationoverhaul.animation.entity.PlayerPartAnimator;
-import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.ArmedModel;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
