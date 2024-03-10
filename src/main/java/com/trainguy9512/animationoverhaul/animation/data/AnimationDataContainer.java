@@ -1,4 +1,4 @@
-package com.trainguy9512.animationoverhaul.util.data;
+package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
@@ -12,9 +12,9 @@ import java.util.*;
 
 public class AnimationDataContainer {
 
-    private final HashMap<DataKey<?>, Variable<?>> entityAnimationVariables;
+    private final HashMap<DataKey<?>, AnimationVariable<?>> entityAnimationVariables;
     private final HashMap<String, SampleableAnimationState> entitySampleableAnimationStates;
-    private CachedPoseContainer cachedPoseContainer = new CachedPoseContainer();
+    private final CachedPoseContainer cachedPoseContainer = new CachedPoseContainer();
 
     public AnimationDataContainer(){
         this.entityAnimationVariables = Maps.newHashMap();
@@ -83,17 +83,17 @@ public class AnimationDataContainer {
         }
     }
 
-    public <D> Variable<D> get(DataKey<D> dataKey){
+    public <D> AnimationVariable<D> get(DataKey<D> dataKey){
         if(!entityAnimationVariables.containsKey(dataKey)){
-            entityAnimationVariables.put(dataKey, new Variable<>(dataKey));
+            entityAnimationVariables.put(dataKey, new AnimationVariable<>(dataKey));
         }
-        return (Variable<D>) entityAnimationVariables.get(dataKey);
+        return (AnimationVariable<D>) entityAnimationVariables.get(dataKey);
     }
 
-    public TreeMap<String, Variable<?>> getDebugData(){
-        TreeMap<String, Variable<?>> finalList = Maps.newTreeMap();
+    public TreeMap<String, AnimationVariable<?>> getDebugData(){
+        TreeMap<String, AnimationVariable<?>> finalList = Maps.newTreeMap();
         for(DataKey<?> dataKey : this.entityAnimationVariables.keySet()){
-            Variable<?> data = entityAnimationVariables.get(dataKey);
+            AnimationVariable<?> data = entityAnimationVariables.get(dataKey);
 
             String[] typeSplitted = data.get().getClass().toString().split("\\.");
             String type = typeSplitted[typeSplitted.length - 1];
@@ -161,7 +161,7 @@ public class AnimationDataContainer {
     public void incrementInTicksFromCondition(DataKey<Float> dataKey, boolean condition, float ticksToIncrement, float ticksToDecrement){
         ticksToIncrement = Math.max(1, ticksToIncrement);
         ticksToDecrement = Math.max(1, ticksToDecrement);
-        Variable<Float> data = this.get(dataKey);
+        AnimationVariable<Float> data = this.get(dataKey);
         data.set(Mth.clamp((data.get()) + (condition ? 1/ticksToIncrement : -1/ticksToDecrement), 0, 1));
     }
 
@@ -186,7 +186,7 @@ public class AnimationDataContainer {
      * @param ticksToIncrement  Time in ticks to increment from 0 to 1
      */
     public void incrementInTicksOrResetFromCondition(DataKey<Float> dataKey, boolean condition, float ticksToIncrement){
-        Variable<Float> data = this.get(dataKey);
+        AnimationVariable<Float> data = this.get(dataKey);
         if(condition){
             data.set(0F);
             data.set(0F);
@@ -218,8 +218,8 @@ public class AnimationDataContainer {
      * @param random                Java random object used to pick a random index within numberOfAnimations
      */
     public void incrementInTicksOrResetRandomFromCondition(DataKey<Float> dataKeyMain, DataKey<Integer> dataKeyIndex, int numberOfAnimations, boolean condition, float ticksToIncrement, Random random){
-        Variable<Float> dataMain = this.get(dataKeyMain);
-        Variable<Integer> dataIndex = this.get(dataKeyIndex);
+        AnimationVariable<Float> dataMain = this.get(dataKeyMain);
+        AnimationVariable<Integer> dataIndex = this.get(dataKeyIndex);
         if(condition){
             dataMain.set(0F);
             dataMain.set(0F);
@@ -258,13 +258,13 @@ public class AnimationDataContainer {
         }
     }
 
-    public static class Variable<D>{
+    public static class AnimationVariable<D>{
 
         private D value;
         private D valueOld;
         private final D defaultValue;
 
-        public Variable(DataKey<D> dataKey){
+        public AnimationVariable(DataKey<D> dataKey){
             this.value = dataKey.defaultValue;
             this.valueOld = dataKey.defaultValue;
             this.defaultValue = dataKey.defaultValue;

@@ -4,6 +4,7 @@ import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+@Deprecated
 public class RotationMatrix {
     public float[][] matrixGrid;
 

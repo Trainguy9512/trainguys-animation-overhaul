@@ -2,8 +2,8 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
-import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
-import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
+import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 

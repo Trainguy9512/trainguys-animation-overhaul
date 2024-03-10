@@ -1,6 +1,6 @@
 package com.trainguy9512.animationoverhaul.util.time;
 
-import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
+import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
 import net.minecraft.util.Mth;
 
 @Deprecated

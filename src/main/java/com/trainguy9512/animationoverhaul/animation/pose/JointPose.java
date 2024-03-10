@@ -1,8 +1,8 @@
 package com.trainguy9512.animationoverhaul.animation.pose;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
-import com.trainguy9512.animationoverhaul.util.data.TransformChannel;
+import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
+import com.trainguy9512.animationoverhaul.animation.data.TransformChannel;
 import com.trainguy9512.animationoverhaul.util.time.ChannelTimeline;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.client.model.geom.ModelPart;

@@ -1,14 +1,12 @@
 package com.trainguy9512.animationoverhaul;
 
 
-import com.trainguy9512.animationoverhaul.animation.entity.PlayerPartAnimator;
-import com.trainguy9512.animationoverhaul.util.data.LivingEntityAnimatorRegistry;
-import com.trainguy9512.animationoverhaul.util.data.TimelineGroupDataLoader;
+import com.trainguy9512.animationoverhaul.animation.data.LivingEntityAnimatorRegistry;
+import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupDataLoader;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

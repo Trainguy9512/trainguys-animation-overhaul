@@ -1,19 +1,17 @@
 package com.trainguy9512.animationoverhaul.animation.entity;
 
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
-import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
-import com.trainguy9512.animationoverhaul.util.data.TimelineGroupData;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
+import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
@@ -328,7 +326,10 @@ public class FirstPersonPlayerAnimator extends LivingEntityAnimator<LocalPlayer,
 
      */
 
+
     public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData){
+
+
 
 
         this.setEntityAnimationVariable(TIME_TEST, this.getEntityAnimationVariable(TIME_TEST) + 1);

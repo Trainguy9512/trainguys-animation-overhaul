@@ -7,7 +7,7 @@ import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
-import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.LivingEntity;
@@ -54,7 +54,7 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
         return this.entityAnimationData;
     }
 
-    protected <D> AnimationDataContainer.Variable<D> getEntityAnimationVariableObject(AnimationDataContainer.DataKey<D> dataKey){
+    protected <D> AnimationDataContainer.AnimationVariable<D> getEntityAnimationVariableObject(AnimationDataContainer.DataKey<D> dataKey){
         return getEntityAnimationData().get(dataKey);
     }
 
@@ -90,7 +90,12 @@ public abstract class LivingEntityAnimator<T extends LivingEntity, M extends Ent
     }
 
     protected float getWalkAnimationPosition(){
+
+
+
+
         return this.livingEntity.walkAnimation.position();
+
     }
 
     public void tick(LivingEntity livingEntity){

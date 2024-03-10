@@ -1,6 +1,6 @@
 package com.trainguy9512.animationoverhaul.util.time;
 
-import com.trainguy9512.animationoverhaul.util.data.TransformChannel;
+import com.trainguy9512.animationoverhaul.animation.data.TransformChannel;
 import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
 

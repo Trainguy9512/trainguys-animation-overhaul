@@ -4,7 +4,7 @@ import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
-import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;

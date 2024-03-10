@@ -1,4 +1,4 @@
-package com.trainguy9512.animationoverhaul.util.data;
+package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.entity.LivingEntityAnimator;
