@@ -2,13 +2,13 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import java.util.List;
 
-public class TimeBasedAnimationState extends SampleableAnimationState {
+public class TimeBasedPoseSampler extends PoseSampler {
 
     private float timeElapsed = 0;
     private float playRate = 1;
     private boolean playing = true;
 
-    public TimeBasedAnimationState(String identifier) {
+    public TimeBasedPoseSampler(String identifier) {
         super(identifier);
     }
 

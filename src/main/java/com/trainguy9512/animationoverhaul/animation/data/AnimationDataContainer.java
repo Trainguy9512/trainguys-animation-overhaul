@@ -1,14 +1,10 @@
 package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
-import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
-import com.trainguy9512.animationoverhaul.util.time.Easing;
-import com.trainguy9512.animationoverhaul.util.time.TickTimeUtils;
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import net.minecraft.util.Mth;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -16,7 +12,7 @@ import java.util.function.Supplier;
 public class AnimationDataContainer {
 
     private final HashMap<AnimationVariableKey<?>, AnimationVariable<?>> animationVariables;
-    private final HashMap<String, SampleableAnimationState> entitySampleableAnimationStates;
+    private final HashMap<String, PoseSampler> entitySampleableAnimationStates;
     private final CachedPoseContainer cachedPoseContainer = new CachedPoseContainer();
 
     public AnimationDataContainer(){
@@ -25,12 +21,12 @@ public class AnimationDataContainer {
     }
 
     public void tickAnimationStates(){
-        for(SampleableAnimationState sampleableAnimationState : entitySampleableAnimationStates.values()){
-            sampleableAnimationState.tick();
+        for(PoseSampler poseSampler : entitySampleableAnimationStates.values()){
+            poseSampler.tick();
         }
     }
 
-    public <D extends SampleableAnimationState> D getAnimationState(D sampleableAnimationState){
+    public <D extends PoseSampler> D getAnimationState(D sampleableAnimationState){
         for(String identifier : this.entitySampleableAnimationStates.keySet()){
             if (Objects.equals(sampleableAnimationState.getIdentifier(), identifier)){
                 return (D) this.entitySampleableAnimationStates.get(identifier);
@@ -40,32 +36,32 @@ public class AnimationDataContainer {
         return sampleableAnimationState;
     }
 
-    public <L extends Enum<L>> AnimationPose<L> sampleAnimationState(LocatorSkeleton<L> locatorSkeleton, SampleableAnimationState sampleableAnimationState){
+    public <L extends Enum<L>> AnimationPose<L> sampleAnimationState(JointSkeleton<L> jointSkeleton, PoseSampler poseSampler){
         for(String identifier : this.entitySampleableAnimationStates.keySet()){
-            if (Objects.equals(sampleableAnimationState.getIdentifier(), identifier)){
-                return this.entitySampleableAnimationStates.get(identifier).sample(locatorSkeleton, cachedPoseContainer);
+            if (Objects.equals(poseSampler.getIdentifier(), identifier)){
+                return this.entitySampleableAnimationStates.get(identifier).sample(jointSkeleton, cachedPoseContainer);
             }
         }
-        this.entitySampleableAnimationStates.put(sampleableAnimationState.getIdentifier(), sampleableAnimationState);
-        return (this.entitySampleableAnimationStates.get(sampleableAnimationState.getIdentifier())).sample(locatorSkeleton, cachedPoseContainer);
+        this.entitySampleableAnimationStates.put(poseSampler.getIdentifier(), poseSampler);
+        return (this.entitySampleableAnimationStates.get(poseSampler.getIdentifier())).sample(jointSkeleton, cachedPoseContainer);
     }
 
-    public <L extends Enum<L>> AnimationPose<L> sampleAnimationStateFromInputPose(AnimationPose<L> inputPose, LocatorSkeleton<L> locatorSkeleton, SampleableAnimationState sampleableAnimationState){
+    public <L extends Enum<L>> AnimationPose<L> sampleAnimationStateFromInputPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton, PoseSampler poseSampler){
         for(String identifier : this.entitySampleableAnimationStates.keySet()){
-            if (Objects.equals(sampleableAnimationState.getIdentifier(), identifier)){
-                return this.entitySampleableAnimationStates.get(identifier).sampleFromInputPose(inputPose, locatorSkeleton, cachedPoseContainer);
+            if (Objects.equals(poseSampler.getIdentifier(), identifier)){
+                return this.entitySampleableAnimationStates.get(identifier).sampleFromInputPose(inputPose, jointSkeleton, cachedPoseContainer);
             }
         }
-        this.entitySampleableAnimationStates.put(sampleableAnimationState.getIdentifier(), sampleableAnimationState);
-        return (this.entitySampleableAnimationStates.get(sampleableAnimationState.getIdentifier())).sampleFromInputPose(inputPose, locatorSkeleton, cachedPoseContainer);
+        this.entitySampleableAnimationStates.put(poseSampler.getIdentifier(), poseSampler);
+        return (this.entitySampleableAnimationStates.get(poseSampler.getIdentifier())).sampleFromInputPose(inputPose, jointSkeleton, cachedPoseContainer);
     }
 
     public <L extends Enum<L>> void saveCachedPose(String identifier, AnimationPose<L> animationPose){
         this.cachedPoseContainer.saveCachedPose(identifier, animationPose);
     }
 
-    public <L extends Enum<L>> AnimationPose<?> getCachedPose(String identifier, LocatorSkeleton<L> locatorSkeleton){
-        return this.cachedPoseContainer.getCachedPose(identifier, locatorSkeleton);
+    public <L extends Enum<L>> AnimationPose<?> getCachedPose(String identifier, JointSkeleton<L> jointSkeleton){
+        return this.cachedPoseContainer.getCachedPose(identifier, jointSkeleton);
     }
 
     public class CachedPoseContainer {
@@ -78,11 +74,11 @@ public class AnimationDataContainer {
             this.poses.put(identifier, animationPose);
         }
 
-        public AnimationPose<?> getCachedPose(String identifier, LocatorSkeleton<?> locatorSkeleton){
+        public AnimationPose<?> getCachedPose(String identifier, JointSkeleton<?> jointSkeleton){
             if(this.poses.containsKey(identifier)){
                 return this.poses.get(identifier);
             }
-            return AnimationPose.of(locatorSkeleton);
+            return AnimationPose.of(jointSkeleton);
         }
     }
 

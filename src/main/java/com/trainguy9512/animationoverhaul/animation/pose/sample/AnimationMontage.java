@@ -1,7 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.resources.ResourceLocation;
@@ -44,8 +44,8 @@ public class AnimationMontage {
         setBlendWeight(Mth.clamp(isActive() ? getBlendWeight() + getBlendSpeed(true) : getBlendWeight() - getBlendSpeed(false), 0, 1));
     }
 
-    public <L extends Enum<L>> AnimationPose<L> getAnimationPose(LocatorSkeleton<L> locatorSkeleton){
-        return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / TimelineGroupData.INSTANCE.get(resourceLocation).getFrameLength());
+    public <L extends Enum<L>> AnimationPose<L> getAnimationPose(JointSkeleton<L> jointSkeleton){
+        return AnimationPose.fromChannelTimeline(jointSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / TimelineGroupData.INSTANCE.get(resourceLocation).getFrameLength());
     }
 
     /**

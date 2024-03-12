@@ -1,6 +1,6 @@
 package com.trainguy9512.animationoverhaul.access;
 
-import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import net.minecraft.core.BlockPos;
 
 public interface LivingEntityAccess {
@@ -16,6 +16,6 @@ public interface LivingEntityAccess {
     boolean getUseInventoryRenderer();
     void setUseInventoryRenderer(boolean bool);
 
-    LocatorSkeleton getLocatorRig();
-    void storeLocatorRig(LocatorSkeleton locatorRig);
+    JointSkeleton getLocatorRig();
+    void storeLocatorRig(JointSkeleton locatorRig);
 }

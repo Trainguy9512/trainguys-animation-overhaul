@@ -2,7 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
 import net.minecraft.resources.ResourceLocation;
@@ -10,7 +10,7 @@ import net.minecraft.util.Mth;
 
 import java.util.HashMap;
 
-public class AnimationSequencePlayer extends TimeBasedAnimationState {
+public class AnimationSequencePlayer extends TimeBasedPoseSampler {
 
     private boolean looping = true;
     private ResourceLocation resourceLocation;
@@ -95,8 +95,8 @@ public class AnimationSequencePlayer extends TimeBasedAnimationState {
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sample(LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
-        return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, this.getTimeFromTicks());
+    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
+        return AnimationPose.fromChannelTimeline(jointSkeleton, this.resourceLocation, this.getTimeFromTicks());
         //return super.sample(locatorSkeleton);
     }
 

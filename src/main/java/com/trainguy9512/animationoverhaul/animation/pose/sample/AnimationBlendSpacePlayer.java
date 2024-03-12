@@ -1,7 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
 import net.minecraft.resources.ResourceLocation;
@@ -9,7 +9,7 @@ import net.minecraft.util.Mth;
 
 import java.util.TreeMap;
 
-public class AnimationBlendSpacePlayer extends TimeBasedAnimationState {
+public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
 
     private final TreeMap<Float, BlendSpaceEntry> blendSpaceEntryTreeMap = new TreeMap<Float, BlendSpaceEntry>();
     private float currentValue = 0;
@@ -60,26 +60,26 @@ public class AnimationBlendSpacePlayer extends TimeBasedAnimationState {
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sample(LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
+    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
         if(this.blendSpaceEntryTreeMap.entrySet().size() == 0){
-            return AnimationPose.of(locatorSkeleton);
+            return AnimationPose.of(jointSkeleton);
         }
 
         var firstEntry = this.blendSpaceEntryTreeMap.floorEntry(this.currentValue);
         var secondEntry = this.blendSpaceEntryTreeMap.ceilingEntry(this.currentValue);
 
         if (firstEntry == null)
-            return secondEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed());
+            return secondEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed());
         if (secondEntry == null)
-            return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed());
+            return firstEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed());
 
         // If they're both the same frame
         if (firstEntry.getKey().equals(secondEntry.getKey()))
-            return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed());
+            return firstEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed());
 
         float relativeTime = (this.currentValue - firstEntry.getKey()) / (secondEntry.getKey() - firstEntry.getKey());
-        return firstEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed()).getBlendedLinear(
-                secondEntry.getValue().sampleEntry(locatorSkeleton, this.getTimeElapsed()),
+        return firstEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed()).getBlendedLinear(
+                secondEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed()),
                 relativeTime
         );
     }
@@ -104,8 +104,8 @@ public class AnimationBlendSpacePlayer extends TimeBasedAnimationState {
             return (time % frameLength) / frameLength;
         }
 
-        private<L extends Enum<L>>  AnimationPose<L> sampleEntry(LocatorSkeleton<L> locatorSkeleton, float time) {
-            return AnimationPose.fromChannelTimeline(locatorSkeleton, this.resourceLocation, this.getTimeFromTicks(time));
+        private<L extends Enum<L>>  AnimationPose<L> sampleEntry(JointSkeleton<L> jointSkeleton, float time) {
+            return AnimationPose.fromChannelTimeline(jointSkeleton, this.resourceLocation, this.getTimeFromTicks(time));
         }
     }
 }

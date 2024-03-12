@@ -1,19 +1,19 @@
 package com.trainguy9512.animationoverhaul.animation;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.animation.animator.entity.LivingEntityAnimator;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import net.minecraft.world.entity.EntityType;
 
 import java.util.HashMap;
 
 public class LivingEntityAnimatorRegistry {
 
-    private final HashMap<EntityType<?>, LivingEntityAnimator<?, ?, ?>> livingEntityPartAnimatorHashMap = Maps.newHashMap();
+    private final HashMap<EntityType<?>, EntityJointAnimator<?, ?, ?>> livingEntityPartAnimatorHashMap = Maps.newHashMap();
 
     public LivingEntityAnimatorRegistry(){
     }
 
-    public void register(EntityType<?> entityType, LivingEntityAnimator<?, ?, ?> livingEntityPartAnimator){
+    public void register(EntityType<?> entityType, EntityJointAnimator<?, ?, ?> livingEntityPartAnimator){
         livingEntityPartAnimatorHashMap.put(entityType, livingEntityPartAnimator);
     }
 
@@ -21,7 +21,7 @@ public class LivingEntityAnimatorRegistry {
         return livingEntityPartAnimatorHashMap.containsKey(entityType);
     }
 
-    public LivingEntityAnimator<?, ?, ?> get(EntityType<?> entityType){
+    public EntityJointAnimator<?, ?, ?> get(EntityType<?> entityType){
         return livingEntityPartAnimatorHashMap.get(entityType);
     }
 }

@@ -1,12 +1,12 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import net.minecraft.util.Mth;
 import java.util.ArrayList;
 
-public class AnimationMontageTrack extends SampleableAnimationState {
+public class AnimationMontageTrack extends PoseSampler {
 
     private final ArrayList<AnimationMontage> activeMontages = new ArrayList<AnimationMontage>();
 
@@ -38,22 +38,22 @@ public class AnimationMontageTrack extends SampleableAnimationState {
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sample(LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
-        return AnimationPose.of(locatorSkeleton);
+    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
+        return AnimationPose.of(jointSkeleton);
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sampleFromInputPose(AnimationPose<L> inputPose, LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
-        return getBlendedPose(inputPose, locatorSkeleton);
+    public <L extends Enum<L>> AnimationPose<L> sampleFromInputPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
+        return getBlendedPose(inputPose, jointSkeleton);
     }
 
     public boolean isActive(){
         return this.activeMontages.size() > 0;
     }
 
-    private <L extends Enum<L>> AnimationPose<L> getBlendedPose(AnimationPose<L> inputPose, LocatorSkeleton<L> locatorSkeleton){
+    private <L extends Enum<L>> AnimationPose<L> getBlendedPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton){
         // Initialize the animation pose
-        AnimationPose<L> animationPose = AnimationPose.of(locatorSkeleton);
+        AnimationPose<L> animationPose = AnimationPose.of(jointSkeleton);
 
         // Only do this stuff if there's any loaded animation montages
         if(this.activeMontages.size() > 0){
@@ -61,9 +61,9 @@ public class AnimationMontageTrack extends SampleableAnimationState {
             for(int i = 0; i < this.activeMontages.size(); i++){
                 AnimationMontage animationMontage = this.activeMontages.get(i);
                 if(i == 0){
-                    animationPose = animationMontage.getAnimationPose(locatorSkeleton);
+                    animationPose = animationMontage.getAnimationPose(jointSkeleton);
                 } else {
-                    animationPose.blendLinear(animationMontage.getAnimationPose(locatorSkeleton), animationMontage.getBlendWeightEased()
+                    animationPose.blendLinear(animationMontage.getAnimationPose(jointSkeleton), animationMontage.getBlendWeightEased()
                     );
                 }
             }

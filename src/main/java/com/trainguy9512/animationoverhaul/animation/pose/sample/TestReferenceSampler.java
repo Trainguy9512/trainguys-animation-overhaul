@@ -1,10 +1,10 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 
-public class TestReferenceSampler extends SampleableAnimationState {
+public class TestReferenceSampler extends PoseSampler {
 
     private String cachedPoseIdentifier;
 
@@ -18,8 +18,8 @@ public class TestReferenceSampler extends SampleableAnimationState {
     }
 
     @Override
-    public AnimationPose sample(LocatorSkeleton locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
-        return cachedPoseContainer.getCachedPose(this.cachedPoseIdentifier, locatorSkeleton);
+    public AnimationPose sample(JointSkeleton jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
+        return cachedPoseContainer.getCachedPose(this.cachedPoseIdentifier, jointSkeleton);
     }
 
     public void tick(){

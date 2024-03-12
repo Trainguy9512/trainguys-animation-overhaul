@@ -2,11 +2,13 @@ package com.trainguy9512.animationoverhaul;
 
 
 import com.trainguy9512.animationoverhaul.animation.LivingEntityAnimatorRegistry;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.PlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupDataLoader;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -53,7 +55,7 @@ public class AnimationOverhaulMain implements ModInitializer {
 
 
 	private static void registerEntityAnimators(){
-		//ENTITY_ANIMATORS.register(EntityType.PLAYER, new PlayerPartAnimator());
+		ENTITY_ANIMATORS.register(EntityType.PLAYER, new PlayerJointAnimator());
 	}
 
 	/*

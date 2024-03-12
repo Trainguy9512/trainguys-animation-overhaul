@@ -27,7 +27,7 @@ public class BakedAnimationPose<L extends Enum<L>> {
     }
 
     public void bakeToModelParts(ModelPart rootModelPart, float partialTicks){
-        AnimationPose<L> blendedPose = getBlendedPose(partialTicks);
+        AnimationPose<L> blendedPose = this.getBlendedPose(partialTicks);
         for(Enum<L> locator : this.pose.getSkeleton().getLocators()){
             if(this.pose.getSkeleton().getLocatorUsesModelPart(locator)){
                 ModelPart finalModelPart = rootModelPart;

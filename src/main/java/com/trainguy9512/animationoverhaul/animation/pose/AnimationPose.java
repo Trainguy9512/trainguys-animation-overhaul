@@ -2,7 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.pose;
 
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
@@ -14,25 +14,25 @@ import java.util.Set;
 
 public class AnimationPose<L extends Enum<L>> {
 
-    private final LocatorSkeleton<L> locatorSkeleton;
+    private final JointSkeleton<L> jointSkeleton;
     private final HashMap<Enum<L>, JointPose> pose;
 
-    private AnimationPose(LocatorSkeleton<L> locatorSkeleton){
-        this.locatorSkeleton = locatorSkeleton;
+    private AnimationPose(JointSkeleton<L> jointSkeleton){
+        this.jointSkeleton = jointSkeleton;
         this.pose = Maps.newHashMap();
 
-        for(Enum<L> locator : locatorSkeleton.getLocators()){
+        for(Enum<L> locator : jointSkeleton.getLocators()){
             this.setJointPose(locator, JointPose.ZERO);
         }
     }
 
     public AnimationPose(AnimationPose<L> animationPose){
-        this.locatorSkeleton = animationPose.locatorSkeleton;
+        this.jointSkeleton = animationPose.jointSkeleton;
         this.pose = new HashMap<>(animationPose.pose);
     }
 
-    public static <L extends Enum<L>> AnimationPose<L> of(LocatorSkeleton<L> locatorSkeleton){
-        return new AnimationPose<>(locatorSkeleton);
+    public static <L extends Enum<L>> AnimationPose<L> of(JointSkeleton<L> jointSkeleton){
+        return new AnimationPose<>(jointSkeleton);
     }
 
     @Deprecated
@@ -48,8 +48,8 @@ public class AnimationPose<L extends Enum<L>> {
          */
     }
 
-    public LocatorSkeleton<L> getSkeleton(){
-        return this.locatorSkeleton;
+    public JointSkeleton<L> getSkeleton(){
+        return this.jointSkeleton;
     }
 
     public void applyDefaultPoseOffset(){
@@ -281,9 +281,9 @@ public class AnimationPose<L extends Enum<L>> {
          */
     }
 
-    public static <L extends Enum<L>> AnimationPose<L> fromChannelTimeline(LocatorSkeleton<L> locatorSkeleton, ResourceLocation resourceLocation, float time){
-        AnimationPose<L> animationPose = AnimationPose.of(locatorSkeleton);
-        for(Enum<L> locator : locatorSkeleton.getLocators()){
+    public static <L extends Enum<L>> AnimationPose<L> fromChannelTimeline(JointSkeleton<L> jointSkeleton, ResourceLocation resourceLocation, float time){
+        AnimationPose<L> animationPose = AnimationPose.of(jointSkeleton);
+        for(Enum<L> locator : jointSkeleton.getLocators()){
             animationPose.setJointPose(locator, JointPose.getJointPoseFromChannelTimeline(resourceLocation, locator.toString(), time));
         }
         return animationPose;

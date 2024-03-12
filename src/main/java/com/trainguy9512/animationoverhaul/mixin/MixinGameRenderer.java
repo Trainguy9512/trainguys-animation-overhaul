@@ -3,13 +3,14 @@ package com.trainguy9512.animationoverhaul.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
-import com.trainguy9512.animationoverhaul.animation.AnimatorDispatcher;
-import com.trainguy9512.animationoverhaul.animation.animator.FirstPersonPlayerAnimator;
-import com.trainguy9512.animationoverhaul.animation.animator.entity.LivingEntityAnimator;
+import com.trainguy9512.animationoverhaul.animation.EntityJointAnimatorDispatcher;
+import com.trainguy9512.animationoverhaul.animation.animator.FirstPersonPlayerJointAnimator;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointPose;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -56,18 +57,18 @@ public abstract class MixinGameRenderer {
     @Shadow @Final private Camera mainCamera;
 
     @Inject(method = "tick", at = @At("TAIL"))
-    private void tickEntityInformation(CallbackInfo ci){
+    private <T extends Entity, L extends Enum<L>> void tickEntityInformation(CallbackInfo ci){
         if(this.minecraft.level != null){
             for(Entity entity : this.minecraft.level.entitiesForRendering()){
                 if(entity instanceof LivingEntity){
                     EntityType<?> entityType = entity.getType();
                     if(AnimationOverhaulMain.ENTITY_ANIMATORS.contains(entityType)){
-                        LivingEntityAnimator<?, ?, ?> livingEntityAnimator = AnimationOverhaulMain.ENTITY_ANIMATORS.get(entityType);
-                        AnimatorDispatcher.INSTANCE.tickEntity((LivingEntity) entity, livingEntityAnimator);
+                        EntityJointAnimator<T, ?, L> livingEntityAnimator = (EntityJointAnimator<T, ?, L>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(entityType);
+                        EntityJointAnimatorDispatcher.INSTANCE.tickEntity((T) entity, livingEntityAnimator);
                     }
                 }
             }
-            FirstPersonPlayerAnimator.INSTANCE.tickExternal();
+            FirstPersonPlayerJointAnimator.INSTANCE.tickExternal();
         }
     }
 
@@ -83,10 +84,10 @@ public abstract class MixinGameRenderer {
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;setInverseViewRotationMatrix(Lorg/joml/Matrix3f;)V"))
     private void injectCameraRotation(float f, long l, PoseStack poseStack, CallbackInfo ci){
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
-            if(FirstPersonPlayerAnimator.INSTANCE.localBakedPose != null){
-                AnimationPose<FirstPersonPlayerAnimator.FPPlayerLocators> animationPose = FirstPersonPlayerAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-                JointPose cameraPose = animationPose.getJointPoseCopy(FirstPersonPlayerAnimator.FPPlayerLocators.camera);
-                JointPose rootPose = animationPose.getJointPoseCopy(FirstPersonPlayerAnimator.FPPlayerLocators.root);
+            if(FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose != null){
+                AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerLocators> animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
+                JointPose cameraPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerLocators.camera);
+                JointPose rootPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerLocators.root);
                 cameraPose.multiplyPose(rootPose);
 
                 //poseStack.translate(cameraPose.y / 16F, cameraPose.x / -16F, cameraPose.z / -16F);

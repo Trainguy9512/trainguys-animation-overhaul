@@ -3,7 +3,7 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.util.Mth;
@@ -13,7 +13,7 @@ import java.util.*;
 
 // Enum S is for state defintions, Enum T is for transition definitions
 
-public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimationState {
+public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampler {
 
     private final HashMap<S, State> statesHashMap = Maps.newHashMap();
     private final ArrayList<S> activeStates = new ArrayList<>();
@@ -175,18 +175,18 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
         return this;
     }
 
-    private <L extends Enum<L>> AnimationPose<L> getPoseFromState(Enum<S> identifier, LocatorSkeleton<L> locatorSkeleton){
-        return (AnimationPose<L>) this.statesHashMap.get(identifier).getAnimationPose(locatorSkeleton);
+    private <L extends Enum<L>> AnimationPose<L> getPoseFromState(Enum<S> identifier, JointSkeleton<L> jointSkeleton){
+        return (AnimationPose<L>) this.statesHashMap.get(identifier).getAnimationPose(jointSkeleton);
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sample(LocatorSkeleton<L> locatorSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
+    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
         if(this.activeStates.size() > 0){
-            AnimationPose<L> animationPose = this.getPoseFromState(this.activeStates.get(0), locatorSkeleton);
+            AnimationPose<L> animationPose = this.getPoseFromState(this.activeStates.get(0), jointSkeleton);
             if(this.activeStates.size() > 1){
                 for(Enum<S> stateIdentifier : this.activeStates){
                     animationPose.blend(
-                            this.getPoseFromState(stateIdentifier, locatorSkeleton),
+                            this.getPoseFromState(stateIdentifier, jointSkeleton),
                             this.statesHashMap.get(stateIdentifier).getWeight(),
                             this.statesHashMap.get(stateIdentifier).getCurrentTransition().getEasing());
                 }
@@ -195,7 +195,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
             return animationPose;
         }
         AnimationOverhaulMain.LOGGER.warn("No active states in state machine {}", this.getIdentifier());
-        return AnimationPose.of(locatorSkeleton);
+        return AnimationPose.of(jointSkeleton);
     }
 
     @Override
@@ -310,8 +310,8 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedAnimation
         }
 
         @Nullable
-        public AnimationPose<?> getAnimationPose(LocatorSkeleton<?> locatorSkeleton){
-            return this.animationPose != null ? this.animationPose : AnimationPose.of(locatorSkeleton);
+        public AnimationPose<?> getAnimationPose(JointSkeleton<?> jointSkeleton){
+            return this.animationPose != null ? this.animationPose : AnimationPose.of(jointSkeleton);
         }
 
         public void setAnimationPose(AnimationPose<?> animationPose){

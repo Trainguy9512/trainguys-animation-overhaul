@@ -1,7 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
@@ -9,8 +9,9 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.NotNull;
 
-public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel<Player>, PlayerPartAnimator.ModelPartLocators> {
+public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, PlayerModel<Player>, PlayerJointAnimator.ModelPartLocators> {
 
     private static final String MODEL_PART_ROOT = "root";
     private static final String MODEL_PART_HEAD = "head";
@@ -35,17 +36,17 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
     }
 
 
-    public PlayerPartAnimator(){
+    public PlayerJointAnimator(){
         super();
     }
 
     // Building the locator rig
     @Override
-    protected LocatorSkeleton<ModelPartLocators> buildRig() {
+    protected JointSkeleton<ModelPartLocators> buildRig() {
 
         //TODO: Adjust rig with proper parenting and no more offsets on the legs.
 
-        return LocatorSkeleton.of(ModelPartLocators.root)
+        return JointSkeleton.of(ModelPartLocators.root)
                 .addChildLocator(ModelPartLocators.body)
                 .addChildLocator(ModelPartLocators.cape)
                 .addChildLocator(ModelPartLocators.leftArm)
@@ -86,7 +87,7 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
 
     // Ticking every sampleable animation state, in this case updating the state machine conditions
     @Override
-    public void tick(LivingEntity livingEntity, AnimationDataContainer entityAnimationData) {
+    public void tick(Player player, AnimationDataContainer entityAnimationData) {
 
 
 
@@ -94,13 +95,13 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
 
     // This is the function for getting the final pose every tick
     @Override
-    protected AnimationPose<ModelPartLocators> calculatePose() {
-        return AnimationPose.of(this.locatorSkeleton);
+    public AnimationPose<ModelPartLocators> calculatePose(Player player, AnimationDataContainer animationDataContainer) {
+        return AnimationPose.of(this.jointSkeleton);
     }
 
     // Post-processing on the animation, copying stuff to the second layer and whatnot
     @Override
-    protected void finalizeModelParts(ModelPart rootModelPart) {
+    public void finalizeModelParts(PlayerModel<Player> playerModel, ModelPart rootModelPart) {
         rootModelPart.getChild("left_pants").copyFrom(rootModelPart.getChild("left_leg"));
         rootModelPart.getChild("right_pants").copyFrom(rootModelPart.getChild("right_leg"));
         rootModelPart.getChild("left_sleeve").copyFrom(rootModelPart.getChild("left_arm"));
@@ -109,7 +110,7 @@ public class PlayerPartAnimator extends LivingEntityAnimator<Player, PlayerModel
         rootModelPart.getChild("hat").copyFrom(rootModelPart.getChild("head"));
         rootModelPart.getChild("cloak").xRot *= -1F;
         // Removes the vanilla transformation done for the crouch pose
-        if(this.entityModel.crouching){
+        if(playerModel.crouching){
             for(ModelPart modelPart : rootModelPart.getAllParts().toList()){
                 modelPart.y -= 2;
             }

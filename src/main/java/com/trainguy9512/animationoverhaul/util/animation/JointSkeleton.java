@@ -10,17 +10,17 @@ import java.util.*;
 /**
  * Structure used for associating locator enums with data such as transform hierarchy, default offset poses, model parts, and mirrors.
  */
-public class LocatorSkeleton<L extends Enum<L>> {
+public class JointSkeleton<L extends Enum<L>> {
 
     private final HashMap<Enum<L>, LocatorEntry<L>> locatorHashMap = Maps.newHashMap();
     private final Enum<L> rootLocator;
 
-    public LocatorSkeleton(Enum<L> rootLocator){
+    public JointSkeleton(Enum<L> rootLocator){
         this.rootLocator = rootLocator;
         this.addLocator(rootLocator);
     }
 
-    public LocatorSkeleton(){
+    public JointSkeleton(){
         this.rootLocator = null;
     }
 
@@ -30,8 +30,8 @@ public class LocatorSkeleton<L extends Enum<L>> {
      * @param rootLocator The locator to be used as the hierarchical root
      * @return This locator skeleton
      */
-    public static <L extends Enum<L>> LocatorSkeleton<L> of(Enum<L> rootLocator){
-        return new LocatorSkeleton<L>(rootLocator);
+    public static <L extends Enum<L>> JointSkeleton<L> of(Enum<L> rootLocator){
+        return new JointSkeleton<L>(rootLocator);
     }
 
     /**
@@ -41,7 +41,7 @@ public class LocatorSkeleton<L extends Enum<L>> {
      * @return This locator skeleton
      */
     @Deprecated
-    private LocatorSkeleton<L> addLocators(Enum<L>[] locators){
+    private JointSkeleton<L> addLocators(Enum<L>[] locators){
         for(Enum<L> locator : locators){
             this.addLocator(locator);
         }
@@ -56,12 +56,12 @@ public class LocatorSkeleton<L extends Enum<L>> {
      * @return This locator skeleton
      */
 
-    private LocatorSkeleton<L> addLocator(Enum<L>locator){
+    private JointSkeleton<L> addLocator(Enum<L>locator){
         this.locatorHashMap.put(locator, new LocatorEntry<L>(locator));
         return this;
     }
 
-    public LocatorSkeleton<L> addChildLocator(Enum<L> locatorChild, Enum<L> locatorParent){
+    public JointSkeleton<L> addChildLocator(Enum<L> locatorChild, Enum<L> locatorParent){
         if(this.locatorHashMap.keySet().contains(locatorParent)){
             this.addLocator(locatorChild);
             this.locatorHashMap.get(locatorParent).addChild(locatorChild);
@@ -70,7 +70,7 @@ public class LocatorSkeleton<L extends Enum<L>> {
         return this;
     }
 
-    public LocatorSkeleton<L> addChildLocator(Enum<L> locatorChild){
+    public JointSkeleton<L> addChildLocator(Enum<L> locatorChild){
         return this.addChildLocator(locatorChild, this.rootLocator);
     }
 
@@ -152,7 +152,7 @@ public class LocatorSkeleton<L extends Enum<L>> {
      * @param mirrored The enum locator that the target will use as a mirror
      * @return This locator skeleton
      */
-    public LocatorSkeleton<L> setLocatorMirror(Enum<L> locator, Enum<L> mirrored){
+    public JointSkeleton<L> setLocatorMirror(Enum<L> locator, Enum<L> mirrored){
         this.locatorHashMap.get(locator).setMirroredLocator(mirrored);
         this.locatorHashMap.get(mirrored).setMirroredLocator(locator);
         return this;
@@ -185,7 +185,7 @@ public class LocatorSkeleton<L extends Enum<L>> {
      * @param pose The part pose used as the default pose
      * @return This skeleton
      */
-    public LocatorSkeleton<L> setLocatorDefaultPose(Enum<L> locator, PartPose pose){
+    public JointSkeleton<L> setLocatorDefaultPose(Enum<L> locator, PartPose pose){
         this.locatorHashMap.get(locator).setDefaultPose(pose);
         return this;
     }
@@ -197,7 +197,7 @@ public class LocatorSkeleton<L extends Enum<L>> {
      * @param modelPartIdentifier The model part identifier associated with the locator
      * @return This skeleton
      */
-    public LocatorSkeleton<L> setLocatorModelPart(Enum<L> locator, String modelPartIdentifier){
+    public JointSkeleton<L> setLocatorModelPart(Enum<L> locator, String modelPartIdentifier){
         this.locatorHashMap.get(locator).setModelPartIdentifier(modelPartIdentifier);
         return this;
     }

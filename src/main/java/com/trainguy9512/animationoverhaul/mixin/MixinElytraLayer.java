@@ -1,7 +1,7 @@
 package com.trainguy9512.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.trainguy9512.animationoverhaul.animation.AnimatorDispatcher;
+import com.trainguy9512.animationoverhaul.animation.EntityJointAnimatorDispatcher;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
@@ -38,6 +38,6 @@ public abstract class MixinElytraLayer<T extends LivingEntity, M extends EntityM
     }
 
     private boolean isValidForElytraTransformation(LivingEntity livingEntity){
-        return AnimatorDispatcher.INSTANCE.hasAnimationData(livingEntity.getUUID());
+        return EntityJointAnimatorDispatcher.INSTANCE.hasAnimationData(livingEntity.getUUID());
     }
 }
