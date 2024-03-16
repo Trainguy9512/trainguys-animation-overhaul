@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
@@ -20,15 +21,57 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
 
     HashMap<String, AnimNotify> animNotifyMap = Maps.newHashMap();
 
-    private AnimationSequencePlayer(String identifier, ResourceLocation resourceLocation) {
-        super(identifier);
-        this.resourceLocation = resourceLocation;
-        this.frameLength = TimelineGroupData.INSTANCE.get(this.resourceLocation).getFrameLength();
-        this.endTime = this.frameLength;
+    private AnimationSequencePlayer(Builder<?> builder) {
+        super(builder);
+        this.looping = builder.looping;
+        this.resourceLocation = builder.resourceLocation;
+        this.frameLength = builder.frameLength;
+        this.startTime = builder.startTime;
+        this.endTime = builder.endTime;
     }
 
-    public static AnimationSequencePlayer of(String identifier, ResourceLocation resourceLocation){
-        return new AnimationSequencePlayer(identifier, resourceLocation);
+    public static Builder<?> of(String identifier, ResourceLocation resourceLocation){
+        return new Builder<>(identifier, resourceLocation);
+    }
+
+
+    public static class Builder<B extends Builder<B>> extends TimeBasedPoseSampler.Builder<B> {
+
+        private boolean looping = false;
+        private final ResourceLocation resourceLocation;
+        private final float frameLength;
+        private float startTime = 0f;
+        private float endTime;
+
+        protected Builder(String identifier, ResourceLocation resourceLocation) {
+            super(identifier);
+            this.resourceLocation = resourceLocation;
+            this.frameLength = TimelineGroupData.INSTANCE.get(this.resourceLocation).getFrameLength();
+            this.endTime = frameLength;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B setLooping(boolean looping){
+            this.looping = looping;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B setStartTime(float startTime){
+            this.startTime = startTime;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B setEndTime(float endTime){
+            this.endTime = endTime;
+            return (B) this;
+        }
+
+        @Override
+        public AnimationSequencePlayer build() {
+            return new AnimationSequencePlayer(this);
+        }
     }
 
     @Override
@@ -57,26 +100,6 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
         return this.getTimeElapsed() % this.frameLength;
     }
 
-    public AnimationSequencePlayer setLooping(boolean looping){
-        this.looping = looping;
-        return this;
-    }
-
-    public AnimationSequencePlayer setDefaultPlayRate(float newPlayRate){
-        this.setPlayRate(newPlayRate);
-        return this;
-    }
-
-    public AnimationSequencePlayer setStartTime(float startTimeTicks){
-        this.startTime = startTimeTicks;
-        return this;
-    }
-
-    public AnimationSequencePlayer setEndTime(float endTimeTicks){
-        this.endTime = endTimeTicks;
-        return this;
-    }
-
     @Override
     public void resetTime() {
         this.setTimeElapsed(this.startTime);
@@ -100,7 +123,8 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
         //return super.sample(locatorSkeleton);
     }
 
-    private class AnimNotify {
+    //TODO: Rewrite this with functions
+    private static class AnimNotify {
 
         private boolean active = false;
         private final float frame;

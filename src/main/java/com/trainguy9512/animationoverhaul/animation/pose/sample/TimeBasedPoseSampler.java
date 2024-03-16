@@ -4,12 +4,46 @@ import java.util.List;
 
 public class TimeBasedPoseSampler extends PoseSampler {
 
-    private float timeElapsed = 0;
-    private float playRate = 1;
-    private boolean playing = true;
+    private float timeElapsed;
+    private float playRate;
+    private boolean playing;
 
-    public TimeBasedPoseSampler(String identifier) {
-        super(identifier);
+    protected TimeBasedPoseSampler(Builder<?> builder) {
+        super(builder);
+        this.timeElapsed = 0;
+        this.playRate = builder.playRate;
+        this.playing = builder.isPlaying;
+    }
+
+    public static Builder<?> of(String identifier){
+        return new Builder<>(identifier);
+    }
+
+
+    public static class Builder<B extends Builder<B>> extends PoseSampler.Builder<B> {
+
+        private float playRate = 1;
+        private boolean isPlaying = true;
+
+        protected Builder(String identifier) {
+            super(identifier);
+        }
+        @SuppressWarnings("unchecked")
+        public B setPlayRate(float playRate){
+            this.playRate = playRate;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B setIsPlaying(boolean isPlaying){
+            this.isPlaying = isPlaying;
+            return (B) this;
+        }
+
+        @Override
+        public TimeBasedPoseSampler build() {
+            return new TimeBasedPoseSampler(this);
+        }
     }
 
     public void setPlayRate(float playRate) {

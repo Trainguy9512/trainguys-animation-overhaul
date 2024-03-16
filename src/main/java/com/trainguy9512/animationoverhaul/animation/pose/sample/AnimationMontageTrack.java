@@ -10,18 +10,31 @@ public class AnimationMontageTrack extends PoseSampler {
 
     private final ArrayList<AnimationMontage> activeMontages = new ArrayList<AnimationMontage>();
 
-    public AnimationMontageTrack(String identifier) {
-        super(identifier);
+    protected AnimationMontageTrack(Builder<?> builder) {
+        super(builder);
     }
 
-    public static AnimationMontageTrack of(String identifier){
-        return new AnimationMontageTrack(identifier);
+    public static Builder<?> of(String identifier){
+        return new Builder<>(identifier);
+    }
+
+
+    public static class Builder<B extends Builder<B>> extends PoseSampler.Builder<B> {
+
+        protected Builder(String identifier) {
+            super(identifier);
+        }
+
+        @Override
+        public AnimationMontageTrack build() {
+            return new AnimationMontageTrack(this);
+        }
     }
 
     @Override
     public void tick(){
         // Only run if there's actually montages currently loaded
-        if(activeMontages.size() > 0){
+        if(this.isActive()){
             ArrayList<AnimationMontage> montagesToRemove = new ArrayList<>();
             for(AnimationMontage animationMontage : activeMontages){
                 animationMontage.tick();
@@ -48,7 +61,7 @@ public class AnimationMontageTrack extends PoseSampler {
     }
 
     public boolean isActive(){
-        return this.activeMontages.size() > 0;
+        return !this.activeMontages.isEmpty();
     }
 
     private <L extends Enum<L>> AnimationPose<L> getBlendedPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton){
@@ -56,7 +69,7 @@ public class AnimationMontageTrack extends PoseSampler {
         AnimationPose<L> animationPose = AnimationPose.of(jointSkeleton);
 
         // Only do this stuff if there's any loaded animation montages
-        if(this.activeMontages.size() > 0){
+        if(this.isActive()){
             // Iterate over each montage and get the blended animation between top and bottom layers
             for(int i = 0; i < this.activeMontages.size(); i++){
                 AnimationMontage animationMontage = this.activeMontages.get(i);

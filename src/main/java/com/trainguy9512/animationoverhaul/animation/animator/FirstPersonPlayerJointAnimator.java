@@ -139,7 +139,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
      */
 
 
-    private static final AnimationMontageTrack MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK = AnimationMontageTrack.of("main_hand_empty_punch_montage_track");
+    //private static final AnimationMontageTrack MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK = AnimationMontageTrack.of("main_hand_empty_punch_montage_track");
     /*
     private static final AnimationMontage MAIN_HAND_EMPTY_PUNCH_MONTAGE = AnimationMontage.of(ANIMATION_FP_RIGHT_EMPTY_PUNCH)
             .setLength(TickTimeUtils.ticksFromMayaFrames(10F))
@@ -186,10 +186,13 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     @Override
     public AnimationPose<FPPlayerLocators> calculatePose(LocalPlayer localPlayer, AnimationDataContainer animationDataContainer) {
         // Update main hand item based on the anim notify
-        
-        setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
+
+        animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
+        //setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
 
         AnimationPose<FPPlayerLocators> pose = sampleAnimationState(TEST_IDLE_SEQUENCE_PLAYER);
+
+
 
         pose = dampenArmRotation(pose);
 

@@ -82,7 +82,7 @@ public class AnimationDataContainer {
         }
     }
 
-    public <D> AnimationVariable<D> get(AnimationVariableKey<D> dataKey){
+    public <D> AnimationVariable<D> getAnimationVariable(AnimationVariableKey<D> dataKey){
         if(!animationVariables.containsKey(dataKey)){
             animationVariables.put(dataKey, new AnimationVariable<>(dataKey));
         }
@@ -107,11 +107,11 @@ public class AnimationDataContainer {
     }
 
     public <D> void setValue(AnimationVariableKey<D> dataKey, D value){
-        this.get(dataKey).set(value);
+        this.getAnimationVariable(dataKey).set(value);
     }
 
     public <D> D getValue(AnimationVariableKey<D> dataKey){
-        return this.get(dataKey).get();
+        return this.getAnimationVariable(dataKey).get();
     }
 
 
@@ -126,7 +126,7 @@ public class AnimationDataContainer {
     public void incrementInTicksFromCondition(AnimationVariableKey<Float> dataKey, boolean condition, float ticksToIncrement, float ticksToDecrement){
         ticksToIncrement = Math.max(1, ticksToIncrement);
         ticksToDecrement = Math.max(1, ticksToDecrement);
-        AnimationVariable<Float> data = this.get(dataKey);
+        AnimationVariable<Float> data = this.getAnimationVariable(dataKey);
         data.set(Mth.clamp((data.get()) + (condition ? 1/ticksToIncrement : -1/ticksToDecrement), 0, 1));
     }
 
@@ -138,7 +138,7 @@ public class AnimationDataContainer {
      * @param ticksToIncrement  Time in ticks to increment from 0 to 1
      */
     public void incrementInTicksOrResetFromCondition(AnimationVariableKey<Float> dataKey, boolean condition, float ticksToIncrement){
-        AnimationVariable<Float> data = this.get(dataKey);
+        AnimationVariable<Float> data = this.getAnimationVariable(dataKey);
         if(condition){
             data.set(0F);
             data.set(0F);
@@ -158,8 +158,8 @@ public class AnimationDataContainer {
      * @param random                Java random object used to pick a random index within numberOfAnimations
      */
     public void incrementInTicksOrResetRandomFromCondition(AnimationVariableKey<Float> dataKeyMain, AnimationVariableKey<Integer> dataKeyIndex, int numberOfAnimations, boolean condition, float ticksToIncrement, Random random){
-        AnimationVariable<Float> dataMain = this.get(dataKeyMain);
-        AnimationVariable<Integer> dataIndex = this.get(dataKeyIndex);
+        AnimationVariable<Float> dataMain = this.getAnimationVariable(dataKeyMain);
+        AnimationVariable<Integer> dataIndex = this.getAnimationVariable(dataKeyIndex);
         if(condition){
             dataMain.set(0F);
             dataMain.set(0F);

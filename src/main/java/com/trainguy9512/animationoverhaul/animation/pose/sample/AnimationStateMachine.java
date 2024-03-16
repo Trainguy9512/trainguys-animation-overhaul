@@ -2,10 +2,12 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
+import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,18 +22,49 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
     //private int timeElapsedInState = 0;
 
-    public AnimationStateMachine(String identifier){
-        super(identifier);
+    private AnimationStateMachine(Builder<?, S> builder) {
+        super(builder);
     }
 
-    /**
-     * Creates an animation state machine
-     *
-     * @param identifier Unique identifier, must be unique between this and other sampleable animation sampleables present in the entity animator
-     * @return The animation state machine
-     */
-    public static <S extends Enum<S>> AnimationStateMachine<S> of(String identifier, S[] states){
-        return new AnimationStateMachine<S>(identifier).addStates(states);
+    public static <S extends Enum<S>> Builder<?, S> of(String identifier, S[] states){
+        return new Builder<>(identifier, states);
+    }
+
+
+    public static class Builder<B extends Builder<B, S>, S extends Enum<S>> extends TimeBasedPoseSampler.Builder<B> {
+
+        private final S[] states;
+        private boolean looping = false;
+        private float startTime = 0f;
+        private float endTime;
+
+        protected Builder(String identifier, S[] states) {
+            super(identifier);
+            this.states = states;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B setLooping(boolean looping){
+            this.looping = looping;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B setStartTime(float startTime){
+            this.startTime = startTime;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B setEndTime(float endTime){
+            this.endTime = endTime;
+            return (B) this;
+        }
+
+        @Override
+        public AnimationStateMachine<S> build() {
+            return new AnimationStateMachine<>(this);
+        }
     }
 
     public State getState(S stateIdentifier){
@@ -181,7 +214,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
     @Override
     public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
-        if(this.activeStates.size() > 0){
+        if(!this.activeStates.isEmpty()){
             AnimationPose<L> animationPose = this.getPoseFromState(this.activeStates.get(0), jointSkeleton);
             if(this.activeStates.size() > 1){
                 for(Enum<S> stateIdentifier : this.activeStates){

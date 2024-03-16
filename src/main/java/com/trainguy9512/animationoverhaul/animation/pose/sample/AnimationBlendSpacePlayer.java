@@ -11,16 +11,54 @@ import java.util.TreeMap;
 
 public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
 
-    private final TreeMap<Float, BlendSpaceEntry> blendSpaceEntryTreeMap = new TreeMap<Float, BlendSpaceEntry>();
+    private final TreeMap<Float, BlendSpaceEntry> blendSpaceEntryTreeMap;
     private float currentValue = 0;
     private float playRateMultiplier = 1;
 
-    private AnimationBlendSpacePlayer(String identifier) {
-        super(identifier);
+    private AnimationBlendSpacePlayer(Builder<?> builder) {
+        super(builder);
+        this.blendSpaceEntryTreeMap = builder.blendSpaceEntryTreeMap;
+        this.currentValue = builder.currentValue;
+        this.playRateMultiplier = builder.playRateMultiplier;
     }
 
-    public static AnimationBlendSpacePlayer of(String identifier){
-        return new AnimationBlendSpacePlayer(identifier);
+    public static Builder<?> of(String identifier){
+        return new Builder<>(identifier);
+    }
+
+
+    public static class Builder<B extends Builder<B>> extends TimeBasedPoseSampler.Builder<B> {
+
+        private final TreeMap<Float, BlendSpaceEntry> blendSpaceEntryTreeMap = new TreeMap<>();
+        private float currentValue = 0f;
+        private float playRateMultiplier = 1f;
+
+        protected Builder(String identifier) {
+            super(identifier);
+        }
+
+        @SuppressWarnings("unchecked")
+        public B addBlendSpaceEntry(float position, ResourceLocation resourceLocation, float playRate){
+            this.blendSpaceEntryTreeMap.put(position, new BlendSpaceEntry(resourceLocation, playRate));
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B setDefaultValue(float currentValue){
+            this.currentValue = currentValue;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B setPlayRateMultiplier(float playRateMultiplier){
+            this.playRateMultiplier = playRateMultiplier;
+            return (B) this;
+        }
+
+        @Override
+        public AnimationBlendSpacePlayer build() {
+            return new AnimationBlendSpacePlayer(this);
+        }
     }
 
     public AnimationBlendSpacePlayer addEntry(float position, ResourceLocation resourceLocation, float playRate){
@@ -38,7 +76,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
     }
 
     private float getPlayRateBlended(){
-        if(this.blendSpaceEntryTreeMap.entrySet().size() == 0){
+        if(this.blendSpaceEntryTreeMap.entrySet().isEmpty()){
             return 0;
         }
 
@@ -61,7 +99,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
 
     @Override
     public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
-        if(this.blendSpaceEntryTreeMap.entrySet().size() == 0){
+        if(this.blendSpaceEntryTreeMap.entrySet().isEmpty()){
             return AnimationPose.of(jointSkeleton);
         }
 

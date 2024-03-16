@@ -33,6 +33,10 @@ public class TimelineGroupData {
         }
     }
 
+    public boolean isValid(ResourceLocation resourceLocation){
+        return animationEntries.containsKey(resourceLocation);
+    }
+
     public static String FIRST_PERSON_PLAYER_KEY = "player/first_person/";
 
     public static ResourceLocation getNativeResourceLocation(String path){
