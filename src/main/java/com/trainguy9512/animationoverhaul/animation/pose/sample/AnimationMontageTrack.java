@@ -14,15 +14,15 @@ public class AnimationMontageTrack extends PoseSampler {
         super(builder);
     }
 
-    public static Builder<?> of(String identifier){
-        return new Builder<>(identifier);
+    public static Builder<?> of(){
+        return new Builder<>();
     }
 
 
     public static class Builder<B extends Builder<B>> extends PoseSampler.Builder<B> {
 
-        protected Builder(String identifier) {
-            super(identifier);
+        protected Builder() {
+            super();
         }
 
         @Override

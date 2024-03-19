@@ -74,9 +74,9 @@ public class AnimationDataContainer {
             this.poses.put(identifier, animationPose);
         }
 
-        public AnimationPose<?> getCachedPose(String identifier, JointSkeleton<?> jointSkeleton){
+        public <L extends Enum<L>> AnimationPose<L> getCachedPose(String identifier, JointSkeleton<L> jointSkeleton){
             if(this.poses.containsKey(identifier)){
-                return this.poses.get(identifier);
+                return (AnimationPose<L>) this.poses.get(identifier);
             }
             return AnimationPose.of(jointSkeleton);
         }
@@ -100,7 +100,7 @@ public class AnimationDataContainer {
             typeSplitted = type.split("\\$");
             type = typeSplitted[typeSplitted.length - 1];
 
-            String debugIdentifier = dataKey.getDebugIdentifier() + " (" + type + "):";
+            String debugIdentifier = dataKey.getIdentifier() + " (" + type + "):";
             finalList.put(debugIdentifier, data);
         }
         return finalList;
@@ -195,9 +195,9 @@ public class AnimationDataContainer {
         private final Supplier<D> defaultValue;
 
         private AnimationVariable(AnimationVariableKey<D> dataKey){
-            this.defaultValue = dataKey.getDefaultValue();
-            this.value = dataKey.getDefaultValue().get();
-            this.valueOld = dataKey.getDefaultValue().get();
+            this.defaultValue = dataKey.getDefaultValueSupplier();
+            this.value = dataKey.getDefaultValueSupplier().get();
+            this.valueOld = dataKey.getDefaultValueSupplier().get();
         }
 
         public D get(){

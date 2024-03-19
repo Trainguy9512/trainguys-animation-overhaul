@@ -30,8 +30,8 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
         this.endTime = builder.endTime;
     }
 
-    public static Builder<?> of(String identifier, ResourceLocation resourceLocation){
-        return new Builder<>(identifier, resourceLocation);
+    public static Builder<?> of(ResourceLocation resourceLocation){
+        return new Builder<>(resourceLocation);
     }
 
 
@@ -43,8 +43,8 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
         private float startTime = 0f;
         private float endTime;
 
-        protected Builder(String identifier, ResourceLocation resourceLocation) {
-            super(identifier);
+        protected Builder(ResourceLocation resourceLocation) {
+            super();
             this.resourceLocation = resourceLocation;
             this.frameLength = TimelineGroupData.INSTANCE.get(this.resourceLocation).getFrameLength();
             this.endTime = frameLength;

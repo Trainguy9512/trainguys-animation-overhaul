@@ -1,7 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.animator;
 
-import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.LivingEntityJointAnimator;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationPoseSamplerKey;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationVariableKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
@@ -66,16 +66,20 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = TimelineGroupData.getNativeResourceLocation(TimelineGroupData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
 
 
-    public static final AnimationVariableKey<Float> TIME_TEST = AnimationVariableKey.of(() -> 0F).setDebugIdentifier("time_test").build();
+    public static final AnimationVariableKey<Float> TIME_TEST = AnimationVariableKey.of(() -> 0F).setIdentifier("time_test").build();
 
 
 
-    public static final AnimationVariableKey<Vector3f> CAMERA_ROTATION = AnimationVariableKey.of(() -> new Vector3f(0, 0, 0)).setDebugIdentifier("camera_rotation").build();
-    public static final AnimationVariableKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationVariableKey.of(() -> new Vector3f(0, 0, 0)).setDebugIdentifier("dampened_camera_rotation").build();
-    public static final AnimationVariableKey<ItemStack> MAIN_HAND_ITEM = AnimationVariableKey.of(() -> ItemStack.EMPTY).setDebugIdentifier("main_hand_item_stack").build();
+    public static final AnimationVariableKey<Vector3f> CAMERA_ROTATION = AnimationVariableKey.of(() -> new Vector3f(0, 0, 0)).setIdentifier("camera_rotation").build();
+    public static final AnimationVariableKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationVariableKey.of(() -> new Vector3f(0, 0, 0)).setIdentifier("dampened_camera_rotation").build();
+    public static final AnimationVariableKey<ItemStack> MAIN_HAND_ITEM = AnimationVariableKey.of(() -> ItemStack.EMPTY).setIdentifier("main_hand_item_stack").build();
+    public static final AnimationVariableKey<Boolean> IS_ATTACKING = AnimationVariableKey.of(() -> false).setIdentifier("is_attacking").build();
+    public static final AnimationVariableKey<Boolean> IS_USING_ITEM = AnimationVariableKey.of(() -> false).setIdentifier("is_using_item").build();
+    public static final AnimationVariableKey<Boolean> IS_MINING = AnimationVariableKey.of(() -> false).setIdentifier("is_mining").build();
+    public static final AnimationVariableKey<Boolean> IS_FALLING = AnimationVariableKey.of(() -> false).setIdentifier("is_falling").build();
+    public static final AnimationVariableKey<Boolean> IS_JUMPING = AnimationVariableKey.of(() -> false).setIdentifier("is_jumping").build();
 
-    private static final AnimationSequencePlayer IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("idle_sequence_player", ANIMATION_FP_PLAYER_IDLE).setDefaultPlayRate(0F);
-    private static final AnimationSequencePlayer TEST_IDLE_SEQUENCE_PLAYER = AnimationSequencePlayer.of("test_idle_sequence_player", ANIMATION_FP_PLAYER_IDLE).setDefaultPlayRate(1F).setStartTime(70);
+    public static final AnimationPoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = AnimationPoseSamplerKey.of(() -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE).build()).setIdentifier("idle_sequence_player").build();
 
 
 

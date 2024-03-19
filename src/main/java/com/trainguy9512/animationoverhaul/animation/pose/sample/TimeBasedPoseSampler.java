@@ -15,8 +15,8 @@ public class TimeBasedPoseSampler extends PoseSampler {
         this.playing = builder.isPlaying;
     }
 
-    public static Builder<?> of(String identifier){
-        return new Builder<>(identifier);
+    public static Builder<?> of(){
+        return new Builder<>();
     }
 
 
@@ -25,9 +25,10 @@ public class TimeBasedPoseSampler extends PoseSampler {
         private float playRate = 1;
         private boolean isPlaying = true;
 
-        protected Builder(String identifier) {
-            super(identifier);
+        protected Builder() {
+            super();
         }
+
         @SuppressWarnings("unchecked")
         public B setPlayRate(float playRate){
             this.playRate = playRate;

@@ -34,7 +34,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     }
 
     public static <S extends Enum<S>> Builder<?, S> of(String identifier, S[] states){
-        return new Builder<>(identifier, states);
+        return new Builder<>(states);
     }
 
 
@@ -44,8 +44,8 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         private final ArrayList<Enum<S>> activeStates = new ArrayList<>();
 
 
-        protected Builder(String identifier, Enum<S>[] states) {
-            super(identifier);
+        protected Builder(Enum<S>[] states) {
+            super();
 
             for(int i = 0; i < states.length; i++){
                 State<S> state = new State<>(i == 0 ? 1 : 0);

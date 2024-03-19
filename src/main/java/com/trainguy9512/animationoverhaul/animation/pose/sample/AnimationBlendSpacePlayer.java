@@ -22,8 +22,8 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
         this.playRateMultiplier = builder.playRateMultiplier;
     }
 
-    public static Builder<?> of(String identifier){
-        return new Builder<>(identifier);
+    public static Builder<?> of(){
+        return new Builder<>();
     }
 
 
@@ -33,8 +33,8 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
         private float currentValue = 0f;
         private float playRateMultiplier = 1f;
 
-        protected Builder(String identifier) {
-            super(identifier);
+        protected Builder() {
+            super();
         }
 
         @SuppressWarnings("unchecked")

@@ -1,5 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
+import com.trainguy9512.animationoverhaul.animation.data.AnimationPoseSamplerKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
@@ -8,22 +9,19 @@ import org.spongepowered.asm.mixin.SoftOverride;
 
 public class PoseSampler {
 
-    private final String identifier;
+    private String identifier;
 
     protected PoseSampler(Builder<?> builder){
-        this.identifier = builder.identifier == null ? "null" : builder.identifier;
     }
 
-    public static Builder<?> of(String identifier){
-        return new Builder<>(identifier);
+    public static Builder<?> of(){
+        return new Builder<>();
     }
 
     public static class Builder<B extends Builder<B>> {
 
-        protected String identifier;
-
-        protected Builder(String identifier) {
-            this.identifier = identifier;
+        protected Builder() {
+            AnimationPoseSamplerKey<PoseSampler> b = AnimationPoseSamplerKey.of(() -> PoseSampler.of().build()).build();
         }
 
         public PoseSampler build(){
@@ -44,6 +42,10 @@ public class PoseSampler {
 
     public String getIdentifier(){
         return this.identifier;
+    }
+
+    public void setIdentifier(String identifier){
+        this.identifier = identifier;
     }
 
 }
