@@ -12,13 +12,16 @@ import java.util.function.Supplier;
 public class AnimationDataContainer {
 
     private final HashMap<AnimationVariableKey<?>, AnimationVariable<?>> animationVariables;
-    private final HashMap<String, PoseSampler> entitySampleableAnimationStates;
+    //private final HashMap<String, PoseSampler> entitySampleableAnimationStates;
+    private final HashMap<AnimationPoseSamplerKey<?>, PoseSampler> poseSamplers;
     private final CachedPoseContainer cachedPoseContainer = new CachedPoseContainer();
 
     public AnimationDataContainer(){
         this.animationVariables = Maps.newHashMap();
-        this.entitySampleableAnimationStates = Maps.newHashMap();
+        this.poseSamplers = Maps.newHashMap();
     }
+
+
 
     public void tickAnimationStates(){
         for(PoseSampler poseSampler : entitySampleableAnimationStates.values()){
