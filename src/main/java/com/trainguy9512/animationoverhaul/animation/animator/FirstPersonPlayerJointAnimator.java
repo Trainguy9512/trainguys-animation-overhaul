@@ -280,7 +280,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         AnimationDataContainer animationDataContainer = this.localAnimationDataContainer;
 
         this.tick(player, animationDataContainer);
-        animationDataContainer.tickAnimationStates();
+        animationDataContainer.tickAllPoseSamplers();
 
         if(this.localBakedPose == null){
             this.localBakedPose = new BakedAnimationPose();

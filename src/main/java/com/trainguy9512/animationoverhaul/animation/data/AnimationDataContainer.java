@@ -24,181 +24,92 @@ public class AnimationDataContainer {
     private final HashMap<AnimationVariableKey<?>, AnimationVariable<?>> animationVariableMap;
     //private final HashMap<String, PoseSampler> entitySampleableAnimationStates;
     private final HashMap<AnimationPoseSamplerKey<?>, PoseSampler> poseSamplerMap;
-    private final CachedPoseContainer cachedPoseContainer = new CachedPoseContainer();
 
     public AnimationDataContainer(){
         this.animationVariableMap = Maps.newHashMap();
         this.poseSamplerMap = Maps.newHashMap();
     }
 
-    public Set<PoseSampler> getPoseSampler
+    /**
+     * Returns this animation data container's hash map of pose sampler keys to pose samplers currently loaded.
+     *
+     * @return {@link HashMap} of {@link AnimationPoseSamplerKey} keys to {@link PoseSampler} values.
+     */
+    public HashMap<AnimationPoseSamplerKey<?>, PoseSampler> getPoseSamplerMap(){
+        return this.poseSamplerMap;
+    }
 
-    public void tickAnimationStates(){
-        for(PoseSampler poseSampler : entitySampleableAnimationStates.values()){
+    /**
+     * Returns a collection of every pose sampler currently loaded into this animation data container.
+     *
+     * @return {@link Collection} of {@link PoseSampler} values.
+     */
+    public Collection<PoseSampler> getPoseSamplers(){
+        return this.getPoseSamplerMap().values();
+    }
+
+    /**
+     * Returns this animation data container's hash map of animation variable keys to animation variables currently loaded.
+     *
+     * @return {@link HashMap} of {@link AnimationVariableKey} keys to {@link AnimationVariable} values.
+     */
+    public HashMap<AnimationVariableKey<?>, AnimationVariable<?>> getAnimationVariableMap(){
+        return this.animationVariableMap;
+    }
+
+    /**
+     * Returns a collection of every animation variable currently loaded into this animation data container.
+     *
+     * @return {@link Collection} of {@link PoseSampler} values.
+     */
+    public Collection<AnimationVariable<?>> getAnimationVariables(){
+        return this.getAnimationVariableMap().values();
+    }
+
+    /**
+     * Iterates over every currently loaded pose sampler and executes the {@link PoseSampler#tick()} method
+     *
+     * @implNote Only do this once per game tick! For entities, this is handled in the entity joint animator dispatcher.
+     */
+    public void tickAllPoseSamplers(){
+        for(PoseSampler poseSampler : this.getPoseSamplers()){
             poseSampler.tick();
         }
     }
 
-    public <D extends PoseSampler> D getAnimationState(D sampleableAnimationState){
-        for(String identifier : this.entitySampleableAnimationStates.keySet()){
-            if (Objects.equals(sampleableAnimationState.getIdentifier(), identifier)){
-                return (D) this.entitySampleableAnimationStates.get(identifier);
-            }
+    /**
+     * Returns a pose sampler from the given key. If one is not currently loaded into
+     * this animation data container, then a new one is created from the key's default
+     * value and loaded into this animation data container and returned.
+     *
+     * @param animationPoseSamplerKey the {@link AnimationPoseSamplerKey} attached to the desired {@link PoseSampler}
+     *
+     * @return a {@link PoseSampler} object reference
+     */
+    @SuppressWarnings("unchecked")
+    public <P extends PoseSampler> P getPoseSampler(AnimationPoseSamplerKey<P> animationPoseSamplerKey){
+        if(!this.getPoseSamplerMap().containsKey(animationPoseSamplerKey)){
+            this.getPoseSamplerMap().put(animationPoseSamplerKey, animationPoseSamplerKey.getSuppliedDefaultValue());
         }
-        this.entitySampleableAnimationStates.put(sampleableAnimationState.getIdentifier(), sampleableAnimationState);
-        return sampleableAnimationState;
+        return (P) this.getPoseSamplerMap().get(animationPoseSamplerKey);
     }
 
-    public <L extends Enum<L>> AnimationPose<L> sampleAnimationState(JointSkeleton<L> jointSkeleton, PoseSampler poseSampler){
-        for(String identifier : this.entitySampleableAnimationStates.keySet()){
-            if (Objects.equals(poseSampler.getIdentifier(), identifier)){
-                return this.entitySampleableAnimationStates.get(identifier).sample(jointSkeleton, cachedPoseContainer);
-            }
-        }
-        this.entitySampleableAnimationStates.put(poseSampler.getIdentifier(), poseSampler);
-        return (this.entitySampleableAnimationStates.get(poseSampler.getIdentifier())).sample(jointSkeleton, cachedPoseContainer);
-    }
-
-    public <L extends Enum<L>> AnimationPose<L> sampleAnimationStateFromInputPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton, PoseSampler poseSampler){
-        for(String identifier : this.entitySampleableAnimationStates.keySet()){
-            if (Objects.equals(poseSampler.getIdentifier(), identifier)){
-                return this.entitySampleableAnimationStates.get(identifier).sampleFromInputPose(inputPose, jointSkeleton, cachedPoseContainer);
-            }
-        }
-        this.entitySampleableAnimationStates.put(poseSampler.getIdentifier(), poseSampler);
-        return (this.entitySampleableAnimationStates.get(poseSampler.getIdentifier())).sampleFromInputPose(inputPose, jointSkeleton, cachedPoseContainer);
-    }
-
-    public <L extends Enum<L>> void saveCachedPose(String identifier, AnimationPose<L> animationPose){
-        this.cachedPoseContainer.saveCachedPose(identifier, animationPose);
-    }
-
-    public <L extends Enum<L>> AnimationPose<?> getCachedPose(String identifier, JointSkeleton<L> jointSkeleton){
-        return this.cachedPoseContainer.getCachedPose(identifier, jointSkeleton);
-    }
-
-    public class CachedPoseContainer {
-        private final HashMap<String, AnimationPose<?>> poses = Maps.newHashMap();
-
-        public CachedPoseContainer(){
-        }
-
-        public void saveCachedPose(String identifier, AnimationPose<?> animationPose){
-            this.poses.put(identifier, animationPose);
-        }
-
-        public <L extends Enum<L>> AnimationPose<L> getCachedPose(String identifier, JointSkeleton<L> jointSkeleton){
-            if(this.poses.containsKey(identifier)){
-                return (AnimationPose<L>) this.poses.get(identifier);
-            }
-            return AnimationPose.of(jointSkeleton);
-        }
-    }
-
+    /**
+     * Returns an animation variable from the given key. If one is not currently loaded into
+     * this animation data container, then a new one is created from the key's default
+     * value and loaded into this animation data container and returned.
+     *
+     * @param dataKey the {@link AnimationVariableKey} attached to the desired {@link AnimationVariable}
+     *
+     * @return an {@link AnimationVariable} object reference
+     */
+    @SuppressWarnings("unchecked")
     public <D> AnimationVariable<D> getAnimationVariable(AnimationVariableKey<D> dataKey){
-        if(!animationVariableMap.containsKey(dataKey)){
-            animationVariableMap.put(dataKey, new AnimationVariable<>(dataKey));
+        if(!this.getAnimationVariableMap().containsKey(dataKey)){
+            this.getAnimationVariableMap().put(dataKey, new AnimationVariable<>(dataKey));
         }
-        return (AnimationVariable<D>) animationVariableMap.get(dataKey);
+        return (AnimationVariable<D>) this.getAnimationVariableMap().get(dataKey);
     }
-
-    public TreeMap<String, AnimationVariable<?>> getDebugData(){
-        TreeMap<String, AnimationVariable<?>> finalList = Maps.newTreeMap();
-        for(AnimationVariableKey<?> dataKey : this.animationVariableMap.keySet()){
-            AnimationVariable<?> data = animationVariableMap.get(dataKey);
-
-            String[] typeSplitted = data.get().getClass().toString().split("\\.");
-            String type = typeSplitted[typeSplitted.length - 1];
-
-            typeSplitted = type.split("\\$");
-            type = typeSplitted[typeSplitted.length - 1];
-
-            String debugIdentifier = dataKey.getIdentifier() + " (" + type + "):";
-            finalList.put(debugIdentifier, data);
-        }
-        return finalList;
-    }
-
-    public <D> void setValue(AnimationVariableKey<D> dataKey, D value){
-        this.getAnimationVariable(dataKey).set(value);
-    }
-
-    public <D> D getValue(AnimationVariableKey<D> dataKey){
-        return this.getAnimationVariable(dataKey).get();
-    }
-
-
-    /**
-     * Increments a float value based on a condition, incremented in ticks
-     *
-     * @param dataKey           Float data key
-     * @param condition         Boolean condition to decide whether the value should increment or decrement
-     * @param ticksToIncrement  Time in ticks to increment from 0 to 1
-     * @param ticksToDecrement  Time in ticks to decrement from 1 to 0
-     */
-    public void incrementInTicksFromCondition(AnimationVariableKey<Float> dataKey, boolean condition, float ticksToIncrement, float ticksToDecrement){
-        ticksToIncrement = Math.max(1, ticksToIncrement);
-        ticksToDecrement = Math.max(1, ticksToDecrement);
-        AnimationVariable<Float> data = this.getAnimationVariable(dataKey);
-        data.set(Mth.clamp((data.get()) + (condition ? 1/ticksToIncrement : -1/ticksToDecrement), 0, 1));
-    }
-
-    /**
-     * Increments or resets a value based on a condition, incremented in ticks
-     *
-     * @param dataKey           Float data key
-     * @param condition         Boolean condition to decide whether the value should reset to 0 or increment
-     * @param ticksToIncrement  Time in ticks to increment from 0 to 1
-     */
-    public void incrementInTicksOrResetFromCondition(AnimationVariableKey<Float> dataKey, boolean condition, float ticksToIncrement){
-        AnimationVariable<Float> data = this.getAnimationVariable(dataKey);
-        if(condition){
-            data.set(0F);
-            data.set(0F);
-        } else {
-            this.incrementInTicksFromCondition(dataKey, true, ticksToIncrement, ticksToIncrement);
-        }
-    }
-
-    /**
-     * Increments or resets a value based on a condition, incremented in ticks
-     *
-     * @param dataKeyMain           Main float data key
-     * @param dataKeyIndex          Index data key
-     * @param numberOfAnimations    Number of animations to pick from
-     * @param condition             Boolean condition to decide whether the value should reset to 0 or increment
-     * @param ticksToIncrement      Time in ticks to increment from 0 to 1
-     * @param random                Java random object used to pick a random index within numberOfAnimations
-     */
-    public void incrementInTicksOrResetRandomFromCondition(AnimationVariableKey<Float> dataKeyMain, AnimationVariableKey<Integer> dataKeyIndex, int numberOfAnimations, boolean condition, float ticksToIncrement, Random random){
-        AnimationVariable<Float> dataMain = this.getAnimationVariable(dataKeyMain);
-        AnimationVariable<Integer> dataIndex = this.getAnimationVariable(dataKeyIndex);
-        if(condition){
-            dataMain.set(0F);
-            dataMain.set(0F);
-            dataIndex.set(random.nextInt(numberOfAnimations));
-        } else {
-            this.incrementInTicksFromCondition(dataKeyMain, true, ticksToIncrement, ticksToIncrement);
-        }
-    }
-
-    /*
-    public static class DataKey<D>{
-
-        private final String identifier;
-        private final D defaultValue;
-
-        public DataKey(String identifier, D defaultValue){
-            this.identifier = identifier;
-            this.defaultValue = defaultValue;
-        }
-
-        public String getIdentifier(){
-            return this.identifier;
-        }
-    }
-
-     */
 
 
     public static class AnimationVariable<D>{
@@ -213,14 +124,30 @@ public class AnimationDataContainer {
             this.valueOld = dataKey.getDefaultValueSupplier().get();
         }
 
+        /**
+         * Returns the value of this animation variable.
+         *
+         * @return - value of the {@link AnimationVariable} instance's type
+         */
         public D get(){
             return this.value;
         }
 
+        /**
+         * Returns the value of this animation variable prior to the last time it was set.
+         *
+         * @return - value of the {@link AnimationVariable} instance's type
+         */
         public D getOld(){
             return this.valueOld;
         }
 
+        /**
+         * Sets the value of this animation variable. Also updates the old value, setting it
+         * to what it was prior to this method call.
+         *
+         * @param value new value of the {@link AnimationVariable} instance's type
+         */
         public void set(D value){
             this.valueOld = this.value;
             if(value != null){
@@ -230,10 +157,18 @@ public class AnimationDataContainer {
             }
         }
 
+        /**
+         * Sets this animation variable's value to the default value, supplied from the
+         * default value supplier.
+         */
         public void setDefaultValue(){
             this.set(this.defaultValue.get());
         }
 
+        /**
+         * Returns whether the animation variable's type is that of a float or not.
+         * @return {@link Boolean} true if the type is float.
+         */
         public boolean isFloat(){
             return this.value instanceof Float;
         }

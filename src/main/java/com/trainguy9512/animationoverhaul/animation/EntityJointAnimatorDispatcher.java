@@ -38,7 +38,7 @@ public class EntityJointAnimatorDispatcher {
         // First tick the entity part animator
         entityJointAnimator.tick(entity, animationDataContainer);
 
-        animationDataContainer.tickAnimationStates();
+        animationDataContainer.tickAllPoseSamplers();
 
 
         /*

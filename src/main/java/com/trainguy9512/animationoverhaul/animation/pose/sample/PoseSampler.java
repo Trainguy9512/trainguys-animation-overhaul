@@ -29,12 +29,12 @@ public class PoseSampler {
         }
     }
 
-    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
+    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton){
         return AnimationPose.of(jointSkeleton);
     }
 
-    public <L extends Enum<L>> AnimationPose<L> sampleFromInputPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
-        return this.sample(jointSkeleton, cachedPoseContainer);
+    public <L extends Enum<L>> AnimationPose<L> sampleFromInputPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton){
+        return this.sample(jointSkeleton);
     }
 
     public void tick(){

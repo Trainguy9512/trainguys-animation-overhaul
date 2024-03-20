@@ -118,7 +118,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
+    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton){
         return AnimationPose.fromChannelTimeline(jointSkeleton, this.resourceLocation, this.getTimeFromTicks());
         //return super.sample(locatorSkeleton);
     }

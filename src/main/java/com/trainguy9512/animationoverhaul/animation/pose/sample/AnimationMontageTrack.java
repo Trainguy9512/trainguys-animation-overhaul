@@ -51,12 +51,7 @@ public class AnimationMontageTrack extends PoseSampler {
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer){
-        return AnimationPose.of(jointSkeleton);
-    }
-
-    @Override
-    public <L extends Enum<L>> AnimationPose<L> sampleFromInputPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
+    public <L extends Enum<L>> AnimationPose<L> sampleFromInputPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton) {
         return getBlendedPose(inputPose, jointSkeleton);
     }
 

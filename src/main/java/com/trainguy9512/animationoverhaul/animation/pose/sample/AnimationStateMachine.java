@@ -163,7 +163,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
+    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton) {
         if(!this.activeStates.isEmpty()){
             AnimationPose<L> animationPose = this.getPoseFromState(this.activeStates.get(0), jointSkeleton);
             if(this.activeStates.size() > 1){

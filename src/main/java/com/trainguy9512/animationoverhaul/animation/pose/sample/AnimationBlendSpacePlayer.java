@@ -98,7 +98,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton, AnimationDataContainer.CachedPoseContainer cachedPoseContainer) {
+    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton) {
         if(this.blendSpaceEntryTreeMap.entrySet().isEmpty()){
             return AnimationPose.of(jointSkeleton);
         }
