@@ -9,19 +9,29 @@ import net.minecraft.util.Mth;
 import java.util.*;
 import java.util.function.Supplier;
 
+/**
+ * Represents a container for data kept track of and updated by a part animator, such as:
+ * <ul>
+ *     <li>Animation Variables</li>
+ *     <li>Pose Samplers</li>
+ * </ul>
+ *
+ * @see AnimationVariableKey
+ * @see AnimationPoseSamplerKey
+ */
 public class AnimationDataContainer {
 
-    private final HashMap<AnimationVariableKey<?>, AnimationVariable<?>> animationVariables;
+    private final HashMap<AnimationVariableKey<?>, AnimationVariable<?>> animationVariableMap;
     //private final HashMap<String, PoseSampler> entitySampleableAnimationStates;
-    private final HashMap<AnimationPoseSamplerKey<?>, PoseSampler> poseSamplers;
+    private final HashMap<AnimationPoseSamplerKey<?>, PoseSampler> poseSamplerMap;
     private final CachedPoseContainer cachedPoseContainer = new CachedPoseContainer();
 
     public AnimationDataContainer(){
-        this.animationVariables = Maps.newHashMap();
-        this.poseSamplers = Maps.newHashMap();
+        this.animationVariableMap = Maps.newHashMap();
+        this.poseSamplerMap = Maps.newHashMap();
     }
 
-
+    public Set<PoseSampler> getPoseSampler
 
     public void tickAnimationStates(){
         for(PoseSampler poseSampler : entitySampleableAnimationStates.values()){
@@ -86,16 +96,16 @@ public class AnimationDataContainer {
     }
 
     public <D> AnimationVariable<D> getAnimationVariable(AnimationVariableKey<D> dataKey){
-        if(!animationVariables.containsKey(dataKey)){
-            animationVariables.put(dataKey, new AnimationVariable<>(dataKey));
+        if(!animationVariableMap.containsKey(dataKey)){
+            animationVariableMap.put(dataKey, new AnimationVariable<>(dataKey));
         }
-        return (AnimationVariable<D>) animationVariables.get(dataKey);
+        return (AnimationVariable<D>) animationVariableMap.get(dataKey);
     }
 
     public TreeMap<String, AnimationVariable<?>> getDebugData(){
         TreeMap<String, AnimationVariable<?>> finalList = Maps.newTreeMap();
-        for(AnimationVariableKey<?> dataKey : this.animationVariables.keySet()){
-            AnimationVariable<?> data = animationVariables.get(dataKey);
+        for(AnimationVariableKey<?> dataKey : this.animationVariableMap.keySet()){
+            AnimationVariable<?> data = animationVariableMap.get(dataKey);
 
             String[] typeSplitted = data.get().getClass().toString().split("\\.");
             String type = typeSplitted[typeSplitted.length - 1];
