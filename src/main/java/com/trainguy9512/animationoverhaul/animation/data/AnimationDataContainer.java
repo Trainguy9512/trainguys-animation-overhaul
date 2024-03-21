@@ -89,7 +89,7 @@ public class AnimationDataContainer {
     @SuppressWarnings("unchecked")
     public <P extends PoseSampler> P getPoseSampler(AnimationPoseSamplerKey<P> animationPoseSamplerKey){
         if(!this.getPoseSamplerMap().containsKey(animationPoseSamplerKey)){
-            this.getPoseSamplerMap().put(animationPoseSamplerKey, animationPoseSamplerKey.getSuppliedDefaultValue());
+            this.getPoseSamplerMap().put(animationPoseSamplerKey, animationPoseSamplerKey.getSuppliedDefaultValue(this));
         }
         return (P) this.getPoseSamplerMap().get(animationPoseSamplerKey);
     }

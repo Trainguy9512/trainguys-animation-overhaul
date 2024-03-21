@@ -13,10 +13,10 @@ import java.util.HashMap;
 
 public class AnimationSequencePlayer extends TimeBasedPoseSampler {
 
-    private boolean looping = true;
+    private boolean looping;
     private ResourceLocation resourceLocation;
     private float frameLength;
-    private float startTime = 0;
+    private float startTime;
     private float endTime;
 
     HashMap<String, AnimNotify> animNotifyMap = Maps.newHashMap();
@@ -28,6 +28,8 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
         this.frameLength = builder.frameLength;
         this.startTime = builder.startTime;
         this.endTime = builder.endTime;
+
+        this.timeElapsed = startTime;
     }
 
     public static Builder<?> of(ResourceLocation resourceLocation){
@@ -37,7 +39,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
 
     public static class Builder<B extends Builder<B>> extends TimeBasedPoseSampler.Builder<B> {
 
-        private boolean looping = false;
+        private boolean looping = true;
         private final ResourceLocation resourceLocation;
         private final float frameLength;
         private float startTime = 0f;

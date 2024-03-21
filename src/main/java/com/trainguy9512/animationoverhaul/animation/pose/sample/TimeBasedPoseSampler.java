@@ -1,10 +1,12 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
+import com.trainguy9512.animationoverhaul.animation.data.AnimationPoseSamplerKey;
+
 import java.util.List;
 
 public class TimeBasedPoseSampler extends PoseSampler {
 
-    private float timeElapsed;
+    protected float timeElapsed;
     private float playRate;
     private boolean playing;
 
@@ -72,12 +74,16 @@ public class TimeBasedPoseSampler extends PoseSampler {
     }
 
 
-    public <S extends Enum<S>> void playFromStartOnStateActive(AnimationStateMachine<S> animationStateMachine, S stateIdentifier){
-        this.playFromStartOnStateActive(animationStateMachine, List.of(stateIdentifier));
+    //TODO: Make this part of the configuration
+
+    public <S extends AnimationStateMachine.StateEnum> void playFromStartOnStateActive(AnimationPoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, S stateIdentifier){
+        this.playFromStartOnStateActive(animationStateMachineKey, List.of(stateIdentifier));
     }
 
-    public <S extends Enum<S>> void playFromStartOnStateActive(AnimationStateMachine<S> animationStateMachine, List<S> stateIdentifiers){
+    public <S extends AnimationStateMachine.StateEnum> void playFromStartOnStateActive(AnimationPoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, List<S> stateIdentifiers){
         boolean statesActive = false;
+        AnimationStateMachine<S> animationStateMachine = this.getAnimationDataContainer().getPoseSampler(animationStateMachineKey);
+
         for(S stateIdentifier : stateIdentifiers){
             if(!statesActive){
                 if(animationStateMachine.containsState(stateIdentifier)){
@@ -90,12 +96,14 @@ public class TimeBasedPoseSampler extends PoseSampler {
         }
     }
 
-    public <S extends Enum<S>> void progressTimeIfStateActive(AnimationStateMachine<S> animationStateMachine, S stateIdentifier){
-        this.progressTimeIfStateActive(animationStateMachine, List.of(stateIdentifier));
+    public <S extends AnimationStateMachine.StateEnum> void progressTimeIfStateActive(AnimationPoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, S stateIdentifier){
+        this.progressTimeIfStateActive(animationStateMachineKey, List.of(stateIdentifier));
     }
 
-    public <S extends Enum<S>> void progressTimeIfStateActive(AnimationStateMachine<S> animationStateMachine, List<S> stateIdentifiers){
+    public <S extends AnimationStateMachine.StateEnum> void progressTimeIfStateActive(AnimationPoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, List<S> stateIdentifiers){
         boolean statesActive = false;
+        AnimationStateMachine<S> animationStateMachine = this.getAnimationDataContainer().getPoseSampler(animationStateMachineKey);
+
         for(S stateIdentifier : stateIdentifiers){
             if(!statesActive){
                 if(animationStateMachine.containsState(stateIdentifier)){

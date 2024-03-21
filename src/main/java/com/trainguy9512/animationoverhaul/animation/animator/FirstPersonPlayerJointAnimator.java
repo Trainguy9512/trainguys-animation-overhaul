@@ -9,6 +9,7 @@ import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
+import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.PartPose;
@@ -17,6 +18,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
+
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<LocalPlayer, PlayerModel<LocalPlayer>, FirstPersonPlayerJointAnimator.FPPlayerLocators> {
 
@@ -78,92 +82,50 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     public static final AnimationVariableKey<Boolean> IS_MINING = AnimationVariableKey.of(() -> false).setIdentifier("is_mining").build();
     public static final AnimationVariableKey<Boolean> IS_FALLING = AnimationVariableKey.of(() -> false).setIdentifier("is_falling").build();
     public static final AnimationVariableKey<Boolean> IS_JUMPING = AnimationVariableKey.of(() -> false).setIdentifier("is_jumping").build();
+    public static final AnimationVariableKey<Float> WALK_SPEED = AnimationVariableKey.of(() -> 0f).setIdentifier("walk_speed").build();
 
-    public static final AnimationPoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = AnimationPoseSamplerKey.of(() -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE).build()).setIdentifier("idle_sequence_player").build();
+    public static final AnimationPoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = AnimationPoseSamplerKey.of(() -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
+            .setPlayRate(0)
+            .setStartTime(0)
+            .build()).setIdentifier("idle_sequence_player").build();
+    public static final AnimationPoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER_ALT = AnimationPoseSamplerKey.of(() -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
+            .setPlayRate(0)
+            .setStartTime(20)
+            .build()).setIdentifier("idle_sequence_player").build();
+
+    public static final AnimationPoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = AnimationPoseSamplerKey.of(() -> AnimationStateMachine.of("test_state_machine", TestStates.values())
+            .addStateTransition(TestStates.IDLE, TestStates.MOVING, AnimationStateMachine.StateTransition.of(
+                    animationDataContainer -> animationDataContainer.getAnimationVariable(WALK_SPEED).get() > 0.1F)
+                    .setTransitionTime(5)
+                    .setEasing(Easing.CubicBezier.bezierInOutSine())
+                    .build())
+            .addStateTransition(TestStates.MOVING, TestStates.IDLE, AnimationStateMachine.StateTransition.of(
+                    animationDataContainer -> animationDataContainer.getAnimationVariable(WALK_SPEED).get() < 0.1F)
+                    .setTransitionTime(10)
+                    .setEasing(Easing.CubicBezier.bezierOutSine())
+                    .build())
+            .build()).build();
 
 
-
-    enum TestStates {
-        IDLE,
-        MOVING
+    public enum TestStates implements AnimationStateMachine.StateEnum {
+        IDLE {
+            @Override
+            public <L extends Enum<L>> BiFunction<AnimationDataContainer, JointSkeleton<L>, AnimationPose<L>> getStatePose() {
+                return (animationDataContainer, fpPlayerLocatorsJointSkeleton) -> animationDataContainer.getPoseSampler(IDLE_SEQUENCE_PLAYER).sample(fpPlayerLocatorsJointSkeleton);
+            }
+        },
+        MOVING {
+            @Override
+            public <L extends Enum<L>> BiFunction<AnimationDataContainer, JointSkeleton<L>, AnimationPose<L>> getStatePose() {
+                return (animationDataContainer, fpPlayerLocatorsJointSkeleton) -> animationDataContainer.getPoseSampler(IDLE_SEQUENCE_PLAYER_ALT).sample(fpPlayerLocatorsJointSkeleton);
+            }
+        }
     }
 
 
 
 
 
-
-    /*
-    enum ItemSwitchStates {
-        EMPTY,
-        EMPTY_RAISING,
-        BASIC_ITEM,
-        BASIC_ITEM_RAISING,
-        LOWERING
-    }
-    private static final AnimationStateMachine<ItemSwitchStates> MAINHAND_ITEMSWITCH_STATE_MACHINE = AnimationStateMachine.of("main_hand_state_machine", ItemSwitchStates.values())
-            .addStateTransition(ItemSwitchStates.EMPTY, ItemSwitchStates.LOWERING, 2)
-            .addStateTransition(ItemSwitchStates.LOWERING, ItemSwitchStates.EMPTY_RAISING, 1, 2)
-            .addStateTransition(ItemSwitchStates.EMPTY_RAISING, ItemSwitchStates.EMPTY, 2)
-            .addStateTransition(ItemSwitchStates.BASIC_ITEM, ItemSwitchStates.LOWERING, 2)
-            .addStateTransition(ItemSwitchStates.LOWERING, ItemSwitchStates.BASIC_ITEM_RAISING, 1, 1)
-            .addStateTransition(ItemSwitchStates.BASIC_ITEM_RAISING, ItemSwitchStates.BASIC_ITEM, 2);
-
-
-
-    enum JumpingStates {
-        JUMPING,
-        FALLING,
-        LANDING,
-        ON_GROUND
-    }
-    private static final AnimationStateMachine<JumpingStates> JUMP_STATE_MACHINE = AnimationStateMachine.of("jump_state_machine", JumpingStates.values())
-            .addStateTransition(JumpingStates.ON_GROUND, JumpingStates.JUMPING, 1, 1)
-            .addStateTransition(JumpingStates.ON_GROUND, JumpingStates.FALLING, 3, 2)
-            .addStateTransition(JumpingStates.JUMPING, JumpingStates.FALLING, 4, 1)
-            .addStateTransition(JumpingStates.JUMPING, JumpingStates.LANDING, 1, 2)
-            .addStateTransition(JumpingStates.FALLING, JumpingStates.LANDING, 1, 1)
-            .addStateTransition(JumpingStates.LANDING, JumpingStates.JUMPING, 1, 2)
-            .addStateTransition(JumpingStates.LANDING, JumpingStates.FALLING, 3, 3)
-            .addStateTransition(JumpingStates.LANDING, JumpingStates.ON_GROUND, 4, 1);
-
-
-    enum MiningStates {
-        IDLE,
-        BEGIN,
-        LOOPING
-    }
-    private static final AnimationStateMachine<MiningStates> MINING_STATE_MACHINE = AnimationStateMachine.of("mining_state_machine", MiningStates.values())
-            .addStateTransition(MiningStates.IDLE, MiningStates.BEGIN, 2)
-            .addStateTransition(MiningStates.BEGIN, MiningStates.LOOPING, 1)
-            .addStateTransition(MiningStates.BEGIN, MiningStates.IDLE, 2)
-            .addStateTransition(MiningStates.LOOPING, MiningStates.IDLE, 2);
-
-
-     */
-
-
-    //private static final AnimationMontageTrack MAIN_HAND_EMPTY_PUNCH_MONTAGE_TRACK = AnimationMontageTrack.of("main_hand_empty_punch_montage_track");
-    /*
-    private static final AnimationMontage MAIN_HAND_EMPTY_PUNCH_MONTAGE = AnimationMontage.of(ANIMATION_FP_RIGHT_EMPTY_PUNCH)
-            .setLength(TickTimeUtils.ticksFromMayaFrames(10F))
-            .setBlendInDuration(1)
-            .setBlendOutDuration(TickTimeUtils.ticksFromMayaFrames(8F));
-    private static final AnimationMontage MAIN_HAND_EMPTY_USE_ITEM_MONTAGE = AnimationMontage.of(ANIMATION_FP_RIGHT_EMPTY_USE_ITEM)
-            .setLength(TickTimeUtils.ticksFromMayaFrames(9F))
-            .setBlendInDuration(1)
-            .setBlendOutDuration(TickTimeUtils.ticksFromMayaFrames(5F));
-
-     */
-
-
-
-    /*
-    private static final AnimationBlendSpacePlayer MAIN_HAND_EMPTY_WALK_BLENDSPACE_PLAYER = AnimationBlendSpacePlayer.of("main_hand_empty_walk_blendspace_player")
-            .addEntry(0, ANIMATION_FP_RIGHT_EMPTY_WALK, 0F)
-            .addEntry(2, ANIMATION_FP_RIGHT_EMPTY_WALK, 2.9F);
-
-     */
 
 
     public FirstPersonPlayerJointAnimator(){
@@ -194,14 +156,14 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
         //setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
 
-        AnimationPose<FPPlayerLocators> pose = sampleAnimationState(TEST_IDLE_SEQUENCE_PLAYER);
+        AnimationPose<FPPlayerLocators> pose = animationDataContainer.getPoseSampler(TEST_STATE_MACHINE).sample(this.getJointSkeleton());
 
 
 
-        pose = dampenArmRotation(pose);
+        pose = dampenArmRotation(pose, animationDataContainer);
 
 
-        Vector3f rotation = new Vector3f(Mth.sin(getEntityAnimationVariable(TIME_TEST) * 0.2F) * Mth.HALF_PI * 0.7f, 0, 0);
+        Vector3f rotation = new Vector3f(Mth.sin(animationDataContainer.getAnimationVariable(TIME_TEST).get() * 0.2F) * Mth.HALF_PI * 0.7f, 0, 0);
         //Vector3f translation = new Vector3f(Mth.sin(getEntityAnimationVariable(TIME_TEST) * 1.3F) * 3F, 0, 0);
         //pose.translateJoint(FPPlayerLocators.rightArm, translation, AnimationPose.TransformSpace.ENTITY, false);
         //pose.rotateJoint(FPPlayerLocators.rightArm, rotation, AnimationPose.TransformSpace.ENTITY, false);
@@ -213,9 +175,9 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     /*
     Get the pose with the added dampened camera rotation
      */
-    private AnimationPose<FPPlayerLocators> dampenArmRotation(AnimationPose<FPPlayerLocators> pose){
-        Vector3f cameraRotation = getEntityAnimationVariable(CAMERA_ROTATION);
-        Vector3f dampenedCameraRotation = getEntityAnimationVariable(DAMPENED_CAMERA_ROTATION);
+    private AnimationPose<FPPlayerLocators> dampenArmRotation(AnimationPose<FPPlayerLocators> pose, AnimationDataContainer animationDataContainer){
+        Vector3f cameraRotation = animationDataContainer.getAnimationVariable(CAMERA_ROTATION).get();
+        Vector3f dampenedCameraRotation = animationDataContainer.getAnimationVariable(DAMPENED_CAMERA_ROTATION).get();
 
         Vector3f cameraDampWeight = new Vector3f(0.6F, 0.3F, 0.1F);
 
@@ -234,26 +196,25 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
 
 
     @Override
-    public void tick(LocalPlayer localPlayer, AnimationDataContainer entityAnimationData){
+    public void tick(LocalPlayer localPlayer, AnimationDataContainer animationDataContainer){
+
+
+
+        animationDataContainer.getAnimationVariable(WALK_SPEED).set(this.getWalkAnimationSpeed(localPlayer));
+        animationDataContainer.getAnimationVariable(TIME_TEST).set(animationDataContainer.getAnimationVariable(TIME_TEST).get() + 1);
 
 
 
 
-        this.setEntityAnimationVariable(TIME_TEST, this.getEntityAnimationVariable(TIME_TEST) + 1);
-
-
-
-        /*
-        Tick the dampened camera rotation.
-         */
-
+        //Tick the dampened camera rotation.
         Vector3f dampenSpeed = new Vector3f(0.5F, 0.5F, 0.2F);
 
         // First, set the target camera rotation from the living entity.
-        Vector3f targetRotation = new Vector3f(this.livingEntity.getXRot(), this.livingEntity.getYRot(), this.livingEntity.getYRot());
-        setEntityAnimationVariable(CAMERA_ROTATION, targetRotation);
+        Vector3f targetRotation = new Vector3f(localPlayer.getXRot(), localPlayer.getYRot(), localPlayer.getYRot());
+        animationDataContainer.getAnimationVariable(CAMERA_ROTATION).set(targetRotation);
 
-        Vector3f dampenedCameraRotation = getEntityAnimationVariable(DAMPENED_CAMERA_ROTATION);
+
+        Vector3f dampenedCameraRotation = animationDataContainer.getAnimationVariable(DAMPENED_CAMERA_ROTATION).get();
 
         // If the dampened camera rotation is 0 (which is what it is upon initialization), set it to the target
         if(dampenedCameraRotation.x() == 0F && dampenedCameraRotation.y() == 0F){
@@ -267,8 +228,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
             );
             //dampenedCameraRotation.lerp(targetRotation, 0.5F);
         }
-        setEntityAnimationVariable(DAMPENED_CAMERA_ROTATION, dampenedCameraRotation);
-
+        animationDataContainer.getAnimationVariable(DAMPENED_CAMERA_ROTATION).set(dampenedCameraRotation);
 
     }
 
@@ -283,7 +243,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         animationDataContainer.tickAllPoseSamplers();
 
         if(this.localBakedPose == null){
-            this.localBakedPose = new BakedAnimationPose();
+            this.localBakedPose = new BakedAnimationPose<>();
             this.localBakedPose.setPose(AnimationPose.of(this.jointSkeleton));
         }
         if(!this.localBakedPose.hasPose){
@@ -292,7 +252,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         }
         this.localBakedPose.pushToOld();
 
-        AnimationPose animationPose = this.calculatePose(player, animationDataContainer);
+        AnimationPose<FPPlayerLocators> animationPose = this.calculatePose(player, animationDataContainer);
         if (animationPose == null){
             animationPose = AnimationPose.of(this.jointSkeleton);
         }
@@ -301,11 +261,11 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
 
 
 
-        this.localBakedPose.setPose(new AnimationPose(animationPose));
+        this.localBakedPose.setPose(new AnimationPose<>(animationPose));
     }
 
-    private boolean compareVariableItemStackWithEntityItemStack(AnimationVariableKey<ItemStack> itemStackDataKey, ItemStack entityItemStack){
-        ItemStack currentItemStack = getEntityAnimationVariable(itemStackDataKey);
+    private boolean compareVariableItemStackWithEntityItemStack(AnimationVariableKey<ItemStack> itemStackDataKey, ItemStack entityItemStack, AnimationDataContainer animationDataContainer){
+        ItemStack currentItemStack = animationDataContainer.getAnimationVariable(itemStackDataKey).get();
         if(currentItemStack.getItem() != null && entityItemStack.getItem() == null || currentItemStack.getItem() == null && entityItemStack.getItem() != null) {
             return true;
         }

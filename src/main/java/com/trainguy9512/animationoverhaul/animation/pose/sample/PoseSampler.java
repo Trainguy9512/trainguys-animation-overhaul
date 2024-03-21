@@ -11,6 +11,8 @@ public class PoseSampler {
 
     private String identifier;
 
+    private AnimationDataContainer animationDataContainer;
+
     protected PoseSampler(Builder<?> builder){
     }
 
@@ -46,6 +48,14 @@ public class PoseSampler {
 
     public void setIdentifier(String identifier){
         this.identifier = identifier;
+    }
+
+    protected AnimationDataContainer getAnimationDataContainer(){
+        return this.animationDataContainer;
+    }
+
+    public void setAnimationDataContainer(AnimationDataContainer animationDataContainer){
+        this.animationDataContainer = animationDataContainer;
     }
 
 }

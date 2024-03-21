@@ -2,6 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
+import com.trainguy9512.animationoverhaul.animation.animator.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
@@ -10,20 +11,22 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 // Enum S is for state definitions
 
-public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampler {
+public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> extends TimeBasedPoseSampler {
 
     /**
      * The hashmap containing all the possible states, with the keys being enums.
      */
-    private final HashMap<Enum<S>, State<S>> statesHashMap;
+    private final HashMap<S, State<S>> statesHashMap;
 
     /**
      * The list of enum keys that point to states with a blend value greater than 0
      */
-    private final ArrayList<Enum<S>> activeStates;
+    private final ArrayList<S> activeStates;
 
     //private int timeElapsedInState = 0;
 
@@ -33,18 +36,18 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         this.activeStates = builder.activeStates;
     }
 
-    public static <S extends Enum<S>> Builder<?, S> of(String identifier, S[] states){
+    public static <S extends StateEnum> Builder<?, S> of(String identifier, S[] states){
         return new Builder<>(states);
     }
 
 
-    public static class Builder<B extends Builder<B, S>, S extends Enum<S>> extends TimeBasedPoseSampler.Builder<B> {
+    public static class Builder<B extends Builder<B, S>, S extends StateEnum> extends TimeBasedPoseSampler.Builder<B> {
 
-        private final HashMap<Enum<S>, State<S>> statesHashMap = Maps.newHashMap();
-        private final ArrayList<Enum<S>> activeStates = new ArrayList<>();
+        private final HashMap<S, State<S>> statesHashMap = Maps.newHashMap();
+        private final ArrayList<S> activeStates = new ArrayList<>();
 
 
-        protected Builder(Enum<S>[] states) {
+        protected Builder(S[] states) {
             super();
 
             for(int i = 0; i < states.length; i++){
@@ -64,7 +67,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
          * @see StateTransition.Builder
          */
         @SuppressWarnings("unchecked")
-        public B addStateTransition(Enum<S> origin, Enum<S> destination, StateTransition stateTransition){
+        public B addStateTransition(S origin, S destination, StateTransition stateTransition){
             this.statesHashMap.get(origin).addStateTransition(destination, stateTransition);
             return (B) this;
         }
@@ -75,15 +78,15 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         }
     }
 
-    public State getState(S stateIdentifier){
+    public State<S> getState(S stateIdentifier){
         return this.statesHashMap.get(stateIdentifier);
     }
 
-    public Enum<S> getActiveState(){
+    public S getActiveState(){
         return this.activeStates.get(this.activeStates.size() - 1);
     }
 
-    public boolean containsState(Enum<S> stateIdentifier){
+    public boolean containsState(S stateIdentifier){
         return this.statesHashMap.containsKey(stateIdentifier);
     }
 
@@ -97,9 +100,9 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     }
      */
 
-    private boolean isValidTransition(Enum<S> origin, Enum<S> destination){
-        for(Enum<S> originStateIdentifier : this.statesHashMap.keySet()){
-            for(Enum<S> destinationStateIdentifier : this.statesHashMap.get(originStateIdentifier).getTransitionTargets()){
+    private boolean isValidTransition(S origin, S destination){
+        for(S originStateIdentifier : this.statesHashMap.keySet()){
+            for(S destinationStateIdentifier : this.statesHashMap.get(originStateIdentifier).getTransitionTargets()){
                 if(origin == originStateIdentifier && destination == destinationStateIdentifier){
                     return true;
                 }
@@ -123,7 +126,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
      */
 
     @Nullable
-    private StateTransition getStateTransition(Enum<S> origin, Enum<S> destination){
+    private StateTransition getStateTransition(S origin, S destination){
         if(isValidTransition(origin, destination)){
             return this.statesHashMap.get(origin).getTransition(destination);
         }
@@ -139,27 +142,9 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         return null;
     }
 
-    public AnimationStateMachine<S> setTransitionCondition(Enum<S> origin, Enum<S> destination, boolean condition){
-        if(isValidTransition(origin, destination)){
-            StateTransition stateTransition = this.getStateTransition(origin, destination);
-            if(stateTransition != null){
-                stateTransition.setCondition(condition);
-            }
-        }
-        return this;
-    }
-
-    public <L extends Enum<L>> AnimationStateMachine<S> setPose(S identifier, AnimationPose<L> animationPose){
-        if(this.statesHashMap.containsKey(identifier)){
-            this.statesHashMap.get(identifier).setAnimationPose(animationPose);
-        } else {
-            AnimationOverhaulMain.LOGGER.error("Tried setting pose to invalid state {} in state machine {}", identifier, this.getIdentifier());
-        }
-        return this;
-    }
-
-    private <L extends Enum<L>> AnimationPose<L> getPoseFromState(Enum<S> identifier, JointSkeleton<L> jointSkeleton){
-        return this.statesHashMap.get(identifier).getAnimationPose(jointSkeleton);
+    private <L extends Enum<L>> AnimationPose<L> getPoseFromState(S identifier, JointSkeleton<L> jointSkeleton){
+        BiFunction<AnimationDataContainer, JointSkeleton<L>, AnimationPose<L>> biFunction = identifier.getStatePose();
+        return biFunction.apply(this.getAnimationDataContainer(), jointSkeleton);
     }
 
     @Override
@@ -167,7 +152,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         if(!this.activeStates.isEmpty()){
             AnimationPose<L> animationPose = this.getPoseFromState(this.activeStates.get(0), jointSkeleton);
             if(this.activeStates.size() > 1){
-                for(Enum<S> stateIdentifier : this.activeStates){
+                for(S stateIdentifier : this.activeStates){
                     animationPose.blend(
                             this.getPoseFromState(stateIdentifier, jointSkeleton),
                             this.statesHashMap.get(stateIdentifier).getWeight(),
@@ -193,18 +178,18 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         super.tick();
 
         // Get the previous active state
-        Enum<S> currentActiveStateIdentifier = this.activeStates.get(this.activeStates.size() - 1);
+        S currentActiveStateIdentifier = this.activeStates.get(this.activeStates.size() - 1);
         State<S> currentActiveState = this.statesHashMap.get(currentActiveStateIdentifier);
 
         // Determine if the current state can transition, and get that state transition object
         boolean canEnterTransition = false;
         StateTransition stateTransition = null;
-        Enum<S> destinationStateIdentifier = null;
-        for(Enum<S> stateIdentifier : currentActiveState.getTransitionTargets()){
+        S destinationStateIdentifier = null;
+        for(S stateIdentifier : currentActiveState.getTransitionTargets()){
             if(isValidTransition(currentActiveStateIdentifier, stateIdentifier)){
                 StateTransition currentStateTransition = currentActiveState.getTransition(stateIdentifier);
                 assert currentStateTransition != null;
-                if(currentStateTransition.getCondition()){
+                if(currentStateTransition.getCondition(this.getAnimationDataContainer())){
                     // If the loop has already determined a state transition to be true, update the transition IF the new one has a higher priority
                     if(canEnterTransition && currentStateTransition.getPriority() < stateTransition.getPriority()){
                         stateTransition = currentStateTransition;
@@ -237,7 +222,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         // Set all states to inactive except the new destination state. Also set the transition to all states for when they're ticked
         if(canEnterTransition){
             this.resetTime();
-            for(Enum<S> stateIdentifier : this.statesHashMap.keySet()){
+            for(S stateIdentifier : this.statesHashMap.keySet()){
                 this.statesHashMap.get(stateIdentifier).setCurrentTransition(stateTransition);
                 this.statesHashMap.get(stateIdentifier).setIsActive(false);
             }
@@ -256,13 +241,13 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         }
 
         // Evaluated last, remove states from the active state list that have a weight of 0.
-        ArrayList<Enum<S>> statesToRemove = new ArrayList<>();
-        for(Enum<S> stateIdentifier : this.activeStates){
+        ArrayList<S> statesToRemove = new ArrayList<>();
+        for(S stateIdentifier : this.activeStates){
             if(this.statesHashMap.get(stateIdentifier).getWeight() == 0){
                 statesToRemove.add(stateIdentifier);
             }
         }
-        for(Enum<S> stateIdentifier : statesToRemove){
+        for(S stateIdentifier : statesToRemove){
             this.activeStates.remove(stateIdentifier);
         }
     }
@@ -271,15 +256,13 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         return this.activeStates.toString();
     }
 
-    public static class State<S extends Enum<S>> {
+    public static class State<S extends StateEnum> {
 
         private boolean isActive;
         private StateTransition currentTransition;
 
-        private AnimationPose<?> animationPose;
-
         private float weight = 0;
-        private final HashMap<Enum<S>, StateTransition> stateTransitions = Maps.newHashMap();
+        private final HashMap<S, StateTransition> stateTransitions = Maps.newHashMap();
 
         private State(float defaultWeight){
             this.weight = defaultWeight;
@@ -290,15 +273,6 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
                 float increaseDecreaseMultiplier = this.getIsActive() ? 1 : -1;
                 this.setWeight(Mth.clamp(this.getWeight() + ((1 / this.getCurrentTransition().transitionTime) * increaseDecreaseMultiplier), 0, 1));
             }
-        }
-
-        @Nullable
-        public <L extends Enum<L>> AnimationPose<L> getAnimationPose(JointSkeleton<L> jointSkeleton){
-            return this.animationPose != null ? (AnimationPose<L>) this.animationPose : AnimationPose.of(jointSkeleton);
-        }
-
-        public void setAnimationPose(AnimationPose<?> animationPose){
-            this.animationPose = animationPose;
         }
 
         public boolean getIsActive(){
@@ -325,16 +299,16 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             this.weight = weight;
         }
 
-        public void addStateTransition(Enum<S> target, StateTransition transition){
+        public void addStateTransition(S target, StateTransition transition){
             this.stateTransitions.put(target, transition);
         }
 
-        public Set<Enum<S>> getTransitionTargets(){
+        public Set<S> getTransitionTargets(){
             return this.stateTransitions.keySet();
         }
 
         @Nullable
-        public StateTransition getTransition(Enum<S> identifier){
+        public StateTransition getTransition(S identifier){
             if(this.stateTransitions.containsKey(identifier)){
                 return this.stateTransitions.get(identifier);
             }
@@ -348,18 +322,20 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         private final float transitionTime;
         private final Easing easing;
         private final int priority;
+        private final Predicate<AnimationDataContainer> conditionPredicate;
         //private final Enum<S> destinationStateIdentifier;
 
-        private boolean condition = false;
+        //private boolean condition = false;
 
         private StateTransition(Builder builder) {
             this.transitionTime = builder.transitionTime;
             this.easing = builder.easing;
             this.priority = builder.priority;
+            this.conditionPredicate = builder.conditionPredicate;
         }
 
-        public static Builder of(){
-            return new Builder();
+        public static Builder of(Predicate<AnimationDataContainer> stateConditionPredicate){
+            return new Builder(stateConditionPredicate);
         }
 
         public Easing getEasing(){
@@ -370,12 +346,8 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             return this.transitionTime;
         }
 
-        public void setCondition(boolean condition){
-            this.condition = condition;
-        }
-
-        public boolean getCondition(){
-            return this.condition;
+        public boolean getCondition(AnimationDataContainer animationDataContainer){
+            return this.conditionPredicate.test(animationDataContainer);
         }
 
         public int getPriority(){
@@ -386,6 +358,11 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             private float transitionTime = 1;
             private Easing easing = Easing.Linear.of();
             private int priority = 1;
+            private final Predicate<AnimationDataContainer> conditionPredicate;
+
+            private Builder(Predicate<AnimationDataContainer> conditionPredicate){
+                this.conditionPredicate = conditionPredicate;
+            }
 
             /**
              * Sets the transition time for the state transition
@@ -424,5 +401,9 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
                 return new StateTransition(this);
             }
         }
+    }
+
+    public interface StateEnum {
+        <L extends Enum<L>> BiFunction<AnimationDataContainer, JointSkeleton<L>, AnimationPose<L>> getStatePose();
     }
 }
