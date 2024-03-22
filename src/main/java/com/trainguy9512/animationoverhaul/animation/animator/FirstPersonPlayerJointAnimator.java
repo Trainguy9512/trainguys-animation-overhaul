@@ -84,27 +84,28 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     public static final AnimationVariableKey<Boolean> IS_JUMPING = AnimationVariableKey.of(() -> false).setIdentifier("is_jumping").build();
     public static final AnimationVariableKey<Float> WALK_SPEED = AnimationVariableKey.of(() -> 0f).setIdentifier("walk_speed").build();
 
+    public static final AnimationPoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = AnimationPoseSamplerKey.of(() -> AnimationStateMachine.of("test_state_machine", TestStates.values())
+            .addStateTransition(TestStates.IDLE, TestStates.MOVING, AnimationStateMachine.StateTransition.of(
+                            animationDataContainer -> animationDataContainer.getAnimationVariable(WALK_SPEED).get() > 0.1F)
+                    .setTransitionTime(5)
+                    .setEasing(Easing.CubicBezier.bezierInOutSine())
+                    .build())
+            .addStateTransition(TestStates.MOVING, TestStates.IDLE, AnimationStateMachine.StateTransition.of(
+                            animationDataContainer -> animationDataContainer.getAnimationVariable(WALK_SPEED).get() < 0.1F)
+                    .setTransitionTime(10)
+                    .setEasing(Easing.CubicBezier.bezierOutSine())
+                    .build())
+            .build()).build();
+
     public static final AnimationPoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = AnimationPoseSamplerKey.of(() -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(0)
             .setStartTime(0)
             .build()).setIdentifier("idle_sequence_player").build();
     public static final AnimationPoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER_ALT = AnimationPoseSamplerKey.of(() -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
-            .setPlayRate(0)
+            .setPlayRate(1)
             .setStartTime(20)
+            .addPlayFromStartOnActiveStates(TEST_STATE_MACHINE, TestStates.MOVING)
             .build()).setIdentifier("idle_sequence_player").build();
-
-    public static final AnimationPoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = AnimationPoseSamplerKey.of(() -> AnimationStateMachine.of("test_state_machine", TestStates.values())
-            .addStateTransition(TestStates.IDLE, TestStates.MOVING, AnimationStateMachine.StateTransition.of(
-                    animationDataContainer -> animationDataContainer.getAnimationVariable(WALK_SPEED).get() > 0.1F)
-                    .setTransitionTime(5)
-                    .setEasing(Easing.CubicBezier.bezierInOutSine())
-                    .build())
-            .addStateTransition(TestStates.MOVING, TestStates.IDLE, AnimationStateMachine.StateTransition.of(
-                    animationDataContainer -> animationDataContainer.getAnimationVariable(WALK_SPEED).get() < 0.1F)
-                    .setTransitionTime(10)
-                    .setEasing(Easing.CubicBezier.bezierOutSine())
-                    .build())
-            .build()).build();
 
 
     public enum TestStates implements AnimationStateMachine.StateEnum {

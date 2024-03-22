@@ -1,7 +1,11 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
+import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationPoseSamplerKey;
+import net.minecraft.stats.Stat;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class TimeBasedPoseSampler extends PoseSampler {
@@ -9,12 +13,16 @@ public class TimeBasedPoseSampler extends PoseSampler {
     protected float timeElapsed;
     private float playRate;
     private boolean playing;
+    private final HashMap<AnimationPoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> playFromStartOnActiveStates;
+    private final HashMap<AnimationPoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> progressTimeOnActiveStates;
 
     protected TimeBasedPoseSampler(Builder<?> builder) {
         super(builder);
         this.timeElapsed = 0;
         this.playRate = builder.playRate;
         this.playing = builder.isPlaying;
+        this.playFromStartOnActiveStates = builder.playFromStartOnActiveStates;
+        this.progressTimeOnActiveStates = builder.progressTimeOnActiveStates;
     }
 
     public static Builder<?> of(){
@@ -26,9 +34,13 @@ public class TimeBasedPoseSampler extends PoseSampler {
 
         private float playRate = 1;
         private boolean isPlaying = true;
+        private final HashMap<AnimationPoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> playFromStartOnActiveStates;
+        private final HashMap<AnimationPoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> progressTimeOnActiveStates;
 
         protected Builder() {
             super();
+            this.playFromStartOnActiveStates = Maps.newHashMap();
+            this.progressTimeOnActiveStates = Maps.newHashMap();
         }
 
         @SuppressWarnings("unchecked")
@@ -40,6 +52,24 @@ public class TimeBasedPoseSampler extends PoseSampler {
         @SuppressWarnings("unchecked")
         public B setIsPlaying(boolean isPlaying){
             this.isPlaying = isPlaying;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <S extends AnimationStateMachine.StateEnum> B addPlayFromStartOnActiveStates(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey, AnimationStateMachine.StateEnum... states){
+            this.playFromStartOnActiveStates.putIfAbsent( animationStateMachineKey, new ArrayList<>());
+            for(AnimationStateMachine.StateEnum state : states){
+                this.playFromStartOnActiveStates.get(animationStateMachineKey).add(state);
+            }
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <S extends AnimationStateMachine.StateEnum> B addProgressTimeOnActiveStates(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey, AnimationStateMachine.StateEnum... states){
+            this.progressTimeOnActiveStates.putIfAbsent( animationStateMachineKey, new ArrayList<>());
+            for(AnimationStateMachine.StateEnum state : states){
+                this.progressTimeOnActiveStates.get(animationStateMachineKey).add(state);
+            }
             return (B) this;
         }
 
@@ -76,18 +106,15 @@ public class TimeBasedPoseSampler extends PoseSampler {
 
     //TODO: Make this part of the configuration
 
-    public <S extends AnimationStateMachine.StateEnum> void playFromStartOnStateActive(AnimationPoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, S stateIdentifier){
-        this.playFromStartOnStateActive(animationStateMachineKey, List.of(stateIdentifier));
-    }
-
-    public <S extends AnimationStateMachine.StateEnum> void playFromStartOnStateActive(AnimationPoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, List<S> stateIdentifiers){
+    public void playFromStartOnStateActive(){
         boolean statesActive = false;
-        AnimationStateMachine<S> animationStateMachine = this.getAnimationDataContainer().getPoseSampler(animationStateMachineKey);
+        for(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey : this.playFromStartOnActiveStates.keySet()){
+            AnimationStateMachine<?> animationStateMachine = this.getAnimationDataContainer().getPoseSampler(animationStateMachineKey);
 
-        for(S stateIdentifier : stateIdentifiers){
-            if(!statesActive){
-                if(animationStateMachine.containsState(stateIdentifier)){
-                    statesActive = animationStateMachine.getState(stateIdentifier).getWeight() != 0;
+            for(AnimationStateMachine.StateEnum stateEnum : this.playFromStartOnActiveStates.get(animationStateMachineKey)){
+                if(animationStateMachine.getActiveStates().contains(stateEnum)){
+                    statesActive = true;
+                    break;
                 }
             }
         }
@@ -120,5 +147,6 @@ public class TimeBasedPoseSampler extends PoseSampler {
         if(this.getIsPlaying()){
             this.timeElapsed += this.playRate;
         }
+        playFromStartOnStateActive();
     }
 }

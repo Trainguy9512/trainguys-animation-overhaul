@@ -8,6 +8,7 @@ import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.util.Mth;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -82,12 +83,22 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
         return this.statesHashMap.get(stateIdentifier);
     }
 
+    public ArrayList<S> getActiveStates(){
+        return this.activeStates;
+    }
+
     public S getActiveState(){
         return this.activeStates.get(this.activeStates.size() - 1);
     }
 
-    public boolean containsState(S stateIdentifier){
-        return this.statesHashMap.containsKey(stateIdentifier);
+    public boolean containsState(StateEnum stateIdentifier){
+        for(S state : this.statesHashMap.keySet()){
+            if(state.equals(stateIdentifier)){
+                return true;
+            }
+        }
+        return false;
+        //return this.statesHashMap.containsKey(stateIdentifier);
     }
 
     /*
