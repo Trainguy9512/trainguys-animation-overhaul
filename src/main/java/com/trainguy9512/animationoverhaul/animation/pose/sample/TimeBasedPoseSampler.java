@@ -104,22 +104,36 @@ public class TimeBasedPoseSampler extends PoseSampler {
     }
 
 
-    //TODO: Make this part of the configuration
+
 
     public void playFromStartOnStateActive(){
-        boolean statesActive = false;
-        for(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey : this.playFromStartOnActiveStates.keySet()){
-            AnimationStateMachine<?> animationStateMachine = this.getAnimationDataContainer().getPoseSampler(animationStateMachineKey);
+        if(!this.playFromStartOnActiveStates.isEmpty()) {
+            for (AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey : this.playFromStartOnActiveStates.keySet()) {
+                AnimationStateMachine<?> animationStateMachine = this.getAnimationDataContainer().getPoseSampler(animationStateMachineKey);
 
-            for(AnimationStateMachine.StateEnum stateEnum : this.playFromStartOnActiveStates.get(animationStateMachineKey)){
-                if(animationStateMachine.getActiveStates().contains(stateEnum)){
-                    statesActive = true;
-                    break;
+                for (AnimationStateMachine.StateEnum stateEnum : this.playFromStartOnActiveStates.get(animationStateMachineKey)) {
+                    if (animationStateMachine.getActiveStates().contains(stateEnum)) {
+                        return;
+                    }
                 }
             }
-        }
-        if(!statesActive){
             this.resetTime();
+        }
+    }
+
+    public void progressTimeIfStateActive(){
+        if(!this.progressTimeOnActiveStates.isEmpty()){
+            for(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey : this.progressTimeOnActiveStates.keySet()){
+                AnimationStateMachine<?> animationStateMachine = this.getAnimationDataContainer().getPoseSampler(animationStateMachineKey);
+
+                for(AnimationStateMachine.StateEnum stateEnum : this.progressTimeOnActiveStates.get(animationStateMachineKey)){
+                    if(animationStateMachine.getActiveStates().contains(stateEnum)){
+                        this.playing = true;
+                        return;
+                    }
+                }
+            }
+            this.playing = false;
         }
     }
 
@@ -144,6 +158,7 @@ public class TimeBasedPoseSampler extends PoseSampler {
 
     @Override
     public void tick(){
+        progressTimeIfStateActive();
         if(this.getIsPlaying()){
             this.timeElapsed += this.playRate;
         }

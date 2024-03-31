@@ -104,7 +104,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     public static final AnimationPoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER_ALT = AnimationPoseSamplerKey.of(() -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(1)
             .setStartTime(20)
-            .addPlayFromStartOnActiveStates(TEST_STATE_MACHINE, TestStates.MOVING)
+            .addProgressTimeOnActiveStates(TEST_STATE_MACHINE, TestStates.MOVING)
             .build()).setIdentifier("idle_sequence_player").build();
 
 
