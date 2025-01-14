@@ -7,11 +7,9 @@ import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import org.jetbrains.annotations.NotNull;
 
-public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, PlayerModel<Player>, PlayerJointAnimator.ModelPartLocators> {
+public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, PlayerModel, PlayerJointAnimator.ModelPartLocators> {
 
     private static final String MODEL_PART_ROOT = "root";
     private static final String MODEL_PART_HEAD = "head";
@@ -47,13 +45,13 @@ public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, Playe
         //TODO: Adjust rig with proper parenting and no more offsets on the legs.
 
         return JointSkeleton.of(ModelPartLocators.root)
-                .addChildLocator(ModelPartLocators.body)
-                .addChildLocator(ModelPartLocators.cape)
-                .addChildLocator(ModelPartLocators.leftArm)
-                .addChildLocator(ModelPartLocators.rightArm)
-                .addChildLocator(ModelPartLocators.leftLeg)
-                .addChildLocator(ModelPartLocators.rightLeg)
-                .addChildLocator(ModelPartLocators.head)
+                .addChildJoint(ModelPartLocators.body)
+                .addChildJoint(ModelPartLocators.cape)
+                .addChildJoint(ModelPartLocators.leftArm)
+                .addChildJoint(ModelPartLocators.rightArm)
+                .addChildJoint(ModelPartLocators.leftLeg)
+                .addChildJoint(ModelPartLocators.rightLeg)
+                .addChildJoint(ModelPartLocators.head)
                 .setLocatorModelPart(ModelPartLocators.head, MODEL_PART_HEAD)
                 .setLocatorModelPart(ModelPartLocators.leftArm, MODEL_PART_LEFT_ARM)
                 .setLocatorModelPart(ModelPartLocators.rightArm, MODEL_PART_RIGHT_ARM)
@@ -61,11 +59,11 @@ public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, Playe
                 .setLocatorModelPart(ModelPartLocators.rightLeg, MODEL_PART_RIGHT_LEG)
                 .setLocatorModelPart(ModelPartLocators.body, MODEL_PART_BODY)
                 .setLocatorModelPart(ModelPartLocators.cape, MODEL_PART_CAPE)
-                .setLocatorDefaultPose(ModelPartLocators.leftLeg, PartPose.offset(1.9f, 12.0f, 0.0f))
-                .setLocatorDefaultPose(ModelPartLocators.rightLeg, PartPose.offset(-1.9f, 12.0f, 0.0f))
-                .setLocatorDefaultPose(ModelPartLocators.leftArm, PartPose.offset(5.0f, 2.0f, 0.0f))
-                .setLocatorDefaultPose(ModelPartLocators.rightArm, PartPose.offset(-5.0f, 2.0f, 0.0f))
-                .setLocatorDefaultPose(ModelPartLocators.cape, PartPose.offsetAndRotation(0, 0, 2, 0, Mth.PI, 0))
+                .setDefaultJointTransform(ModelPartLocators.leftLeg, PartPose.offset(1.9f, 12.0f, 0.0f))
+                .setDefaultJointTransform(ModelPartLocators.rightLeg, PartPose.offset(-1.9f, 12.0f, 0.0f))
+                .setDefaultJointTransform(ModelPartLocators.leftArm, PartPose.offset(5.0f, 2.0f, 0.0f))
+                .setDefaultJointTransform(ModelPartLocators.rightArm, PartPose.offset(-5.0f, 2.0f, 0.0f))
+                .setDefaultJointTransform(ModelPartLocators.cape, PartPose.offsetAndRotation(0, 0, 2, 0, Mth.PI, 0))
                 .setLocatorMirror(ModelPartLocators.leftArm, ModelPartLocators.rightArm)
                 .setLocatorMirror(ModelPartLocators.rightArm, ModelPartLocators.leftArm)
                 .setLocatorMirror(ModelPartLocators.leftLeg, ModelPartLocators.rightLeg)

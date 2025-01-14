@@ -61,7 +61,7 @@ public class JointSkeleton<L extends Enum<L>> {
         return this;
     }
 
-    public JointSkeleton<L> addChildLocator(Enum<L> locatorChild, Enum<L> locatorParent){
+    public JointSkeleton<L> addChildJoint(Enum<L> locatorChild, Enum<L> locatorParent){
         if(this.locatorHashMap.keySet().contains(locatorParent)){
             this.addLocator(locatorChild);
             this.locatorHashMap.get(locatorParent).addChild(locatorChild);
@@ -70,8 +70,8 @@ public class JointSkeleton<L extends Enum<L>> {
         return this;
     }
 
-    public JointSkeleton<L> addChildLocator(Enum<L> locatorChild){
-        return this.addChildLocator(locatorChild, this.rootLocator);
+    public JointSkeleton<L> addChildJoint(Enum<L> locatorChild){
+        return this.addChildJoint(locatorChild, this.rootLocator);
     }
 
     public List<Enum<L>> getLocatorChildren(Enum<L> locator){
@@ -185,7 +185,7 @@ public class JointSkeleton<L extends Enum<L>> {
      * @param pose The part pose used as the default pose
      * @return This skeleton
      */
-    public JointSkeleton<L> setLocatorDefaultPose(Enum<L> locator, PartPose pose){
+    public JointSkeleton<L> setDefaultJointTransform(Enum<L> locator, PartPose pose){
         this.locatorHashMap.get(locator).setDefaultPose(pose);
         return this;
     }

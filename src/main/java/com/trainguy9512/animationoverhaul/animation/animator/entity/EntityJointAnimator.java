@@ -9,10 +9,11 @@ import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
-public abstract class EntityJointAnimator<T extends Entity, M extends EntityModel<T>, L extends Enum<L>> extends JointAnimator<T, L> {
+public abstract class EntityJointAnimator<R extends EntityRenderState, M extends EntityModel<R>, L extends Enum<L>> extends JointAnimator<T, L> {
 
 
     //protected AnimationDataContainer entityAnimationData;

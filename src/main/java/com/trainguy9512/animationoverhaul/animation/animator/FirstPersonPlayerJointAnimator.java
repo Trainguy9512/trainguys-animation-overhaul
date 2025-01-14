@@ -20,7 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<LocalPlayer, PlayerModel<LocalPlayer>, FirstPersonPlayerJointAnimator.FPPlayerLocators> {
 
@@ -135,16 +134,16 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
 
     protected JointSkeleton<FPPlayerLocators> buildRig() {
         return JointSkeleton.of(FPPlayerLocators.root)
-                .addChildLocator(FPPlayerLocators.camera)
-                .addChildLocator(FPPlayerLocators.armBuffer)
-                .addChildLocator(FPPlayerLocators.leftArmBuffer, FPPlayerLocators.armBuffer)
-                .addChildLocator(FPPlayerLocators.rightArmBuffer, FPPlayerLocators.armBuffer)
-                .addChildLocator(FPPlayerLocators.leftArm, FPPlayerLocators.leftArmBuffer)
-                .addChildLocator(FPPlayerLocators.rightArm, FPPlayerLocators.rightArmBuffer)
-                .addChildLocator(FPPlayerLocators.leftHand, FPPlayerLocators.leftArm)
-                .addChildLocator(FPPlayerLocators.rightHand, FPPlayerLocators.rightArm)
-                .setLocatorDefaultPose(FPPlayerLocators.leftHand, PartPose.offsetAndRotation(1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
-                .setLocatorDefaultPose(FPPlayerLocators.rightHand, PartPose.offsetAndRotation(-1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
+                .addChildJoint(FPPlayerLocators.camera)
+                .addChildJoint(FPPlayerLocators.armBuffer)
+                .addChildJoint(FPPlayerLocators.leftArmBuffer, FPPlayerLocators.armBuffer)
+                .addChildJoint(FPPlayerLocators.rightArmBuffer, FPPlayerLocators.armBuffer)
+                .addChildJoint(FPPlayerLocators.leftArm, FPPlayerLocators.leftArmBuffer)
+                .addChildJoint(FPPlayerLocators.rightArm, FPPlayerLocators.rightArmBuffer)
+                .addChildJoint(FPPlayerLocators.leftHand, FPPlayerLocators.leftArm)
+                .addChildJoint(FPPlayerLocators.rightHand, FPPlayerLocators.rightArm)
+                .setDefaultJointTransform(FPPlayerLocators.leftHand, PartPose.offsetAndRotation(1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
+                .setDefaultJointTransform(FPPlayerLocators.rightHand, PartPose.offsetAndRotation(-1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
                 .setLocatorMirror(FPPlayerLocators.rightArm, FPPlayerLocators.leftArm)
                 .setLocatorMirror(FPPlayerLocators.rightHand, FPPlayerLocators.leftHand);
 
