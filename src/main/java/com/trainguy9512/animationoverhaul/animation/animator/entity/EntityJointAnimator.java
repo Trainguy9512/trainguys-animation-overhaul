@@ -1,19 +1,12 @@
 package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.animationoverhaul.access.ModelAccess;
-import com.trainguy9512.animationoverhaul.animation.EntityJointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.JointAnimator;
-import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 
-public abstract class EntityJointAnimator<R extends EntityRenderState, M extends EntityModel<R>, L extends Enum<L>> extends JointAnimator<T, L> {
+public abstract class EntityJointAnimator<R extends EntityRenderState, M extends EntityModel<R>, L extends Enum<L>> extends JointAnimator<R, L> {
 
 
     //protected AnimationDataContainer entityAnimationData;
@@ -62,7 +55,7 @@ public abstract class EntityJointAnimator<R extends EntityRenderState, M extends
 
 
 
-    public void finalizeModelParts(M entityModel, ModelPart rootModelPart){
+    public void postProcessModelParts(R entityRenderState, M entityModel, ModelPart rootModelPart){
     }
 
     public ModelPart getRoot(M entityModel){

@@ -7,6 +7,8 @@ import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.*;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -15,13 +17,14 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LivingEntityRenderer.class)
-public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> implements RenderLayerParent<T, M> {
+public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, L extends LivingEntityRenderState, T extends LivingEntity, M extends EntityModel<S>> extends EntityRenderer<T, S> implements RenderLayerParent<S, M> {
     protected MixinLivingEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
     }
@@ -33,15 +36,17 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
 
     @Shadow protected abstract void setupRotations(T livingEntity, PoseStack poseStack, float f, float g, float h);
 
-    @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;setupAnim(Lnet/minecraft/world/entity/Entity;FFFFF)V"))
-    private void redirectSetupAnim(M entityModel, Entity t, float a, float b, float c, float d, float e, T livingEntity, float f, float g, PoseStack poseStack){
-        if(!EntityJointAnimatorDispatcher.INSTANCE.animateEntity(livingEntity, entityModel, poseStack, g)){
-            entityModel.setupAnim(livingEntity, a, b, c, d, e);
+
+
+    @Redirect(method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;setupAnim(Lnet/minecraft/client/renderer/entity/state/EntityRenderState;)V"))
+    private void redirectSetupAnim(EntityModel<S> instance, S entityRenderState){
+        if(!EntityJointAnimatorDispatcher.INSTANCE.animateEntity(livingEntity, instance, poseStack, g)){
+            instance.setupAnim(entityRenderState);
         }
     }
 
-    @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;setupRotations(Lnet/minecraft/world/entity/LivingEntity;Lcom/mojang/blaze3d/vertex/PoseStack;FFF)V"))
-    private void overwriteSetupRotations(LivingEntityRenderer<T,M> instance, T livingEntity, PoseStack poseStack, float bob, float bodyRot, float frameTime){
+    @Inject(method = "setupRotations", at = @At("HEAD"), cancellable = true)
+    private void overrideSetupRotation(L livingEntityRenderState, PoseStack poseStack, float f, float g, CallbackInfo ci){
 
         //poseStack.translate(Mth.sin(bob / 6), 0, 0);
         //poseStack.mulPose(Vector3f.ZP.rotation(Mth.sin(bob / 6) / 4));
@@ -53,23 +58,34 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
             poseStack.popPose();
             poseStack.pushPose();
 
-            if(livingEntity.getPose() == Pose.SLEEPING){
-                Direction i = ((LivingEntity)livingEntity).getBedOrientation();
-                float j = i != null ? sleepDirectionToRotation(i) : bodyRot;
+
+            if(livingEntityRenderState.pose == Pose.SLEEPING){
+
+                Direction i = livingEntityRenderState.bedOrientation;
+                float j = i != null ? sleepDirectionToRotation(i) : livingEntityRenderState.bodyRot;
                 poseStack.mulPose(Axis.YP.rotationDegrees(j - 90));
             } else {
-                bodyRot = 0;//Mth.rotLerp(frameTime, ((LivingEntity)livingEntity).yHeadRotO, ((LivingEntity)livingEntity).yHeadRot);
+
+                /*
+
+                float bodyRot = 0 ;//Mth.rotLerp(frameTime, ((LivingEntity)livingEntity).yHeadRotO, ((LivingEntity)livingEntity).yHeadRot);
                 //bodyRot = AnimatorDispatcher.INSTANCE.getEntityAnimationData(livingEntity).getLerped(LivingEntityPartAnimator.BODY_Y_ROT, frameTime);
-                if(livingEntity.isPassenger() && livingEntity.getVehicle() instanceof AbstractMinecart){
+                if(livingEntityRenderState.passengerOffset != null){
                     bodyRot = Mth.rotLerp(frameTime, ((LivingEntity)livingEntity).yHeadRotO, ((LivingEntity)livingEntity).yHeadRot);
                 }
 
-                poseStack.mulPose(Axis.YP.rotationDegrees(180 - bodyRot));
-            }
+                 */
 
-        } else {
-            this.setupRotations(livingEntity, poseStack, bob, bodyRot, frameTime);
+                //poseStack.mulPose(Axis.YP.rotationDegrees(180 - bodyRot));
+            }
+            ci.cancel();
         }
+    }
+
+    @Redirect(method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;setupRotations(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;FF)V"))
+    private void overwriteSetupRotations(LivingEntityRenderer<T, L, M> instance, L livingEntityRenderState, PoseStack poseStack, float f, float g){
+
+
     }
 
     @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V", ordinal = 0))
@@ -95,6 +111,7 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
          */
     }
 
+    @Unique
     private boolean shouldUseAlternateRotations(BakedAnimationPose<?> bakedPose){
         /*
         if(bakedPose != null){
@@ -108,21 +125,14 @@ public abstract class MixinLivingEntityRenderer<T extends LivingEntity, M extend
         return false;
     }
 
+    @Unique
     private static float sleepDirectionToRotation(Direction direction) {
-        switch (direction) {
-            case SOUTH: {
-                return 90.0f;
-            }
-            case WEST: {
-                return 0.0f;
-            }
-            case NORTH: {
-                return 270.0f;
-            }
-            case EAST: {
-                return 180.0f;
-            }
-        }
-        return 0.0f;
+        return switch (direction) {
+            case SOUTH -> 90.0f;
+            case WEST -> 0.0f;
+            case NORTH -> 270.0f;
+            case EAST -> 180.0f;
+            default -> 0.0f;
+        };
     }
 }

@@ -6,10 +6,11 @@ import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 
-public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, PlayerModel, PlayerJointAnimator.ModelPartLocators> {
+public class PlayerJointAnimator extends LivingEntityJointAnimator<PlayerRenderState, PlayerModel, PlayerJointAnimator.ModelPartLocators> {
 
     private static final String MODEL_PART_ROOT = "root";
     private static final String MODEL_PART_HEAD = "head";
@@ -40,18 +41,18 @@ public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, Playe
 
     // Building the locator rig
     @Override
-    protected JointSkeleton<ModelPartLocators> buildRig() {
+    protected JointSkeleton<ModelPartLocators> buildSkeleton() {
 
         //TODO: Adjust rig with proper parenting and no more offsets on the legs.
 
         return JointSkeleton.of(ModelPartLocators.root)
-                .addChildJoint(ModelPartLocators.body)
-                .addChildJoint(ModelPartLocators.cape)
-                .addChildJoint(ModelPartLocators.leftArm)
-                .addChildJoint(ModelPartLocators.rightArm)
-                .addChildJoint(ModelPartLocators.leftLeg)
-                .addChildJoint(ModelPartLocators.rightLeg)
-                .addChildJoint(ModelPartLocators.head)
+                .addChildToRoot(ModelPartLocators.body)
+                .addChildToRoot(ModelPartLocators.cape)
+                .addChildToRoot(ModelPartLocators.leftArm)
+                .addChildToRoot(ModelPartLocators.rightArm)
+                .addChildToRoot(ModelPartLocators.leftLeg)
+                .addChildToRoot(ModelPartLocators.rightLeg)
+                .addChildToRoot(ModelPartLocators.head)
                 .setLocatorModelPart(ModelPartLocators.head, MODEL_PART_HEAD)
                 .setLocatorModelPart(ModelPartLocators.leftArm, MODEL_PART_LEFT_ARM)
                 .setLocatorModelPart(ModelPartLocators.rightArm, MODEL_PART_RIGHT_ARM)
@@ -85,7 +86,7 @@ public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, Playe
 
     // Ticking every sampleable animation state, in this case updating the state machine conditions
     @Override
-    public void tick(Player player, AnimationDataContainer entityAnimationData) {
+    public void tick(PlayerRenderState playerRenderState, AnimationDataContainer entityAnimationData) {
 
 
 
@@ -93,13 +94,13 @@ public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, Playe
 
     // This is the function for getting the final pose every tick
     @Override
-    public AnimationPose<ModelPartLocators> calculatePose(Player player, AnimationDataContainer animationDataContainer) {
+    public AnimationPose<ModelPartLocators> calculatePose(PlayerRenderState playerRenderState, AnimationDataContainer animationDataContainer) {
         return AnimationPose.of(this.jointSkeleton);
     }
 
     // Post-processing on the animation, copying stuff to the second layer and whatnot
     @Override
-    public void finalizeModelParts(PlayerModel<Player> playerModel, ModelPart rootModelPart) {
+    public void postProcessModelParts(PlayerRenderState playerRenderState, PlayerModel playerModel, ModelPart rootModelPart) {
         rootModelPart.getChild("left_pants").copyFrom(rootModelPart.getChild("left_leg"));
         rootModelPart.getChild("right_pants").copyFrom(rootModelPart.getChild("right_leg"));
         rootModelPart.getChild("left_sleeve").copyFrom(rootModelPart.getChild("left_arm"));
@@ -108,7 +109,7 @@ public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, Playe
         rootModelPart.getChild("hat").copyFrom(rootModelPart.getChild("head"));
         rootModelPart.getChild("cloak").xRot *= -1F;
         // Removes the vanilla transformation done for the crouch pose
-        if(playerModel.crouching){
+        if(playerRenderState.isCrouching){
             for(ModelPart modelPart : rootModelPart.getAllParts().toList()){
                 modelPart.y -= 2;
             }

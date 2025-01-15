@@ -132,16 +132,16 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         super();
     }
 
-    protected JointSkeleton<FPPlayerLocators> buildRig() {
+    protected JointSkeleton<FPPlayerLocators> buildSkeleton() {
         return JointSkeleton.of(FPPlayerLocators.root)
-                .addChildJoint(FPPlayerLocators.camera)
-                .addChildJoint(FPPlayerLocators.armBuffer)
-                .addChildJoint(FPPlayerLocators.leftArmBuffer, FPPlayerLocators.armBuffer)
-                .addChildJoint(FPPlayerLocators.rightArmBuffer, FPPlayerLocators.armBuffer)
-                .addChildJoint(FPPlayerLocators.leftArm, FPPlayerLocators.leftArmBuffer)
-                .addChildJoint(FPPlayerLocators.rightArm, FPPlayerLocators.rightArmBuffer)
-                .addChildJoint(FPPlayerLocators.leftHand, FPPlayerLocators.leftArm)
-                .addChildJoint(FPPlayerLocators.rightHand, FPPlayerLocators.rightArm)
+                .addChildToRoot(FPPlayerLocators.camera)
+                .addChildToRoot(FPPlayerLocators.armBuffer)
+                .addChildToParent(FPPlayerLocators.leftArmBuffer, FPPlayerLocators.armBuffer)
+                .addChildToParent(FPPlayerLocators.rightArmBuffer, FPPlayerLocators.armBuffer)
+                .addChildToParent(FPPlayerLocators.leftArm, FPPlayerLocators.leftArmBuffer)
+                .addChildToParent(FPPlayerLocators.rightArm, FPPlayerLocators.rightArmBuffer)
+                .addChildToParent(FPPlayerLocators.leftHand, FPPlayerLocators.leftArm)
+                .addChildToParent(FPPlayerLocators.rightHand, FPPlayerLocators.rightArm)
                 .setDefaultJointTransform(FPPlayerLocators.leftHand, PartPose.offsetAndRotation(1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
                 .setDefaultJointTransform(FPPlayerLocators.rightHand, PartPose.offsetAndRotation(-1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
                 .setLocatorMirror(FPPlayerLocators.rightArm, FPPlayerLocators.leftArm)

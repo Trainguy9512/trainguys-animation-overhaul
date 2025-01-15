@@ -4,14 +4,6 @@ import com.trainguy9512.animationoverhaul.access.BlockEntityAccess;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 
-
-
-
-// tf is going on here lol
-
-
-
-
 @Mixin(BlockEntity.class)
 public class MixinBlockEntity implements BlockEntityAccess {
     //TODO: ew

@@ -10,6 +10,7 @@ import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 
 import java.util.HashMap;
@@ -71,7 +72,7 @@ public class EntityJointAnimatorDispatcher {
         //livingEntityPartAnimator.overallTick(livingEntity);
     }
 
-    public <T extends Entity, M extends EntityModel<T>, L extends Enum<L>> boolean animateEntity(T livingEntity, M entityModel, PoseStack poseStack, float partialTicks){
+    public <T extends Entity, R extends EntityRenderState, M extends EntityModel<T>, L extends Enum<L>> boolean animateEntity(T livingEntity, M entityModel, PoseStack poseStack, float partialTicks){
         if(entityAnimationDataMap.containsKey(livingEntity.getUUID())){
             if(AnimationOverhaulMain.ENTITY_ANIMATORS.contains(livingEntity.getType())){
                 EntityJointAnimator<T, M, L> entityJointAnimator = (EntityJointAnimator<T, M, L>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(livingEntity.getType());
@@ -82,14 +83,14 @@ public class EntityJointAnimatorDispatcher {
         return false;
     }
 
-    private <T extends Entity, M extends EntityModel<T>, L extends Enum<L>> void applyBakedPose(T entity, M entityModel, EntityJointAnimator<T, M, L> entityJointAnimator, float partialTicks){
+    private <T extends Entity, R extends EntityRenderState, M extends EntityModel<R>, L extends Enum<L>> void applyBakedPose(T entity, R entityRenderState, M entityModel, EntityJointAnimator<R, M, L> entityJointAnimator, float partialTicks){
         BakedAnimationPose<?> bakedPose = EntityJointAnimatorDispatcher.INSTANCE.getBakedPose(entity.getUUID());
 
         if(bakedPose != null){
             ModelPart rootModelPart = entityJointAnimator.getRoot(entityModel);
 
             bakedPose.bakeToModelParts(rootModelPart, partialTicks);
-            entityJointAnimator.finalizeModelParts(entityModel, rootModelPart);
+            entityJointAnimator.postProcessModelParts(entityRenderState, entityModel, rootModelPart);
         }
     }
 

@@ -61,7 +61,7 @@ public class JointSkeleton<L extends Enum<L>> {
         return this;
     }
 
-    public JointSkeleton<L> addChildJoint(Enum<L> locatorChild, Enum<L> locatorParent){
+    public JointSkeleton<L> addChildToParent(Enum<L> locatorChild, Enum<L> locatorParent){
         if(this.locatorHashMap.keySet().contains(locatorParent)){
             this.addLocator(locatorChild);
             this.locatorHashMap.get(locatorParent).addChild(locatorChild);
@@ -70,8 +70,8 @@ public class JointSkeleton<L extends Enum<L>> {
         return this;
     }
 
-    public JointSkeleton<L> addChildJoint(Enum<L> locatorChild){
-        return this.addChildJoint(locatorChild, this.rootLocator);
+    public JointSkeleton<L> addChildToRoot(Enum<L> locatorChild){
+        return this.addChildToParent(locatorChild, this.rootLocator);
     }
 
     public List<Enum<L>> getLocatorChildren(Enum<L> locator){

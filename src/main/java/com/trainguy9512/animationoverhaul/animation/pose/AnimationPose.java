@@ -100,7 +100,8 @@ public class AnimationPose<L extends Enum<L>> {
         JointPose localParentJointPose = new JointPose(this.getJointPoseCopy(parent));
 
         poseStack.pushPose();
-        poseStack.mulPoseMatrix(localParentJointPose.getTransformCopy());
+
+        poseStack.mulPose(localParentJointPose.getTransformCopy());
 
         for (Enum<L> child : this.getSkeleton().getLocatorChildren(parent)){
             convertChildrenSpaceLocalToEntity(child, poseStack, jointsToConvert);
@@ -223,29 +224,29 @@ public class AnimationPose<L extends Enum<L>> {
 
 
 
-    public AnimationPose<L> translateJoint(Enum<L> joint, Vector3f translation, TransformSpace transformSpace, boolean replaceExisting){
+    public AnimationPose<L> translateJoint(Enum<L> joint, Vector3f translation, TransformSpace transformSpace, boolean additive){
         convertSpaceEntityToLocal();
         if(transformSpace == TransformSpace.ENTITY){
-            convertSpaceLocalToEntity(joint);
+            this.convertSpaceLocalToEntity(joint);
         }
-        if(replaceExisting){
-            this.getJointPoseReference(joint).setTranslation(translation);
-        } else {
+        if(additive){
             this.getJointPoseReference(joint).translate(translation, transformSpace);
+        } else {
+            this.getJointPoseReference(joint).setTranslation(translation);
         }
         convertSpaceEntityToLocal();
         return this;
     }
 
-    public AnimationPose<L> rotateJoint(Enum<L> joint, Vector3f rotationXYZ, TransformSpace transformSpace, boolean replaceExisting){
+    public AnimationPose<L> rotateJoint(Enum<L> joint, Vector3f rotationXYZ, TransformSpace transformSpace, boolean additive){
         convertSpaceEntityToLocal();
         if(transformSpace == TransformSpace.ENTITY){
             convertSpaceLocalToEntity(joint);
         }
-        if(replaceExisting){
-            this.getJointPoseReference(joint).setEulerRotationXYZ(rotationXYZ);
-        } else {
+        if(additive){
             this.getJointPoseReference(joint).rotate(rotationXYZ, transformSpace);
+        } else {
+            this.getJointPoseReference(joint).setEulerRotationXYZ(rotationXYZ);
         }
         convertSpaceEntityToLocal();
         return this;
