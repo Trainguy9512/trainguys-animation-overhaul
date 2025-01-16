@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 
-public class PlayerJointAnimator extends LivingEntityJointAnimator<PlayerRenderState, PlayerModel, PlayerJointAnimator.ModelPartLocators> {
+public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, PlayerRenderState, PlayerModel, PlayerJointAnimator.ModelPartLocators> {
 
     private static final String MODEL_PART_ROOT = "root";
     private static final String MODEL_PART_HEAD = "head";
@@ -86,7 +86,7 @@ public class PlayerJointAnimator extends LivingEntityJointAnimator<PlayerRenderS
 
     // Ticking every sampleable animation state, in this case updating the state machine conditions
     @Override
-    public void tick(PlayerRenderState playerRenderState, AnimationDataContainer entityAnimationData) {
+    public void tick(Player player, AnimationDataContainer entityAnimationData) {
 
 
 
@@ -94,7 +94,7 @@ public class PlayerJointAnimator extends LivingEntityJointAnimator<PlayerRenderS
 
     // This is the function for getting the final pose every tick
     @Override
-    public AnimationPose<ModelPartLocators> calculatePose(PlayerRenderState playerRenderState, AnimationDataContainer animationDataContainer) {
+    public AnimationPose<ModelPartLocators> calculatePose(AnimationDataContainer animationDataContainer) {
         return AnimationPose.of(this.jointSkeleton);
     }
 

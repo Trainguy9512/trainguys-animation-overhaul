@@ -2,6 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.pose;
 
 import net.minecraft.client.model.geom.ModelPart;
 
+
 public class BakedAnimationPose<L extends Enum<L>> {
 
     private AnimationPose<L> pose;

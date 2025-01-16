@@ -6,13 +6,13 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
-public abstract class LivingEntityJointAnimator<R extends LivingEntityRenderState, M extends EntityModel<R>, L extends Enum<L>> extends EntityJointAnimator<R, M, L> {
+public abstract class LivingEntityJointAnimator<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<S>, L extends Enum<L>> extends EntityJointAnimator<T, S, M, L> {
     @Deprecated
-    protected float getWalkAnimationSpeed(R livingEntityRenderState){
-        return livingEntityRenderState.walkAnimationSpeed;
+    protected float getWalkAnimationSpeed(T livingEntity){
+        return livingEntity.walkAnimation.speed();
     }
     @Deprecated
-    protected float getWalkAnimationPosition(R livingEntityRenderState){
-        return livingEntityRenderState.walkAnimationPos;
+    protected float getWalkAnimationPosition(T livingEntity){
+        return livingEntity.walkAnimation.position();
     }
 }

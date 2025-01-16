@@ -10,6 +10,7 @@ import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 
@@ -25,7 +26,7 @@ public class EntityJointAnimatorDispatcher {
     public EntityJointAnimatorDispatcher(){
     }
 
-    public <T extends Entity, L extends Enum<L>> void tickEntity(T entity, EntityJointAnimator<T, ?, L> entityJointAnimator){
+    public <T extends Entity, S extends EntityRenderState, L extends Enum<L>> void tickEntity(T entity, EntityJointAnimator<T, S, ?, L> entityJointAnimator){
 
         UUID entityUUID = entity.getUUID();
         if(!entityAnimationDataMap.containsKey(entityUUID)){
@@ -54,7 +55,7 @@ public class EntityJointAnimatorDispatcher {
         bakedPose.pushToOld();
 
 
-        AnimationPose<L> calculatedAnimationPose = entityJointAnimator.calculatePose(entity, animationDataContainer);
+        AnimationPose<L> calculatedAnimationPose = entityJointAnimator.calculatePose(animationDataContainer);
         if (calculatedAnimationPose == null){
             calculatedAnimationPose = AnimationPose.of(jointSkeleton);
         }
@@ -72,33 +73,11 @@ public class EntityJointAnimatorDispatcher {
         //livingEntityPartAnimator.overallTick(livingEntity);
     }
 
-    public <T extends Entity, R extends EntityRenderState, M extends EntityModel<T>, L extends Enum<L>> boolean animateEntity(T livingEntity, M entityModel, PoseStack poseStack, float partialTicks){
-        if(entityAnimationDataMap.containsKey(livingEntity.getUUID())){
-            if(AnimationOverhaulMain.ENTITY_ANIMATORS.contains(livingEntity.getType())){
-                EntityJointAnimator<T, M, L> entityJointAnimator = (EntityJointAnimator<T, M, L>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(livingEntity.getType());
-                applyBakedPose(livingEntity, entityModel, entityJointAnimator, partialTicks);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private <T extends Entity, R extends EntityRenderState, M extends EntityModel<R>, L extends Enum<L>> void applyBakedPose(T entity, R entityRenderState, M entityModel, EntityJointAnimator<R, M, L> entityJointAnimator, float partialTicks){
-        BakedAnimationPose<?> bakedPose = EntityJointAnimatorDispatcher.INSTANCE.getBakedPose(entity.getUUID());
-
-        if(bakedPose != null){
-            ModelPart rootModelPart = entityJointAnimator.getRoot(entityModel);
-
-            bakedPose.bakeToModelParts(rootModelPart, partialTicks);
-            entityJointAnimator.postProcessModelParts(entityRenderState, entityModel, rootModelPart);
-        }
-    }
-
     public <L extends Enum<L>> void saveBakedPose(UUID uuid, BakedAnimationPose<L> bakedPose){
         this.bakedPoseMap.put(uuid, bakedPose);
     }
 
-    public  BakedAnimationPose<?> getBakedPose(UUID uuid){
+    public BakedAnimationPose<?> getBakedPose(UUID uuid){
         return this.bakedPoseMap.getOrDefault(uuid, new BakedAnimationPose<>());
         /*
         if(this.bakedPoseMap.containsKey(uuid)){

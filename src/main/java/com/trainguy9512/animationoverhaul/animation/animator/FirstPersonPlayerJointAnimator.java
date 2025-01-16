@@ -14,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -21,7 +22,7 @@ import org.joml.Vector3f;
 
 import java.util.function.BiFunction;
 
-public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<LocalPlayer, PlayerModel<LocalPlayer>, FirstPersonPlayerJointAnimator.FPPlayerLocators> {
+public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<LocalPlayer, PlayerRenderState, PlayerModel, FirstPersonPlayerJointAnimator.FPPlayerLocators> {
 
     public static FirstPersonPlayerJointAnimator INSTANCE = new FirstPersonPlayerJointAnimator();
 
@@ -150,10 +151,11 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     }
 
     @Override
-    public AnimationPose<FPPlayerLocators> calculatePose(LocalPlayer localPlayer, AnimationDataContainer animationDataContainer) {
+    public AnimationPose<FPPlayerLocators> calculatePose(AnimationDataContainer animationDataContainer) {
         // Update main hand item based on the anim notify
+        //animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
 
-        animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
+
         //setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
 
         AnimationPose<FPPlayerLocators> pose = animationDataContainer.getPoseSampler(TEST_STATE_MACHINE).sample(this.getJointSkeleton());
@@ -252,7 +254,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         }
         this.localBakedPose.pushToOld();
 
-        AnimationPose<FPPlayerLocators> animationPose = this.calculatePose(player, animationDataContainer);
+        AnimationPose<FPPlayerLocators> animationPose = this.calculatePose(animationDataContainer);
         if (animationPose == null){
             animationPose = AnimationPose.of(this.jointSkeleton);
         }

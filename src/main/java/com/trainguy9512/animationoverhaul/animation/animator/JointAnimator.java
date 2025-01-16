@@ -7,9 +7,9 @@ import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 /**
  * Structure used for associating locator enums with data such as transform hierarchy, default offset poses, model parts, and mirrors.
  * @param <L> Enum joint structure
- * @param <R> Object used as render state for reference
+ * @param <T> Object used for data reference
  */
-public abstract class JointAnimator<R, L extends Enum<L>> {
+public abstract class JointAnimator<T, L extends Enum<L>> {
 
     protected final JointSkeleton<L> jointSkeleton;
 
@@ -23,7 +23,7 @@ public abstract class JointAnimator<R, L extends Enum<L>> {
 
     protected abstract JointSkeleton<L> buildSkeleton();
 
-    public abstract void tick(R animatedObjectReference, AnimationDataContainer entityAnimationData);
+    public abstract void tick(T animatedObjectReference, AnimationDataContainer entityAnimationData);
 
-    public abstract AnimationPose<L> calculatePose(R animatedObjectReference, AnimationDataContainer entityAnimationData);
+    public abstract AnimationPose<L> calculatePose(AnimationDataContainer entityAnimationData);
 }

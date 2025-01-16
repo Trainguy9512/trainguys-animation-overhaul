@@ -5,8 +5,9 @@ import com.trainguy9512.animationoverhaul.animation.animator.JointAnimator;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.world.entity.Entity;
 
-public abstract class EntityJointAnimator<R extends EntityRenderState, M extends EntityModel<R>, L extends Enum<L>> extends JointAnimator<R, L> {
+public abstract class EntityJointAnimator<T extends Entity, S extends EntityRenderState, M extends EntityModel<S>, L extends Enum<L>> extends JointAnimator<T, L> {
 
 
     //protected AnimationDataContainer entityAnimationData;
@@ -55,7 +56,7 @@ public abstract class EntityJointAnimator<R extends EntityRenderState, M extends
 
 
 
-    public void postProcessModelParts(R entityRenderState, M entityModel, ModelPart rootModelPart){
+    public void postProcessModelParts(S entityRenderState, M entityModel, ModelPart rootModelPart){
     }
 
     public ModelPart getRoot(M entityModel){
