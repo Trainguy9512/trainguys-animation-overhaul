@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
@@ -58,7 +59,7 @@ public abstract class MixinItemInHandRenderer {
             AbstractClientPlayer abstractClientPlayer = this.minecraft.player;
             //RenderSystem.setShaderTexture(0, abstractClientPlayer.getSkin().texture());
             PlayerRenderer playerRenderer = (PlayerRenderer)this.entityRenderDispatcher.getRenderer(abstractClientPlayer);
-            PlayerModel<AbstractClientPlayer> playerModel = playerRenderer.getModel();
+            PlayerModel playerModel = playerRenderer.getModel();
 
 
             rightArmPose.transformModelPart(playerModel.rightArm);

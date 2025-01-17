@@ -8,12 +8,12 @@ import java.util.HashMap;
 
 public class LivingEntityAnimatorRegistry {
 
-    private final HashMap<EntityType<?>, EntityJointAnimator<?, ?, ?>> livingEntityPartAnimatorHashMap = Maps.newHashMap();
+    private final HashMap<EntityType<?>, EntityJointAnimator<?, ?, ?, ?>> livingEntityPartAnimatorHashMap = Maps.newHashMap();
 
     public LivingEntityAnimatorRegistry(){
     }
 
-    public void register(EntityType<?> entityType, EntityJointAnimator<?, ?, ?> livingEntityPartAnimator){
+    public void register(EntityType<?> entityType, EntityJointAnimator<?, ?, ?, ?> livingEntityPartAnimator){
         livingEntityPartAnimatorHashMap.put(entityType, livingEntityPartAnimator);
     }
 
@@ -21,7 +21,7 @@ public class LivingEntityAnimatorRegistry {
         return livingEntityPartAnimatorHashMap.containsKey(entityType);
     }
 
-    public EntityJointAnimator<?, ?, ?> get(EntityType<?> entityType){
+    public EntityJointAnimator<?, ?, ?, ?> get(EntityType<?> entityType){
         return livingEntityPartAnimatorHashMap.get(entityType);
     }
 }

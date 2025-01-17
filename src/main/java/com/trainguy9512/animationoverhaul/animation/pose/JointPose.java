@@ -242,12 +242,12 @@ public class JointPose {
 
     public static JointPose fromPartPose(PartPose partPose){
         return fromTranslationAndRotation(
-                partPose.x,
-                partPose.y,
-                partPose.z,
-                partPose.xRot,
-                partPose.yRot,
-                partPose.zRot
+                partPose.x(),
+                partPose.y(),
+                partPose.z(),
+                partPose.xRot(),
+                partPose.yRot(),
+                partPose.zRot()
         );
     }
 
@@ -314,17 +314,7 @@ public class JointPose {
     }
 
     public void transformPoseStack(PoseStack poseStack, float transformMultiplier){
-        poseStack.mulPoseMatrix(this.getTransformCopy().setTranslation(this.getTranslation().div(new Vector3f(transformMultiplier))));
-        //poseStack.translate(this.translation.x / transformMultiplier, this.translation.y / transformMultiplier, this.translation.z / transformMultiplier);
-        //this.rotatePoseStack(poseStack);
-
-        //poseStack.mulPose(this.rotation);
-        /*
-        if (this.xRot != 0.0f || this.yRot != 0.0f || this.zRot != 0.0f) {
-            poseStack.mulPose(new Quaternionf().rotationZYX(this.zRot, this.yRot, this.xRot));
-        }
-
-         */
+        poseStack.mulPose(this.getTransformCopy().setTranslation(this.getTranslation().div(new Vector3f(transformMultiplier))));
     }
 
     public void transformPoseStack(PoseStack poseStack){

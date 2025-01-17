@@ -17,7 +17,7 @@ public class MixinLivingEntityRenderState implements LivingEntityRenderStateAcce
     private AnimationPose<?> animationOverhaul$interpolatedAnimationPose;
 
     @Unique
-    private EntityJointAnimator<?, ?, ?> animationOverhaul$entityJointAnimator;
+    private EntityJointAnimator<?, ?, ?, ?> animationOverhaul$entityJointAnimator;
 
     @Override
     public void animationOverhaul$setInterpolatedAnimationPose(AnimationPose<?> interpolatedAnimationPose) {
@@ -30,12 +30,12 @@ public class MixinLivingEntityRenderState implements LivingEntityRenderStateAcce
     }
 
     @Override
-    public void animationOverhaul$setEntityJointAnimator(EntityJointAnimator<?, ?, ?> entityJointAnimator) {
+    public void animationOverhaul$setEntityJointAnimator(EntityJointAnimator<?, ?, ?, ?> entityJointAnimator) {
         this.animationOverhaul$entityJointAnimator = entityJointAnimator;
     }
 
     @Override
-    public EntityJointAnimator<?, ?, ?> animationOverhaul$getEntityJointAnimator() {
+    public EntityJointAnimator<?, ?, ?, ?> animationOverhaul$getEntityJointAnimator() {
         return this.animationOverhaul$entityJointAnimator;
     }
 }

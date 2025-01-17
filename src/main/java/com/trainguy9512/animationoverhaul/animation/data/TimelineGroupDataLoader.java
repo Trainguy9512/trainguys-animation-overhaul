@@ -32,7 +32,7 @@ public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map
     private static final String FORMAT_VERSION = "0.3";
 
     @Override
-    public CompletableFuture<Map<ResourceLocation, JsonElement>> load(ResourceManager resourceManager, ProfilerFiller profiler, Executor executor) {
+    public CompletableFuture<Map<ResourceLocation, JsonElement>> load(ResourceManager resourceManager, Executor executor) {
         Gson gson = new Gson();
 
         Map<ResourceLocation, Resource> passedFiles = resourceManager.listResources("timelinegroups", (string) -> {
@@ -167,16 +167,16 @@ public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map
     }
 
     @Override
-    public CompletableFuture<Void> apply(Map<ResourceLocation, JsonElement> data, ResourceManager manager, ProfilerFiller profiler, Executor executor) {
+    public CompletableFuture<Void> apply(Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, ResourceManager resourceManager, Executor executor) {
         return CompletableFuture.runAsync(() -> {
             TimelineGroupData newData = new TimelineGroupData();
-            for(ResourceLocation resourceLocationKey : data.keySet()){
-                JsonElement animationJSON = data.get(resourceLocationKey);
+            for(ResourceLocation resourceLocationKey : resourceLocationJsonElementMap.keySet()){
+                JsonElement animationJSON = resourceLocationJsonElementMap.get(resourceLocationKey);
 
 
                 String resourceNamespace = resourceLocationKey.toString().split(":")[0];
                 String resourceBody = resourceLocationKey.toString().split(":")[1].split("\\.")[0].replace("timelinegroups/", "");
-                ResourceLocation finalResourceLocation = new ResourceLocation(resourceNamespace, resourceBody);
+                ResourceLocation finalResourceLocation = ResourceLocation.fromNamespaceAndPath(resourceNamespace, resourceBody);
 
                 //String entityKey = resourceLocationKey.toString().split("/")[1];
                 //String animationKey = resourceLocationKey.toString().split("/")[2].split("\\.")[0];
@@ -247,6 +247,6 @@ public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map
 
     @Override
     public ResourceLocation getFabricId() {
-        return new ResourceLocation("timeline_group_loader");
+        return ResourceLocation.fromNamespaceAndPath(AnimationOverhaulMain.MOD_ID, "timeline_group_loader");
     }
 }

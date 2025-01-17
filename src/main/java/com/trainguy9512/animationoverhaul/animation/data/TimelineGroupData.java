@@ -40,15 +40,15 @@ public class TimelineGroupData {
     public static String FIRST_PERSON_PLAYER_KEY = "player/first_person/";
 
     public static ResourceLocation getNativeResourceLocation(String path){
-        return new ResourceLocation(AnimationOverhaulMain.MOD_ID, path);
+        return ResourceLocation.fromNamespaceAndPath(AnimationOverhaulMain.MOD_ID, path);
     }
 
     public static ResourceLocation getNativeResourceLocation(String key, String path){
-        return new ResourceLocation(AnimationOverhaulMain.MOD_ID, key.concat(path));
+        return ResourceLocation.fromNamespaceAndPath(AnimationOverhaulMain.MOD_ID, key.concat(path));
     }
 
     public TimelineGroup get(String namespace, String path){
-        return get(new ResourceLocation(namespace, path));
+        return get(ResourceLocation.fromNamespaceAndPath(namespace, path));
     }
 
     @Deprecated

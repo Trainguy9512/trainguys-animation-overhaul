@@ -71,19 +71,11 @@ public abstract class MixinGameRenderer {
             // Special functionality for the first person player joint animator
             FirstPersonPlayerJointAnimator.INSTANCE.tickExternal();
         }
-    }
-
-    @Redirect(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionf;)V"),
-            slice = @Slice(
-                    from = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V"),
-                    to = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;setInverseViewRotationMatrix(Lorg/joml/Matrix3f;)V")
-            ))
-    private void removeVanillaCameraRotation(PoseStack instance, Quaternionf quaternionf){
 
     }
 
-    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;setInverseViewRotationMatrix(Lorg/joml/Matrix3f;)V"))
-    private void injectCameraRotation(float f, long l, PoseStack poseStack, CallbackInfo ci){
+    @Inject(method = "bobView", at = @At(value = "HEAD"), cancellable = true)
+    private void injectCameraRotation(PoseStack poseStack, float f, CallbackInfo ci){
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
             if(FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose != null){
                 AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerLocators> animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
@@ -102,11 +94,11 @@ public abstract class MixinGameRenderer {
                 poseStack1.translate(cameraPose.getTranslation().x / 16F, cameraPose.getTranslation().y / 16F, cameraPose.getTranslation().z / -16F);
                 Matrix4f matrix4f = poseStack1.last().pose();
 
-                poseStack.mulPoseMatrix(matrix4f);
+                poseStack.mulPose(matrix4f);
                 //poseStack.mulPose(new Quaternionf().rotationZYX(-cameraPose.zRot, cameraPose.yRot, cameraPose.xRot));
 
-                poseStack.mulPose(Axis.XP.rotationDegrees(this.mainCamera.getXRot()));
-                poseStack.mulPose(Axis.YP.rotationDegrees(this.mainCamera.getYRot() + 180.0f));
+                //poseStack.mulPose(Axis.XP.rotationDegrees(this.mainCamera.getXRot()));
+                //poseStack.mulPose(Axis.YP.rotationDegrees(this.mainCamera.getYRot() + 180.0f));
 
                 //cameraPose.transformPoseStack(poseStack);
             }

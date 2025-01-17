@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.trainguy9512.animationoverhaul.access.LivingEntityRenderStateAccess;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.EntityModel;
@@ -8,6 +9,9 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.state.ArmedEntityRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -19,18 +23,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Environment(EnvType.CLIENT)
 @Mixin(ItemInHandLayer.class)
-public abstract class MixinItemInHandLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
+public abstract class MixinItemInHandLayer<T extends LivingEntity, S extends ArmedEntityRenderState, M extends EntityModel<S>> extends RenderLayer<S, M> {
 
-    public MixinItemInHandLayer(RenderLayerParent<T, M> renderLayerParent) {
+    public MixinItemInHandLayer(RenderLayerParent<S, M> renderLayerParent) {
         super(renderLayerParent);
     }
 
-    @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"))
-    private void transformItemInHandLayer(LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, HumanoidArm humanoidArm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
-        if(shouldTransformItemInHand(livingEntity)){
+    @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V"))
+    private void transformItemInHandLayer(S armedEntityRenderState, ItemStackRenderState itemStackRenderState, HumanoidArm humanoidArm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
+        if(shouldTransformItemInHand(armedEntityRenderState)){
 
 
-            //TODO: Redo how hand stuff works, add override functions to living entity animators.
+            //TODO: Redo how hand stuff works, add override functions to living entity animators. (2025 update: what does this mean?)
             //update: gosh darnit 1.20 broke something else with this mixin
             /*
             poseStack.popPose();
@@ -53,7 +57,7 @@ public abstract class MixinItemInHandLayer<T extends LivingEntity, M extends Ent
              */
         }
     }
-    private boolean shouldTransformItemInHand(LivingEntity livingEntity){
+    private boolean shouldTransformItemInHand(LivingEntityRenderState livingEntityRenderState){
         return false;
         /*
         BakedAnimationPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());

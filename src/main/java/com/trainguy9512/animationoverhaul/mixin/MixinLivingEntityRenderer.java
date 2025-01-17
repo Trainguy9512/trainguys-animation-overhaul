@@ -63,7 +63,7 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
     private <L extends Enum<L>> void redirectSetupAnim(EntityModel<S> entityModel, S livingEntityRenderState){
         // Unchecked cast, but I can make assumptions given this is always called after extractRenderState within the same renderer class.
         AnimationPose<L> animationPose = (AnimationPose<L>) ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getInterpolatedAnimationPose();
-        EntityJointAnimator<S, M, L> entityJointAnimator = (EntityJointAnimator<S, M, L>) ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getEntityJointAnimator();
+        EntityJointAnimator<T, S, M, L> entityJointAnimator = (EntityJointAnimator<T, S, M, L>) ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getEntityJointAnimator();
 
 
         // If the supplied animation pose is valid and the entity model implements ModelAccess, apply the animation pose. If not, then run the vanilla functionality
