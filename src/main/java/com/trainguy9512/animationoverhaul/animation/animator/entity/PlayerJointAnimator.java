@@ -86,7 +86,7 @@ public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, Playe
 
     // Ticking every sampleable animation state, in this case updating the state machine conditions
     @Override
-    public void tick(Player player, AnimationDataContainer entityAnimationData) {
+    public void extractAnimationData(Player dataReference, AnimationDataContainer animationDataContainer) {
 
 
 

@@ -15,7 +15,6 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
-import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
@@ -44,11 +43,11 @@ public abstract class MixinItemInHandRenderer {
     private void overwriteItemInHandRendering(float f, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, LocalPlayer localPlayer, int i, CallbackInfo ci){
 
         if(FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose != null){
-            AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerLocators> animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-            JointPose rightArmPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerLocators.rightArm);
-            JointPose leftArmPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerLocators.leftArm);
-            JointPose rightHandPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerLocators.rightHand);
-            JointPose leftHandPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerLocators.leftHand);
+            AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerJoints> animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
+            JointPose rightArmPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.rightArm);
+            JointPose leftArmPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.leftArm);
+            JointPose rightHandPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.rightHand);
+            JointPose leftHandPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.leftHand);
 
             poseStack.pushPose();
             poseStack.mulPose(Axis.ZP.rotationDegrees(180));
@@ -139,10 +138,10 @@ public abstract class MixinItemInHandRenderer {
         ci.cancel();
     }
 
-    private void renderItemInHand(AbstractClientPlayer abstractClientPlayer, ItemStack itemStack, PoseStack poseStack, HumanoidArm humanoidArm, AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerLocators> animationPose, MultiBufferSource multiBufferSource, int i){
+    private void renderItemInHand(AbstractClientPlayer abstractClientPlayer, ItemStack itemStack, PoseStack poseStack, HumanoidArm humanoidArm, AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerJoints> animationPose, MultiBufferSource multiBufferSource, int i){
 
-        JointPose armPose = animationPose.getJointPoseCopy(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.FPPlayerLocators.leftArm : FirstPersonPlayerJointAnimator.FPPlayerLocators.rightArm);
-        JointPose handPose = animationPose.getJointPoseCopy(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.FPPlayerLocators.leftHand : FirstPersonPlayerJointAnimator.FPPlayerLocators.rightHand);
+        JointPose armPose = animationPose.getJointPoseCopy(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.FPPlayerJoints.leftArm : FirstPersonPlayerJointAnimator.FPPlayerJoints.rightArm);
+        JointPose handPose = animationPose.getJointPoseCopy(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.FPPlayerJoints.leftHand : FirstPersonPlayerJointAnimator.FPPlayerJoints.rightHand);
 
 
 

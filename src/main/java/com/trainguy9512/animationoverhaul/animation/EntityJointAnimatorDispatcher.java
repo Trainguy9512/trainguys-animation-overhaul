@@ -1,16 +1,11 @@
 package com.trainguy9512.animationoverhaul.animation;
 
 import com.google.common.collect.Maps;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
-import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 
@@ -35,10 +30,10 @@ public class EntityJointAnimatorDispatcher {
 
         BakedAnimationPose<L> bakedPose = (BakedAnimationPose<L>) INSTANCE.getBakedPose(entityUUID);
         AnimationDataContainer animationDataContainer = EntityJointAnimatorDispatcher.INSTANCE.getEntityAnimationDataReference(entityUUID);
-        JointSkeleton<L> jointSkeleton = (JointSkeleton<L>) entityJointAnimator.getJointSkeleton();
+        JointSkeleton<L> jointSkeleton = entityJointAnimator.getJointSkeleton();
 
         // First tick the entity part animator
-        entityJointAnimator.tick(entity, animationDataContainer);
+        entityJointAnimator.extractAnimationData(entity, animationDataContainer);
 
         animationDataContainer.tickAllPoseSamplers();
 

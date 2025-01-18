@@ -1,7 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.animator;
 
 import com.trainguy9512.animationoverhaul.animation.animator.entity.LivingEntityJointAnimator;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationPoseSamplerKey;
+import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerKey;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationVariableKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
@@ -22,15 +22,15 @@ import org.joml.Vector3f;
 
 import java.util.function.BiFunction;
 
-public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<LocalPlayer, PlayerRenderState, PlayerModel, FirstPersonPlayerJointAnimator.FPPlayerLocators> {
+public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<LocalPlayer, PlayerRenderState, PlayerModel, FirstPersonPlayerJointAnimator.FPPlayerJoints> {
 
     public static FirstPersonPlayerJointAnimator INSTANCE = new FirstPersonPlayerJointAnimator();
 
     public AnimationDataContainer localAnimationDataContainer = new AnimationDataContainer();
-    public BakedAnimationPose<FPPlayerLocators> localBakedPose;
+    public BakedAnimationPose<FPPlayerJoints> localBakedPose;
 
 
-    public enum FPPlayerLocators {
+    public enum FPPlayerJoints {
         root,
         camera,
         armBuffer,
@@ -41,7 +41,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         rightHand,
         leftHand;
 
-        public static final FPPlayerLocators[] arms = new FPPlayerLocators[] {
+        public static final FPPlayerJoints[] arms = new FPPlayerJoints[] {
                 rightArm,
                 leftArm,
                 rightArmBuffer,
@@ -50,17 +50,17 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
                 leftHand
         };
 
-        public static final FPPlayerLocators[] armBufferLocators = new FPPlayerLocators[] {
+        public static final FPPlayerJoints[] armBufferLocators = new FPPlayerJoints[] {
                 rightArmBuffer,
                 leftArmBuffer
         };
 
-        public static final FPPlayerLocators[] armPoseLocators = new FPPlayerLocators[] {
+        public static final FPPlayerJoints[] armPoseLocators = new FPPlayerJoints[] {
                 rightArm,
                 leftArm
         };
 
-        public static final FPPlayerLocators[] handLocators = new FPPlayerLocators[] {
+        public static final FPPlayerJoints[] handLocators = new FPPlayerJoints[] {
                 rightHand,
                 leftHand
         };
@@ -84,7 +84,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     public static final AnimationVariableKey<Boolean> IS_JUMPING = AnimationVariableKey.of(() -> false).setIdentifier("is_jumping").build();
     public static final AnimationVariableKey<Float> WALK_SPEED = AnimationVariableKey.of(() -> 0f).setIdentifier("walk_speed").build();
 
-    public static final AnimationPoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = AnimationPoseSamplerKey.of(() -> AnimationStateMachine.of("test_state_machine", TestStates.values())
+    public static final PoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = PoseSamplerKey.of(() -> AnimationStateMachine.of("test_state_machine", TestStates.values())
             .addStateTransition(TestStates.IDLE, TestStates.MOVING, AnimationStateMachine.StateTransition.of(
                             animationDataContainer -> animationDataContainer.getAnimationVariable(WALK_SPEED).get() > 0.1F)
                     .setTransitionTime(5)
@@ -97,11 +97,13 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
                     .build())
             .build()).build();
 
-    public static final AnimationPoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = AnimationPoseSamplerKey.of(() -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
+    public static final PoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = PoseSamplerKey.of(
+            () -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(0)
             .setStartTime(0)
             .build()).setIdentifier("idle_sequence_player").build();
-    public static final AnimationPoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER_ALT = AnimationPoseSamplerKey.of(() -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
+    public static final PoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER_ALT = PoseSamplerKey.of(
+            () -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(1)
             .setStartTime(20)
             .addProgressTimeOnActiveStates(TEST_STATE_MACHINE, TestStates.MOVING)
@@ -133,32 +135,32 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         super();
     }
 
-    protected JointSkeleton<FPPlayerLocators> buildSkeleton() {
-        return JointSkeleton.of(FPPlayerLocators.root)
-                .addChildToRoot(FPPlayerLocators.camera)
-                .addChildToRoot(FPPlayerLocators.armBuffer)
-                .addChildToParent(FPPlayerLocators.leftArmBuffer, FPPlayerLocators.armBuffer)
-                .addChildToParent(FPPlayerLocators.rightArmBuffer, FPPlayerLocators.armBuffer)
-                .addChildToParent(FPPlayerLocators.leftArm, FPPlayerLocators.leftArmBuffer)
-                .addChildToParent(FPPlayerLocators.rightArm, FPPlayerLocators.rightArmBuffer)
-                .addChildToParent(FPPlayerLocators.leftHand, FPPlayerLocators.leftArm)
-                .addChildToParent(FPPlayerLocators.rightHand, FPPlayerLocators.rightArm)
-                .setDefaultJointTransform(FPPlayerLocators.leftHand, PartPose.offsetAndRotation(1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
-                .setDefaultJointTransform(FPPlayerLocators.rightHand, PartPose.offsetAndRotation(-1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
-                .setLocatorMirror(FPPlayerLocators.rightArm, FPPlayerLocators.leftArm)
-                .setLocatorMirror(FPPlayerLocators.rightHand, FPPlayerLocators.leftHand);
+    protected JointSkeleton<FPPlayerJoints> buildSkeleton() {
+        return JointSkeleton.of(FPPlayerJoints.root)
+                .addChildToRoot(FPPlayerJoints.camera)
+                .addChildToRoot(FPPlayerJoints.armBuffer)
+                .addChildToParent(FPPlayerJoints.leftArmBuffer, FPPlayerJoints.armBuffer)
+                .addChildToParent(FPPlayerJoints.rightArmBuffer, FPPlayerJoints.armBuffer)
+                .addChildToParent(FPPlayerJoints.leftArm, FPPlayerJoints.leftArmBuffer)
+                .addChildToParent(FPPlayerJoints.rightArm, FPPlayerJoints.rightArmBuffer)
+                .addChildToParent(FPPlayerJoints.leftHand, FPPlayerJoints.leftArm)
+                .addChildToParent(FPPlayerJoints.rightHand, FPPlayerJoints.rightArm)
+                .setDefaultJointTransform(FPPlayerJoints.leftHand, PartPose.offsetAndRotation(1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
+                .setDefaultJointTransform(FPPlayerJoints.rightHand, PartPose.offsetAndRotation(-1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
+                .setLocatorMirror(FPPlayerJoints.rightArm, FPPlayerJoints.leftArm)
+                .setLocatorMirror(FPPlayerJoints.rightHand, FPPlayerJoints.leftHand);
 
     }
 
     @Override
-    public AnimationPose<FPPlayerLocators> calculatePose(AnimationDataContainer animationDataContainer) {
+    public AnimationPose<FPPlayerJoints> calculatePose(AnimationDataContainer animationDataContainer) {
         // Update main hand item based on the anim notify
         //animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
 
 
         //setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
 
-        AnimationPose<FPPlayerLocators> pose = animationDataContainer.getPoseSampler(TEST_STATE_MACHINE).sample(this.getJointSkeleton());
+        AnimationPose<FPPlayerJoints> pose = animationDataContainer.getPoseSampler(TEST_STATE_MACHINE).sample(this.getJointSkeleton());
 
 
 
@@ -177,15 +179,15 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     /*
     Get the pose with the added dampened camera rotation
      */
-    private AnimationPose<FPPlayerLocators> dampenArmRotation(AnimationPose<FPPlayerLocators> pose, AnimationDataContainer animationDataContainer){
+    private AnimationPose<FPPlayerJoints> dampenArmRotation(AnimationPose<FPPlayerJoints> pose, AnimationDataContainer animationDataContainer){
         Vector3f cameraRotation = animationDataContainer.getAnimationVariable(CAMERA_ROTATION).get();
         Vector3f dampenedCameraRotation = animationDataContainer.getAnimationVariable(DAMPENED_CAMERA_ROTATION).get();
 
         Vector3f cameraDampWeight = new Vector3f(0.6F, 0.3F, 0.1F);
 
         pose.setJointPose(
-                FPPlayerLocators.armBuffer,
-                pose.getJointPoseCopy(FPPlayerLocators.armBuffer).rotate(
+                FPPlayerJoints.armBuffer,
+                pose.getJointPoseCopy(FPPlayerJoints.armBuffer).rotate(
                         new Vector3f(
                                 (dampenedCameraRotation.x() - cameraRotation.x()) * (cameraDampWeight.x() * 0.01F),
                                 (dampenedCameraRotation.y() - cameraRotation.y()) * (cameraDampWeight.y() * 0.01F),
@@ -198,11 +200,11 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
 
 
     @Override
-    public void tick(LocalPlayer localPlayer, AnimationDataContainer animationDataContainer){
+    public void extractAnimationData(LocalPlayer dataReference, AnimationDataContainer animationDataContainer){
 
 
 
-        animationDataContainer.getAnimationVariable(WALK_SPEED).set(this.getWalkAnimationSpeed(localPlayer));
+        animationDataContainer.getAnimationVariable(WALK_SPEED).set(this.getWalkAnimationSpeed(dataReference));
         animationDataContainer.getAnimationVariable(TIME_TEST).set(animationDataContainer.getAnimationVariable(TIME_TEST).get() + 1);
 
 
@@ -212,7 +214,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         Vector3f dampenSpeed = new Vector3f(0.5F, 0.5F, 0.2F);
 
         // First, set the target camera rotation from the living entity.
-        Vector3f targetRotation = new Vector3f(localPlayer.getXRot(), localPlayer.getYRot(), localPlayer.getYRot());
+        Vector3f targetRotation = new Vector3f(dataReference.getXRot(), dataReference.getYRot(), dataReference.getYRot());
         animationDataContainer.getAnimationVariable(CAMERA_ROTATION).set(targetRotation);
 
 
@@ -241,7 +243,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         LocalPlayer player = Minecraft.getInstance().player;
         AnimationDataContainer animationDataContainer = this.localAnimationDataContainer;
 
-        this.tick(player, animationDataContainer);
+        this.extractAnimationData(player, animationDataContainer);
         animationDataContainer.tickAllPoseSamplers();
 
         if(this.localBakedPose == null){
@@ -254,7 +256,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         }
         this.localBakedPose.pushToOld();
 
-        AnimationPose<FPPlayerLocators> animationPose = this.calculatePose(animationDataContainer);
+        AnimationPose<FPPlayerJoints> animationPose = this.calculatePose(animationDataContainer);
         if (animationPose == null){
             animationPose = AnimationPose.of(this.jointSkeleton);
         }

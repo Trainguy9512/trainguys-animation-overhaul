@@ -1,10 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
-import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
-import net.minecraft.util.Mth;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -17,36 +14,16 @@ import java.util.function.Supplier;
  * </ul>
  *
  * @see AnimationVariableKey
- * @see AnimationPoseSamplerKey
+ * @see PoseSamplerKey
  */
 public class AnimationDataContainer {
 
     private final HashMap<AnimationVariableKey<?>, AnimationVariable<?>> animationVariableMap;
-    //private final HashMap<String, PoseSampler> entitySampleableAnimationStates;
-    private final HashMap<AnimationPoseSamplerKey<?>, PoseSampler> poseSamplerMap;
 
     public AnimationDataContainer(){
         this.animationVariableMap = Maps.newHashMap();
-        this.poseSamplerMap = Maps.newHashMap();
     }
 
-    /**
-     * Returns this animation data container's hash map of pose sampler keys to pose samplers currently loaded.
-     *
-     * @return {@link HashMap} of {@link AnimationPoseSamplerKey} keys to {@link PoseSampler} values.
-     */
-    public HashMap<AnimationPoseSamplerKey<?>, PoseSampler> getPoseSamplerMap(){
-        return this.poseSamplerMap;
-    }
-
-    /**
-     * Returns a collection of every pose sampler currently loaded into this animation data container.
-     *
-     * @return {@link Collection} of {@link PoseSampler} values.
-     */
-    public Collection<PoseSampler> getPoseSamplers(){
-        return this.getPoseSamplerMap().values();
-    }
 
     /**
      * Returns this animation data container's hash map of animation variable keys to animation variables currently loaded.
@@ -64,34 +41,6 @@ public class AnimationDataContainer {
      */
     public Collection<AnimationVariable<?>> getAnimationVariables(){
         return this.getAnimationVariableMap().values();
-    }
-
-    /**
-     * Iterates over every currently loaded pose sampler and executes the {@link PoseSampler#tick()} method
-     *
-     * @implNote Only do this once per game tick! For entities, this is handled in the entity joint animator dispatcher.
-     */
-    public void tickAllPoseSamplers(){
-        for(PoseSampler poseSampler : this.getPoseSamplers()){
-            poseSampler.tick();
-        }
-    }
-
-    /**
-     * Returns a pose sampler from the given key. If one is not currently loaded into
-     * this animation data container, then a new one is created from the key's default
-     * value and loaded into this animation data container and returned.
-     *
-     * @param animationPoseSamplerKey the {@link AnimationPoseSamplerKey} attached to the desired {@link PoseSampler}
-     *
-     * @return a {@link PoseSampler} object reference
-     */
-    @SuppressWarnings("unchecked")
-    public <P extends PoseSampler> P getPoseSampler(AnimationPoseSamplerKey<P> animationPoseSamplerKey){
-        if(!this.getPoseSamplerMap().containsKey(animationPoseSamplerKey)){
-            this.getPoseSamplerMap().put(animationPoseSamplerKey, animationPoseSamplerKey.getSuppliedDefaultValue(this));
-        }
-        return (P) this.getPoseSamplerMap().get(animationPoseSamplerKey);
     }
 
     /**

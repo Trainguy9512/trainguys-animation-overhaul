@@ -1,8 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationPoseSamplerKey;
-import net.minecraft.stats.Stat;
+import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerKey;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,8 +12,8 @@ public class TimeBasedPoseSampler extends PoseSampler {
     protected float timeElapsed;
     private float playRate;
     private boolean playing;
-    private final HashMap<AnimationPoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> playFromStartOnActiveStates;
-    private final HashMap<AnimationPoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> progressTimeOnActiveStates;
+    private final HashMap<PoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> playFromStartOnActiveStates;
+    private final HashMap<PoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> progressTimeOnActiveStates;
 
     protected TimeBasedPoseSampler(Builder<?> builder) {
         super(builder);
@@ -34,8 +33,8 @@ public class TimeBasedPoseSampler extends PoseSampler {
 
         private float playRate = 1;
         private boolean isPlaying = true;
-        private final HashMap<AnimationPoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> playFromStartOnActiveStates;
-        private final HashMap<AnimationPoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> progressTimeOnActiveStates;
+        private final HashMap<PoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> playFromStartOnActiveStates;
+        private final HashMap<PoseSamplerKey<? extends AnimationStateMachine<?>>, List<AnimationStateMachine.StateEnum>> progressTimeOnActiveStates;
 
         protected Builder() {
             super();
@@ -56,7 +55,7 @@ public class TimeBasedPoseSampler extends PoseSampler {
         }
 
         @SuppressWarnings("unchecked")
-        public <S extends AnimationStateMachine.StateEnum> B addPlayFromStartOnActiveStates(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey, AnimationStateMachine.StateEnum... states){
+        public <S extends AnimationStateMachine.StateEnum> B addPlayFromStartOnActiveStates(PoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey, AnimationStateMachine.StateEnum... states){
             this.playFromStartOnActiveStates.putIfAbsent( animationStateMachineKey, new ArrayList<>());
             for(AnimationStateMachine.StateEnum state : states){
                 this.playFromStartOnActiveStates.get(animationStateMachineKey).add(state);
@@ -65,7 +64,7 @@ public class TimeBasedPoseSampler extends PoseSampler {
         }
 
         @SuppressWarnings("unchecked")
-        public <S extends AnimationStateMachine.StateEnum> B addProgressTimeOnActiveStates(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey, AnimationStateMachine.StateEnum... states){
+        public <S extends AnimationStateMachine.StateEnum> B addProgressTimeOnActiveStates(PoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey, AnimationStateMachine.StateEnum... states){
             this.progressTimeOnActiveStates.putIfAbsent( animationStateMachineKey, new ArrayList<>());
             for(AnimationStateMachine.StateEnum state : states){
                 this.progressTimeOnActiveStates.get(animationStateMachineKey).add(state);
@@ -108,7 +107,7 @@ public class TimeBasedPoseSampler extends PoseSampler {
 
     public void playFromStartOnStateActive(){
         if(!this.playFromStartOnActiveStates.isEmpty()) {
-            for (AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey : this.playFromStartOnActiveStates.keySet()) {
+            for (PoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey : this.playFromStartOnActiveStates.keySet()) {
                 AnimationStateMachine<?> animationStateMachine = this.getAnimationDataContainer().getPoseSampler(animationStateMachineKey);
 
                 for (AnimationStateMachine.StateEnum stateEnum : this.playFromStartOnActiveStates.get(animationStateMachineKey)) {
@@ -123,7 +122,7 @@ public class TimeBasedPoseSampler extends PoseSampler {
 
     public void progressTimeIfStateActive(){
         if(!this.progressTimeOnActiveStates.isEmpty()){
-            for(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey : this.progressTimeOnActiveStates.keySet()){
+            for(PoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey : this.progressTimeOnActiveStates.keySet()){
                 AnimationStateMachine<?> animationStateMachine = this.getAnimationDataContainer().getPoseSampler(animationStateMachineKey);
 
                 for(AnimationStateMachine.StateEnum stateEnum : this.progressTimeOnActiveStates.get(animationStateMachineKey)){
@@ -137,11 +136,11 @@ public class TimeBasedPoseSampler extends PoseSampler {
         }
     }
 
-    public <S extends AnimationStateMachine.StateEnum> void progressTimeIfStateActive(AnimationPoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, S stateIdentifier){
+    public <S extends AnimationStateMachine.StateEnum> void progressTimeIfStateActive(PoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, S stateIdentifier){
         this.progressTimeIfStateActive(animationStateMachineKey, List.of(stateIdentifier));
     }
 
-    public <S extends AnimationStateMachine.StateEnum> void progressTimeIfStateActive(AnimationPoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, List<S> stateIdentifiers){
+    public <S extends AnimationStateMachine.StateEnum> void progressTimeIfStateActive(PoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, List<S> stateIdentifiers){
         boolean statesActive = false;
         AnimationStateMachine<S> animationStateMachine = this.getAnimationDataContainer().getPoseSampler(animationStateMachineKey);
 

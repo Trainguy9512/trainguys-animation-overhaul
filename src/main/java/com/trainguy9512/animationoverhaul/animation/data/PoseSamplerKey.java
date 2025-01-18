@@ -3,14 +3,13 @@ package com.trainguy9512.animationoverhaul.animation.data;
 import com.trainguy9512.animationoverhaul.animation.animator.JointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.PoseSampler;
 
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
  * Represents a key for associating with pose samplers in animation data containers
  * <p>
  * Pose Sampler Keys are used in the static definition of {@link PoseSampler} objects in {@link JointAnimator} classes, which are
- * created at runtime using the {@link AnimationPoseSamplerKey#defaultValue} as the template. These keys are then referenced
+ * created at runtime using the {@link PoseSamplerKey#defaultValue} as the template. These keys are then referenced
  * when accessing those pose samplers from {@link AnimationDataContainer} objects, with a key-and-value design structure.
  * <p>
  * Rather than creating pose sampler
@@ -23,7 +22,7 @@ import java.util.function.Supplier;
  * @see PoseSampler
  * @see AnimationDataContainer
  */
-public class AnimationPoseSamplerKey<P extends PoseSampler> {
+public class PoseSamplerKey<P extends PoseSampler> {
 
     /**
      * The supplier used for providing a template for when new pose sampler
@@ -40,7 +39,7 @@ public class AnimationPoseSamplerKey<P extends PoseSampler> {
      */
     private final String identifier;
 
-    private AnimationPoseSamplerKey(Builder<P> builder) {
+    private PoseSamplerKey(Builder<P> builder) {
         this.defaultValue = builder.defaultValue;
         this.identifier = builder.identifier;
     }
@@ -73,7 +72,7 @@ public class AnimationPoseSamplerKey<P extends PoseSampler> {
 
 
     /**
-     * Returns a new {@link PoseSampler} created from the {@link AnimationPoseSamplerKey#defaultValue}
+     * Returns a new {@link PoseSampler} created from the {@link PoseSamplerKey#defaultValue}
      *  {@link Supplier}, and then sets its identifier to be the same as this key's identifier and
      *  sets its animation data container parent to be that of the supplied animation data container
      *
@@ -89,7 +88,7 @@ public class AnimationPoseSamplerKey<P extends PoseSampler> {
     }
 
     /**
-     * A mutable builder for {@link AnimationPoseSamplerKey} objects.
+     * A mutable builder for {@link PoseSamplerKey} objects.
      *
      * @param <P> the type of {@link PoseSampler}
      */
@@ -118,11 +117,11 @@ public class AnimationPoseSamplerKey<P extends PoseSampler> {
         }
 
         /**
-         * Returns a new {@link AnimationPoseSamplerKey}
-         * @return an {@link AnimationPoseSamplerKey}
+         * Returns a new {@link PoseSamplerKey}
+         * @return an {@link PoseSamplerKey}
          */
-        public AnimationPoseSamplerKey<P> build(){
-            return new AnimationPoseSamplerKey<>(this);
+        public PoseSamplerKey<P> build(){
+            return new PoseSamplerKey<>(this);
         }
     }
 }

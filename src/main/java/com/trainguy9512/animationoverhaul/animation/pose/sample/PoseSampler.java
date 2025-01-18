@@ -1,11 +1,9 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
-import com.trainguy9512.animationoverhaul.animation.data.AnimationPoseSamplerKey;
+import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
-import org.jetbrains.annotations.ApiStatus;
-import org.spongepowered.asm.mixin.SoftOverride;
 
 public class PoseSampler {
 
@@ -23,7 +21,7 @@ public class PoseSampler {
     public static class Builder<B extends Builder<B>> {
 
         protected Builder() {
-            AnimationPoseSamplerKey<PoseSampler> b = AnimationPoseSamplerKey.of(() -> PoseSampler.of().build()).build();
+            PoseSamplerKey<PoseSampler> b = PoseSamplerKey.of(() -> PoseSampler.of().build()).build();
         }
 
         public PoseSampler build(){
