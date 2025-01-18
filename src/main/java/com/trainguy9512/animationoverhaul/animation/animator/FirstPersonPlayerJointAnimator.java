@@ -106,7 +106,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
             () -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(1)
             .setStartTime(20)
-            .addProgressTimeOnActiveStates(TEST_STATE_MACHINE, TestStates.MOVING)
+            .addProgressTimeOnStateActivation(TEST_STATE_MACHINE, TestStates.MOVING)
             .build()).setIdentifier("idle_sequence_player").build();
 
 

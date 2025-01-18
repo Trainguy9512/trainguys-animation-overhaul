@@ -16,8 +16,10 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Final;
@@ -62,9 +64,7 @@ public abstract class MixinItemInHandRenderer {
 
 
             rightArmPose.transformModelPart(playerModel.rightArm);
-            playerModel.rightSleeve.copyFrom(playerModel.rightArm);
             leftArmPose.transformModelPart(playerModel.leftArm);
-            playerModel.leftSleeve.copyFrom(playerModel.leftArm);
 
             /*
 
@@ -104,10 +104,16 @@ public abstract class MixinItemInHandRenderer {
 
              */
 
-            playerModel.rightArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
-            playerModel.rightSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
-            playerModel.leftArm.render(poseStack, bufferSource.getBuffer(RenderType.entitySolid(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
-            playerModel.leftSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
+            ResourceLocation resourceLocation = abstractClientPlayer.getSkin().texture();
+            //playerRenderer.renderRightHand(poseStack, bufferSource, i, resourceLocation, abstractClientPlayer.isModelPartShown(PlayerModelPart.RIGHT_SLEEVE));
+            //playerRenderer.renderLeftHand(poseStack, bufferSource, i, resourceLocation, abstractClientPlayer.isModelPartShown(PlayerModelPart.LEFT_SLEEVE));
+
+            //playerModel.rightArm.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(resourceLocation)), i, OverlayTexture.NO_OVERLAY);
+
+            playerModel.rightArm.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
+            //playerModel.rightSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
+            playerModel.leftArm.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
+            //playerModel.leftSleeve.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
 
 
             /*
