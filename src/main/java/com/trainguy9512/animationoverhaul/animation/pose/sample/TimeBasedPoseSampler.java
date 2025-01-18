@@ -2,7 +2,6 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationPoseSamplerKey;
-import net.minecraft.stats.Stat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,7 +55,7 @@ public class TimeBasedPoseSampler extends PoseSampler {
         }
 
         @SuppressWarnings("unchecked")
-        public <S extends AnimationStateMachine.StateEnum> B addPlayFromStartOnActiveStates(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey, AnimationStateMachine.StateEnum... states){
+        public <S extends AnimationStateMachine.StateEnum> B addPlayFromStartOnStateActivation(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey, AnimationStateMachine.StateEnum... states){
             this.playFromStartOnActiveStates.putIfAbsent( animationStateMachineKey, new ArrayList<>());
             for(AnimationStateMachine.StateEnum state : states){
                 this.playFromStartOnActiveStates.get(animationStateMachineKey).add(state);
@@ -65,7 +64,7 @@ public class TimeBasedPoseSampler extends PoseSampler {
         }
 
         @SuppressWarnings("unchecked")
-        public <S extends AnimationStateMachine.StateEnum> B addProgressTimeOnActiveStates(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey, AnimationStateMachine.StateEnum... states){
+        public <S extends AnimationStateMachine.StateEnum> B addProgressTimeOnStateActivation(AnimationPoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey, AnimationStateMachine.StateEnum... states){
             this.progressTimeOnActiveStates.putIfAbsent( animationStateMachineKey, new ArrayList<>());
             for(AnimationStateMachine.StateEnum state : states){
                 this.progressTimeOnActiveStates.get(animationStateMachineKey).add(state);
