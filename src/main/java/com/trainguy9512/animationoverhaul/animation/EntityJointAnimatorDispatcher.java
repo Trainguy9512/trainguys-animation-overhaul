@@ -1,7 +1,9 @@
 package com.trainguy9512.animationoverhaul.animation;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
+import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
@@ -15,21 +17,25 @@ import java.util.UUID;
 public class EntityJointAnimatorDispatcher {
     public static final EntityJointAnimatorDispatcher INSTANCE = new EntityJointAnimatorDispatcher();
 
-    private final HashMap<UUID, AnimationDataContainer> entityAnimationDataMap = Maps.newHashMap();
-    private final HashMap<UUID, BakedAnimationPose<?>> bakedPoseMap = Maps.newHashMap();
+    private final HashMap<UUID, AnimationDataContainer> entityAnimationData;
+    private final HashMap<UUID, BakedAnimationPose<?>> bakedPoseMap;
+    private final HashMap<UUID, PoseSamplerStateContainer> poseSamplerStates;
 
     public EntityJointAnimatorDispatcher(){
+        this.entityAnimationData = Maps.newHashMap();
+        this.bakedPoseMap = Maps.newHashMap();
+        this.poseSamplerStates = Maps.newHashMap();
     }
 
-    public <T extends Entity, S extends EntityRenderState, L extends Enum<L>> void tickEntity(T entity, EntityJointAnimator<T, S, ?, L> entityJointAnimator){
-
+    public <T extends Entity, S extends EntityRenderState, L extends Enum<L>> void tick(T entity){
         UUID entityUUID = entity.getUUID();
-        if(!entityAnimationDataMap.containsKey(entityUUID)){
-            entityAnimationDataMap.put(entityUUID, new AnimationDataContainer());
-        }
 
-        BakedAnimationPose<L> bakedPose = (BakedAnimationPose<L>) INSTANCE.getBakedPose(entityUUID);
-        AnimationDataContainer animationDataContainer = EntityJointAnimatorDispatcher.INSTANCE.getEntityAnimationDataReference(entityUUID);
+        EntityJointAnimator<T, S, ?, L> entityJointAnimator = (EntityJointAnimator<T, S, ?, L>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(entity.getType());
+
+        BakedAnimationPose<L> bakedPose = (BakedAnimationPose<L>) this.getBakedPose(entityUUID);
+        AnimationDataContainer animationDataContainer = this.getEntityAnimationDataContainer(entityUUID);
+
+
         JointSkeleton<L> jointSkeleton = entityJointAnimator.getJointSkeleton();
 
         // First tick the entity part animator
@@ -82,18 +88,19 @@ public class EntityJointAnimatorDispatcher {
          */
     }
 
-    public boolean hasAnimationData(UUID uuid){
-        return this.entityAnimationDataMap.containsKey(uuid);
-    }
-
-    public AnimationDataContainer getEntityAnimationDataReference(UUID uuid){
-        if(entityAnimationDataMap.containsKey(uuid)){
-            return entityAnimationDataMap.get(uuid);
+    /**
+     * Returns an animation data container for the specified entity's UUID. If one does not exist for the entity, a new one is created and returned
+     * @param uuid Universal Unique Identifier for entity
+     * @return Animation data container
+     */
+    private AnimationDataContainer getEntityAnimationDataContainer(UUID uuid){
+        if(entityAnimationData.containsKey(uuid)){
+            return entityAnimationData.get(uuid);
         }
         return new AnimationDataContainer();
     }
 
-    public <T extends Entity> AnimationDataContainer getEntityAnimationData(T entity){
-        return getEntityAnimationDataReference(entity.getUUID());
+    public boolean entityHasAnimationData(UUID uuid){
+        return this.entityAnimationData.containsKey(uuid);
     }
 }

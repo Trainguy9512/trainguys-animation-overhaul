@@ -8,9 +8,10 @@ import java.util.HashMap;
 
 public class LivingEntityAnimatorRegistry {
 
-    private final HashMap<EntityType<?>, EntityJointAnimator<?, ?, ?, ?>> livingEntityPartAnimatorHashMap = Maps.newHashMap();
+    private final HashMap<EntityType<?>, EntityJointAnimator<?, ?, ?, ?>> livingEntityPartAnimatorHashMap;
 
     public LivingEntityAnimatorRegistry(){
+        this.livingEntityPartAnimatorHashMap = Maps.newHashMap();
     }
 
     public void register(EntityType<?> entityType, EntityJointAnimator<?, ?, ?, ?> livingEntityPartAnimator){

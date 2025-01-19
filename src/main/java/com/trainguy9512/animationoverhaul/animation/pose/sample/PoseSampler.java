@@ -9,8 +9,6 @@ public class PoseSampler {
 
     private String identifier;
 
-    private AnimationDataContainer animationDataContainer;
-
     protected PoseSampler(Builder<?> builder){
     }
 
@@ -37,7 +35,11 @@ public class PoseSampler {
         return this.sample(jointSkeleton);
     }
 
-    public void tick(){
+    /**
+     * Updates the pose sampler using information from the data container. Called once per tick after animation data is extracted by the joint animator but prior to pose calculation.
+     * @param animationDataContainer
+     */
+    public void tick(AnimationDataContainer animationDataContainer){
     }
 
     public String getIdentifier(){
@@ -47,13 +49,4 @@ public class PoseSampler {
     public void setIdentifier(String identifier){
         this.identifier = identifier;
     }
-
-    protected AnimationDataContainer getAnimationDataContainer(){
-        return this.animationDataContainer;
-    }
-
-    public void setAnimationDataContainer(AnimationDataContainer animationDataContainer){
-        this.animationDataContainer = animationDataContainer;
-    }
-
 }

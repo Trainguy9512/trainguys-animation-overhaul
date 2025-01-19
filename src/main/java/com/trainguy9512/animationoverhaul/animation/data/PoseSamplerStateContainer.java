@@ -55,7 +55,7 @@ public class PoseSamplerStateContainer {
     @SuppressWarnings("unchecked")
     public <P extends PoseSampler> P getPoseSampler(PoseSamplerKey<P> animationPoseSamplerKey){
         if(!this.getPoseSamplerMap().containsKey(animationPoseSamplerKey)){
-            this.getPoseSamplerMap().put(animationPoseSamplerKey, animationPoseSamplerKey.getSuppliedDefaultValue(this));
+            this.getPoseSamplerMap().put(animationPoseSamplerKey, animationPoseSamplerKey.constructPoseSampler());
         }
         return (P) this.getPoseSamplerMap().get(animationPoseSamplerKey);
     }

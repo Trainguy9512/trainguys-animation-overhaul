@@ -62,28 +62,16 @@ public class PoseSamplerKey<P extends PoseSampler> {
         return identifier;
     }
 
-    /**
-     * Returns the default value {@link Supplier} for this key
-     * @return default value {@link Supplier}
-     */
-    private Supplier<P> getDefaultValueSupplier(){
-        return this.defaultValue;
-    }
-
 
     /**
      * Returns a new {@link PoseSampler} created from the {@link PoseSamplerKey#defaultValue}
-     *  {@link Supplier}, and then sets its identifier to be the same as this key's identifier and
-     *  sets its animation data container parent to be that of the supplied animation data container
-     *
-     * @param animationDataContainer the {@link AnimationDataContainer} parent
+     *  {@link Supplier}, and then sets its identifier to be the same as this key's identifier.
      *
      * @return a pose sample of type {@link P}
      */
-    public P getSuppliedDefaultValue(AnimationDataContainer animationDataContainer){
-        P poseSampler = this.getDefaultValueSupplier().get();
+    public P constructPoseSampler(){
+        P poseSampler = this.defaultValue.get();
         poseSampler.setIdentifier(this.getIdentifier());
-        poseSampler.setAnimationDataContainer(animationDataContainer);
         return poseSampler;
     }
 

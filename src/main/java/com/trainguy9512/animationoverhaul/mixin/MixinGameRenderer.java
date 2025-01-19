@@ -60,8 +60,7 @@ public abstract class MixinGameRenderer {
                 if(entity instanceof LivingEntity){
                     EntityType<?> entityType = entity.getType();
                     if(AnimationOverhaulMain.ENTITY_ANIMATORS.contains(entityType)){
-                        EntityJointAnimator<T, ?, ?, L> livingEntityAnimator = (EntityJointAnimator<T, ?, ?, L>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(entityType);
-                        EntityJointAnimatorDispatcher.INSTANCE.tickEntity((T) entity, livingEntityAnimator);
+                        EntityJointAnimatorDispatcher.INSTANCE.tick(entity);
                     }
                 }
             }

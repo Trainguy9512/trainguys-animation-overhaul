@@ -8,7 +8,6 @@ import com.trainguy9512.animationoverhaul.access.ModelAccess;
 import com.trainguy9512.animationoverhaul.animation.EntityJointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -45,7 +44,7 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
         EntityJointAnimatorDispatcher entityJointAnimatorDispatcher = EntityJointAnimatorDispatcher.INSTANCE;
 
         // If the entity joint animator dispatcher has animation data for this specific entity under its UUID, and it's registered in the main class.
-        if(entityJointAnimatorDispatcher.hasAnimationData(livingEntity.getUUID()) && AnimationOverhaulMain.ENTITY_ANIMATORS.contains(livingEntity.getType())){
+        if(entityJointAnimatorDispatcher.entityHasBakedAnimationPose(livingEntity.getUUID()) && AnimationOverhaulMain.ENTITY_ANIMATORS.contains(livingEntity.getType())){
             // Get the blended animation pose, get the interpolated pose at the current frame, and then save it to the entity render state.
             ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$setInterpolatedAnimationPose(
                     entityJointAnimatorDispatcher
