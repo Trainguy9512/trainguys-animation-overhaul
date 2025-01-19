@@ -7,7 +7,9 @@ import com.trainguy9512.animationoverhaul.access.LivingEntityRenderStateAccess;
 import com.trainguy9512.animationoverhaul.access.ModelAccess;
 import com.trainguy9512.animationoverhaul.animation.EntityJointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.LivingEntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -45,16 +47,17 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
 
         // If the entity joint animator dispatcher has animation data for this specific entity under its UUID, and it's registered in the main class.
         if(entityJointAnimatorDispatcher.entityHasBakedAnimationPose(livingEntity.getUUID()) && AnimationOverhaulMain.ENTITY_ANIMATORS.contains(livingEntity.getType())){
+            EntityJointAnimator<?, ?, ?, ?> livingEntityJointAnimator = AnimationOverhaulMain.ENTITY_ANIMATORS.get(livingEntity.getType());
+            JointSkeleton<?> jointSkeleton = livingEntityJointAnimator.getJointSkeleton();
+
             // Get the blended animation pose, get the interpolated pose at the current frame, and then save it to the entity render state.
             ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$setInterpolatedAnimationPose(
                     entityJointAnimatorDispatcher
-                            .getBakedPose(livingEntity.getUUID())
+                            .getEntityBakedAnimationPose(livingEntity.getUUID(), jointSkeleton)
                             .getBlendedPose(partialTicks)
             );
             // Get the joint animator from the registry and save it to the entity render state. This is used for model part application later on.
-            ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$setEntityJointAnimator(
-                    AnimationOverhaulMain.ENTITY_ANIMATORS.get(livingEntity.getType())
-            );
+            ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$setEntityJointAnimator(livingEntityJointAnimator);
         }
     }
 

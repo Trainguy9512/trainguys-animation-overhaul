@@ -1,5 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.pose;
 
+import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import net.minecraft.client.model.geom.ModelPart;
 
 
@@ -7,37 +8,30 @@ public class BakedAnimationPose<L extends Enum<L>> {
 
     private AnimationPose<L> pose;
     private AnimationPose<L> poseOld;
-    public boolean hasPose;
 
-    public BakedAnimationPose(){
-        this.hasPose = false;
+    public BakedAnimationPose(JointSkeleton<L> jointSkeleton){
+        this.pose = AnimationPose.of(jointSkeleton);
+        this.poseOld = AnimationPose.of(jointSkeleton);
     }
 
-    public void pushToOld(){
-        this.poseOld = this.pose.getCopy();
+    /**
+     * Pushes the current pose to the previous pose, and sets the provided animation pose to a copy of the new current pose.
+     * @param animationPose New current animation pose
+     */
+    public void pushPose(AnimationPose<L> animationPose){
+        this.poseOld = pose;
+        this.pose = new AnimationPose<>(animationPose);
     }
 
-    public void setPose(AnimationPose<L> animationPose){
-        this.pose = animationPose;
-    }
-
+    /**
+     * Returns an interpolated animation pose using the provided partial ticks. Used when extracting the render state.
+     * @param partialTicks Time since the previous tick
+     * @return Interpolated animation pose
+     */
     public AnimationPose<L> getBlendedPose(float partialTicks){
         // uncomment this for debugging
         //partialTicks = 1;
         return this.poseOld.getBlendedLinear(this.pose, partialTicks).convertSpaceLocalToEntity();
-    }
-
-    public void bakeToModelParts(ModelPart rootModelPart, float partialTicks){
-        AnimationPose<L> blendedPose = this.getBlendedPose(partialTicks);
-        for(Enum<L> locator : this.pose.getSkeleton().getLocators()){
-            if(this.pose.getSkeleton().getLocatorUsesModelPart(locator)){
-                ModelPart finalModelPart = rootModelPart;
-                for(String individualPartString : this.pose.getSkeleton().getLocatorModelPartIdentifier(locator).split("\\.")){
-                    finalModelPart = finalModelPart.getChild(individualPartString);
-                }
-                finalModelPart.loadPose(blendedPose.getJointPoseCopy(locator).asPartPose());
-            }
-        }
     }
 
     /*

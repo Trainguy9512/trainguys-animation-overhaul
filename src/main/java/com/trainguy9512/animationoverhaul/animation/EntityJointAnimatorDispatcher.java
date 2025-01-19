@@ -17,26 +17,25 @@ import java.util.UUID;
 public class EntityJointAnimatorDispatcher {
     public static final EntityJointAnimatorDispatcher INSTANCE = new EntityJointAnimatorDispatcher();
 
-    private final HashMap<UUID, AnimationDataContainer> entityAnimationData;
-    private final HashMap<UUID, BakedAnimationPose<?>> bakedPoseMap;
-    private final HashMap<UUID, PoseSamplerStateContainer> poseSamplerStates;
+    private final HashMap<UUID, AnimationDataContainer> entityAnimationDataContainerStorage;
+    private final HashMap<UUID, BakedAnimationPose<?>> entityBakedAnimationPoseStorage;
+    private final HashMap<UUID, PoseSamplerStateContainer> entityPoseSamplerStateContainerStorage;
 
     public EntityJointAnimatorDispatcher(){
-        this.entityAnimationData = Maps.newHashMap();
-        this.bakedPoseMap = Maps.newHashMap();
-        this.poseSamplerStates = Maps.newHashMap();
+        this.entityAnimationDataContainerStorage = Maps.newHashMap();
+        this.entityBakedAnimationPoseStorage = Maps.newHashMap();
+        this.entityPoseSamplerStateContainerStorage = Maps.newHashMap();
     }
 
     public <T extends Entity, S extends EntityRenderState, L extends Enum<L>> void tick(T entity){
         UUID entityUUID = entity.getUUID();
 
         EntityJointAnimator<T, S, ?, L> entityJointAnimator = (EntityJointAnimator<T, S, ?, L>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(entity.getType());
+        JointSkeleton<L> jointSkeleton = entityJointAnimator.getJointSkeleton();
 
-        BakedAnimationPose<L> bakedPose = (BakedAnimationPose<L>) this.getBakedPose(entityUUID);
+        BakedAnimationPose<L> bakedPose = (BakedAnimationPose<L>) this.getEntityBakedAnimationPose(entityUUID);
         AnimationDataContainer animationDataContainer = this.getEntityAnimationDataContainer(entityUUID);
 
-
-        JointSkeleton<L> jointSkeleton = entityJointAnimator.getJointSkeleton();
 
         // First tick the entity part animator
         entityJointAnimator.extractAnimationData(entity, animationDataContainer);
@@ -49,11 +48,6 @@ public class EntityJointAnimatorDispatcher {
             bakedPose = new BakedAnimationPose<>();
         }
          */
-        if(!bakedPose.hasPose){
-            bakedPose.setPose(AnimationPose.of(jointSkeleton));
-            bakedPose.hasPose = true;
-        }
-        bakedPose.pushToOld();
 
 
         AnimationPose<L> calculatedAnimationPose = entityJointAnimator.calculatePose(animationDataContainer);
@@ -65,7 +59,7 @@ public class EntityJointAnimatorDispatcher {
         //TODO: Rewrite how pose offsets are done
         calculatedAnimationPose.applyDefaultPoseOffset();
 
-        bakedPose.setPose(new AnimationPose<L>(calculatedAnimationPose));
+        bakedPose.pushPose(calculatedAnimationPose);
 
         //TODO: Should this be a reference to the static instance and not itself?
         EntityJointAnimatorDispatcher.INSTANCE.saveBakedPose(entityUUID, bakedPose);
@@ -75,32 +69,41 @@ public class EntityJointAnimatorDispatcher {
     }
 
     public <L extends Enum<L>> void saveBakedPose(UUID uuid, BakedAnimationPose<L> bakedPose){
-        this.bakedPoseMap.put(uuid, bakedPose);
-    }
-
-    public BakedAnimationPose<?> getBakedPose(UUID uuid){
-        return this.bakedPoseMap.getOrDefault(uuid, new BakedAnimationPose<>());
-        /*
-        if(this.bakedPoseMap.containsKey(uuid)){
-            return this.bakedPoseMap.get(uuid);
-        }
-        return null;
-         */
+        this.entityBakedAnimationPoseStorage.put(uuid, bakedPose);
     }
 
     /**
-     * Returns an animation data container for the specified entity's UUID. If one does not exist for the entity, a new one is created and returned
-     * @param uuid Universal Unique Identifier for entity
+     * Returns a baked animation pose for the specified entity's UUID. If one does not exist for the entity, a new one is created and returned.
+     * @param uuid Entity UUID
+     * @return Animation data container
+     */
+    public PoseSamplerStateContainer getEntityPoseSamplerStateContainer(UUID uuid){
+        return this.entityPoseSamplerStateContainerStorage.getOrDefault(uuid, new PoseSamplerStateContainer());
+    }
+
+    /**
+     * Returns a baked animation pose for the specified entity's UUID. If one does not exist for the entity, a new one is created and returned.
+     * @param uuid Entity UUID
+     * @return Animation data container
+     */
+    public <L extends Enum<L>> BakedAnimationPose<?> getEntityBakedAnimationPose(UUID uuid, JointSkeleton<L> jointSkeleton){
+        return this.entityBakedAnimationPoseStorage.getOrDefault(uuid, new BakedAnimationPose<>(jointSkeleton));
+    }
+
+    /**
+     * Returns an animation data container for the specified entity's UUID. If one does not exist for the entity, a new one is created and returned.
+     * @param uuid Entity UUID
      * @return Animation data container
      */
     private AnimationDataContainer getEntityAnimationDataContainer(UUID uuid){
-        if(entityAnimationData.containsKey(uuid)){
-            return entityAnimationData.get(uuid);
-        }
-        return new AnimationDataContainer();
+        return this.entityAnimationDataContainerStorage.getOrDefault(uuid, new AnimationDataContainer());
     }
 
-    public boolean entityHasAnimationData(UUID uuid){
-        return this.entityAnimationData.containsKey(uuid);
+    /**
+     * Returns whether the entity has a baked pose or not.
+     * @param uuid Entity UUID
+     */
+    public boolean entityHasBakedAnimationPose(UUID uuid){
+        return this.entityAnimationDataContainerStorage.containsKey(uuid);
     }
 }

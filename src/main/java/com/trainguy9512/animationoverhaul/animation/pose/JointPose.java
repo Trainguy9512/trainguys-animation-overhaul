@@ -14,7 +14,7 @@ public class JointPose {
     //public Vector3f translation;
     //public Quaternionf rotation;
     private Matrix4f matrix4f;
-    private AnimationPose.PoseSpace poseSpace = AnimationPose.PoseSpace.LOCAL;
+    private AnimationPose.PoseSpace poseSpace;
     /*
     public float xRot = 0;
     public float yRot = 0;
@@ -39,6 +39,7 @@ public class JointPose {
 
     private JointPose(Matrix4f matrix4f){
         this.matrix4f = new Matrix4f(matrix4f);
+        this.poseSpace = AnimationPose.PoseSpace.LOCAL;
     }
 
     public JointPose(JointPose jointPose){

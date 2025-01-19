@@ -106,7 +106,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
             () -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(1)
             .setStartTime(20)
-            .addProgressTimeOnStateActivation(TEST_STATE_MACHINE, TestStates.MOVING)
+            .addProgressTimeOnActiveStates(TEST_STATE_MACHINE, TestStates.MOVING)
             .build()).setIdentifier("idle_sequence_player").build();
 
 
@@ -200,7 +200,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
 
 
     @Override
-    public void extractAnimationData(LocalPlayer dataReference, AnimationDataContainer animationDataContainer){
+    public AnimationDataContainer extractAnimationData(LocalPlayer dataReference, AnimationDataContainer animationDataContainer){
 
 
 
@@ -247,14 +247,8 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         animationDataContainer.tickAllPoseSamplers();
 
         if(this.localBakedPose == null){
-            this.localBakedPose = new BakedAnimationPose<>();
-            this.localBakedPose.setPose(AnimationPose.of(this.jointSkeleton));
+            this.localBakedPose = new BakedAnimationPose<>(this.jointSkeleton);
         }
-        if(!this.localBakedPose.hasPose){
-            this.localBakedPose.setPose(AnimationPose.of(this.jointSkeleton));
-            this.localBakedPose.hasPose = true;
-        }
-        this.localBakedPose.pushToOld();
 
         AnimationPose<FPPlayerJoints> animationPose = this.calculatePose(animationDataContainer);
         if (animationPose == null){
@@ -263,9 +257,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         animationPose.applyDefaultPoseOffset();
 
 
-
-
-        this.localBakedPose.setPose(new AnimationPose<>(animationPose));
+        this.localBakedPose.pushPose(animationPose);
     }
 
     private boolean compareVariableItemStackWithEntityItemStack(AnimationVariableKey<ItemStack> itemStackDataKey, ItemStack entityItemStack, AnimationDataContainer animationDataContainer){

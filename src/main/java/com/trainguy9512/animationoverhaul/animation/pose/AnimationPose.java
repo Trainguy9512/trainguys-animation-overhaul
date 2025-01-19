@@ -35,19 +35,6 @@ public class AnimationPose<L extends Enum<L>> {
         return new AnimationPose<>(jointSkeleton);
     }
 
-    @Deprecated
-    public AnimationPose<L> getCopy(){
-        return new AnimationPose<L>(this);
-        /*
-        AnimationPose<L> copiedAnimationPose = new AnimationPose<>(this.locatorSkeleton);
-        for(Enum<L> locator : this.getSkeleton().getLocators()){
-            copiedAnimationPose.setJointPose(locator, new JointPose(this.getJointPoseCopy(locator)));
-        }
-        return copiedAnimationPose;
-
-         */
-    }
-
     public JointSkeleton<L> getSkeleton(){
         return this.jointSkeleton;
     }
@@ -167,7 +154,7 @@ public class AnimationPose<L extends Enum<L>> {
     }
 
     public AnimationPose<L> getBlended(AnimationPose<L> animationPose, float alpha, Easing easing){
-        AnimationPose<L> newAnimationPose = this.getCopy();
+        AnimationPose<L> newAnimationPose = new AnimationPose<>(this);
         newAnimationPose.blend(animationPose, alpha, easing);
         return newAnimationPose;
     }
@@ -185,7 +172,7 @@ public class AnimationPose<L extends Enum<L>> {
     }
 
     public AnimationPose<L> getBlendedByLocators(AnimationPose<L> animationPose, @NotNull List<Enum<L>> locators, float alpha, Easing easing){
-        AnimationPose<L> newAnimationPose = this.getCopy();
+        AnimationPose<L> newAnimationPose = new AnimationPose<>(this);
         newAnimationPose.blendByLocators(animationPose, locators, alpha, easing);
         return newAnimationPose;
     }
@@ -205,7 +192,7 @@ public class AnimationPose<L extends Enum<L>> {
     }
 
     public AnimationPose<L> getInverseMultiplied(AnimationPose<L> animationPose){
-        AnimationPose<L> newAnimationPose = this.getCopy();
+        AnimationPose<L> newAnimationPose = new AnimationPose<>(this);
         newAnimationPose.inverseMultiply(animationPose);
         return newAnimationPose;
     }
@@ -217,7 +204,7 @@ public class AnimationPose<L extends Enum<L>> {
     }
 
     public AnimationPose<L> getMultiplied(AnimationPose<L> animationPose){
-        AnimationPose<L> newAnimationPose = this.getCopy();
+        AnimationPose<L> newAnimationPose = new AnimationPose<>(this);
         newAnimationPose.multiply(animationPose);
         return newAnimationPose;
     }
