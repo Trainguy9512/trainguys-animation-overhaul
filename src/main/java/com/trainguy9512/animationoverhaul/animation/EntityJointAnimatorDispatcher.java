@@ -31,8 +31,8 @@ public class EntityJointAnimatorDispatcher {
     public <T extends Entity, S extends EntityRenderState, L extends Enum<L>> void tick(T entity){
         UUID entityUUID = entity.getUUID();
 
-        EntityJointAnimator<?, ?, ?, ?> entityJointAnimator = AnimationOverhaulMain.ENTITY_ANIMATORS.get(entity);
-        JointSkeleton<L> jointSkeleton = entityJointAnimator.getJointSkeleton();
+        EntityJointAnimator<?, ?, ?, L> entityJointAnimator = (EntityJointAnimator<?, ?, ?, L>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(entity.getType());
+        JointSkeleton<?> jointSkeleton = entityJointAnimator.getJointSkeleton();
 
         BakedAnimationPose<L> bakedPose = (BakedAnimationPose<L>) this.getEntityBakedAnimationPose(entityUUID, jointSkeleton);
         AnimationDataContainer animationDataContainer = this.getEntityAnimationDataContainer(entityUUID);

@@ -11,10 +11,10 @@ import java.util.Map;
 
 public class LivingEntityAnimatorRegistry {
 
-    private final Map<EntityType<?>, EntityJointAnimator<?, ?, ?, ?>> livingEntityPartAnimatorHashMap;
+    private final HashMap<EntityType<?>, EntityJointAnimator<?, ?, ?, ?>> livingEntityPartAnimatorHashMap;
 
     public LivingEntityAnimatorRegistry(){
-        this.livingEntityPartAnimatorHashMap = Map.of();
+        this.livingEntityPartAnimatorHashMap = Maps.newHashMap();
     }
 
     public <T extends Entity> void register(EntityType<T> entityType, EntityJointAnimator<T, ?, ?, ?> livingEntityPartAnimator){
@@ -26,6 +26,6 @@ public class LivingEntityAnimatorRegistry {
     }
 
     public EntityJointAnimator<?, ?, ?, ?> get(EntityType<?> entityType){
-        return (EntityJointAnimator<?, ?, ?, ?>) this.livingEntityPartAnimatorHashMap.get(entityType);
+        return this.livingEntityPartAnimatorHashMap.get(entityType);
     }
 }
