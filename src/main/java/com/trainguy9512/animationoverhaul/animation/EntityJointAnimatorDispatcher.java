@@ -8,6 +8,7 @@ import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
+import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 
@@ -19,7 +20,7 @@ public class EntityJointAnimatorDispatcher {
 
     private final HashMap<UUID, AnimationDataContainer> entityAnimationDataContainerStorage;
     private final HashMap<UUID, BakedAnimationPose<?>> entityBakedAnimationPoseStorage;
-    private final HashMap<UUID, PoseSamplerStateContainer> entityPoseSamplerStateContainerStorage;
+    private final HashMap<UUID, PoseSamplerStateContainer<?>> entityPoseSamplerStateContainerStorage;
 
     public EntityJointAnimatorDispatcher(){
         this.entityAnimationDataContainerStorage = Maps.newHashMap();
@@ -30,7 +31,7 @@ public class EntityJointAnimatorDispatcher {
     public <T extends Entity, S extends EntityRenderState, L extends Enum<L>> void tick(T entity){
         UUID entityUUID = entity.getUUID();
 
-        EntityJointAnimator<T, S, ?, L> entityJointAnimator = (EntityJointAnimator<T, S, ?, L>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(entity.getType());
+        EntityJointAnimator<?, ?, ?, ?> entityJointAnimator = AnimationOverhaulMain.ENTITY_ANIMATORS.get(entity);
         JointSkeleton<L> jointSkeleton = entityJointAnimator.getJointSkeleton();
 
         BakedAnimationPose<L> bakedPose = (BakedAnimationPose<L>) this.getEntityBakedAnimationPose(entityUUID, jointSkeleton);

@@ -6,7 +6,7 @@ import com.trainguy9512.animationoverhaul.animation.pose.sample.PoseSampler;
 import java.util.Collection;
 import java.util.HashMap;
 
-public class PoseSamplerStateContainer {
+public class PoseSamplerStateContainer<L extends Enum<L>> {
 
     private final HashMap<PoseSamplerKey<?>, PoseSampler> poseSamplerMap;
 
