@@ -33,7 +33,7 @@ public class EntityJointAnimatorDispatcher {
         EntityJointAnimator<T, S, ?, L> entityJointAnimator = (EntityJointAnimator<T, S, ?, L>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(entity.getType());
         JointSkeleton<L> jointSkeleton = entityJointAnimator.getJointSkeleton();
 
-        BakedAnimationPose<L> bakedPose = (BakedAnimationPose<L>) this.getEntityBakedAnimationPose(entityUUID);
+        BakedAnimationPose<L> bakedPose = (BakedAnimationPose<L>) this.getEntityBakedAnimationPose(entityUUID, jointSkeleton);
         AnimationDataContainer animationDataContainer = this.getEntityAnimationDataContainer(entityUUID);
 
 

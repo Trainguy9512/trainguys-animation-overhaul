@@ -51,10 +51,7 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
             JointSkeleton<?> jointSkeleton = livingEntityJointAnimator.getJointSkeleton();
 
             // Get the blended animation pose, get the interpolated pose at the current frame, and then save it to the entity render state.
-            ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$setInterpolatedAnimationPose(
-                    entityJointAnimatorDispatcher
-                            .getEntityBakedAnimationPose(livingEntity.getUUID(), jointSkeleton)
-                            .getBlendedPose(partialTicks)
+            ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$setInterpolatedAnimationPose(entityJointAnimatorDispatcher.getEntityBakedAnimationPose(livingEntity.getUUID(), jointSkeleton).getBlendedPose(partialTicks)
             );
             // Get the joint animator from the registry and save it to the entity render state. This is used for model part application later on.
             ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$setEntityJointAnimator(livingEntityJointAnimator);

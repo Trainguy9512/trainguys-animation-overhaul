@@ -77,7 +77,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
     }
 
     @Override
-    public void tick(){
+    public void tick(AnimationDataContainer animationDataContainer){
         for(AnimNotify animNotify : animNotifyMap.values()){
             if(animNotify.isActive()){
                 animNotify.setActive(false);
@@ -89,7 +89,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
                 animNotify.setActive(true);
             }
         }
-        super.tick();
+        super.tick(animationDataContainer);
     }
 
     private float getTimeFromTicks(){

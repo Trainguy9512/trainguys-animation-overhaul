@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerKey;
 
 import java.util.ArrayList;
@@ -156,7 +157,7 @@ public class TimeBasedPoseSampler extends PoseSampler {
     }
 
     @Override
-    public void tick(){
+    public void tick(AnimationDataContainer animationDataContainer){
         progressTimeIfStateActive();
         if(this.getIsPlaying()){
             this.timeElapsed += this.playRate;

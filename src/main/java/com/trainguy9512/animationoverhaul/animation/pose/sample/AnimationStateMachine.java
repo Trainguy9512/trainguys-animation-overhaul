@@ -178,7 +178,7 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
     }
 
     @Override
-    public void tick(){
+    public void tick(AnimationDataContainer animationDataContainer){
         // Don't evaluate if the state machine has no states
         if(this.statesHashMap.isEmpty()){
             AnimationOverhaulMain.LOGGER.warn("State machine {} not evaluated due to no active states", this.getIdentifier());
@@ -186,10 +186,10 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
         }
 
         // Add to the current elapsed ticks
-        super.tick();
+        super.tick(animationDataContainer);
 
         // Get the previous active state
-        S currentActiveStateIdentifier = this.activeStates.get(this.activeStates.size() - 1);
+        S currentActiveStateIdentifier = this.activeStates.getLast();
         State<S> currentActiveState = this.statesHashMap.get(currentActiveStateIdentifier);
 
         // Determine if the current state can transition, and get that state transition object
@@ -200,7 +200,7 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
             if(isValidTransition(currentActiveStateIdentifier, stateIdentifier)){
                 StateTransition currentStateTransition = currentActiveState.getTransition(stateIdentifier);
                 assert currentStateTransition != null;
-                if(currentStateTransition.getCondition(this.getAnimationDataContainer())){
+                if(currentStateTransition.getCondition(animationDataContainer)){
                     // If the loop has already determined a state transition to be true, update the transition IF the new one has a higher priority
                     if(canEnterTransition && currentStateTransition.getPriority() < stateTransition.getPriority()){
                         stateTransition = currentStateTransition;

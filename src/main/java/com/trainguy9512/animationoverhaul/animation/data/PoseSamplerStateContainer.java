@@ -33,7 +33,7 @@ public class PoseSamplerStateContainer {
     }
 
     /**
-     * Iterates over every currently loaded pose sampler and executes the {@link PoseSampler#tick()} method
+     * Iterates over every currently loaded pose sampler and executes the  method
      *
      * @implNote Only do this once per game tick! For entities, this is handled in the entity joint animator dispatcher.
      */
