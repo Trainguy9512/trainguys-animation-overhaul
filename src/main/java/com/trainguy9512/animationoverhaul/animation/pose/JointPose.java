@@ -11,15 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 import org.joml.*;
 
 public class JointPose {
-    //public Vector3f translation;
-    //public Quaternionf rotation;
     private Matrix4f matrix4f;
     private AnimationPose.PoseSpace poseSpace;
-    /*
-    public float xRot = 0;
-    public float yRot = 0;
-    public float zRot = 0;
-     */
 
 
     public static final JointPose ZERO = new JointPose(fromPartPose(PartPose.ZERO));
