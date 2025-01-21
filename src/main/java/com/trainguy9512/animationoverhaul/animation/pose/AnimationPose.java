@@ -71,7 +71,7 @@ public class AnimationPose<L extends Enum<L>> {
 
     // Local to World
     public AnimationPose<L> convertSpaceLocalToEntity(Set<Enum<L>> jointsToConvert){
-        this.convertChildrenSpaceLocalToEntity(this.getSkeleton().getRootLocator(), new PoseStack(), jointsToConvert);
+        this.convertChildrenSpaceLocalToEntity(this.getSkeleton().getRootJoint(), new PoseStack(), jointsToConvert);
         return this;
     }
 
@@ -90,7 +90,7 @@ public class AnimationPose<L extends Enum<L>> {
 
         poseStack.mulPose(localParentJointPose.getTransformCopy());
 
-        for (Enum<L> child : this.getSkeleton().getLocatorChildren(parent)){
+        for (Enum<L> child : this.getSkeleton().getDirectChildrenOfJoint(parent)){
             convertChildrenSpaceLocalToEntity(child, poseStack, jointsToConvert);
         }
 
@@ -113,7 +113,7 @@ public class AnimationPose<L extends Enum<L>> {
 
     // World to Local
     public AnimationPose<L> convertSpaceEntityToLocal(Set<Enum<L>> jointsToConvert){
-        this.convertChildrenSpaceEntityToLocal(this.getSkeleton().getRootLocator(), new Matrix4f(), jointsToConvert);
+        this.convertChildrenSpaceEntityToLocal(this.getSkeleton().getRootJoint(), new Matrix4f(), jointsToConvert);
         return this;
     }
 
@@ -128,7 +128,7 @@ public class AnimationPose<L extends Enum<L>> {
     private void convertChildrenSpaceEntityToLocal(Enum<L> parent, Matrix4f parentMatrix, Set<Enum<L>> jointsToConvert){
         JointPose parentJointPose = this.getJointPoseCopy(parent);
 
-        for (Enum<L> child : this.getSkeleton().getLocatorChildren(parent)){
+        for (Enum<L> child : this.getSkeleton().getDirectChildrenOfJoint(parent)){
             convertChildrenSpaceEntityToLocal(child, parentJointPose.getTransformCopy(), jointsToConvert);
         }
 
@@ -249,7 +249,7 @@ public class AnimationPose<L extends Enum<L>> {
         HashMap<Enum<L>, JointPose> mirroredPose = Maps.newHashMap();
         for(Enum<L> locator : this.getSkeleton().getLocators()){
             JointPose jointPose = this.getJointPoseCopy(locator);
-            JointPose mirroredJointPose = this.getJointPoseCopy(this.getSkeleton().getMirroredLocator(locator));
+            JointPose mirroredJointPose = this.getJointPoseCopy(this.getSkeleton().getMirrorJoint(locator));
             mirroredPose.put(locator, new JointPose(jointPose).blendLinear(mirroredJointPose, alpha));
         }
         for(Enum<L> locator : mirroredPose.keySet()){

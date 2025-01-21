@@ -7,7 +7,6 @@ import com.trainguy9512.animationoverhaul.access.LivingEntityRenderStateAccess;
 import com.trainguy9512.animationoverhaul.access.ModelAccess;
 import com.trainguy9512.animationoverhaul.animation.EntityJointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
-import com.trainguy9512.animationoverhaul.animation.animator.entity.LivingEntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
 import net.minecraft.client.model.EntityModel;
@@ -142,7 +141,7 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
         if(shouldUseAlternateRotations(animationPose)){
             poseStack.translate(0, -1.5, 0);
 
-            Enum<L> root = animationPose.getSkeleton().getRootLocator();
+            Enum<L> root = animationPose.getSkeleton().getRootJoint();
 
             animationPose.getJointPoseCopy(root).translateAndRotatePoseStack(poseStack);
             poseStack.translate(0, 1.5, 0);

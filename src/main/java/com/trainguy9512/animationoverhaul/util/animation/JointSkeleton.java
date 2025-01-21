@@ -12,61 +12,34 @@ import java.util.*;
  */
 public class JointSkeleton {
 
-    private final HashMap<String, JointConfiguration> jointHashMap = Maps.newHashMap();
-    private final Enum<L> rootLocator;
+    private final HashMap<String, JointConfiguration> joints;
+    private final String rootJoint;
 
-    public JointSkeleton(Enum<L> rootLocator){
-        this.rootLocator = rootLocator;
-        this.addLocator(rootLocator);
-    }
-
-    public JointSkeleton(){
-        this.rootLocator = null;
-    }
-
-    /**
-     * Initializes a locator skeleton with a root locator
-     *
-     * @param rootLocator The locator to be used as the hierarchical root
-     * @return This locator skeleton
-     */
-    public static <L extends Enum<L>> JointSkeleton<L> of(Enum<L> rootLocator){
-        return new JointSkeleton<L>(rootLocator);
+    private JointSkeleton(HashMap<String, JointConfiguration> joints, String rootJoint){
+        this.joints = joints;
+        this.rootJoint = rootJoint;
     }
 
 
     /**
-     * Adds a locator to a newly created locator skeleton
-     *
-     * @param locator The locator to be added
+     * Returns a list of joint identifiers that are direct children of the supplied joint.
+     * @param joint Joint to search for children of.
+     * @return List of
      */
-
-    private void addLocator(Enum<L>locator){
-        this.jointHashMap.put(locator, new JointConfiguration<L>(locator));
+    public List<String> getDirectChildrenOfJoint(String joint){
+        return this.joints.get(joint).children();
     }
 
-    public JointSkeleton<L> addChildToParent(Enum<L> locatorChild, Enum<L> locatorParent){
-        if(this.jointHashMap.containsKey(locatorParent)){
-            this.addLocator(locatorChild);
-            this.jointHashMap.get(locatorParent).addChild(locatorChild);
-            this.jointHashMap.get(locatorChild).setParent(locatorParent);
-        }
-        return this;
-    }
+    /**
+     * Returns whether the supplied parent joint is a parent of the supplied child joint.
+     * @param parent Parent joint identifier
+     * @param child Child joint identifier
+     */
+    public boolean jointIsParentOfChild(String parent, String child){
 
-    public JointSkeleton<L> addChildToRoot(Enum<L> locatorChild){
-        return this.addChildToParent(locatorChild, this.rootLocator);
-    }
-
-    public List<Enum<L>> getLocatorChildren(Enum<L> locator){
-        return this.jointHashMap.get(locator).getChildren();
-    }
-
-    public boolean jointIsParentOfChild(Enum<L> parent, Enum<L> child){
-
-        while(this.jointHashMap.get(child).getParent() != null){
-            Enum<L> currentChildParent = this.jointHashMap.get(child).getParent();
-            if(currentChildParent == parent){
+        while(this.joints.get(child).parent() != null){
+            String currentChildParent = this.joints.get(child).parent();
+            if(Objects.equals(currentChildParent, parent)){
                 return true;
             } else {
                 child = currentChildParent;
@@ -75,170 +48,76 @@ public class JointSkeleton {
 
         return false;
     }
-
-
-
-    //TODO: SEARCH HEIARCHY FOR IF CHILD IS PARENTED UNDER JOINT!!!!!!!!!
-
-
-
-
-
-
-
+    //TODO: SEARCH HEIARCHY FOR IF CHILD IS PARENTED UNDER JOINT!!!!!!!!! (2025 update: why?)
 
     public void printHierarchy(){
-        printHierarchyChild(this.getRootLocator(), 1);
-        AnimationOverhaulMain.LOGGER.info("--".concat(this.getRootLocator().toString()));
+        printHierarchyChild(this.getRootJoint(), 1);
+        AnimationOverhaulMain.LOGGER.info("--".concat(this.getRootJoint()));
     }
 
-    private void printHierarchyChild(Enum<L> locator, int size){
+    private void printHierarchyChild(String joint, int size){
         String dashes = "";
         for(int i = 0; i <= size; i++){
             dashes = dashes.concat("--");
         }
-        for (Enum<L> child : this.jointHashMap.get(locator).getChildren()){
-            AnimationOverhaulMain.LOGGER.info(dashes.concat(child.toString()));
+        for (String child : this.getDirectChildrenOfJoint(joint)){
+            AnimationOverhaulMain.LOGGER.info(dashes.concat(child));
             printHierarchyChild(child, size + 1);
         }
 
 
     }
 
-    public Enum<L> getRootLocator(){
-        return this.rootLocator;
+    public String getRootJoint(){
+        return this.rootJoint;
     }
 
     /**
-     * Returns the set of locator enums from the locator skeleton
+     * Returns a set of all joints used by the joint skeleton.
      *
-     * @return The set of enums
+     * @return Set of string joint identifiers
      */
-    public Set<Enum<L>> getLocators(){
-        return jointHashMap.keySet();
+    public Set<String> getLocators(){
+        return joints.keySet();
     }
 
     /**
-     * Returns the default part pose of a provided locator enum, used for offsetting transforms after the animation is calculated
+     * Returns model part pose offset for the specified joint, used for offsetting transforms after the animation is calculated
      *
-     * @param locator The locator enum to get the default pose of
-     * @return The default part pose
+     * @return The model part pose offset
      */
-    public PartPose getLocatorDefaultPose(Enum<L> locator){
-        return jointHashMap.get(locator).defaultPose;
-    }
-
-    /**
-     * Called upon construction of this skeleton, this sets the mirrored locator of a specific locator.
-     * For example, the mirror locator of the left leg would be the right leg.
-     *
-     * @param locator The enum locator target
-     * @param mirrored The enum locator that the target will use as a mirror
-     * @return This locator skeleton
-     */
-    public JointSkeleton<L> setLocatorMirror(Enum<L> locator, Enum<L> mirrored){
-        this.jointHashMap.get(locator).setMirrorJoint(mirrored);
-        this.jointHashMap.get(mirrored).setMirrorJoint(locator);
-        return this;
+    public PartPose getLocatorDefaultPose(String joint){
+        return joints.get(joint).modelPartOffset();
     }
 
     /**
      * Returns the model part identifier of a locator enum. Used for associating locators with Minecraft entity model parts
      *
-     * @param locator The enum locator
      * @return The string model part identifier
      */
-    public String getLocatorModelPartIdentifier(Enum<L> locator){
-        return this.jointHashMap.get(locator).getModelPartIdentifier();
+    public String getLocatorModelPartIdentifier(String joint){
+        return this.joints.get(joint).modelPartIdentifier();
     }
 
     /**
-     * Gets whether a locator enum from the skeleton is associated with a model part or not.
-     *
-     * @param locator The enum locator target
-     * @return True or false
+     * Returns whether a joint is associated with a model part or not.
      */
-    public boolean getLocatorUsesModelPart(Enum<L> locator){
-        return this.jointHashMap.get(locator).getUsesModelPart();
+    public boolean getLocatorUsesModelPart(String joint){
+        return this.joints.get(joint).usesModelPart();
     }
 
     /**
-     * Called upon construction of this skeleton, this sets the default offset pose for a locator enum.
+     * Gets the joint mirrored to the input joint. If there is no mirror joint set, it returns the input joint.
      *
-     * @param locator The enum locator target
-     * @param pose The part pose used as the default pose
-     * @return This skeleton
+     * @return The mirrored string joint
      */
-    public JointSkeleton<L> setDefaultJointTransform(Enum<L> locator, PartPose pose){
-        this.jointHashMap.get(locator).setDefaultPose(pose);
-        return this;
+    public String getMirrorJoint(String joint){
+        if(this.joints.get(joint).usesMirrorJoint()){
+            return this.joints.get(joint).mirrorJoint();
+        } else {
+            return joint;
+        }
     }
-
-    /**
-     * Called upon construction of this skeleton, this associates a locator enum with a Minecraft model part string identifier.
-     *
-     * @param locator The enum locator target
-     * @param modelPartIdentifier The model part identifier associated with the locator
-     * @return This skeleton
-     */
-    public JointSkeleton<L> setLocatorModelPart(Enum<L> locator, String modelPartIdentifier){
-        this.jointHashMap.get(locator).setModelPartIdentifier(modelPartIdentifier);
-        return this;
-    }
-
-    /*
-
-    public void addLocatorModelPart(String locator, String locatorMirrored, String modelPartIdentifier, PartPose defaultPose){
-        locatorHashMap.putIfAbsent(locator, new LocatorEntry(locator, locatorMirrored, modelPartIdentifier, defaultPose));
-    }
-
-    public void addLocatorModelPart(String locator, String modelPartIdentifier, PartPose defaultPose){
-        addLocatorModelPart(locator, locator, modelPartIdentifier, defaultPose);
-    }
-
-    public void addLocatorModelPart(String locator, String locatorMirrored, String modelPartIdentifier){
-        addLocatorModelPart(locator, locatorMirrored, modelPartIdentifier, PartPose.ZERO);
-    }
-
-    public void addLocatorModelPart(String locator, String modelPartIdentifier){
-        addLocatorModelPart(locator, modelPartIdentifier, PartPose.ZERO);
-    }
-
-    public void addLocator(String locator, String locatorMirrored){
-        locatorHashMap.putIfAbsent(locator, new LocatorEntry(locator, locatorMirrored, null, PartPose.ZERO));
-    }
-
-    public void addLocator(String locator){
-        addLocator(locator, locator);
-    }
-
-     */
-
-    /**
-     * Gets the locator enum directly mirrored to the input locator. If there is no mirror locator set, it returns the input.
-     *
-     * @param locator The enum locator target
-     * @return The mirrored enum locator
-     */
-    public String getMirroredLocator(String locator){
-        return this.jointHashMap.get(locator).getMirrorJoint();
-        return this.jointHashMap.get(locator)
-    }
-
-    /*
-    @Nullable
-    private getLocatorEntry(String identifier){
-        return this.locatorHashMap.get(identifier);
-    }
-
-     */
-
-    /*
-    public boolean containsLocator(String identifier){
-        return this.locatorHashMap.containsKey(identifier);
-    }
-
-     */
 
     public static class Builder {
 
@@ -247,16 +126,57 @@ public class JointSkeleton {
 
         protected Builder(String root){
             this.rootJoint = root;
+            this.joints.put(root, JointConfiguration.Builder.of(null));
+        }
+
+        public Builder addJointUnderRoot(String joint){
+            this.joints.putIfAbsent(joint, JointConfiguration.Builder.of(this.rootJoint));
+            return this;
+        }
+
+        public Builder addJointUnderParent(String joint, String parent){
+            if(this.joints.containsKey(parent)){
+                this.joints.putIfAbsent(joint, JointConfiguration.Builder.of(parent));
+            } else {
+                AnimationOverhaulMain.LOGGER.warn("Joint {} not added due to parent joint {} not being present in the skeleton.", joint, parent);
+            }
+            return this;
+        }
+
+        public Builder setModelPartOffset(String joint, PartPose modelPartOffset){
+            if(this.joints.containsKey(joint)){
+                this.joints.get(joint).setModelPartOffset(modelPartOffset);
+            } else {
+                AnimationOverhaulMain.LOGGER.warn("Model part offset not set during joint skeleton construction for joint {}, due to joint {} not being defined in the skeleton.", joint, joint);
+            }
+            return this;
+        }
+
+        public Builder setMirrorJoint(String joint, String mirrorJoint){
+            if(this.joints.containsKey(joint)){
+                this.joints.get(joint).setMirrorJoint(mirrorJoint);
+            } else {
+                AnimationOverhaulMain.LOGGER.warn("Mirror joint not set during joint skeleton construction for joint {}, due to joint {} not being defined in the skeleton.", joint, joint);
+            }
+            return this;
+        }
+
+        public JointSkeleton build(){
+            HashMap<String, JointConfiguration> jointsBuilt = Maps.newHashMap();
+            for(String joint : this.joints.keySet()){
+                jointsBuilt.put(joint, this.joints.get(joint).build());
+            }
+            return new JointSkeleton(jointsBuilt, this.rootJoint);
         }
     }
 
 
-    public record JointConfiguration(String parent, List<String> children, boolean usesMirrorJoint, String mirrorJoint, boolean usesModelPart, String modelPartIdentifier, PartPose modelPartOffset) {
+    public record JointConfiguration(boolean isRoot, String parent, List<String> children, boolean usesMirrorJoint, String mirrorJoint, boolean usesModelPart, String modelPartIdentifier, PartPose modelPartOffset) {
 
         public static class Builder {
-
+            private final boolean isRoot;
             private final String parent;
-            private List<String> children;
+            private final List<String> children;
             private boolean usesMirrorJoint;
             private String mirrorJoint;
             private boolean usesModelPart;
@@ -264,6 +184,7 @@ public class JointSkeleton {
             private PartPose modelPartOffset;
 
             private Builder(String parent){
+                this.isRoot = parent == null;
                 this.parent = parent;
                 this.children = List.of();
                 this.usesMirrorJoint = false;
@@ -273,37 +194,39 @@ public class JointSkeleton {
                 this.modelPartOffset = PartPose.ZERO;
             }
 
-            public static Builder of(String parent){
+            public static Builder of(@Nullable String parent){
                 return new Builder(parent);
             }
 
-        }
-
-        public String getModelPartIdentifier(){
-            return this.usesModelPart ? this.modelPartIdentifier : "null";
-        }
-
-        public boolean getUsesModelPart(){
-            return this.usesModelPart;
-        }
-
-        public void addChild(Enum<L> locator){
-            if(!this.children.contains(locator)){
-                this.children.add(locator);
+            public Builder addChild(String child){
+                this.children.add(child);
+                return this;
             }
-        }
 
-        public List<Enum<L>> getChildren(){
-            return this.children;
-        }
+            public Builder setMirrorJoint(String mirorJoint){
+                if(mirrorJoint != null){
+                    this.mirrorJoint = mirorJoint;
+                    this.usesMirrorJoint = true;
+                }
+                return this;
+            }
 
-        public void setParent(Enum<L> joint){
-            this.parent = joint;
-        }
+            public Builder setModelPartIdentifier(String modelPartIdentifier){
+                if(modelPartIdentifier != null){
+                    this.modelPartIdentifier = modelPartIdentifier;
+                    this.usesModelPart = true;
+                }
+                return this;
+            }
 
-        @Nullable
-        public Enum<L> getParent(){
-            return this.parent;
+            public Builder setModelPartOffset(PartPose modelPartOffset){
+                this.modelPartOffset = modelPartOffset;
+                return this;
+            }
+
+            protected JointConfiguration build(){
+                return new JointConfiguration(this.isRoot, this.parent, this.children, this.usesMirrorJoint, this.mirrorJoint, this.usesModelPart, this.modelPartIdentifier, this.modelPartOffset);
+            }
         }
     }
 }
