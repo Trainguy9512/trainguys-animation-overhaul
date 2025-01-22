@@ -10,76 +10,34 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.*;
 
-public record JointTransform(Matrix4f matrix4f, AnimationPose.PoseSpace poseSpace) {
+public class JointTransform {
 
-    public static final JointTransform ZERO = new JointTransform(fromPartPose(PartPose.ZERO));
+    Matrix4f matrix4f;
 
-    private static JointTransform of(PartPose partPose){
+    public static final JointTransform ZERO = JointTransform.of(PartPose.ZERO);
+
+    private JointTransform(Matrix4f matrix4f) {
+        this.matrix4f = matrix4f;
+    }
+
+    public static JointTransform of(PartPose partPose){
         return of(new Vector3f(partPose.x(), partPose.y(), partPose.z()), new Vector3f(partPose.xRot(), partPose.yRot(), partPose.zRot()), new Vector3f(partPose.xScale(), partPose.yScale(), partPose.zScale()));
     }
 
-    private static JointTransform of(Vector3f translation, Vector3f rotationEuler, Vector3f scale){
+    public static JointTransform of(Vector3f translation, Vector3f rotationEuler, Vector3f scale){
         return of(translation, new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), scale);
     }
 
-    private static JointTransform of(Vector3f translation, Quaternionf rotation, Vector3f scale){
+    public static JointTransform of(Vector3f translation, Quaternionf rotation, Vector3f scale){
         return of(new Matrix4f().translate(translation).rotate(rotation).scale(scale));
     }
 
-    private JointTransform(Vector3f translation, Quaternionf rotation, Vector3f scale){
-        this(new Matrix4f().translate(translation).rotate(rotation).scale(scale));
-    }
-
-    private static JointTransform of(Matrix4f matrix4f){
-        return new JointTransform(matrix4f, AnimationPose.PoseSpace.LOCAL);
-    }
-
-    public static JointTransform fromMatrix4f(Matrix4f matrix4f){
+    public static JointTransform of(Matrix4f matrix4f){
         return new JointTransform(matrix4f);
     }
 
-    public static JointTransform fromTranslation(float x, float y, float z){
-        return fromTranslationAndRotation(x, y, z, 0, 0, 0);
-    }
-
-    public static JointTransform fromRotation(float xRot, float yRot, float zRot){
-        return fromTranslationAndRotation(0, 0, 0, xRot, yRot, zRot);
-    }
-
-    public static JointTransform fromTranslationAndRotation(float x, float y, float z, float xRot, float yRot, float zRot){
-        return new JointTransform(x, y, z, xRot, yRot, zRot);
-    }
-
-    public static JointTransform fromTranslationAndRotation(float x, float y, float z, Quaternionf rotation){
-        return new JointTransform(x, y, z, rotation);
-    }
-
-    /*
-    public static Quaternionf getQuaternionFromEuler(Vector3f eulerRotation){
-        return new Quaternionf().rotationXYZ(eulerRotation.x(), eulerRotation.y(), eulerRotation.z());
-    }
-
-    public static Vector3f getEulerFromQuaternion(Quaternionf quaternionf){
-        return quaternionf.getEulerAnglesZYX(new Vector3f());
-    }
-
-     */
-
-    public AnimationPose.PoseSpace getPoseSpace(){
-        return this.poseSpace;
-    }
-
-    public JointTransform setPoseSpace(AnimationPose.PoseSpace poseSpace){
-        this.poseSpace = poseSpace;
-        return this;
-    }
-
-    public Matrix4f getTransformCopy(){
+    public Matrix4f getTransform(){
         return new Matrix4f(this.matrix4f);
-    }
-
-    public Matrix4f getTransformReference(){
-        return this.matrix4f;
     }
 
     public JointTransform setTransform(Matrix4f matrix4f){
@@ -88,12 +46,11 @@ public record JointTransform(Matrix4f matrix4f, AnimationPose.PoseSpace poseSpac
     }
 
     public Vector3f getTranslation(){
-        return matrix4f.getTranslation(new Vector3f());
+        return this.matrix4f.getTranslation(new Vector3f());
     }
 
-    public JointTransform setTranslation(Vector3f vector3f){
+    public void setTranslation(Vector3f vector3f){
         this.matrix4f.setTranslation(vector3f);
-        return this;
     }
 
     public Quaternionf getRotation(){
@@ -101,16 +58,15 @@ public record JointTransform(Matrix4f matrix4f, AnimationPose.PoseSpace poseSpac
     }
 
     public Vector3f getEulerRotationZYX(){
-        return this.getTransformCopy().getEulerAnglesZYX(new Vector3f());
+        return this.matrix4f.getEulerAnglesZYX(new Vector3f());
     }
 
-    public JointTransform setRotation(Quaternionf quaternionf){
-        return setEulerRotationXYZ(quaternionf.getEulerAnglesXYZ(new Vector3f()));
+    public void setRotation(Quaternionf quaternionf){
+        this.setEulerRotationXYZ(quaternionf.getEulerAnglesXYZ(new Vector3f()));
     }
 
-    public JointTransform setEulerRotationXYZ(Vector3f vector3f){
-        this.getTransformReference().setRotationXYZ(vector3f.x(), vector3f.y(), vector3f.z());
-        return this;
+    public void setEulerRotationXYZ(Vector3f vector3f){
+        this.getTransform().setRotationXYZ(vector3f.x(), vector3f.y(), vector3f.z());
     }
 
     public PartPose asPartPose(){
@@ -126,12 +82,10 @@ public record JointTransform(Matrix4f matrix4f, AnimationPose.PoseSpace poseSpac
         );
     }
 
-    //TODO: Use TranslateLocal Matrix4F
-
     public JointTransform transform(Matrix4f transform, AnimationPose.TransformSpace transformSpace){
         switch (transformSpace){
-            case ENTITY, PARENT -> this.getTransformReference().mul(transform);
-            case LOCAL -> this.getTransformReference().mulLocal(transform);
+            case ENTITY, PARENT -> this.getTransform().mul(transform);
+            case LOCAL -> this.getTransform().mulLocal(transform);
         }
         return this;
     }
@@ -144,9 +98,9 @@ public record JointTransform(Matrix4f matrix4f, AnimationPose.PoseSpace poseSpac
                 //translation.rotateX(this.getEulerRotationZYX().x());
 
                 //translation.rotate(this.rotation);
-                this.getTransformReference().translate(translation);
+                this.getTransform().translate(translation);
             } else {
-                this.getTransformReference().translateLocal(translation);
+                this.getTransform().translateLocal(translation);
             }
         }
         return this;
@@ -154,7 +108,7 @@ public record JointTransform(Matrix4f matrix4f, AnimationPose.PoseSpace poseSpac
 
     public JointTransform rotate(Quaternionf rotation, AnimationPose.TransformSpace transformSpace){
         if(transformSpace == AnimationPose.TransformSpace.LOCAL){
-            this.getTransformReference().rotate(rotation);
+            this.getTransform().rotate(rotation);
         } else {
             //this.getTransformReference().rotateLocal(rotation);
             this.setRotation(this.getTransformCopy().getNormalizedRotation(new Quaternionf()).premul(rotation));
@@ -196,7 +150,7 @@ public record JointTransform(Matrix4f matrix4f, AnimationPose.PoseSpace poseSpac
         //Quaternionf quaternionA = new Quaternionf().rotationXYZ(this.xRot, this.yRot, this.zRot);
         //Quaternionf quaternionB = new Quaternionf().rotationXYZ(partPose.xRot, partPose.yRot, partPose.zRot);
 
-        this.getTransformReference().lerp(partPose.getTransformCopy(), alpha);
+        this.getTransform().lerp(partPose.getTransformCopy(), alpha);
         //this.rotation.slerp(partPose.rotation, alpha);
         //this.translation = this.translation.lerp(partPose.getTranslation(), alpha);
         //this.x = Mth.lerp(alpha, this.x, partPose.x);

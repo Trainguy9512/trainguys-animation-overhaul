@@ -15,10 +15,12 @@ public class AnimationPose {
 
     private final JointSkeleton jointSkeleton;
     private final HashMap<String, JointTransform> jointTransforms;
+    private PoseSpace poseSpace;
 
     private AnimationPose(JointSkeleton jointSkeleton){
         this.jointSkeleton = jointSkeleton;
         this.jointTransforms = Maps.newHashMap();
+        this.poseSpace = PoseSpace.LOCAL;
 
         for(String joint : jointSkeleton.getJoints()){
             this.setJointPose(joint, JointTransform.ZERO);
@@ -28,6 +30,7 @@ public class AnimationPose {
     public AnimationPose(AnimationPose<L> animationPose){
         this.jointSkeleton = animationPose.jointSkeleton;
         this.jointTransforms = new HashMap<>(animationPose.jointTransforms);
+        this.poseSpace = animationPose.poseSpace;
     }
 
     public static <L extends Enum<L>> AnimationPose<L> of(JointSkeleton<L> jointSkeleton){
