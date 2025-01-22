@@ -5,9 +5,8 @@ import com.mojang.math.Axis;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.EntityJointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.FirstPersonPlayerJointAnimator;
-import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.JointPose;
+import com.trainguy9512.animationoverhaul.animation.pose.JointTransform;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -75,8 +74,8 @@ public abstract class MixinGameRenderer {
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
             if(FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose != null){
                 AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerJoints> animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-                JointPose cameraPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.camera);
-                JointPose rootPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.root);
+                JointTransform cameraPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.camera);
+                JointTransform rootPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.root);
                 cameraPose.multiplyPose(rootPose);
 
                 //poseStack.translate(cameraPose.y / 16F, cameraPose.x / -16F, cameraPose.z / -16F);

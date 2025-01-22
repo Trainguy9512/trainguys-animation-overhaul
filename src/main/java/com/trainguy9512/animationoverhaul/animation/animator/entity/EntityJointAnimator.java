@@ -7,7 +7,7 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 
-public abstract class EntityJointAnimator<T extends Entity, S extends EntityRenderState, M extends EntityModel<S>, L extends Enum<L>> extends JointAnimator<T, L> {
+public abstract class EntityJointAnimator<T extends Entity, S extends EntityRenderState> extends JointAnimator<T> {
 
 
     //protected AnimationDataContainer entityAnimationData;
@@ -56,10 +56,6 @@ public abstract class EntityJointAnimator<T extends Entity, S extends EntityRend
 
 
 
-    public void postProcessModelParts(S entityRenderState, M entityModel, ModelPart rootModelPart){
-    }
-
-    public ModelPart getRoot(M entityModel){
-        return ((ModelAccess)entityModel).getRootModelPart();
+    public void postProcessModelParts(S entityRenderState, ModelPart rootModelPart){
     }
 }

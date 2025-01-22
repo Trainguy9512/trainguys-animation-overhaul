@@ -2,13 +2,11 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
-import com.trainguy9512.animationoverhaul.animation.animator.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.util.Mth;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;

@@ -7,8 +7,7 @@ import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContain
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
-import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
-import net.minecraft.client.model.EntityModel;
+import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 

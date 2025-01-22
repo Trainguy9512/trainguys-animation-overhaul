@@ -1,9 +1,8 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
 import net.minecraft.resources.ResourceLocation;

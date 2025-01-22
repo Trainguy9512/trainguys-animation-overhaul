@@ -10,54 +10,48 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.*;
 
-public class JointPose {
-    private Matrix4f matrix4f;
-    private AnimationPose.PoseSpace poseSpace;
+public record JointTransform(Matrix4f matrix4f, AnimationPose.PoseSpace poseSpace) {
 
+    public static final JointTransform ZERO = new JointTransform(fromPartPose(PartPose.ZERO));
 
-    public static final JointPose ZERO = new JointPose(fromPartPose(PartPose.ZERO));
-
-    private JointPose(float x, float y, float z, float xRot, float yRot, float zRot){
-        this(x, y, z, new Quaternionf().rotationXYZ(xRot, yRot, zRot));
-        this.setEulerRotationXYZ(new Vector3f(xRot, yRot, zRot));
+    private static JointTransform of(PartPose partPose){
+        return of(new Vector3f(partPose.x(), partPose.y(), partPose.z()), new Vector3f(partPose.xRot(), partPose.yRot(), partPose.zRot()), new Vector3f(partPose.xScale(), partPose.yScale(), partPose.zScale()));
     }
 
-    private JointPose(float x, float y, float z, Quaternionf rotation){
-        this(new Vector3f(x, y, z), rotation, new Vector3f(1, 1, 1));
+    private static JointTransform of(Vector3f translation, Vector3f rotationEuler, Vector3f scale){
+        return of(translation, new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), scale);
     }
 
-    private JointPose(Vector3f translation, Quaternionf rotation, Vector3f scale){
+    private static JointTransform of(Vector3f translation, Quaternionf rotation, Vector3f scale){
+        return of(new Matrix4f().translate(translation).rotate(rotation).scale(scale));
+    }
+
+    private JointTransform(Vector3f translation, Quaternionf rotation, Vector3f scale){
         this(new Matrix4f().translate(translation).rotate(rotation).scale(scale));
     }
 
-    private JointPose(Matrix4f matrix4f){
-        this.matrix4f = new Matrix4f(matrix4f);
-        this.poseSpace = AnimationPose.PoseSpace.LOCAL;
+    private static JointTransform of(Matrix4f matrix4f){
+        return new JointTransform(matrix4f, AnimationPose.PoseSpace.LOCAL);
     }
 
-    public JointPose(JointPose jointPose){
-        this.matrix4f = jointPose.getTransformCopy();
-        this.poseSpace = jointPose.getPoseSpace();
+    public static JointTransform fromMatrix4f(Matrix4f matrix4f){
+        return new JointTransform(matrix4f);
     }
 
-    public static JointPose fromMatrix4f(Matrix4f matrix4f){
-        return new JointPose(matrix4f);
-    }
-
-    public static JointPose fromTranslation(float x, float y, float z){
+    public static JointTransform fromTranslation(float x, float y, float z){
         return fromTranslationAndRotation(x, y, z, 0, 0, 0);
     }
 
-    public static JointPose fromRotation(float xRot, float yRot, float zRot){
+    public static JointTransform fromRotation(float xRot, float yRot, float zRot){
         return fromTranslationAndRotation(0, 0, 0, xRot, yRot, zRot);
     }
 
-    public static JointPose fromTranslationAndRotation(float x, float y, float z, float xRot, float yRot, float zRot){
-        return new JointPose(x, y, z, xRot, yRot, zRot);
+    public static JointTransform fromTranslationAndRotation(float x, float y, float z, float xRot, float yRot, float zRot){
+        return new JointTransform(x, y, z, xRot, yRot, zRot);
     }
 
-    public static JointPose fromTranslationAndRotation(float x, float y, float z, Quaternionf rotation){
-        return new JointPose(x, y, z, rotation);
+    public static JointTransform fromTranslationAndRotation(float x, float y, float z, Quaternionf rotation){
+        return new JointTransform(x, y, z, rotation);
     }
 
     /*
@@ -75,7 +69,7 @@ public class JointPose {
         return this.poseSpace;
     }
 
-    public JointPose setPoseSpace(AnimationPose.PoseSpace poseSpace){
+    public JointTransform setPoseSpace(AnimationPose.PoseSpace poseSpace){
         this.poseSpace = poseSpace;
         return this;
     }
@@ -88,7 +82,7 @@ public class JointPose {
         return this.matrix4f;
     }
 
-    public JointPose setTransform(Matrix4f matrix4f){
+    public JointTransform setTransform(Matrix4f matrix4f){
         this.matrix4f.set(matrix4f);
         return this;
     }
@@ -97,7 +91,7 @@ public class JointPose {
         return matrix4f.getTranslation(new Vector3f());
     }
 
-    public JointPose setTranslation(Vector3f vector3f){
+    public JointTransform setTranslation(Vector3f vector3f){
         this.matrix4f.setTranslation(vector3f);
         return this;
     }
@@ -110,11 +104,11 @@ public class JointPose {
         return this.getTransformCopy().getEulerAnglesZYX(new Vector3f());
     }
 
-    public JointPose setRotation(Quaternionf quaternionf){
+    public JointTransform setRotation(Quaternionf quaternionf){
         return setEulerRotationXYZ(quaternionf.getEulerAnglesXYZ(new Vector3f()));
     }
 
-    public JointPose setEulerRotationXYZ(Vector3f vector3f){
+    public JointTransform setEulerRotationXYZ(Vector3f vector3f){
         this.getTransformReference().setRotationXYZ(vector3f.x(), vector3f.y(), vector3f.z());
         return this;
     }
@@ -134,7 +128,7 @@ public class JointPose {
 
     //TODO: Use TranslateLocal Matrix4F
 
-    public JointPose transform(Matrix4f transform, AnimationPose.TransformSpace transformSpace){
+    public JointTransform transform(Matrix4f transform, AnimationPose.TransformSpace transformSpace){
         switch (transformSpace){
             case ENTITY, PARENT -> this.getTransformReference().mul(transform);
             case LOCAL -> this.getTransformReference().mulLocal(transform);
@@ -142,7 +136,7 @@ public class JointPose {
         return this;
     }
 
-    public JointPose translate(Vector3f translation, AnimationPose.TransformSpace transformSpace){
+    public JointTransform translate(Vector3f translation, AnimationPose.TransformSpace transformSpace){
         if(translation.x() != 0 || translation.y() != 0 || translation.z() != 0){
             if(transformSpace == AnimationPose.TransformSpace.LOCAL){
                 //translation.rotateZ(this.getEulerRotationZYX().z());
@@ -158,7 +152,7 @@ public class JointPose {
         return this;
     }
 
-    public JointPose rotate(Quaternionf rotation, AnimationPose.TransformSpace transformSpace){
+    public JointTransform rotate(Quaternionf rotation, AnimationPose.TransformSpace transformSpace){
         if(transformSpace == AnimationPose.TransformSpace.LOCAL){
             this.getTransformReference().rotate(rotation);
         } else {
@@ -168,24 +162,24 @@ public class JointPose {
         return this;
     }
 
-    public JointPose rotate(Vector3f rotation, AnimationPose.TransformSpace transformSpace){
+    public JointTransform rotate(Vector3f rotation, AnimationPose.TransformSpace transformSpace){
         return this.rotate(new Quaternionf().rotationXYZ(rotation.x(), rotation.y(), rotation.z()), transformSpace);
     }
 
-    public JointPose multiplyPose(JointPose partPose){
+    public JointTransform multiplyPose(JointTransform partPose){
         this.translate(partPose.getTranslation(), AnimationPose.TransformSpace.ENTITY);
         this.rotate(partPose.getRotation(), AnimationPose.TransformSpace.ENTITY);
         return this;
     }
 
-    public JointPose inverseMultiplyPose(JointPose partPose){
+    public JointTransform inverseMultiplyPose(JointTransform partPose){
         this.translate(partPose.getTranslation().negate(), AnimationPose.TransformSpace.ENTITY);
         this.rotate(partPose.getRotation().invert(), AnimationPose.TransformSpace.ENTITY);
         return this;
     }
 
-    public JointPose getMirrored(){
-        JointPose jointPose = this.getCopy();
+    public JointTransform getMirrored(){
+        JointTransform jointPose = this.getCopy();
 
         Vector3f translation = this.getTransformCopy().getTranslation(new Vector3f());
         translation.set(translation.x() * -1, translation.y(), translation.z());
@@ -196,7 +190,7 @@ public class JointPose {
         return jointPose;
     }
 
-    public JointPose blend(JointPose partPose, float alpha, Easing easing){
+    public JointTransform blend(JointTransform partPose, float alpha, Easing easing){
 
         alpha = easing.ease(alpha);
         //Quaternionf quaternionA = new Quaternionf().rotationXYZ(this.xRot, this.yRot, this.zRot);
@@ -216,25 +210,25 @@ public class JointPose {
         return this;
     }
 
-    public JointPose blendLinear(JointPose partPose, float alpha){
+    public JointTransform blendLinear(JointTransform partPose, float alpha){
         return this.blend(partPose, alpha, Easing.Linear.of());
     }
 
-    public static JointPose getJointPoseFromChannelTimeline(ResourceLocation resourceLocation, String partName, float time){
+    public static JointTransform getJointPoseFromChannelTimeline(ResourceLocation resourceLocation, String partName, float time){
         if(TimelineGroupData.INSTANCE.getHashMap().containsKey(resourceLocation)){
             ChannelTimeline channelTimeline = TimelineGroupData.INSTANCE.get(resourceLocation).getPartTimeline(partName);
-            return new JointPose(
+            return new JointTransform(
                     channelTimeline.getValueAt(TransformChannel.x, time),
                     channelTimeline.getValueAt(TransformChannel.y, time),
                     channelTimeline.getValueAt(TransformChannel.z, time),
                     channelTimeline.getRotationAt(time)
             );
         } else {
-            return JointPose.ZERO;
+            return JointTransform.ZERO;
         }
     }
 
-    public static JointPose fromPartPose(PartPose partPose){
+    public static JointTransform fromPartPose(PartPose partPose){
         return fromTranslationAndRotation(
                 partPose.x(),
                 partPose.y(),
@@ -245,8 +239,8 @@ public class JointPose {
         );
     }
 
-    public JointPose getCopy(){
-        return new JointPose(new Matrix4f(this.getTransformCopy()));
+    public JointTransform getCopy(){
+        return new JointTransform(new Matrix4f(this.getTransformCopy()));
     }
 
     public void translatePoseStack(PoseStack poseStack){

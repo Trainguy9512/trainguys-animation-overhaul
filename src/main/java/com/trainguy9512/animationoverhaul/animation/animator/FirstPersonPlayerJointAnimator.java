@@ -6,7 +6,7 @@ import com.trainguy9512.animationoverhaul.animation.data.AnimationVariableKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
-import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
@@ -20,9 +20,10 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
+import java.util.List;
 import java.util.function.BiFunction;
 
-public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<LocalPlayer, PlayerRenderState, PlayerModel, FirstPersonPlayerJointAnimator.FPPlayerJoints> {
+public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<LocalPlayer, PlayerRenderState, PlayerModel> {
 
     public static FirstPersonPlayerJointAnimator INSTANCE = new FirstPersonPlayerJointAnimator();
 
@@ -30,41 +31,39 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     public BakedAnimationPose<FPPlayerJoints> localBakedPose;
 
 
-    public enum FPPlayerJoints {
-        root,
-        camera,
-        armBuffer,
-        rightArmBuffer,
-        leftArmBuffer,
-        rightArm,
-        leftArm,
-        rightHand,
-        leftHand;
+    public static final String ROOT_JOINT = "root";
+    public static final String CAMERA_JOINT = "camera";
+    public static final String ARM_BUFFER_JOINT = "armBuffer";
+    public static final String RIGHT_ARM_BUFFER_JOINT = "rightArmBuffer";
+    public static final String LEFT_ARM_BUFFER_JOINT = "leftArmBuffer";
+    public static final String RIGHT_ARM_JOINT = "rightArm";
+    public static final String LEFT_ARM_JOINT = "leftArm";
+    public static final String RIGHT_HAND_JOINT = "rightHand";
+    public static final String LEFT_HAND_JOINT = "leftHand";
 
-        public static final FPPlayerJoints[] arms = new FPPlayerJoints[] {
-                rightArm,
-                leftArm,
-                rightArmBuffer,
-                leftArmBuffer,
-                rightHand,
-                leftHand
-        };
+    public static final List<String> ARM_BUFFER_JOINTS = List.of(
+            RIGHT_ARM_BUFFER_JOINT,
+            LEFT_ARM_BUFFER_JOINT
+    );
 
-        public static final FPPlayerJoints[] armBufferLocators = new FPPlayerJoints[] {
-                rightArmBuffer,
-                leftArmBuffer
-        };
+    public static final List<String> ARM_JOINTS = List.of(
+            RIGHT_ARM_JOINT,
+            LEFT_ARM_JOINT,
+            RIGHT_ARM_BUFFER_JOINT,
+            LEFT_ARM_BUFFER_JOINT,
+            RIGHT_HAND_JOINT,
+            LEFT_HAND_JOINT
+    );
 
-        public static final FPPlayerJoints[] armPoseLocators = new FPPlayerJoints[] {
-                rightArm,
-                leftArm
-        };
+    public static final List<String> ARM_POSE_JOINTS = List.of(
+            RIGHT_ARM_JOINT,
+            LEFT_ARM_JOINT
+    );
 
-        public static final FPPlayerJoints[] handLocators = new FPPlayerJoints[] {
-                rightHand,
-                leftHand
-        };
-    }
+    public static final List<String> HAND_JOINTS = List.of(
+            RIGHT_HAND_JOINT,
+            LEFT_HAND_JOINT
+    );
 
 
     public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = TimelineGroupData.getNativeResourceLocation(TimelineGroupData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
@@ -135,7 +134,8 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         super();
     }
 
-    protected JointSkeleton<FPPlayerJoints> buildSkeleton() {
+    protected JointSkeleton.Builder buildSkeleton() {
+        return JointSkeleton.of()
         return JointSkeleton.of(FPPlayerJoints.root)
                 .addChildToRoot(FPPlayerJoints.camera)
                 .addChildToRoot(FPPlayerJoints.armBuffer)

@@ -8,7 +8,7 @@ import com.trainguy9512.animationoverhaul.access.ModelAccess;
 import com.trainguy9512.animationoverhaul.animation.EntityJointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -68,7 +68,7 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
         if(animationPose != null && entityModel instanceof ModelAccess){
             ModelPart rootModelPart = ((ModelAccess)entityModel).getRootModelPart();
 
-            for(Enum<L> locator : animationPose.getSkeleton().getLocators()){
+            for(Enum<L> locator : animationPose.getSkeleton().getJoints()){
                 if((animationPose).getSkeleton().getLocatorUsesModelPart(locator)){
                     ModelPart modelPart = rootModelPart;
                     for(String individualPartString : animationPose.getSkeleton().getLocatorModelPartIdentifier(locator).split("\\.")){

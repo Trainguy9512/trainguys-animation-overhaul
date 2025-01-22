@@ -1,17 +1,17 @@
 package com.trainguy9512.animationoverhaul.animation.animator;
 
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
+import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.util.animation.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 
 /**
  * Uses a data reference and a joint skeleton to calculate a pose once per tick.
- * @param <L> Enum joint structure
  * @param <T> Object used for data reference
  */
-public abstract class JointAnimator<T, L extends Enum<L>> {
+public abstract class JointAnimator<T> {
 
-    protected final JointSkeleton<L> jointSkeleton;
+    protected final JointSkeleton jointSkeleton;
 
     protected JointAnimator() {
         this.jointSkeleton = buildSkeleton();
@@ -19,17 +19,17 @@ public abstract class JointAnimator<T, L extends Enum<L>> {
 
     /**
      * Returns the joint skeleton used by the animator as reference.
-     * @return
+     * @return Joint skeleton
      */
-    public JointSkeleton<L> getJointSkeleton(){
+    public JointSkeleton getJointSkeleton(){
         return this.jointSkeleton;
     }
 
     /**
-     * Creates a joint skeleton upon class construction
-     * @return
+     * Retrieves a joint skeleton created upon class construction
+     * @return Built joint skeleton
      */
-    protected abstract JointSkeleton<L> buildSkeleton();
+    protected abstract JointSkeleton buildSkeleton();
 
     /**
      * Uses an object for data reference and updates the animation data container. Called once per tick, prior to pose samplers updating and pose calculation.
@@ -40,9 +40,10 @@ public abstract class JointAnimator<T, L extends Enum<L>> {
     public abstract AnimationDataContainer extractAnimationData(T dataReference, AnimationDataContainer animationDataContainer);
 
     /**
-     *
-     * @param entityAnimationData
-     * @return
+     * Calculates and returns an animation pose once per tick, after pose sampler update and animation data extraction
+     * @param animationDataContainer Data container containing extracted animation variable data.
+     * @param poseSamplerStateContainer Data container containing pose sampler states, used for sampling poses.
+     * @return Calculated animation pose to be passed off to the baked animation pose
      */
-    public abstract AnimationPose<L> calculatePose(AnimationDataContainer entityAnimationData);
+    public abstract AnimationPose calculatePose(AnimationDataContainer animationDataContainer, PoseSamplerStateContainer poseSamplerStateContainer);
 }
