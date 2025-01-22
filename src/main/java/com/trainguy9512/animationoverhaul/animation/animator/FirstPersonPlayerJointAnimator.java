@@ -8,7 +8,7 @@ import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
-import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
@@ -66,7 +66,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     );
 
 
-    public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = TimelineGroupData.getNativeResourceLocation(TimelineGroupData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
+    public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
 
 
     public static final AnimationVariableKey<Float> TIME_TEST = AnimationVariableKey.of(() -> 0F).setIdentifier("time_test").build();

@@ -2,7 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
-import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -24,7 +24,7 @@ public class AnimationMontage {
 
     private AnimationMontage(ResourceLocation resourceLocation){
         this.resourceLocation = resourceLocation;
-        this.length = TimelineGroupData.INSTANCE.get(resourceLocation).getFrameLength();
+        this.length = AnimationSequenceData.INSTANCE.get(resourceLocation).getFrameLength();
     }
 
     public static AnimationMontage of(ResourceLocation resourceLocation){
@@ -45,7 +45,7 @@ public class AnimationMontage {
     }
 
     public <L extends Enum<L>> AnimationPose<L> getAnimationPose(JointSkeleton<L> jointSkeleton){
-        return AnimationPose.fromChannelTimeline(jointSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / TimelineGroupData.INSTANCE.get(resourceLocation).getFrameLength());
+        return AnimationPose.fromChannelTimeline(jointSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / AnimationSequenceData.INSTANCE.get(resourceLocation).getFrameLength());
     }
 
     /**

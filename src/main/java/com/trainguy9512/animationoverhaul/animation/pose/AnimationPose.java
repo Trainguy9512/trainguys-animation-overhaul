@@ -44,7 +44,7 @@ public class AnimationPose {
     public void applyDefaultPoseOffset(){
         for(Enum<L> locator : this.getSkeleton().getJoints()){
             JointTransform offset = JointTransform.fromPartPose(this.getSkeleton().getLocatorDefaultPose(locator));
-            this.setJointPose(locator, getJointPoseCopy(locator).multiplyPose(offset));
+            this.setJointPose(locator, getJointPoseCopy(locator).multiplyTransform(offset));
         }
     }
 
@@ -189,7 +189,7 @@ public class AnimationPose {
 
     public void inverseMultiply(AnimationPose<L> animationPose){
         for(Enum<L> locator : this.getSkeleton().getJoints()){
-            this.setJointPose(locator, this.getJointPoseCopy(locator).inverseMultiplyPose(animationPose.getJointPoseCopy(locator)));
+            this.setJointPose(locator, this.getJointPoseCopy(locator).inverseMultiplyTransform(animationPose.getJointPoseCopy(locator)));
         }
     }
 
@@ -201,7 +201,7 @@ public class AnimationPose {
 
     public void multiply(AnimationPose<L> animationPose){
         for(Enum<L> locator : this.getSkeleton().getJoints()){
-            this.setJointPose(locator, this.getJointPoseCopy(locator).multiplyPose(animationPose.getJointPoseCopy(locator)));
+            this.setJointPose(locator, this.getJointPoseCopy(locator).multiplyTransform(animationPose.getJointPoseCopy(locator)));
         }
     }
 
@@ -235,7 +235,7 @@ public class AnimationPose {
         if(additive){
             this.getJointPoseReference(joint).rotate(rotationXYZ, transformSpace);
         } else {
-            this.getJointPoseReference(joint).setEulerRotationXYZ(rotationXYZ);
+            this.getJointPoseReference(joint).setRotation(rotationXYZ);
         }
         convertSpaceEntityToLocal();
         return this;
@@ -274,7 +274,7 @@ public class AnimationPose {
     public static <L extends Enum<L>> AnimationPose<L> fromChannelTimeline(JointSkeleton<L> jointSkeleton, ResourceLocation resourceLocation, float time){
         AnimationPose<L> animationPose = AnimationPose.of(jointSkeleton);
         for(Enum<L> locator : jointSkeleton.getJoints()){
-            animationPose.setJointPose(locator, JointTransform.getJointPoseFromChannelTimeline(resourceLocation, locator.toString(), time));
+            animationPose.setJointPose(locator, JointTransform.getJointTransformFromAnimationSequence(resourceLocation, locator.toString(), time));
         }
         return animationPose;
     }

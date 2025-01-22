@@ -1,5 +1,7 @@
 package com.trainguy9512.animationoverhaul.util.time;
 
+import com.trainguy9512.animationoverhaul.animation.pose.JointTransform;
+
 import java.util.TreeMap;
 
 public class Timeline<T> {
@@ -70,6 +72,10 @@ public class Timeline<T> {
     }
 
     public static Timeline<Float> floatTimeline() {
-        return new Timeline<Float>((a, b, t) -> a + (b - a) * t);
+        return new Timeline<>((a, b, t) -> a + (b - a) * t);
+    }
+
+    public static Timeline<JointTransform> jointTransformTimeline() {
+        return new Timeline<>(JointTransform::blendLinear);
     }
 }

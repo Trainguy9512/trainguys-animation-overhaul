@@ -3,7 +3,7 @@ package com.trainguy9512.animationoverhaul;
 
 import com.trainguy9512.animationoverhaul.animation.LivingEntityAnimatorRegistry;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.PlayerJointAnimator;
-import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupDataLoader;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceDataLoader;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.server.packs.PackType;
@@ -44,7 +44,7 @@ public class AnimationOverhaulMain implements ModInitializer {
 
 
 	private static void registerTimelineGroupLoader(){
-		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new TimelineGroupDataLoader());
+		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new AnimationSequenceDataLoader());
 		//ResourceRegistry.registerReloadListener(PackType.CLIENT_RESOURCES, new TimelineGroupDataLoader());
 	}
 

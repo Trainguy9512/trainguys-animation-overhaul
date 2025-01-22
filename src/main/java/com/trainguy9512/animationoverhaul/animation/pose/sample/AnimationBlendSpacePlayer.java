@@ -2,7 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
-import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
@@ -137,7 +137,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
         }
 
         private float getTimeFromTicks(float time) {
-            float frameLength = TimelineGroupData.INSTANCE.get(this.resourceLocation).getFrameLength();
+            float frameLength = AnimationSequenceData.INSTANCE.get(this.resourceLocation).getFrameLength();
             return (time % frameLength) / frameLength;
         }
 

@@ -6,13 +6,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
-import com.trainguy9512.animationoverhaul.util.time.ChannelTimeline;
+import com.trainguy9512.animationoverhaul.animation.pose.JointTransform;
+import com.trainguy9512.animationoverhaul.util.time.Timeline;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.util.profiling.ProfilerFiller;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,7 +27,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map<ResourceLocation, JsonElement>> {
+public class AnimationSequenceDataLoader implements SimpleResourceReloadListener<Map<ResourceLocation, JsonElement>> {
 
     //<Map<ResourceLocation, JsonElement>>
 
@@ -169,7 +171,7 @@ public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map
     @Override
     public CompletableFuture<Void> apply(Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, ResourceManager resourceManager, Executor executor) {
         return CompletableFuture.runAsync(() -> {
-            TimelineGroupData newData = new TimelineGroupData();
+            AnimationSequenceData newData = new AnimationSequenceData();
             for(ResourceLocation resourceLocationKey : resourceLocationJsonElementMap.keySet()){
                 JsonElement animationJSON = resourceLocationJsonElementMap.get(resourceLocationKey);
 
@@ -191,7 +193,7 @@ public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map
                     float frameRate = animationJSON.getAsJsonObject().get("frame_rate").getAsFloat();
                     float frameTime = animationJSON.getAsJsonObject().get("frame_length").getAsFloat() / (frameRate / 20F);
 
-                    TimelineGroupData.TimelineGroup timelineGroup = new TimelineGroupData.TimelineGroup(frameTime);
+                    AnimationSequenceData.AnimationSequence.Builder animationSequenceBuilder = AnimationSequenceData.AnimationSequence.builder(frameTime);
 
                     JsonArray partArrayJSON = animationJSON.getAsJsonObject().get("parts").getAsJsonArray();
                     for(int partIndex = 0; partIndex < partArrayJSON.size(); partIndex++){
@@ -199,7 +201,7 @@ public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map
                         String partName = partJSON.get("name").getAsString();
                         //AnimationOverhaul.LOGGER.info(partName);
 
-                        ChannelTimeline channelTimeline = new ChannelTimeline();
+                        Timeline<JointTransform> timeline = Timeline.jointTransformTimeline();
 
                         JsonObject partKeyframesJSON = partJSON.get("keyframes").getAsJsonObject();
                         for(Map.Entry<String, JsonElement> keyframeEntry : partKeyframesJSON.entrySet()) {
@@ -207,30 +209,25 @@ public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map
                             JsonElement keyframeJSON = keyframeEntry.getValue();
                             //AnimationOverhaul.LOGGER.info(keyframeNumber);
 
-                            channelTimeline.addKeyframe(TransformChannel.x, keyframeNumber, keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(0).getAsFloat());
-                            channelTimeline.addKeyframe(TransformChannel.y, keyframeNumber, keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(1).getAsFloat());
-                            channelTimeline.addKeyframe(TransformChannel.z, keyframeNumber, keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(2).getAsFloat());
 
-                            channelTimeline.addKeyframe(TransformChannel.xRot, keyframeNumber, keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(0).getAsFloat());
-                            channelTimeline.addKeyframe(TransformChannel.yRot, keyframeNumber, keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(1).getAsFloat());
-                            channelTimeline.addKeyframe(TransformChannel.zRot, keyframeNumber, keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(2).getAsFloat());
-
-
-                        /*
-                        for(Map.Entry<String, JsonElement> attributeEntry : keyframeJSON.getAsJsonObject().entrySet()){
-                            TransformChannel transformChannel = TransformChannel.valueOf(attributeEntry.getKey());
-                            float keyframeValue = attributeEntry.getValue().getAsFloat();
-
-                            channelTimeline = channelTimeline.addKeyframe(transformChannel, keyframeNumber, keyframeValue);
-                            //AnimationOverhaul.LOGGER.info("Channel: {} Value: {}", transformChannel, keyframeValue);
+                            Vector3f translation = new Vector3f(
+                                    keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(0).getAsFloat(),
+                                    keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(1).getAsFloat(),
+                                    keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(2).getAsFloat()
+                            );
+                            Quaternionf rotation = new Quaternionf().rotationZYX(
+                                    keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(0).getAsFloat(),
+                                    keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(1).getAsFloat(),
+                                    keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(2).getAsFloat()
+                            );
+                            Vector3f scale = new Vector3f(1);
+                            timeline.addKeyframe(keyframeNumber, JointTransform.of(translation, rotation, scale));
                         }
-                         */
-                        }
-                        timelineGroup.addPartTimeline(partName, channelTimeline);
+                        animationSequenceBuilder.addTimelineForJoint(partName, timeline);
                     }
 
 
-                    newData.put(finalResourceLocation, timelineGroup);
+                    newData.put(finalResourceLocation, animationSequenceBuilder.build());
                     //AnimationOverhaul.LOGGER.info(frameTime);
                     //AnimationOverhaul.LOGGER.info("Entity key: {} Animation key: {}", entityKey, animationKey);
 
@@ -241,7 +238,7 @@ public class TimelineGroupDataLoader implements SimpleResourceReloadListener<Map
                 }
             }
 
-            TimelineGroupData.INSTANCE.clearAndReplace(newData);
+            AnimationSequenceData.INSTANCE.clearAndReplace(newData);
         });
     }
 

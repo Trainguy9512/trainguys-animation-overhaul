@@ -4,7 +4,7 @@ import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
-import com.trainguy9512.animationoverhaul.animation.data.TimelineGroupData;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
@@ -47,7 +47,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
         protected Builder(ResourceLocation resourceLocation) {
             super();
             this.resourceLocation = resourceLocation;
-            this.frameLength = TimelineGroupData.INSTANCE.get(this.resourceLocation).getFrameLength();
+            this.frameLength = AnimationSequenceData.INSTANCE.get(this.resourceLocation).getFrameLength();
             this.endTime = frameLength;
         }
 

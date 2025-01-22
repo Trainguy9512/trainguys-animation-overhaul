@@ -76,14 +76,14 @@ public abstract class MixinGameRenderer {
                 AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerJoints> animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
                 JointTransform cameraPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.camera);
                 JointTransform rootPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.root);
-                cameraPose.multiplyPose(rootPose);
+                cameraPose.multiplyTransform(rootPose);
 
                 //poseStack.translate(cameraPose.y / 16F, cameraPose.x / -16F, cameraPose.z / -16F);
 
                 PoseStack poseStack1 = new PoseStack();
                 Vector3f cameraRot = cameraPose.getEulerRotationZYX();
                 cameraRot.z *= -1;
-                cameraPose.setEulerRotationXYZ(cameraRot);
+                cameraPose.setRotation(cameraRot);
 
                 poseStack1.mulPose(cameraPose.getRotation());
                 poseStack1.translate(cameraPose.getTranslation().x / 16F, cameraPose.getTranslation().y / 16F, cameraPose.getTranslation().z / -16F);
