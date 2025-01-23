@@ -45,10 +45,10 @@ public abstract class MixinItemInHandRenderer {
 
         if(FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose != null){
             AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerJoints> animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-            JointTransform rightArmPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.rightArm);
-            JointTransform leftArmPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.leftArm);
-            JointTransform rightHandPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.rightHand);
-            JointTransform leftHandPose = animationPose.getJointPoseCopy(FirstPersonPlayerJointAnimator.FPPlayerJoints.leftHand);
+            JointTransform rightArmPose = animationPose.getJointPose(FirstPersonPlayerJointAnimator.FPPlayerJoints.rightArm);
+            JointTransform leftArmPose = animationPose.getJointPose(FirstPersonPlayerJointAnimator.FPPlayerJoints.leftArm);
+            JointTransform rightHandPose = animationPose.getJointPose(FirstPersonPlayerJointAnimator.FPPlayerJoints.rightHand);
+            JointTransform leftHandPose = animationPose.getJointPose(FirstPersonPlayerJointAnimator.FPPlayerJoints.leftHand);
 
             poseStack.pushPose();
             poseStack.mulPose(Axis.ZP.rotationDegrees(180));
@@ -145,8 +145,8 @@ public abstract class MixinItemInHandRenderer {
 
     private void renderItemInHand(AbstractClientPlayer abstractClientPlayer, ItemStack itemStack, PoseStack poseStack, HumanoidArm humanoidArm, AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerJoints> animationPose, MultiBufferSource multiBufferSource, int i){
 
-        JointTransform armPose = animationPose.getJointPoseCopy(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.FPPlayerJoints.leftArm : FirstPersonPlayerJointAnimator.FPPlayerJoints.rightArm);
-        JointTransform handPose = animationPose.getJointPoseCopy(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.FPPlayerJoints.leftHand : FirstPersonPlayerJointAnimator.FPPlayerJoints.rightHand);
+        JointTransform armPose = animationPose.getJointPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.FPPlayerJoints.leftArm : FirstPersonPlayerJointAnimator.FPPlayerJoints.rightArm);
+        JointTransform handPose = animationPose.getJointPose(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.FPPlayerJoints.leftHand : FirstPersonPlayerJointAnimator.FPPlayerJoints.rightHand);
 
 
 

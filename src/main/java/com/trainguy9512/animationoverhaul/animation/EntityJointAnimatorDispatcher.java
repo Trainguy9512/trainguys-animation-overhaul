@@ -56,8 +56,6 @@ public class EntityJointAnimatorDispatcher {
         }
         calculatedAnimationPose.convertSpaceEntityToLocal();
 
-        //TODO: Rewrite how pose offsets are done
-        calculatedAnimationPose.applyDefaultPoseOffset();
 
         bakedPose.pushPose(calculatedAnimationPose);
 

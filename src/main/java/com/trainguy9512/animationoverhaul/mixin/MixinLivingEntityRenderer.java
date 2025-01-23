@@ -68,13 +68,13 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
         if(animationPose != null && entityModel instanceof ModelAccess){
             ModelPart rootModelPart = ((ModelAccess)entityModel).getRootModelPart();
 
-            for(Enum<L> locator : animationPose.getSkeleton().getJoints()){
-                if((animationPose).getSkeleton().getLocatorUsesModelPart(locator)){
+            for(Enum<L> locator : animationPose.getJointSkeleton().getJoints()){
+                if((animationPose).getJointSkeleton().getLocatorUsesModelPart(locator)){
                     ModelPart modelPart = rootModelPart;
-                    for(String individualPartString : animationPose.getSkeleton().getLocatorModelPartIdentifier(locator).split("\\.")){
+                    for(String individualPartString : animationPose.getJointSkeleton().getLocatorModelPartIdentifier(locator).split("\\.")){
                         modelPart = modelPart.getChild(individualPartString);
                     }
-                    modelPart.loadPose(animationPose.getJointPoseCopy(locator).asPartPose());
+                    modelPart.loadPose(animationPose.getJointPose(locator).asPartPose());
                 }
             }
         } else {
@@ -141,9 +141,9 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
         if(shouldUseAlternateRotations(animationPose)){
             poseStack.translate(0, -1.5, 0);
 
-            Enum<L> root = animationPose.getSkeleton().getRootJoint();
+            Enum<L> root = animationPose.getJointSkeleton().getRootJoint();
 
-            animationPose.getJointPoseCopy(root).translateAndRotatePoseStack(poseStack);
+            animationPose.getJointPose(root).translateAndRotatePoseStack(poseStack);
             poseStack.translate(0, 1.5, 0);
         }
 

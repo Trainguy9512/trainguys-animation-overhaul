@@ -27,37 +27,66 @@ public class AnimationPose {
         }
     }
 
-    public AnimationPose(AnimationPose<L> animationPose){
+    public AnimationPose(AnimationPose animationPose){
         this.jointSkeleton = animationPose.jointSkeleton;
         this.jointTransforms = new HashMap<>(animationPose.jointTransforms);
         this.poseSpace = animationPose.poseSpace;
     }
 
-    public static <L extends Enum<L>> AnimationPose<L> of(JointSkeleton<L> jointSkeleton){
-        return new AnimationPose<>(jointSkeleton);
+    /**
+     * Creates a blank animation pose using a joint skeleton as the template.
+     * @param jointSkeleton Template joint skeleton
+     * @return New animation pose
+     */
+    public static AnimationPose of(JointSkeleton jointSkeleton){
+        return new AnimationPose(jointSkeleton);
     }
 
-    public JointSkeleton<L> getSkeleton(){
+    /**
+     * Retrieves the animation pose's skeleton.
+     * @return Joint skeleton
+     */
+    public JointSkeleton getJointSkeleton(){
         return this.jointSkeleton;
     }
 
-    public void applyDefaultPoseOffset(){
-        for(Enum<L> locator : this.getSkeleton().getJoints()){
-            JointTransform offset = JointTransform.fromPartPose(this.getSkeleton().getLocatorDefaultPose(locator));
-            this.setJointPose(locator, getJointPoseCopy(locator).multiplyTransform(offset));
-        }
+    /**
+     * Retrieves this pose's current pose space
+     * @return Pose space
+     */
+    public PoseSpace getPoseSpace(){
+        return this.poseSpace;
     }
 
+    /**
+     * Sets this pose's current pose space to the provided value.
+     * @param poseSpace New pose space
+     */
+    private void setPoseSpace(PoseSpace poseSpace){
+        this.poseSpace = poseSpace;
+    }
+
+    /**
+     * Sets the transform for the supplied joint by its string identifier.
+     * @param joint Joint string identifier
+     * @param jointPose Joint transform
+     */
     public void setJointPose(String joint, JointTransform jointPose){
-        this.jointTransforms.put(locator, jointPose);
+        this.jointTransforms.put(joint, jointPose);
     }
 
-    public JointTransform getJointPoseCopy(Enum<L> locator){
-        return new JointTransform(this.jointTransforms.getOrDefault(locator, JointTransform.ZERO));
+    /**
+     * Retrieves a copy of the transform for the supplied joint.
+     * @param joint Joint string identifier
+     * @return Joint transform
+     */
+    public JointTransform getJointPose(String joint){
+        return new JointTransform(this.jointTransforms.getOrDefault(joint, JointTransform.ZERO));
     }
 
-    public JointTransform getJointPoseReference(Enum<L> locator){
-        return this.jointTransforms.getOrDefault(locator, JointTransform.ZERO);
+    @Deprecated
+    public JointTransform getJointPoseReference(String joint){
+        return this.jointTransforms.getOrDefault(joint, JointTransform.ZERO);
     }
 
     /*
@@ -71,43 +100,34 @@ public class AnimationPose {
 
 
 
-    // Local to World
-    public AnimationPose<L> convertSpaceLocalToEntity(Set<Enum<L>> jointsToConvert){
-        this.convertChildrenSpaceLocalToEntity(this.getSkeleton().getRootJoint(), new PoseStack(), jointsToConvert);
+
+    public AnimationPose getConvertedToEntitySpace(){
+        if(this.getPoseSpace() == PoseSpace.LOCAL){
+            AnimationPose animationPose = new AnimationPose(this);
+            animationPose.convertChildrenJointsToEntitySpace(this.getJointSkeleton().getRootJoint(), new PoseStack(), this.getJointSkeleton().getJoints());
+            animationPose.setPoseSpace(PoseSpace.ENTITY);
+            return animationPose;
+        }
         return this;
     }
 
-    public AnimationPose<L> convertSpaceLocalToEntity(Enum<L> jointToConvert){
-        return this.convertSpaceLocalToEntity(Set.of(jointToConvert));
-    }
-
-    public AnimationPose<L> convertSpaceLocalToEntity(){
-        return this.convertSpaceLocalToEntity(this.getSkeleton().getJoints());
-    }
-
-    private void convertChildrenSpaceLocalToEntity(Enum<L> parent, PoseStack poseStack, Set<Enum<L>> jointsToConvert){
-        JointTransform localParentJointPose = new JointTransform(this.getJointPoseCopy(parent));
+    private void convertChildrenJointsToEntitySpace(String parent, PoseStack poseStack, Set<String> jointsToConvert){
+        JointTransform localParentJointPose = new JointTransform(this.getJointPose(parent));
 
         poseStack.pushPose();
 
-        poseStack.mulPose(localParentJointPose.getTransformCopy());
+        poseStack.mulPose(localParentJointPose.getTransform());
 
-        for (Enum<L> child : this.getSkeleton().getDirectChildrenOfJoint(parent)){
-            convertChildrenSpaceLocalToEntity(child, poseStack, jointsToConvert);
+        for (String child : this.getJointSkeleton().getDirectChildrenOfJoint(parent)){
+            convertChildrenJointsToEntitySpace(child, poseStack, jointsToConvert);
         }
 
-        for(Enum<L> joint : jointsToConvert){
-            if((this.getSkeleton().jointIsParentOfChild(parent, joint) || jointsToConvert.contains(parent)) && localParentJointPose.getPoseSpace() == PoseSpace.LOCAL){
-                this.setJointPose(parent, localParentJointPose.setTransform(new Matrix4f(poseStack.last().pose())).setPoseSpace(PoseSpace.ENTITY));
+        for(String joint : jointsToConvert){
+            if((this.getJointSkeleton().jointIsParentOfChild(parent, joint) || jointsToConvert.contains(parent))){
+                this.setJointPose(parent, localParentJointPose.setTransform(new Matrix4f(poseStack.last().pose())));
                 break;
             }
         }
-        /*
-        if(jointsToConvert.contains(parent) && localParentJointPose.getPoseSpace() == PoseSpace.LOCAL){
-            this.setJointPose(parent, localParentJointPose.setTransform(new Matrix4f(poseStack.last().pose())).setPoseSpace(PoseSpace.ENTITY));
-        }
-
-         */
         poseStack.popPose();
     }
 
@@ -115,7 +135,7 @@ public class AnimationPose {
 
     // World to Local
     public AnimationPose<L> convertSpaceEntityToLocal(Set<Enum<L>> jointsToConvert){
-        this.convertChildrenSpaceEntityToLocal(this.getSkeleton().getRootJoint(), new Matrix4f(), jointsToConvert);
+        this.convertChildrenSpaceEntityToLocal(this.getJointSkeleton().getRootJoint(), new Matrix4f(), jointsToConvert);
         return this;
     }
 
@@ -124,13 +144,13 @@ public class AnimationPose {
     }
 
     public AnimationPose<L> convertSpaceEntityToLocal(){
-        return this.convertSpaceEntityToLocal(this.getSkeleton().getJoints());
+        return this.convertSpaceEntityToLocal(this.getJointSkeleton().getJoints());
     }
 
     private void convertChildrenSpaceEntityToLocal(Enum<L> parent, Matrix4f parentMatrix, Set<Enum<L>> jointsToConvert){
-        JointTransform parentJointPose = this.getJointPoseCopy(parent);
+        JointTransform parentJointPose = this.getJointPose(parent);
 
-        for (Enum<L> child : this.getSkeleton().getDirectChildrenOfJoint(parent)){
+        for (Enum<L> child : this.getJointSkeleton().getDirectChildrenOfJoint(parent)){
             convertChildrenSpaceEntityToLocal(child, parentJointPose.getTransformCopy(), jointsToConvert);
         }
 
@@ -144,9 +164,9 @@ public class AnimationPose {
 
 
     public void blend(AnimationPose<L> animationPose, float alpha, Easing easing){
-        for(Enum<L> locator : this.getSkeleton().getJoints()){
-            JointTransform jointPoseA = this.getJointPoseCopy(locator);
-            JointTransform jointPoseB = animationPose.getJointPoseCopy(locator);
+        for(Enum<L> locator : this.getJointSkeleton().getJoints()){
+            JointTransform jointPoseA = this.getJointPose(locator);
+            JointTransform jointPoseB = animationPose.getJointPose(locator);
             this.setJointPose(locator, jointPoseA.blend(jointPoseB, alpha, easing));
         }
     }
@@ -167,8 +187,8 @@ public class AnimationPose {
 
     public void blendByLocators(AnimationPose<L> animationPose, @NotNull List<Enum<L>> locators, float alpha, Easing easing){
         for(Enum<L> locator : locators){
-            JointTransform jointPoseA = this.getJointPoseCopy(locator);
-            JointTransform jointPoseB = animationPose.getJointPoseCopy(locator);
+            JointTransform jointPoseA = this.getJointPose(locator);
+            JointTransform jointPoseB = animationPose.getJointPose(locator);
             this.setJointPose(locator, jointPoseA.blend(jointPoseB, alpha, easing));
         }
     }
@@ -188,8 +208,8 @@ public class AnimationPose {
     }
 
     public void inverseMultiply(AnimationPose<L> animationPose){
-        for(Enum<L> locator : this.getSkeleton().getJoints()){
-            this.setJointPose(locator, this.getJointPoseCopy(locator).inverseMultiplyTransform(animationPose.getJointPoseCopy(locator)));
+        for(Enum<L> locator : this.getJointSkeleton().getJoints()){
+            this.setJointPose(locator, this.getJointPose(locator).inverseMultiplyTransform(animationPose.getJointPose(locator)));
         }
     }
 
@@ -200,8 +220,8 @@ public class AnimationPose {
     }
 
     public void multiply(AnimationPose<L> animationPose){
-        for(Enum<L> locator : this.getSkeleton().getJoints()){
-            this.setJointPose(locator, this.getJointPoseCopy(locator).multiplyTransform(animationPose.getJointPoseCopy(locator)));
+        for(Enum<L> locator : this.getJointSkeleton().getJoints()){
+            this.setJointPose(locator, this.getJointPose(locator).multiplyTransform(animationPose.getJointPose(locator)));
         }
     }
 
@@ -216,7 +236,7 @@ public class AnimationPose {
     public AnimationPose<L> translateJoint(Enum<L> joint, Vector3f translation, TransformSpace transformSpace, boolean additive){
         convertSpaceEntityToLocal();
         if(transformSpace == TransformSpace.ENTITY){
-            this.convertSpaceLocalToEntity(joint);
+            this.getConvertedToEntitySpace(joint);
         }
         if(additive){
             this.getJointPoseReference(joint).translate(translation, transformSpace);
@@ -230,7 +250,7 @@ public class AnimationPose {
     public AnimationPose<L> rotateJoint(Enum<L> joint, Vector3f rotationXYZ, TransformSpace transformSpace, boolean additive){
         convertSpaceEntityToLocal();
         if(transformSpace == TransformSpace.ENTITY){
-            convertSpaceLocalToEntity(joint);
+            getConvertedToEntitySpace(joint);
         }
         if(additive){
             this.getJointPoseReference(joint).rotate(rotationXYZ, transformSpace);
@@ -249,9 +269,9 @@ public class AnimationPose {
 
     public void mirrorBlended(float alpha){
         HashMap<Enum<L>, JointTransform> mirroredPose = Maps.newHashMap();
-        for(Enum<L> locator : this.getSkeleton().getJoints()){
-            JointTransform jointPose = this.getJointPoseCopy(locator);
-            JointTransform mirroredJointPose = this.getJointPoseCopy(this.getSkeleton().getMirrorJoint(locator));
+        for(Enum<L> locator : this.getJointSkeleton().getJoints()){
+            JointTransform jointPose = this.getJointPose(locator);
+            JointTransform mirroredJointPose = this.getJointPose(this.getJointSkeleton().getMirrorJoint(locator));
             mirroredPose.put(locator, new JointTransform(jointPose).blendLinear(mirroredJointPose, alpha));
         }
         for(Enum<L> locator : mirroredPose.keySet()){
@@ -281,12 +301,6 @@ public class AnimationPose {
 
     public enum PoseSpace {
         ENTITY,
-        LOCAL
-    }
-
-    public enum TransformSpace {
-        ENTITY,
-        PARENT,
         LOCAL
     }
 }

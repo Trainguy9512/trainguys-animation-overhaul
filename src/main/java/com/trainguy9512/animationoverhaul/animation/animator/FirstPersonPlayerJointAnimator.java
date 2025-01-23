@@ -187,7 +187,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
 
         pose.setJointPose(
                 FPPlayerJoints.armBuffer,
-                pose.getJointPoseCopy(FPPlayerJoints.armBuffer).rotate(
+                pose.getJointPose(FPPlayerJoints.armBuffer).rotate(
                         new Vector3f(
                                 (dampenedCameraRotation.x() - cameraRotation.x()) * (cameraDampWeight.x() * 0.01F),
                                 (dampenedCameraRotation.y() - cameraRotation.y()) * (cameraDampWeight.y() * 0.01F),
@@ -254,7 +254,6 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
         if (animationPose == null){
             animationPose = AnimationPose.of(this.jointSkeleton);
         }
-        animationPose.applyDefaultPoseOffset();
 
 
         this.localBakedPose.pushPose(animationPose);
