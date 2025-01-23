@@ -74,7 +74,7 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
                     for(String individualPartString : animationPose.getJointSkeleton().getLocatorModelPartIdentifier(locator).split("\\.")){
                         modelPart = modelPart.getChild(individualPartString);
                     }
-                    modelPart.loadPose(animationPose.getJointPose(locator).asPartPose());
+                    modelPart.loadPose(animationPose.getJointTransform(locator).asPartPose());
                 }
             }
         } else {
@@ -143,7 +143,7 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
 
             Enum<L> root = animationPose.getJointSkeleton().getRootJoint();
 
-            animationPose.getJointPose(root).translateAndRotatePoseStack(poseStack);
+            animationPose.getJointTransform(root).translateAndRotatePoseStack(poseStack);
             poseStack.translate(0, 1.5, 0);
         }
 

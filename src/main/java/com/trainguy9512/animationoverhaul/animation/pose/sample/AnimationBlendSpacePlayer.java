@@ -142,7 +142,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
         }
 
         private<L extends Enum<L>>  AnimationPose<L> sampleEntry(JointSkeleton<L> jointSkeleton, float time) {
-            return AnimationPose.fromChannelTimeline(jointSkeleton, this.resourceLocation, this.getTimeFromTicks(time));
+            return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.getTimeFromTicks(time));
         }
     }
 }

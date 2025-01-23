@@ -74,8 +74,8 @@ public abstract class MixinGameRenderer {
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
             if(FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose != null){
                 AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerJoints> animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-                JointTransform cameraPose = animationPose.getJointPose(FirstPersonPlayerJointAnimator.FPPlayerJoints.camera);
-                JointTransform rootPose = animationPose.getJointPose(FirstPersonPlayerJointAnimator.FPPlayerJoints.root);
+                JointTransform cameraPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.FPPlayerJoints.camera);
+                JointTransform rootPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.FPPlayerJoints.root);
                 cameraPose.multiplyTransform(rootPose);
 
                 //poseStack.translate(cameraPose.y / 16F, cameraPose.x / -16F, cameraPose.z / -16F);

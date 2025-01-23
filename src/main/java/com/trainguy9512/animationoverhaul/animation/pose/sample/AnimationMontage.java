@@ -45,7 +45,7 @@ public class AnimationMontage {
     }
 
     public <L extends Enum<L>> AnimationPose<L> getAnimationPose(JointSkeleton<L> jointSkeleton){
-        return AnimationPose.fromChannelTimeline(jointSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / AnimationSequenceData.INSTANCE.get(resourceLocation).getFrameLength());
+        return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / AnimationSequenceData.INSTANCE.get(resourceLocation).getFrameLength());
     }
 
     /**

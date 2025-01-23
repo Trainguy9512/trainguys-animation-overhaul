@@ -185,9 +185,9 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
 
         Vector3f cameraDampWeight = new Vector3f(0.6F, 0.3F, 0.1F);
 
-        pose.setJointPose(
+        pose.setJointTransform(
                 FPPlayerJoints.armBuffer,
-                pose.getJointPose(FPPlayerJoints.armBuffer).rotate(
+                pose.getJointTransform(FPPlayerJoints.armBuffer).rotate(
                         new Vector3f(
                                 (dampenedCameraRotation.x() - cameraRotation.x()) * (cameraDampWeight.x() * 0.01F),
                                 (dampenedCameraRotation.y() - cameraRotation.y()) * (cameraDampWeight.y() * 0.01F),
