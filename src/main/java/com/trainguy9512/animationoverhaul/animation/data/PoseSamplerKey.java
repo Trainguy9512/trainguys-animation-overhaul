@@ -14,34 +14,24 @@ import java.util.function.Supplier;
  * <p>
  * Rather than creating pose sampler
  * objects in the class and referencing them directly, these static keys are used instead to reference
- * pose samplers from the animation data container to ensure that each object is unique per-entity, while
+ * pose samplers from individual pose sampler state containers to ensure that each object is unique per-entity, while
  * still having referencable objects being usable across the class.
  *
  * @param <P> the type of {@link PoseSampler}
  *
+ * @param defaultValue The supplier that is accessed each time a new pose sampler needs to be constructed.
+ * @param identifier String identifier used for debugging.
+ *
  * @see PoseSampler
  * @see AnimationDataContainer
  */
-public class PoseSamplerKey<P extends PoseSampler> {
+public record PoseSamplerKey<P extends PoseSampler>(Supplier<P> defaultValue, String identifier) {
 
-    /**
-     * The supplier used for providing a template for when new pose sampler
-     * objects are assigned to each individual animation data container.
-     * <p>
-     *
-     * @implNote This {@link Supplier} supplies a pose sampler upon each access, so a default value can be variable
-     * if the input involves things like random number generation
-     */
-    private final Supplier<P> defaultValue;
-
-    /**
-     * The string identifier, used primarily in debugging.
-     */
-    private final String identifier;
-
-    private PoseSamplerKey(Builder<P> builder) {
-        this.defaultValue = builder.defaultValue;
-        this.identifier = builder.identifier;
+    private static <P extends PoseSampler> PoseSamplerKey<P> of(Builder<P> builder) {
+        return new PoseSamplerKey<>(
+                builder.defaultValue,
+                builder.identifier
+        );
     }
 
     /**
@@ -49,7 +39,7 @@ public class PoseSamplerKey<P extends PoseSampler> {
      *
      * @param defaultValue The default value supplier that provides the template for each animation data container instance
      */
-    public static <P extends PoseSampler> Builder<P> of(Supplier<P> defaultValue){
+    public static <P extends PoseSampler> Builder<P> builder(Supplier<P> defaultValue){
         return new Builder<>(defaultValue);
     }
 
@@ -83,7 +73,6 @@ public class PoseSamplerKey<P extends PoseSampler> {
     public static class Builder<P extends PoseSampler> {
 
         private final Supplier<P> defaultValue;
-
         private String identifier = "null";
 
         protected Builder(Supplier<P> defaultValue) {
@@ -109,7 +98,7 @@ public class PoseSamplerKey<P extends PoseSampler> {
          * @return an {@link PoseSamplerKey}
          */
         public PoseSamplerKey<P> build(){
-            return new PoseSamplerKey<>(this);
+            return PoseSamplerKey.of(this);
         }
     }
 }

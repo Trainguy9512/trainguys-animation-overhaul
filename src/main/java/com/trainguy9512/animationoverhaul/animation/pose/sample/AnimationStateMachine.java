@@ -265,6 +265,11 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
         return this.activeStates.toString();
     }
 
+    @Override
+    public UpdateOrder getUpdateOrder(){
+        return UpdateOrder.STATE_MACHINES;
+    }
+
     public static class State<S extends StateEnum> {
 
         private boolean isActive;
@@ -413,6 +418,6 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
     }
 
     public interface StateEnum {
-        <L extends Enum<L>> BiFunction<AnimationDataContainer, JointSkeleton<L>, AnimationPose<L>> getStatePose();
+        BiFunction<AnimationDataContainer, JointSkeleton, AnimationPose> getStatePose();
     }
 }

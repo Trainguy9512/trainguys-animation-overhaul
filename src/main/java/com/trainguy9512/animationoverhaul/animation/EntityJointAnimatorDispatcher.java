@@ -8,7 +8,6 @@ import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 
 import java.util.HashMap;
@@ -43,7 +42,7 @@ public class EntityJointAnimatorDispatcher {
         entityJointAnimator.extractAnimationData(entity, animationDataContainer);
 
         // Step 2: Update pose samplers using animation driver data
-        poseSamplerStateContainer.tickAllPoseSamplers(animationDataContainer);
+        poseSamplerStateContainer.tick(animationDataContainer);
 
         // Step 3: Calculate pose
         AnimationPose calculatedAnimationPose = entityJointAnimator.calculatePose(animationDataContainer, poseSamplerStateContainer);

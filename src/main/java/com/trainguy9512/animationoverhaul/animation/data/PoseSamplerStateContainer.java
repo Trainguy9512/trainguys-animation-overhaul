@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationStateMachine;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.PoseSampler;
 
 import java.util.Collection;
@@ -8,56 +9,47 @@ import java.util.HashMap;
 
 public class PoseSamplerStateContainer {
 
-    private final HashMap<PoseSamplerKey<?>, PoseSampler> poseSamplerMap;
+    private final HashMap<PoseSamplerKey<?>, PoseSampler> poseSamplers;
+    private final HashMap<PoseSamplerKey<AnimationStateMachine<?>>, AnimationStateMachine> stateMachines;
 
     public PoseSamplerStateContainer() {
-        this.poseSamplerMap = Maps.newHashMap();
+        this.poseSamplers = Maps.newHashMap();
+        this.stateMachines = Maps.newHashMap();
     }
 
     /**
-     * Returns this animation data container's hash map of pose sampler keys to pose samplers currently loaded.
-     *
-     * @return {@link HashMap} of {@link PoseSamplerKey} keys to {@link PoseSampler} values.
-     */
-    private HashMap<PoseSamplerKey<?>, PoseSampler> getPoseSamplerMap(){
-        return this.poseSamplerMap;
-    }
-
-    /**
-     * Returns a collection of every pose sampler currently loaded into this animation data container.
-     *
-     * @return {@link Collection} of {@link PoseSampler} values.
-     */
-    public Collection<PoseSampler> getPoseSamplers(){
-        return this.getPoseSamplerMap().values();
-    }
-
-    /**
-     * Iterates over every currently loaded pose sampler and executes the {@link PoseSampler#tick(AnimationDataContainer)} method
+     * Iterates over every currently loaded pose sampler and executes the {@link PoseSampler#tick(AnimationDataContainer, PoseSamplerStateContainer)} method
+     * <p>
+     * The update order is as follows: State machines first, then all others.
      *
      * @param animationDataContainer Extracted animation data
      * @implNote Only do this once per game tick! For entities, this is handled in the entity joint animator dispatcher.
      */
-    public void tickAllPoseSamplers(AnimationDataContainer animationDataContainer){
-        for(PoseSampler poseSampler : this.getPoseSamplers()){
-            poseSampler.tick(animationDataContainer);
-        }
+    public void tick(AnimationDataContainer animationDataContainer){
+        this.tickUpdateOrderGroup(animationDataContainer, PoseSampler.UpdateOrder.STATE_MACHINES);
+        this.tickUpdateOrderGroup(animationDataContainer, PoseSampler.UpdateOrder.OTHER);
+    }
+
+    private void tickUpdateOrderGroup(AnimationDataContainer animationDataContainer, PoseSampler.UpdateOrder updateOrder){
+        this.poseSamplers.forEach((poseSamplerKey, poseSampler) -> {
+            if(poseSampler.getUpdateOrder() == updateOrder){
+                poseSampler.tick(animationDataContainer, this);
+            }
+        });
     }
 
     /**
      * Returns a pose sampler from the given key. If one is not currently loaded into
-     * this animation data container, then a new one is created from the key's default
+     * this pose sampler state container, then a new one is created from the key's default
      * value and loaded into this animation data container and returned.
      *
-     * @param animationPoseSamplerKey the {@link PoseSamplerKey} attached to the desired {@link PoseSampler}
+     * @param poseSamplerKey the {@link PoseSamplerKey} attached to the desired {@link PoseSampler}
      *
      * @return a {@link PoseSampler} object reference
      */
     @SuppressWarnings("unchecked")
-    public <P extends PoseSampler> P getPoseSampler(PoseSamplerKey<P> animationPoseSamplerKey){
-        if(!this.getPoseSamplerMap().containsKey(animationPoseSamplerKey)){
-            this.getPoseSamplerMap().put(animationPoseSamplerKey, animationPoseSamplerKey.constructPoseSampler());
-        }
-        return (P) this.getPoseSamplerMap().get(animationPoseSamplerKey);
+    public <P extends PoseSampler> P getPoseSampler(PoseSamplerKey<P> poseSamplerKey){
+        this.poseSamplers.putIfAbsent(poseSamplerKey, poseSamplerKey.constructPoseSampler());
+        return (P) this.poseSamplers.get(poseSamplerKey);
     }
 }

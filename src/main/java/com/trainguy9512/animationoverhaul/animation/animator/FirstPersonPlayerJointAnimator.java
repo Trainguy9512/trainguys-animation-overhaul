@@ -83,7 +83,7 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
     public static final AnimationVariableKey<Boolean> IS_JUMPING = AnimationVariableKey.of(() -> false).setIdentifier("is_jumping").build();
     public static final AnimationVariableKey<Float> WALK_SPEED = AnimationVariableKey.of(() -> 0f).setIdentifier("walk_speed").build();
 
-    public static final PoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = PoseSamplerKey.of(() -> AnimationStateMachine.of("test_state_machine", TestStates.values())
+    public static final PoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = PoseSamplerKey.builder(() -> AnimationStateMachine.of("test_state_machine", TestStates.values())
             .addStateTransition(TestStates.IDLE, TestStates.MOVING, AnimationStateMachine.StateTransition.of(
                             animationDataContainer -> animationDataContainer.getAnimationVariable(WALK_SPEED).get() > 0.1F)
                     .setTransitionTime(5)
@@ -96,12 +96,12 @@ public class FirstPersonPlayerJointAnimator extends LivingEntityJointAnimator<Lo
                     .build())
             .build()).build();
 
-    public static final PoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = PoseSamplerKey.of(
+    public static final PoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = PoseSamplerKey.builder(
             () -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(0)
             .setStartTime(0)
             .build()).setIdentifier("idle_sequence_player").build();
-    public static final PoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER_ALT = PoseSamplerKey.of(
+    public static final PoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER_ALT = PoseSamplerKey.builder(
             () -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(1)
             .setStartTime(20)
