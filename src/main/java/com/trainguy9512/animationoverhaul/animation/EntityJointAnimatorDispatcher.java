@@ -18,8 +18,8 @@ public class EntityJointAnimatorDispatcher {
     public static final EntityJointAnimatorDispatcher INSTANCE = new EntityJointAnimatorDispatcher();
 
     private final HashMap<UUID, AnimationDataContainer> entityAnimationDataContainerStorage;
-    private final HashMap<UUID, BakedAnimationPose<?>> entityBakedAnimationPoseStorage;
-    private final HashMap<UUID, PoseSamplerStateContainer<?>> entityPoseSamplerStateContainerStorage;
+    private final HashMap<UUID, BakedAnimationPose> entityBakedAnimationPoseStorage;
+    private final HashMap<UUID, PoseSamplerStateContainer> entityPoseSamplerStateContainerStorage;
 
     public EntityJointAnimatorDispatcher(){
         this.entityAnimationDataContainerStorage = Maps.newHashMap();
@@ -27,46 +27,36 @@ public class EntityJointAnimatorDispatcher {
         this.entityPoseSamplerStateContainerStorage = Maps.newHashMap();
     }
 
-    public <T extends Entity, S extends EntityRenderState, L extends Enum<L>> void tick(T entity){
+    public <T extends Entity> void tick(T entity){
         UUID entityUUID = entity.getUUID();
 
-        EntityJointAnimator<?, ?, ?, L> entityJointAnimator = (EntityJointAnimator<?, ?, ?, L>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(entity.getType());
-        JointSkeleton<?> jointSkeleton = entityJointAnimator.getJointSkeleton();
+        @SuppressWarnings("unchecked")
+        EntityJointAnimator<T, ?> entityJointAnimator = (EntityJointAnimator<T, ?>) AnimationOverhaulMain.ENTITY_ANIMATORS.get(entity.getType());
+        JointSkeleton jointSkeleton = entityJointAnimator.getJointSkeleton();
 
-        BakedAnimationPose<L> bakedPose = (BakedAnimationPose<L>) this.getEntityBakedAnimationPose(entityUUID, jointSkeleton);
+        BakedAnimationPose bakedPose = this.getEntityBakedAnimationPose(entityUUID, jointSkeleton);
         AnimationDataContainer animationDataContainer = this.getEntityAnimationDataContainer(entityUUID);
+        PoseSamplerStateContainer poseSamplerStateContainer = this.getEntityPoseSamplerStateContainer(entityUUID);
 
 
-        // First tick the entity part animator
+        // Step 1: Extract animation driver data
         entityJointAnimator.extractAnimationData(entity, animationDataContainer);
 
-        animationDataContainer.tickAllPoseSamplers();
+        // Step 2: Update pose samplers using animation driver data
+        poseSamplerStateContainer.tickAllPoseSamplers(animationDataContainer);
 
-
-        /*
-        if(bakedPose == null){
-            bakedPose = new BakedAnimationPose<>();
-        }
-         */
-
-
-        AnimationPose<L> calculatedAnimationPose = entityJointAnimator.calculatePose(animationDataContainer);
+        // Step 3: Calculate pose
+        AnimationPose calculatedAnimationPose = entityJointAnimator.calculatePose(animationDataContainer, poseSamplerStateContainer);
         if (calculatedAnimationPose == null){
             calculatedAnimationPose = AnimationPose.of(jointSkeleton);
         }
-        calculatedAnimationPose.convertSpaceEntityToLocal();
 
-
-        bakedPose.pushPose(calculatedAnimationPose);
-
-        //TODO: Should this be a reference to the static instance and not itself?
-        EntityJointAnimatorDispatcher.INSTANCE.saveBakedPose(entityUUID, bakedPose);
-
-
-        //livingEntityPartAnimator.overallTick(livingEntity);
+        // Step 4: Push the local space pose to the baked pose, and save the baked pose.
+        bakedPose.pushPose(calculatedAnimationPose.getConvertedToLocalSpace());
+        this.saveBakedPose(entityUUID, bakedPose);
     }
 
-    public <L extends Enum<L>> void saveBakedPose(UUID uuid, BakedAnimationPose<L> bakedPose){
+    public <L extends Enum<L>> void saveBakedPose(UUID uuid, BakedAnimationPose bakedPose){
         this.entityBakedAnimationPoseStorage.put(uuid, bakedPose);
     }
 
@@ -84,8 +74,8 @@ public class EntityJointAnimatorDispatcher {
      * @param uuid Entity UUID
      * @return Animation data container
      */
-    public <L extends Enum<L>> BakedAnimationPose<?> getEntityBakedAnimationPose(UUID uuid, JointSkeleton<L> jointSkeleton){
-        return this.entityBakedAnimationPoseStorage.getOrDefault(uuid, new BakedAnimationPose<>(jointSkeleton));
+    public <L extends Enum<L>> BakedAnimationPose getEntityBakedAnimationPose(UUID uuid, JointSkeleton jointSkeleton){
+        return this.entityBakedAnimationPoseStorage.getOrDefault(uuid, new BakedAnimationPose(jointSkeleton));
     }
 
     /**

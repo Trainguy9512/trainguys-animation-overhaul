@@ -1,12 +1,12 @@
 package com.trainguy9512.animationoverhaul.animation.pose;
 
 
-public class BakedAnimationPose<L extends Enum<L>> {
+public class BakedAnimationPose {
 
-    private AnimationPose<L> pose;
-    private AnimationPose<L> poseOld;
+    private AnimationPose pose;
+    private AnimationPose poseOld;
 
-    public BakedAnimationPose(JointSkeleton<L> jointSkeleton){
+    public BakedAnimationPose(JointSkeleton jointSkeleton){
         this.pose = AnimationPose.of(jointSkeleton);
         this.poseOld = AnimationPose.of(jointSkeleton);
     }
@@ -15,9 +15,9 @@ public class BakedAnimationPose<L extends Enum<L>> {
      * Pushes the current pose to the previous pose, and sets the provided animation pose to a copy of the new current pose.
      * @param animationPose New current animation pose
      */
-    public void pushPose(AnimationPose<L> animationPose){
+    public void pushPose(AnimationPose animationPose){
         this.poseOld = pose;
-        this.pose = new AnimationPose<>(animationPose);
+        this.pose = new AnimationPose(animationPose);
     }
 
     /**
@@ -25,7 +25,7 @@ public class BakedAnimationPose<L extends Enum<L>> {
      * @param partialTicks Time since the previous tick
      * @return Interpolated animation pose
      */
-    public AnimationPose<L> getBlendedPose(float partialTicks){
+    public AnimationPose getBlendedPose(float partialTicks){
         // uncomment this for debugging
         //partialTicks = 1;
         return this.poseOld.getBlendedLinear(this.pose, partialTicks).getConvertedToEntitySpace();

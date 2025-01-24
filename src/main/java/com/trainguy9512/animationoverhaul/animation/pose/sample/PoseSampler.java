@@ -27,11 +27,11 @@ public class PoseSampler {
         }
     }
 
-    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton){
+    public AnimationPose sample(JointSkeleton jointSkeleton){
         return AnimationPose.of(jointSkeleton);
     }
 
-    public <L extends Enum<L>> AnimationPose<L> sampleFromInputPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton){
+    public AnimationPose sampleFromInputPose(AnimationPose inputPose, JointSkeleton jointSkeleton){
         return this.sample(jointSkeleton);
     }
 

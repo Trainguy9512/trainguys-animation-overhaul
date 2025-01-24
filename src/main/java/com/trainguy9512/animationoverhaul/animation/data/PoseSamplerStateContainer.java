@@ -33,13 +33,14 @@ public class PoseSamplerStateContainer {
     }
 
     /**
-     * Iterates over every currently loaded pose sampler and executes the  method
+     * Iterates over every currently loaded pose sampler and executes the {@link PoseSampler#tick(AnimationDataContainer)} method
      *
+     * @param animationDataContainer Extracted animation data
      * @implNote Only do this once per game tick! For entities, this is handled in the entity joint animator dispatcher.
      */
-    public void tickAllPoseSamplers(){
+    public void tickAllPoseSamplers(AnimationDataContainer animationDataContainer){
         for(PoseSampler poseSampler : this.getPoseSamplers()){
-            poseSampler.tick();
+            poseSampler.tick(animationDataContainer);
         }
     }
 

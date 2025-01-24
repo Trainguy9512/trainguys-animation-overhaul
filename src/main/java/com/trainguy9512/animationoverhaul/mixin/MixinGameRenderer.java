@@ -73,9 +73,9 @@ public abstract class MixinGameRenderer {
     private void injectCameraRotation(PoseStack poseStack, float f, CallbackInfo ci){
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
             if(FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose != null){
-                AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerJoints> animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-                JointTransform cameraPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.FPPlayerJoints.camera);
-                JointTransform rootPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.FPPlayerJoints.root);
+                AnimationPose animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
+                JointTransform cameraPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.CAMERA_JOINT);
+                JointTransform rootPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.ROOT_JOINT);
                 cameraPose.multiplyTransform(rootPose);
 
                 //poseStack.translate(cameraPose.y / 16F, cameraPose.x / -16F, cameraPose.z / -16F);
