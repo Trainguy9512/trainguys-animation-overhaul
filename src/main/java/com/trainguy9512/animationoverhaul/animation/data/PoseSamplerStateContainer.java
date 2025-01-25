@@ -31,11 +31,9 @@ public class PoseSamplerStateContainer {
     }
 
     private void tickUpdateOrderGroup(AnimationDataContainer animationDataContainer, PoseSampler.UpdateOrder updateOrder){
-        this.poseSamplers.forEach((poseSamplerKey, poseSampler) -> {
-            if(poseSampler.getUpdateOrder() == updateOrder){
-                poseSampler.tick(animationDataContainer, this);
-            }
-        });
+        this.poseSamplers.values().stream()
+                .filter((poseSampler -> poseSampler.getUpdateOrder() == updateOrder))
+                .forEach((poseSampler -> poseSampler.tick(animationDataContainer, this)));
     }
 
     /**
