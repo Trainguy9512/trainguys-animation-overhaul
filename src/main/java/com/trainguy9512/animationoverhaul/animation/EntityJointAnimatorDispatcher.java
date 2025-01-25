@@ -37,7 +37,6 @@ public class EntityJointAnimatorDispatcher {
         AnimationDataContainer animationDataContainer = this.getEntityAnimationDataContainer(entityUUID);
         PoseSamplerStateContainer poseSamplerStateContainer = this.getEntityPoseSamplerStateContainer(entityUUID);
 
-
         // Step 1: Extract animation driver data
         entityJointAnimator.extractAnimationData(entity, animationDataContainer);
 

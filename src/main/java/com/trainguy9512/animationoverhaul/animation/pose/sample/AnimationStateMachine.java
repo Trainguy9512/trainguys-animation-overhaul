@@ -151,13 +151,13 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
         return null;
     }
 
-    private <L extends Enum<L>> AnimationPose<L> getPoseFromState(S identifier, JointSkeleton<L> jointSkeleton){
-        BiFunction<AnimationDataContainer, JointSkeleton<L>, AnimationPose<L>> biFunction = identifier.getStatePose();
+    private AnimationPose getPoseFromState(S identifier, JointSkeleton jointSkeleton){
+        BiFunction<AnimationDataContainer, JointSkeleton, AnimationPose> biFunction = identifier.getStatePose();
         return biFunction.apply(this.getAnimationDataContainer(), jointSkeleton);
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton) {
+    public AnimationPose sample(JointSkeleton jointSkeleton) {
         if(!this.activeStates.isEmpty()){
             AnimationPose<L> animationPose = this.getPoseFromState(this.activeStates.get(0), jointSkeleton);
             if(this.activeStates.size() > 1){

@@ -147,9 +147,7 @@ public class JointSkeleton {
 
         public JointSkeleton build(){
             HashMap<String, JointConfiguration> jointsBuilt = Maps.newHashMap();
-            for(String joint : this.joints.keySet()){
-                jointsBuilt.put(joint, this.joints.get(joint).build());
-            }
+            this.joints.forEach((joint, jointBuilder) -> jointsBuilt.put(joint, jointBuilder.build()));
             return new JointSkeleton(jointsBuilt, this.rootJoint);
         }
     }
