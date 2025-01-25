@@ -1,7 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationData;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerKey;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 
@@ -143,11 +143,11 @@ public class TimeBasedPoseSampler extends PoseSampler {
     }
 
     @Override
-    public void tick(AnimationDataContainer animationDataContainer, PoseSamplerStateContainer poseSamplerStateContainer){
-        progressTimeIfStateActive();
+    public void tick(AnimationData animationData, PoseSamplerStateContainer poseSamplerStateContainer){
+        progressTimeIfStateActive(poseSamplerStateContainer);
         if(this.getIsPlaying()){
             this.timeElapsed += this.playRate;
         }
-        playFromStartOnStateActive();
+        playFromStartOnStateActive(poseSamplerStateContainer);
     }
 }

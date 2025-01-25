@@ -2,9 +2,9 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationData;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
@@ -152,7 +152,7 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
     }
 
     private AnimationPose getPoseFromState(S identifier, JointSkeleton jointSkeleton){
-        BiFunction<AnimationDataContainer, JointSkeleton, AnimationPose> biFunction = identifier.getStatePose();
+        BiFunction<AnimationData, JointSkeleton, AnimationPose> biFunction = identifier.getStatePose();
         return biFunction.apply(this.getAnimationDataContainer(), jointSkeleton);
     }
 
@@ -176,7 +176,7 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
     }
 
     @Override
-    public void tick(AnimationDataContainer animationDataContainer){
+    public void tick(AnimationData animationData){
         // Don't evaluate if the state machine has no states
         if(this.statesHashMap.isEmpty()){
             AnimationOverhaulMain.LOGGER.warn("State machine {} not evaluated due to no active states", this.getIdentifier());
@@ -184,7 +184,7 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
         }
 
         // Add to the current elapsed ticks
-        super.tick(animationDataContainer);
+        super.tick(animationData);
 
         // Get the previous active state
         S currentActiveStateIdentifier = this.activeStates.getLast();
@@ -198,7 +198,7 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
             if(isValidTransition(currentActiveStateIdentifier, stateIdentifier)){
                 StateTransition currentStateTransition = currentActiveState.getTransition(stateIdentifier);
                 assert currentStateTransition != null;
-                if(currentStateTransition.getCondition(animationDataContainer)){
+                if(currentStateTransition.getCondition(animationData)){
                     // If the loop has already determined a state transition to be true, update the transition IF the new one has a higher priority
                     if(canEnterTransition && currentStateTransition.getPriority() < stateTransition.getPriority()){
                         stateTransition = currentStateTransition;
@@ -336,7 +336,7 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
         private final float transitionTime;
         private final Easing easing;
         private final int priority;
-        private final Predicate<AnimationDataContainer> conditionPredicate;
+        private final Predicate<AnimationData> conditionPredicate;
         //private final Enum<S> destinationStateIdentifier;
 
         //private boolean condition = false;
@@ -348,7 +348,7 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
             this.conditionPredicate = builder.conditionPredicate;
         }
 
-        public static Builder of(Predicate<AnimationDataContainer> stateConditionPredicate){
+        public static Builder of(Predicate<AnimationData> stateConditionPredicate){
             return new Builder(stateConditionPredicate);
         }
 
@@ -360,8 +360,8 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
             return this.transitionTime;
         }
 
-        public boolean getCondition(AnimationDataContainer animationDataContainer){
-            return this.conditionPredicate.test(animationDataContainer);
+        public boolean getCondition(AnimationData animationData){
+            return this.conditionPredicate.test(animationData);
         }
 
         public int getPriority(){
@@ -372,9 +372,9 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
             private float transitionTime = 1;
             private Easing easing = Easing.Linear.of();
             private int priority = 1;
-            private final Predicate<AnimationDataContainer> conditionPredicate;
+            private final Predicate<AnimationData> conditionPredicate;
 
-            private Builder(Predicate<AnimationDataContainer> conditionPredicate){
+            private Builder(Predicate<AnimationData> conditionPredicate){
                 this.conditionPredicate = conditionPredicate;
             }
 
@@ -418,6 +418,6 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
     }
 
     public interface StateEnum {
-        BiFunction<AnimationDataContainer, JointSkeleton, AnimationPose> getStatePose();
+        BiFunction<AnimationData, JointSkeleton, AnimationPose> getStatePose();
     }
 }

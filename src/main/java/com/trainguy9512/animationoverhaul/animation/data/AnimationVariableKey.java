@@ -8,9 +8,9 @@ import java.util.function.Supplier;
 /**
  * Represents a key for associating with animation variables in animation data containers
  * <p>
- * Animation Variable Keys are used in the static definition of {@link AnimationDataContainer.AnimationVariable} objects
+ * Animation Variable Keys are used in the static definition of {@link AnimationData.AnimationVariable} objects
  * in {@link JointAnimator} classes, which are created at runtime using the {@link AnimationVariableKey#defaultValue} as
- * the template. These keys are then referenced when accessing those variables from {@link AnimationDataContainer}
+ * the template. These keys are then referenced when accessing those variables from {@link AnimationData}
  * objects, with a key-and-value design structure.
  * <p>
  * Rather than creating animation variable objects in the class and referencing them directly,
@@ -21,7 +21,7 @@ import java.util.function.Supplier;
  * @param <D> the type of data being stored
  *
  * @see PoseSampler
- * @see AnimationDataContainer
+ * @see AnimationData
  */
 public class AnimationVariableKey<D> {
 
@@ -68,7 +68,7 @@ public class AnimationVariableKey<D> {
     }
 
     /**
-     * A mutable builder for {@link AnimationDataContainer.AnimationVariable} objects.
+     * A mutable builder for {@link AnimationData.AnimationVariable} objects.
      *
      * @param <D> the type of data
      */

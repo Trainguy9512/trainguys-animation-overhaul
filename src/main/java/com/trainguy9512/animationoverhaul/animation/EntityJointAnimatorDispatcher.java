@@ -3,10 +3,10 @@ package com.trainguy9512.animationoverhaul.animation;
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationData;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import net.minecraft.world.entity.Entity;
 
@@ -16,7 +16,7 @@ import java.util.UUID;
 public class EntityJointAnimatorDispatcher {
     public static final EntityJointAnimatorDispatcher INSTANCE = new EntityJointAnimatorDispatcher();
 
-    private final HashMap<UUID, AnimationDataContainer> entityAnimationDataContainerStorage;
+    private final HashMap<UUID, AnimationData> entityAnimationDataContainerStorage;
     private final HashMap<UUID, BakedAnimationPose> entityBakedAnimationPoseStorage;
     private final HashMap<UUID, PoseSamplerStateContainer> entityPoseSamplerStateContainerStorage;
 
@@ -34,17 +34,17 @@ public class EntityJointAnimatorDispatcher {
         JointSkeleton jointSkeleton = entityJointAnimator.getJointSkeleton();
 
         BakedAnimationPose bakedPose = this.getEntityBakedAnimationPose(entityUUID, jointSkeleton);
-        AnimationDataContainer animationDataContainer = this.getEntityAnimationDataContainer(entityUUID);
-        PoseSamplerStateContainer poseSamplerStateContainer = this.getEntityPoseSamplerStateContainer(entityUUID);
+        AnimationData animationData = this.getEntityAnimationDataContainer(entityUUID);
+        PoseSamplerStateContainer poseSamplerStateContainer = this.getEntityPoseSamplerStateContainer(entityUUID, jointSkeleton);
 
         // Step 1: Extract animation driver data
-        entityJointAnimator.extractAnimationData(entity, animationDataContainer);
+        entityJointAnimator.extractAnimationData(entity, animationData);
 
         // Step 2: Update pose samplers using animation driver data
-        poseSamplerStateContainer.tick(animationDataContainer);
+        poseSamplerStateContainer.tick(animationData);
 
         // Step 3: Calculate pose
-        AnimationPose calculatedAnimationPose = entityJointAnimator.calculatePose(animationDataContainer, poseSamplerStateContainer);
+        AnimationPose calculatedAnimationPose = entityJointAnimator.calculatePose(animationData, poseSamplerStateContainer);
         if (calculatedAnimationPose == null){
             calculatedAnimationPose = AnimationPose.of(jointSkeleton);
         }
@@ -52,6 +52,8 @@ public class EntityJointAnimatorDispatcher {
         // Step 4: Push the local space pose to the baked pose, and save the baked pose.
         bakedPose.pushPose(calculatedAnimationPose.getConvertedToLocalSpace());
         this.saveBakedPose(entityUUID, bakedPose);
+
+
     }
 
     public <L extends Enum<L>> void saveBakedPose(UUID uuid, BakedAnimationPose bakedPose){
@@ -63,8 +65,8 @@ public class EntityJointAnimatorDispatcher {
      * @param uuid Entity UUID
      * @return Animation data container
      */
-    public PoseSamplerStateContainer getEntityPoseSamplerStateContainer(UUID uuid){
-        return this.entityPoseSamplerStateContainerStorage.getOrDefault(uuid, new PoseSamplerStateContainer());
+    public PoseSamplerStateContainer getEntityPoseSamplerStateContainer(UUID uuid, JointSkeleton jointSkeleton){
+        return this.entityPoseSamplerStateContainerStorage.computeIfAbsent(uuid, (uuid1 -> new PoseSamplerStateContainer(jointSkeleton)));
     }
 
     /**
@@ -81,8 +83,8 @@ public class EntityJointAnimatorDispatcher {
      * @param uuid Entity UUID
      * @return Animation data container
      */
-    private AnimationDataContainer getEntityAnimationDataContainer(UUID uuid){
-        return this.entityAnimationDataContainerStorage.getOrDefault(uuid, new AnimationDataContainer());
+    private AnimationData getEntityAnimationDataContainer(UUID uuid){
+        return this.entityAnimationDataContainerStorage.getOrDefault(uuid, new AnimationData());
     }
 
     /**

@@ -10,7 +10,7 @@ import java.util.function.Supplier;
  * <p>
  * Pose Sampler Keys are used in the static definition of {@link PoseSampler} objects in {@link JointAnimator} classes, which are
  * created at runtime using the {@link PoseSamplerKey#defaultValue} as the template. These keys are then referenced
- * when accessing those pose samplers from {@link AnimationDataContainer} objects, with a key-and-value design structure.
+ * when accessing those pose samplers from {@link AnimationData} objects, with a key-and-value design structure.
  * <p>
  * Rather than creating pose sampler
  * objects in the class and referencing them directly, these static keys are used instead to reference
@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  * @param identifier String identifier used for debugging.
  *
  * @see PoseSampler
- * @see AnimationDataContainer
+ * @see AnimationData
  */
 public record PoseSamplerKey<P extends PoseSampler>(Supplier<P> defaultValue, String identifier) {
 

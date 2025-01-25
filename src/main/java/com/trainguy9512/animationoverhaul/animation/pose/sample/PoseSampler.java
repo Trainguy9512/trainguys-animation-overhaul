@@ -1,10 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
-import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerKey;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
-import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationData;
 
 public class PoseSampler {
 
@@ -20,7 +17,6 @@ public class PoseSampler {
     public static class Builder<B extends Builder<B>> {
 
         protected Builder() {
-            PoseSamplerKey<PoseSampler> b = PoseSamplerKey.builder(() -> PoseSampler.of().build()).build();
         }
 
         public PoseSampler build(){
@@ -28,21 +24,13 @@ public class PoseSampler {
         }
     }
 
-    public AnimationPose sample(JointSkeleton jointSkeleton){
-        return AnimationPose.of(jointSkeleton);
-    }
-
-    public AnimationPose sampleFromInputPose(AnimationPose inputPose, JointSkeleton jointSkeleton){
-        return this.sample(jointSkeleton);
-    }
-
     /**
      * Updates the pose sampler using information from the data container. Called once per tick after animation data is extracted by the joint animator but prior to pose calculation.
      *
-     * @param animationDataContainer Extracted animation data
+     * @param animationData Extracted animation data
      * @param poseSamplerStateContainer Pose sampler state container used for referencing information from other pose samplers. Only
      */
-    public void tick(AnimationDataContainer animationDataContainer, PoseSamplerStateContainer poseSamplerStateContainer){
+    public void tick(AnimationData animationData, PoseSamplerStateContainer poseSamplerStateContainer){
     }
 
     public String getIdentifier(){

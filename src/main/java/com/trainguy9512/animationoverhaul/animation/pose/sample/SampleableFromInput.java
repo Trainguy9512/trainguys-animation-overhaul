@@ -1,9 +1,8 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 
 public interface SampleableFromInput {
-    AnimationPose sample(JointSkeleton jointSkeleton, AnimationDataContainer animationDataContainer, AnimationPose inputPose);
+    AnimationPose sample(JointSkeleton jointSkeleton, AnimationPose inputPose);
 }

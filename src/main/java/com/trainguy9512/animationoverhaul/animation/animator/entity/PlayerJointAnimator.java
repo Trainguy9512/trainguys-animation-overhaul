@@ -1,8 +1,8 @@
 package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
+import com.trainguy9512.animationoverhaul.animation.data.AnimationData;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -86,15 +86,15 @@ public class PlayerJointAnimator extends LivingEntityJointAnimator<Player, Playe
 
     // Ticking every sampleable animation state, in this case updating the state machine conditions
     @Override
-    public AnimationDataContainer extractAnimationData(Player dataReference, AnimationDataContainer animationDataContainer) {
-        return animationDataContainer;
+    public AnimationData extractAnimationData(Player dataReference, AnimationData animationData) {
+        return animationData;
 
 
     }
 
     // This is the function for getting the final pose every tick
     @Override
-    public AnimationPose<ModelPartLocators> calculatePose(AnimationDataContainer animationDataContainer) {
+    public AnimationPose<ModelPartLocators> calculatePose(AnimationData animationData) {
         return AnimationPose.of(this.jointSkeleton);
     }
 

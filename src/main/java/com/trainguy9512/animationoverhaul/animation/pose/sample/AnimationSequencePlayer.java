@@ -1,16 +1,17 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationData;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 import java.util.HashMap;
 
-public class AnimationSequencePlayer extends TimeBasedPoseSampler {
+public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sampleable {
 
     private boolean looping;
     private ResourceLocation resourceLocation;
@@ -35,6 +36,11 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
         return new Builder<>(resourceLocation);
     }
 
+    @Override
+    public AnimationPose sample(JointSkeleton jointSkeleton) {
+        return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.getTimeFromTicks());
+    }
+
 
     public static class Builder<B extends Builder<B>> extends TimeBasedPoseSampler.Builder<B> {
 
@@ -47,7 +53,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
         protected Builder(ResourceLocation resourceLocation) {
             super();
             this.resourceLocation = resourceLocation;
-            this.frameLength = AnimationSequenceData.INSTANCE.get(this.resourceLocation).getFrameLength();
+            this.frameLength = AnimationSequenceData.INSTANCE.get(this.resourceLocation).frameLength();
             this.endTime = frameLength;
         }
 
@@ -76,7 +82,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
     }
 
     @Override
-    public void tick(AnimationDataContainer animationDataContainer){
+    public void tick(AnimationData animationData, PoseSamplerStateContainer poseSamplerStateContainer){
         for(AnimNotify animNotify : animNotifyMap.values()){
             if(animNotify.isActive()){
                 animNotify.setActive(false);
@@ -88,7 +94,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
                 animNotify.setActive(true);
             }
         }
-        super.tick(animationDataContainer);
+        super.tick(animationData, poseSamplerStateContainer);
     }
 
     private float getTimeFromTicks(){
@@ -116,12 +122,6 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler {
             return this.animNotifyMap.get(identifier).isActive();
         }
         return false;
-    }
-
-    @Override
-    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton){
-        return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.getTimeFromTicks());
-        //return super.sample(locatorSkeleton);
     }
 
     //TODO: Rewrite this with functions

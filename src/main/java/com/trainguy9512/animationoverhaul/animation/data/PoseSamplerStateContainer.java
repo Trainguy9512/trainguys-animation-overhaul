@@ -1,39 +1,41 @@
 package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationStateMachine;
+import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
+import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.PoseSampler;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.Sampleable;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.SampleableFromInput;
 
-import java.util.Collection;
 import java.util.HashMap;
 
 public class PoseSamplerStateContainer {
 
     private final HashMap<PoseSamplerKey<?>, PoseSampler> poseSamplers;
-    private final HashMap<PoseSamplerKey<AnimationStateMachine<?>>, AnimationStateMachine> stateMachines;
+    private final JointSkeleton jointSkeleton;
 
-    public PoseSamplerStateContainer() {
+    public PoseSamplerStateContainer(JointSkeleton jointSkeleton) {
         this.poseSamplers = Maps.newHashMap();
-        this.stateMachines = Maps.newHashMap();
+        this.jointSkeleton = jointSkeleton;
     }
 
     /**
-     * Iterates over every currently loaded pose sampler and executes the {@link PoseSampler#tick(AnimationDataContainer, PoseSamplerStateContainer)} method
+     * Iterates over every currently loaded pose sampler and executes the {@link PoseSampler#tick(AnimationData, PoseSamplerStateContainer)} method
      * <p>
      * The update order is as follows: State machines first, then all others.
      *
-     * @param animationDataContainer Extracted animation data
+     * @param animationData Extracted animation data
      * @implNote Only do this once per game tick! For entities, this is handled in the entity joint animator dispatcher.
      */
-    public void tick(AnimationDataContainer animationDataContainer){
-        this.tickUpdateOrderGroup(animationDataContainer, PoseSampler.UpdateOrder.STATE_MACHINES);
-        this.tickUpdateOrderGroup(animationDataContainer, PoseSampler.UpdateOrder.OTHER);
+    public void tick(AnimationData animationData){
+        this.tickUpdateOrderGroup(animationData, PoseSampler.UpdateOrder.STATE_MACHINES);
+        this.tickUpdateOrderGroup(animationData, PoseSampler.UpdateOrder.OTHER);
     }
 
-    private void tickUpdateOrderGroup(AnimationDataContainer animationDataContainer, PoseSampler.UpdateOrder updateOrder){
+    private void tickUpdateOrderGroup(AnimationData animationData, PoseSampler.UpdateOrder updateOrder){
         this.poseSamplers.values().stream()
                 .filter((poseSampler -> poseSampler.getUpdateOrder() == updateOrder))
-                .forEach((poseSampler -> poseSampler.tick(animationDataContainer, this)));
+                .forEach((poseSampler -> poseSampler.tick(animationData, this)));
     }
 
     /**
@@ -47,7 +49,14 @@ public class PoseSamplerStateContainer {
      */
     @SuppressWarnings("unchecked")
     public <P extends PoseSampler> P getPoseSampler(PoseSamplerKey<P> poseSamplerKey){
-        this.poseSamplers.putIfAbsent(poseSamplerKey, poseSamplerKey.constructPoseSampler());
-        return (P) this.poseSamplers.get(poseSamplerKey);
+        return (P) this.poseSamplers.computeIfAbsent(poseSamplerKey, PoseSamplerKey::constructPoseSampler);
+    }
+
+    public AnimationPose sample(PoseSamplerKey<? extends Sampleable> poseSamplerKey){
+        return this.getPoseSampler(poseSamplerKey).sample(this.jointSkeleton);
+    }
+
+    public AnimationPose sample(PoseSamplerKey<? extends SampleableFromInput> poseSamplerKey, AnimationPose animationPose){
+        return this.getPoseSampler(poseSamplerKey).sample(this.jointSkeleton, animationPose);
     }
 }
