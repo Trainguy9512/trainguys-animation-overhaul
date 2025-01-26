@@ -8,9 +8,9 @@ import java.util.function.Supplier;
 /**
  * Represents a key for associating with animation variables in animation data containers
  * <p>
- * Animation Variable Keys are used in the static definition of {@link AnimationData.AnimationVariable} objects
- * in {@link JointAnimator} classes, which are created at runtime using the {@link AnimationVariableKey#defaultValue} as
- * the template. These keys are then referenced when accessing those variables from {@link AnimationData}
+ * Animation Variable Keys are used in the static definition of {@link AnimationDriverContainer.AnimationDriver} objects
+ * in {@link JointAnimator} classes, which are created at runtime using the {@link AnimationDriverKey#defaultValue} as
+ * the template. These keys are then referenced when accessing those variables from {@link AnimationDriverContainer}
  * objects, with a key-and-value design structure.
  * <p>
  * Rather than creating animation variable objects in the class and referencing them directly,
@@ -21,9 +21,9 @@ import java.util.function.Supplier;
  * @param <D> the type of data being stored
  *
  * @see PoseSampler
- * @see AnimationData
+ * @see AnimationDriverContainer
  */
-public class AnimationVariableKey<D> {
+public class AnimationDriverKey<D> {
 
     /**
      * The supplier used for providing a template for when new animation variable
@@ -40,7 +40,7 @@ public class AnimationVariableKey<D> {
      */
     private final String identifier;
 
-    protected AnimationVariableKey(Builder<D> builder) {
+    protected AnimationDriverKey(Builder<D> builder) {
         this.defaultValue = builder.defaultValue;
         this.identifier = builder.identifier;
     }
@@ -63,12 +63,9 @@ public class AnimationVariableKey<D> {
         return identifier;
     }
 
-    public Supplier<D> getDefaultValueSupplier(){
-        return this.defaultValue;
-    }
 
     /**
-     * A mutable builder for {@link AnimationData.AnimationVariable} objects.
+     * A mutable builder for {@link AnimationDriverContainer.AnimationDriver} objects.
      *
      * @param <D> the type of data
      */
@@ -83,7 +80,7 @@ public class AnimationVariableKey<D> {
         }
 
         /**
-         * Sets the {@link AnimationVariableKey.Builder#identifier} for this key builder
+         * Sets the {@link AnimationDriverKey.Builder#identifier} for this key builder
          * <p>
          * This is used in in-game value debugging for
          * identifying pose samplers and printing them to the screen.
@@ -97,11 +94,11 @@ public class AnimationVariableKey<D> {
         }
 
         /**
-         * Returns a new {@link AnimationVariableKey}
-         * @return an {@link AnimationVariableKey}
+         * Returns a new {@link AnimationDriverKey}
+         * @return an {@link AnimationDriverKey}
          */
-        public AnimationVariableKey<D> build(){
-            return new AnimationVariableKey<>(this);
+        public AnimationDriverKey<D> build(){
+            return new AnimationDriverKey<>(this);
         }
     }
 }

@@ -20,22 +20,22 @@ public class PoseSamplerStateContainer {
     }
 
     /**
-     * Iterates over every currently loaded pose sampler and executes the {@link PoseSampler#tick(AnimationData, PoseSamplerStateContainer)} method
+     * Iterates over every currently loaded pose sampler and executes the {@link PoseSampler#tick(AnimationDriverContainer, PoseSamplerStateContainer)} method
      * <p>
      * The update order is as follows: State machines first, then all others.
      *
-     * @param animationData Extracted animation data
+     * @param animationDriverContainer Extracted animation data
      * @implNote Only do this once per game tick! For entities, this is handled in the entity joint animator dispatcher.
      */
-    public void tick(AnimationData animationData){
-        this.tickUpdateOrderGroup(animationData, PoseSampler.UpdateOrder.STATE_MACHINES);
-        this.tickUpdateOrderGroup(animationData, PoseSampler.UpdateOrder.OTHER);
+    public void tick(AnimationDriverContainer animationDriverContainer){
+        this.tickUpdateOrderGroup(animationDriverContainer, PoseSampler.UpdateOrder.STATE_MACHINES);
+        this.tickUpdateOrderGroup(animationDriverContainer, PoseSampler.UpdateOrder.OTHER);
     }
 
-    private void tickUpdateOrderGroup(AnimationData animationData, PoseSampler.UpdateOrder updateOrder){
+    private void tickUpdateOrderGroup(AnimationDriverContainer animationDriverContainer, PoseSampler.UpdateOrder updateOrder){
         this.poseSamplers.values().stream()
                 .filter((poseSampler -> poseSampler.getUpdateOrder() == updateOrder))
-                .forEach((poseSampler -> poseSampler.tick(animationData, this)));
+                .forEach((poseSampler -> poseSampler.tick(animationDriverContainer, this)));
     }
 
     /**

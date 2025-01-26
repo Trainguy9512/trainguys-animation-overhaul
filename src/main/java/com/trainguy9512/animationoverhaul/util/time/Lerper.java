@@ -1,7 +1,8 @@
 package com.trainguy9512.animationoverhaul.util.time;
 
+@FunctionalInterface
 public interface Lerper<T>  {
 
-    public T lerp(T a, T b, float t);
+    T lerp(T a, T b, float t);
 
 }

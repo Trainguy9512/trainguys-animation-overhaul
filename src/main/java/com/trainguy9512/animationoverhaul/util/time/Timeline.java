@@ -7,8 +7,11 @@ import java.util.TreeMap;
 public class Timeline<T> {
 
     private TreeMap<Float, Keyframe<T>> keyframes = new TreeMap();
+    private final Lerper<T> lerper;
 
-    private Lerper<T> lerper;
+    public Timeline(Lerper<T> lerper) {
+        this.lerper = lerper;
+    }
 
     public T getValueAtFrame(float time) {
         var firstKeyframe = keyframes.floorEntry(time);
@@ -37,10 +40,6 @@ public class Timeline<T> {
 
     public T getValueAt(float t) {
         return getValueAtFrame(t * this.keyframes.lastKey());
-    }
-
-    public Timeline(Lerper<T> lerper) {
-        this.lerper = lerper;
     }
 
     public Timeline<T> addKeyframe(float time, T value) {

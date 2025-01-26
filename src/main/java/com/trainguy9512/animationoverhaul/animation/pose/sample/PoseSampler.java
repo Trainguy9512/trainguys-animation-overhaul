@@ -1,7 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationData;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
 
 public class PoseSampler {
 
@@ -27,10 +27,10 @@ public class PoseSampler {
     /**
      * Updates the pose sampler using information from the data container. Called once per tick after animation data is extracted by the joint animator but prior to pose calculation.
      *
-     * @param animationData Extracted animation data
+     * @param animationDriverContainer Extracted animation data
      * @param poseSamplerStateContainer Pose sampler state container used for referencing information from other pose samplers. Only
      */
-    public void tick(AnimationData animationData, PoseSamplerStateContainer poseSamplerStateContainer){
+    public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
     }
 
     public String getIdentifier(){

@@ -3,7 +3,7 @@ package com.trainguy9512.animationoverhaul.animation;
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationData;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
@@ -16,7 +16,7 @@ import java.util.UUID;
 public class EntityJointAnimatorDispatcher {
     public static final EntityJointAnimatorDispatcher INSTANCE = new EntityJointAnimatorDispatcher();
 
-    private final HashMap<UUID, AnimationData> entityAnimationDataContainerStorage;
+    private final HashMap<UUID, AnimationDriverContainer> entityAnimationDataContainerStorage;
     private final HashMap<UUID, BakedAnimationPose> entityBakedAnimationPoseStorage;
     private final HashMap<UUID, PoseSamplerStateContainer> entityPoseSamplerStateContainerStorage;
 
@@ -34,17 +34,17 @@ public class EntityJointAnimatorDispatcher {
         JointSkeleton jointSkeleton = entityJointAnimator.getJointSkeleton();
 
         BakedAnimationPose bakedPose = this.getEntityBakedAnimationPose(entityUUID, jointSkeleton);
-        AnimationData animationData = this.getEntityAnimationDataContainer(entityUUID);
+        AnimationDriverContainer animationDriverContainer = this.getEntityAnimationDataContainer(entityUUID);
         PoseSamplerStateContainer poseSamplerStateContainer = this.getEntityPoseSamplerStateContainer(entityUUID, jointSkeleton);
 
         // Step 1: Extract animation driver data
-        entityJointAnimator.extractAnimationData(entity, animationData);
+        entityJointAnimator.extractAnimationData(entity, animationDriverContainer);
 
         // Step 2: Update pose samplers using animation driver data
-        poseSamplerStateContainer.tick(animationData);
+        poseSamplerStateContainer.tick(animationDriverContainer);
 
         // Step 3: Calculate pose
-        AnimationPose calculatedAnimationPose = entityJointAnimator.calculatePose(animationData, poseSamplerStateContainer);
+        AnimationPose calculatedAnimationPose = entityJointAnimator.calculatePose(animationDriverContainer, poseSamplerStateContainer);
         if (calculatedAnimationPose == null){
             calculatedAnimationPose = AnimationPose.of(jointSkeleton);
         }
@@ -83,8 +83,8 @@ public class EntityJointAnimatorDispatcher {
      * @param uuid Entity UUID
      * @return Animation data container
      */
-    private AnimationData getEntityAnimationDataContainer(UUID uuid){
-        return this.entityAnimationDataContainerStorage.getOrDefault(uuid, new AnimationData());
+    private AnimationDriverContainer getEntityAnimationDataContainer(UUID uuid){
+        return this.entityAnimationDataContainerStorage.getOrDefault(uuid, new AnimationDriverContainer());
     }
 
     /**

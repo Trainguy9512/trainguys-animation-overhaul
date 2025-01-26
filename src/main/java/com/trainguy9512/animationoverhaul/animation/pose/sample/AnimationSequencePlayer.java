@@ -1,10 +1,10 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationData;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -82,7 +82,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
     }
 
     @Override
-    public void tick(AnimationData animationData, PoseSamplerStateContainer poseSamplerStateContainer){
+    public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
         for(AnimNotify animNotify : animNotifyMap.values()){
             if(animNotify.isActive()){
                 animNotify.setActive(false);
@@ -94,7 +94,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
                 animNotify.setActive(true);
             }
         }
-        super.tick(animationData, poseSamplerStateContainer);
+        super.tick(animationDriverContainer, poseSamplerStateContainer);
     }
 
     private float getTimeFromTicks(){
