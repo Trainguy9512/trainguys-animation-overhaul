@@ -33,16 +33,16 @@ public class AnimationDriverKey<D> {
      * @implNote This {@link Supplier} supplies a value upon each access, so a default value can be variable
      * if the input involves things like random number generation
      */
-    protected final Supplier<D> defaultValue;
+    private final Supplier<D> defaultValue;
 
     /**
      * The string identifier, used primarily in debugging.
      */
     private final String identifier;
 
-    protected AnimationDriverKey(Builder<D> builder) {
-        this.defaultValue = builder.defaultValue;
-        this.identifier = builder.identifier;
+    protected AnimationDriverKey(Supplier<D> defaultValue, String identifier) {
+        this.defaultValue = defaultValue;
+        this.identifier = identifier;
     }
 
     /**
@@ -62,7 +62,6 @@ public class AnimationDriverKey<D> {
     public String getIdentifier() {
         return identifier;
     }
-
 
     /**
      * A mutable builder for {@link AnimationDriverContainer.AnimationDriver} objects.
@@ -98,7 +97,7 @@ public class AnimationDriverKey<D> {
          * @return an {@link AnimationDriverKey}
          */
         public AnimationDriverKey<D> build(){
-            return new AnimationDriverKey<>(this);
+            return new AnimationDriverKey<>(this.defaultValue, this.identifier);
         }
     }
 }

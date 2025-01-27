@@ -25,32 +25,6 @@ public class AnimationDriverContainer implements AnimationDriverContainerState {
     }
 
     /**
-     * Returns a collection of every animation variable currently loaded into this animation data container.
-     *
-     * @return {@link Collection} of {@link PoseSampler} values.
-     */
-    public Collection<AnimationDriver<?>> getAnimationVariables(){
-        return this.getAnimationVariableMap().values();
-    }
-
-    /**
-     * Returns an animation variable from the given key. If one is not currently loaded into
-     * this animation data container, then a new one is created from the key's default
-     * value and loaded into this animation data container and returned.
-     *
-     * @param dataKey the {@link AnimationDriverKey} attached to the desired {@link AnimationDriver}
-     *
-     * @return an {@link AnimationDriver} object reference
-     */
-    @SuppressWarnings("unchecked")
-    public <D> AnimationDriver<D> getAnimationVariable(AnimationDriverKey<D> dataKey){
-        if(!this.getAnimationVariableMap().containsKey(dataKey)){
-            this.getAnimationVariableMap().put(dataKey, new AnimationDriver<>(dataKey));
-        }
-        return (AnimationDriver<D>) this.getAnimationVariableMap().get(dataKey);
-    }
-
-    /**
      * Retrieves value of animation animator from the given key. If the driver does not exist, then
      * it is created from the default and then retrieved.
      *
@@ -66,16 +40,12 @@ public class AnimationDriverContainer implements AnimationDriverContainerState {
 
 
 
-    private static class AnimationDriver<D>{
+    public static class AnimationDriver<D>{
 
         private D value;
-        private D valueOld;
-        private final Supplier<D> defaultValueSupplier;
 
-        private AnimationDriver(Supplier<D> defaultValueSupplier){
-            this.value = defaultValueSupplier.get();
-            this.valueOld = defaultValueSupplier.get();
-            this.defaultValueSupplier = defaultValueSupplier;
+        private AnimationDriver(D value){
+            this.value = value;
         }
 
         public static <D> AnimationDriver<D> of(AnimationDriverKey<D> dataKey){
@@ -92,27 +62,13 @@ public class AnimationDriverContainer implements AnimationDriverContainerState {
         }
 
         /**
-         * Returns the value of this animation variable prior to the last time it was set.
-         *
-         * @return - value of the {@link AnimationDriver} instance's type
-         */
-        public D getOld(){
-            return this.valueOld;
-        }
-
-        /**
          * Sets the value of this animation variable. Also updates the old value, setting it
          * to what it was prior to this method call.
          *
          * @param value new value of the {@link AnimationDriver} instance's type
          */
         public void set(D value){
-            this.valueOld = this.value;
-            if(value != null){
-                this.value = value;
-            } else {
-                this.value = defaultValueSupplier.get();
-            }
+            this.value = value;
         }
 
         /**
