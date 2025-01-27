@@ -3,13 +3,15 @@ package com.trainguy9512.animationoverhaul.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
-import com.trainguy9512.animationoverhaul.animation.EntityJointAnimatorDispatcher;
-import com.trainguy9512.animationoverhaul.animation.animator.FirstPersonPlayerJointAnimator;
+import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorRegistry;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimatorDispatcher;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointTransform;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -58,13 +60,13 @@ public abstract class MixinGameRenderer {
             for(Entity entity : this.minecraft.level.entitiesForRendering()){
                 if(entity instanceof LivingEntity){
                     EntityType<?> entityType = entity.getType();
-                    if(AnimationOverhaulMain.ENTITY_ANIMATORS.contains(entityType)){
-                        EntityJointAnimatorDispatcher.INSTANCE.tick(entity);
+                    if(JointAnimatorRegistry.entityTypeRegisteredWithJointAnimator(entityType)){
+                        EntityJointAnimatorDispatcher.INSTANCE.tickThirdPersonJointAnimators(entity);
                     }
                 }
             }
             // Special functionality for the first person player joint animator
-            FirstPersonPlayerJointAnimator.INSTANCE.tickExternal();
+            EntityJointAnimatorDispatcher.INSTANCE.tickFirstPersonJointAnimator();
         }
 
     }
@@ -72,8 +74,8 @@ public abstract class MixinGameRenderer {
     @Inject(method = "bobView", at = @At(value = "HEAD"), cancellable = true)
     private void injectCameraRotation(PoseStack poseStack, float f, CallbackInfo ci){
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
-            if(FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose != null){
-                AnimationPose animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
+            if(EntityJointAnimatorDispatcher.INSTANCE.getFirstPersonPlayerBakedAnimationPose() != null){
+                AnimationPose animationPose = EntityJointAnimatorDispatcher.INSTANCE.getFirstPersonPlayerBakedAnimationPose().getBlendedPose(f);
                 JointTransform cameraPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.CAMERA_JOINT);
                 JointTransform rootPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.ROOT_JOINT);
                 cameraPose.multiplyTransform(rootPose);

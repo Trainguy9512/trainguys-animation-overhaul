@@ -94,41 +94,46 @@ public class JointTransform {
         );
     }
 
-    public void transform(Matrix4f transform, TransformSpace transformSpace){
+    public JointTransform transform(Matrix4f transform, TransformSpace transformSpace){
         switch (transformSpace){
             case ENTITY, PARENT -> this.transform.mul(transform);
             case LOCAL -> this.transform.mulLocal(transform);
         }
+        return this;
     }
 
-    public void translate(Vector3f translation, TransformSpace transformSpace){
+    public JointTransform translate(Vector3f translation, TransformSpace transformSpace){
         if(translation.x() != 0 || translation.y() != 0 || translation.z() != 0){
             switch (transformSpace){
                 case ENTITY, PARENT -> this.transform.translateLocal(translation);
                 case LOCAL -> this.transform.translate(translation);
             }
         }
+        return this;
     }
 
-    public void rotate(Quaternionf rotation, TransformSpace transformSpace){
+    public JointTransform rotate(Quaternionf rotation, TransformSpace transformSpace){
         switch (transformSpace){
             case ENTITY, PARENT -> this.setRotation(new Matrix4f(this.transform).getNormalizedRotation(new Quaternionf()).premul(rotation));
             case LOCAL -> this.transform.rotate(rotation);
         }
+        return this;
     }
 
-    public void rotate(Vector3f rotationEuler, TransformSpace transformSpace){
-        this.rotate(new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), transformSpace);
+    public JointTransform rotate(Vector3f rotationEuler, TransformSpace transformSpace){
+        return this.rotate(new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), transformSpace);
     }
 
-    public void multiplyTransform(JointTransform jointTransform){
+    public JointTransform multiplyTransform(JointTransform jointTransform){
         this.translate(jointTransform.getTranslation(), TransformSpace.ENTITY);
         this.rotate(jointTransform.getRotation(), TransformSpace.ENTITY);
+        return this;
     }
 
-    public void inverseMultiplyTransform(JointTransform jointTransform){
+    public JointTransform inverseMultiplyTransform(JointTransform jointTransform){
         this.translate(jointTransform.getTranslation().negate(), TransformSpace.ENTITY);
         this.rotate(jointTransform.getRotation().invert(), TransformSpace.ENTITY);
+        return this;
     }
 
     public void mirror(){
@@ -147,7 +152,7 @@ public class JointTransform {
     }
 
     public JointTransform blendLinear(JointTransform jointTransform, float alpha){
-        return this.blend(jointTransform, alpha, Easing.Linear.of());
+        return this.blend(jointTransform, alpha, Easing.LINEAR);
     }
 
     public void translateAndRotatePoseStack(PoseStack poseStack){

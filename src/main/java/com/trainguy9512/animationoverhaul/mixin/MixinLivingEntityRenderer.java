@@ -5,7 +5,7 @@ import com.mojang.math.Axis;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.access.LivingEntityRenderStateAccess;
 import com.trainguy9512.animationoverhaul.access.ModelAccess;
-import com.trainguy9512.animationoverhaul.animation.EntityJointAnimatorDispatcher;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;

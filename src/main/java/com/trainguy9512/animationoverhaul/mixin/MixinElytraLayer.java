@@ -2,7 +2,6 @@ package com.trainguy9512.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.animationoverhaul.access.LivingEntityRenderStateAccess;
-import com.trainguy9512.animationoverhaul.animation.EntityJointAnimatorDispatcher;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
@@ -10,7 +9,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.layers.WingsLayer;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.LivingEntity;

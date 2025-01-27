@@ -2,7 +2,8 @@ package com.trainguy9512.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.trainguy9512.animationoverhaul.animation.animator.FirstPersonPlayerJointAnimator;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimatorDispatcher;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointTransform;
 import net.minecraft.client.Minecraft;
@@ -43,12 +44,12 @@ public abstract class MixinItemInHandRenderer {
     @Inject(method = "renderHandsWithItems", at = @At("HEAD"), cancellable = true)
     private void overwriteItemInHandRendering(float f, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, LocalPlayer localPlayer, int i, CallbackInfo ci){
 
-        if(FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose != null){
-            AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerJoints> animationPose = FirstPersonPlayerJointAnimator.INSTANCE.localBakedPose.getBlendedPose(f);
-            JointTransform rightArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.FPPlayerJoints.rightArm);
-            JointTransform leftArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.FPPlayerJoints.leftArm);
-            JointTransform rightHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.FPPlayerJoints.rightHand);
-            JointTransform leftHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.FPPlayerJoints.leftHand);
+        if(EntityJointAnimatorDispatcher.INSTANCE.getFirstPersonPlayerBakedAnimationPose() != null){
+            AnimationPose animationPose = EntityJointAnimatorDispatcher.INSTANCE.getFirstPersonPlayerBakedAnimationPose().getBlendedPose(f);
+            JointTransform rightArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_ARM_JOINT);
+            JointTransform leftArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.LEFT_ARM_JOINT);
+            JointTransform rightHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_HAND_JOINT);
+            JointTransform leftHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.LEFT_HAND_JOINT);
 
             poseStack.pushPose();
             poseStack.mulPose(Axis.ZP.rotationDegrees(180));
@@ -130,7 +131,7 @@ public abstract class MixinItemInHandRenderer {
 
 
 
-            this.renderItemInHand(abstractClientPlayer, FirstPersonPlayerJointAnimator.INSTANCE.localAnimationDriverContainer.getAnimationVariable(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM).get(), poseStack, HumanoidArm.RIGHT, animationPose, bufferSource, i);
+            this.renderItemInHand(abstractClientPlayer, EntityJointAnimatorDispatcher.INSTANCE.getFirstPersonPlayerAnimationDriverContainer().get(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM), poseStack, HumanoidArm.RIGHT, animationPose, bufferSource, i);
             //this.renderItemInHand(abstractClientPlayer, ItemStack.EMPTY, poseStack, HumanoidArm.LEFT, animationPose, bufferSource, i);
 
 
@@ -143,10 +144,10 @@ public abstract class MixinItemInHandRenderer {
         ci.cancel();
     }
 
-    private void renderItemInHand(AbstractClientPlayer abstractClientPlayer, ItemStack itemStack, PoseStack poseStack, HumanoidArm humanoidArm, AnimationPose<FirstPersonPlayerJointAnimator.FPPlayerJoints> animationPose, MultiBufferSource multiBufferSource, int i){
+    private void renderItemInHand(AbstractClientPlayer abstractClientPlayer, ItemStack itemStack, PoseStack poseStack, HumanoidArm humanoidArm, AnimationPose animationPose, MultiBufferSource multiBufferSource, int i){
 
-        JointTransform armPose = animationPose.getJointTransform(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.FPPlayerJoints.leftArm : FirstPersonPlayerJointAnimator.FPPlayerJoints.rightArm);
-        JointTransform handPose = animationPose.getJointTransform(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.FPPlayerJoints.leftHand : FirstPersonPlayerJointAnimator.FPPlayerJoints.rightHand);
+        JointTransform armPose = animationPose.getJointTransform(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.LEFT_ARM_JOINT : FirstPersonPlayerJointAnimator.RIGHT_ARM_JOINT);
+        JointTransform handPose = animationPose.getJointTransform(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.LEFT_HAND_JOINT : FirstPersonPlayerJointAnimator.RIGHT_HAND_JOINT);
 
 
 
