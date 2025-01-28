@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 
 // Enum S is for state definitions
 
-public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> extends TimeBasedPoseSampler {
+public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> extends TimeBasedPoseSampler implements Sampleable {
 
     /**
      * The hashmap containing all the possible states, with the keys being enums.
