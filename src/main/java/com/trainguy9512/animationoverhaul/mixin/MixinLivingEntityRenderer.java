@@ -66,7 +66,8 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
 
         // If the supplied animation pose is valid and the entity model implements ModelAccess, apply the animation pose. If not, then run the vanilla functionality
         if(animationPose != null && entityModel instanceof ModelAccess){
-            ModelPart rootModelPart = ((ModelAccess)entityModel).getRootModelPart();
+            entityModel.root();
+            ModelPart rootModelPart = entityModel.root();
 
             for(Enum<L> locator : animationPose.getJointSkeleton().getJoints()){
                 if((animationPose).getJointSkeleton().getLocatorUsesModelPart(locator)){

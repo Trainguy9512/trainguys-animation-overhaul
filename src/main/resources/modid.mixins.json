@@ -8,7 +8,6 @@
     "MixinMinecraft"
   ],
   "client": [
-    "MixinBlockEntity",
     "MixinCapeLayer",
     "MixinElytraLayer",
     "MixinLivingEntityRenderState",
@@ -17,8 +16,7 @@
     "MixinItemInHandLayer",
     "MixinLivingEntity",
     "MixinLivingEntityRenderer",
-    "debug.MixinPlayerSkin",
-    "models.MixinPlayerModel"
+    "debug.MixinPlayerSkin"
   ],
   "injectors": {
     "defaultRequire": 1

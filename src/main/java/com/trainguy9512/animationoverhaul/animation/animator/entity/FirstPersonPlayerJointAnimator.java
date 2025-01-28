@@ -74,6 +74,16 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     public static final AnimationDriverKey<Boolean> IS_JUMPING = AnimationDriverKey.builder(() -> false).setIdentifier("is_jumping").build();
     public static final AnimationDriverKey<Float> WALK_SPEED = AnimationDriverKey.builder(() -> 0f).setIdentifier("walk_speed").build();
 
+    public enum TestStates implements AnimationStateMachine.StateEnum {
+        IDLE,
+        MOVING;
+
+        @Override
+        public BiFunction<AnimationDriverContainer, JointSkeleton, AnimationPose> getStatePose() {
+            return null;
+        }
+    }
+
     public static final PoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = PoseSamplerKey.builder(() -> AnimationStateMachine.of("test_state_machine", TestStates.values())
             .addStateTransition(TestStates.IDLE, TestStates.MOVING, AnimationStateMachine.StateTransition.of(
                             animationDataContainer -> animationDataContainer.get(WALK_SPEED) > 0.1F)
@@ -102,22 +112,6 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     @Override
     public void postProcessModelParts(PlayerRenderState entityRenderState, ModelPart rootModelPart) {
 
-    }
-
-
-    public enum TestStates implements AnimationStateMachine.StateEnum {
-        IDLE {
-            @Override
-            public <L extends Enum<L>> BiFunction<AnimationDriverContainer, JointSkeleton, AnimationPose> getStatePose() {
-                return (animationDataContainer, fpPlayerLocatorsJointSkeleton) -> animationDataContainer.getPoseSampler(IDLE_SEQUENCE_PLAYER).sample(fpPlayerLocatorsJointSkeleton);
-            }
-        },
-        MOVING {
-            @Override
-            public <L extends Enum<L>> BiFunction<AnimationDriverContainer, JointSkeleton, AnimationPose> getStatePose() {
-                return (animationDataContainer, fpPlayerLocatorsJointSkeleton) -> animationDataContainer.getPoseSampler(IDLE_SEQUENCE_PLAYER_ALT).sample(fpPlayerLocatorsJointSkeleton);
-            }
-        }
     }
 
 
