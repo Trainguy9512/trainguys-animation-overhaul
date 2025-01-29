@@ -74,14 +74,9 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     public static final AnimationDriverKey<Boolean> IS_JUMPING = AnimationDriverKey.builder(() -> false).setIdentifier("is_jumping").build();
     public static final AnimationDriverKey<Float> WALK_SPEED = AnimationDriverKey.builder(() -> 0f).setIdentifier("walk_speed").build();
 
-    public enum TestStates implements AnimationStateMachine.StateEnum {
+    public enum TestStates {
         IDLE,
-        MOVING;
-
-        @Override
-        public BiFunction<AnimationDriverContainer, JointSkeleton, AnimationPose> getStatePose() {
-            return null;
-        }
+        MOVING
     }
 
     public static final PoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = PoseSamplerKey.builder(() -> AnimationStateMachine.of("test_state_machine", TestStates.values())

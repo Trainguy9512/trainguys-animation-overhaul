@@ -15,7 +15,11 @@ import java.util.function.Predicate;
 
 // Enum S is for state definitions
 
-public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> extends TimeBasedPoseSampler implements Sampleable {
+/**
+ * Transitions between a series of states each with their own poses loaded
+ * @param <S> Enum state identifiers
+ */
+public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampler implements Sampleable {
 
     /**
      * The hashmap containing all the possible states, with the keys being enums.
@@ -270,7 +274,7 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
         return UpdateOrder.STATE_MACHINES;
     }
 
-    public static class State<S extends StateEnum> {
+    public static class State<S extends Enum<S>> {
 
         private boolean isActive;
         private StateTransition currentTransition;
@@ -415,9 +419,5 @@ public class AnimationStateMachine<S extends AnimationStateMachine.StateEnum> ex
                 return new StateTransition(this);
             }
         }
-    }
-
-    public interface StateEnum {
-        BiFunction<AnimationDriverContainer, JointSkeleton, AnimationPose> getStatePose();
     }
 }
