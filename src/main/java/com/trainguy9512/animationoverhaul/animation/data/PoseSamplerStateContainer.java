@@ -28,13 +28,14 @@ public class PoseSamplerStateContainer {
      * @implNote Only do this once per game tick! For entities, this is handled in the entity joint animator dispatcher.
      */
     public void tick(AnimationDriverContainer animationDriverContainer){
-        this.tickUpdateOrderGroup(animationDriverContainer, PoseSampler.UpdateOrder.STATE_MACHINES);
-        this.tickUpdateOrderGroup(animationDriverContainer, PoseSampler.UpdateOrder.OTHER);
+        this.tickUpdateOrderGroup(animationDriverContainer, PoseSampler.UpdateCategory.STATE_MACHINES);
+        this.tickUpdateOrderGroup(animationDriverContainer, PoseSampler.UpdateCategory.OTHER);
     }
 
-    private void tickUpdateOrderGroup(AnimationDriverContainer animationDriverContainer, PoseSampler.UpdateOrder updateOrder){
+    private void tickUpdateOrderGroup(AnimationDriverContainer animationDriverContainer, PoseSampler.UpdateCategory updateOrder){
         this.poseSamplers.values().stream()
-                .filter((poseSampler -> poseSampler.getUpdateOrder() == updateOrder))
+                .filter((poseSampler -> poseSampler.getUpdateCategory() == updateOrder))
+                .sorted((poseSampler) -> )
                 .forEach((poseSampler -> poseSampler.tick(animationDriverContainer, this)));
     }
 

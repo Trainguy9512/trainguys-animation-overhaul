@@ -16,8 +16,13 @@ public class PoseSampler {
 
     public static class Builder<B extends Builder<B>> {
 
+        private String identifier;
+        private int updateOrder = 50;
+
         protected Builder() {
         }
+
+        public B setUpdateOrder(int)
 
         public PoseSampler build(){
             return new PoseSampler(this);
@@ -41,11 +46,11 @@ public class PoseSampler {
         this.identifier = identifier;
     }
 
-    public UpdateOrder getUpdateOrder(){
-        return UpdateOrder.OTHER;
+    public UpdateCategory getUpdateCategory(){
+        return UpdateCategory.OTHER;
     }
 
-    public enum UpdateOrder {
+    public enum UpdateCategory {
         STATE_MACHINES,
         OTHER
     }

@@ -39,12 +39,12 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         this.activeStates = builder.activeStates;
     }
 
-    public static <S extends StateEnum> Builder<?, S> of(String identifier, S[] states){
+    public static <S extends Enum<S>> Builder<?, S> of(S[] states){
         return new Builder<>(states);
     }
 
 
-    public static class Builder<B extends Builder<B, S>, S extends StateEnum> extends TimeBasedPoseSampler.Builder<B> {
+    public static class Builder<B extends Builder<B, S>, S extends Enum<S>> extends TimeBasedPoseSampler.Builder<B> {
 
         private final HashMap<S, State<S>> statesHashMap = Maps.newHashMap();
         private final ArrayList<S> activeStates = new ArrayList<>();
@@ -270,8 +270,8 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     }
 
     @Override
-    public UpdateOrder getUpdateOrder(){
-        return UpdateOrder.STATE_MACHINES;
+    public UpdateCategory getUpdateCategory(){
+        return UpdateCategory.STATE_MACHINES;
     }
 
     public static class State<S extends Enum<S>> {
@@ -374,7 +374,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
         public static class Builder {
             private float transitionTime = 1;
-            private Easing easing = Easing.Linear.of();
+            private Easing easing = Easing.LINEAR;
             private int priority = 1;
             private final Predicate<AnimationDriverContainer> conditionPredicate;
 

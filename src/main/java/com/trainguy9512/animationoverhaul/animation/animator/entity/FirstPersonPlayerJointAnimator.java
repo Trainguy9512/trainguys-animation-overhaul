@@ -79,7 +79,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         MOVING
     }
 
-    public static final PoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = PoseSamplerKey.builder(() -> AnimationStateMachine.of("test_state_machine", TestStates.values())
+    public static final PoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = PoseSamplerKey.builder(() -> AnimationStateMachine.of(TestStates.values())
             .addStateTransition(TestStates.IDLE, TestStates.MOVING, AnimationStateMachine.StateTransition.of(
                             animationDataContainer -> animationDataContainer.get(WALK_SPEED) > 0.1F)
                     .setTransitionTime(5)

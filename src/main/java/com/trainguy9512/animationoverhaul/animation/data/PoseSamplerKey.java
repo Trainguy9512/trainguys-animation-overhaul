@@ -25,12 +25,13 @@ import java.util.function.Supplier;
  * @see PoseSampler
  * @see AnimationDriverContainer
  */
-public record PoseSamplerKey<P extends PoseSampler>(Supplier<P> defaultValue, String identifier) {
+public record PoseSamplerKey<P extends PoseSampler>(Supplier<P> defaultValue, String identifier, int tickOrder) {
 
     private static <P extends PoseSampler> PoseSamplerKey<P> of(Builder<P> builder) {
         return new PoseSamplerKey<>(
                 builder.defaultValue,
-                builder.identifier
+                builder.identifier,
+                builder.updateOrder
         );
     }
 
@@ -74,6 +75,7 @@ public record PoseSamplerKey<P extends PoseSampler>(Supplier<P> defaultValue, St
 
         private final Supplier<P> defaultValue;
         private String identifier = "null";
+        private int updateOrder = 50;
 
         protected Builder(Supplier<P> defaultValue) {
             this.defaultValue = defaultValue;
@@ -86,10 +88,24 @@ public record PoseSamplerKey<P extends PoseSampler>(Supplier<P> defaultValue, St
          * identifying pose samplers and printing them to the screen.
          *
          * @param identifier the string name used in the identifier
-         * @return this key builder
+         * @return This key builder
          */
         public Builder<P> setIdentifier(String identifier){
             this.identifier = identifier;
+            return this;
+        }
+
+        /**
+         * Sets the update order for the pose sampler.
+         * <p>
+         * When pose samplers are being ticked, the update order determines the order
+         * in which each pose sampler is updated. This is important for when the ticking
+         * of one pose sampler relies on another.
+         * @implNote State machines automatically tick prior to everything else, regardless of update order.
+         * @return This key builder
+         */
+        public Builder<P> setUpdateOrder(int updateOrder){
+            this.updateOrder = updateOrder;
             return this;
         }
 
