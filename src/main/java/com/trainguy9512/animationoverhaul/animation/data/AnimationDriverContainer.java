@@ -56,8 +56,8 @@ public class AnimationDriverContainer {
         private final Supplier<D> defaultValue;
 
         private AnimationDriver(AnimationDriverKey<D> key){
-            this.value = key.getDefaultValue().get();
-            this.defaultValue = key.getDefaultValue();
+            this.value = key.defaultValue().get();
+            this.defaultValue = key.defaultValue();
         }
 
         public D get(){

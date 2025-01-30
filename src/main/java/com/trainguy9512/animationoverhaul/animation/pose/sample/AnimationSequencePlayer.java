@@ -37,7 +37,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
     }
 
     @Override
-    public AnimationPose sample(JointSkeleton jointSkeleton) {
+    public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
         return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.getTimeFromTicks());
     }
 

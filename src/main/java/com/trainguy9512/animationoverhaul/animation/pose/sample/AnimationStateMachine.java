@@ -3,6 +3,7 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
+import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
@@ -90,10 +91,10 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     }
 
     public S getActiveState(){
-        return this.activeStates.get(this.activeStates.size() - 1);
+        return this.activeStates.getLast();
     }
 
-    public boolean containsState(StateEnum stateIdentifier){
+    public boolean containsState(Enum<S> stateIdentifier){
         for(S state : this.statesHashMap.keySet()){
             if(state.equals(stateIdentifier)){
                 return true;
@@ -102,16 +103,6 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         return false;
         //return this.statesHashMap.containsKey(stateIdentifier);
     }
-
-    /*
-    private Set<Enum<S>> getAllTransitions(){
-        HashSet<Enum<S>> transitions = new HashSet<>(Set.of());
-        for(Enum<?> identifier : this.statesHashMap.keySet()){
-            transitions.addAll(this.statesHashMap.get(identifier).getTransitionTargets());
-        }
-        return transitions;
-    }
-     */
 
     private boolean isValidTransition(S origin, S destination){
         for(S originStateIdentifier : this.statesHashMap.keySet()){
@@ -155,19 +146,19 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         return null;
     }
 
-    private AnimationPose getPoseFromState(S identifier, JointSkeleton jointSkeleton){
+    private AnimationPose getPoseFromState(S identifier, AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton){
         BiFunction<AnimationDriverContainer, JointSkeleton, AnimationPose> biFunction = identifier.getStatePose();
         return biFunction.apply(this.getAnimationDataContainer(), jointSkeleton);
     }
 
     @Override
-    public AnimationPose sample(JointSkeleton jointSkeleton) {
+    public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
         if(!this.activeStates.isEmpty()){
-            AnimationPose<L> animationPose = this.getPoseFromState(this.activeStates.get(0), jointSkeleton);
+            AnimationPose animationPose = this.getPoseFromState(this.activeStates.getFirst(), jointSkeleton);
             if(this.activeStates.size() > 1){
                 for(S stateIdentifier : this.activeStates){
                     animationPose.blend(
-                            this.getPoseFromState(stateIdentifier, jointSkeleton),
+                            this.getPoseFromState(stateIdentifier, animationDriverContainer, poseSamplerStateContainer, jointSkeleton),
                             this.statesHashMap.get(stateIdentifier).getWeight(),
                             this.statesHashMap.get(stateIdentifier).getCurrentTransition().getEasing());
                 }
@@ -180,7 +171,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     }
 
     @Override
-    public void tick(AnimationDriverContainer animationDriverContainer){
+    public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
         // Don't evaluate if the state machine has no states
         if(this.statesHashMap.isEmpty()){
             AnimationOverhaulMain.LOGGER.warn("State machine {} not evaluated due to no active states", this.getIdentifier());
@@ -188,7 +179,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         }
 
         // Add to the current elapsed ticks
-        super.tick(animationDriverContainer);
+        super.tick(animationDriverContainer, poseSamplerStateContainer);
 
         // Get the previous active state
         S currentActiveStateIdentifier = this.activeStates.getLast();
@@ -215,22 +206,6 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
                 }
             }
         }
-        /*
-        for(String stateTransitionIdentifier : currentActiveState.getTransitionTargets()){
-            StateTransition stateTransitionTest = currentActiveState.getTransition(stateTransitionIdentifier);
-            if(stateTransitionTest.getCondition()){
-                if(canEnterTransition){
-                    if(stateTransitionTest.getPriority() < stateTransition.getPriority()){
-                        stateTransition = stateTransitionTest;
-                    }
-                } else {
-                    stateTransition = stateTransitionTest;
-                    canEnterTransition = true;
-                }
-            }
-        }
-
-         */
 
         // Set all states to inactive except the new destination state. Also set the transition to all states for when they're ticked
         if(canEnterTransition){

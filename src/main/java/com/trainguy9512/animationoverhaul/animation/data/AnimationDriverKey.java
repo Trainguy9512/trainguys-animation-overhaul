@@ -8,35 +8,26 @@ import java.util.function.Supplier;
 /**
  * Represents a key for associating with animation variables in animation data containers
  * <p>
- * Animation Variable Keys are used in the static definition of {@link AnimationDriverContainer.AnimationDriver} objects
+ * Animation Variable Keys are used in the static definition of Animation Driver objects
  * in {@link JointAnimator} classes, which are created at runtime using the {@link AnimationDriverKey#defaultValue} as
  * the template. These keys are then referenced when accessing those variables from {@link AnimationDriverContainer}
  * objects, with a key-and-value design structure.
  * <p>
- * Rather than creating animation variable objects in the class and referencing them directly,
- * these static keys are used instead to reference animation variables from the animation data
+ * Rather than creating animation driver objects in the class and referencing them directly,
+ * these static keys are used instead to reference animation drivers from the animation driver
  * container to ensure that each object is unique per-entity, while
  * still having referencable objects being usable across the class.
  *
  * @param <D> the type of data being stored
+ * @param defaultValue The supplier used as a template for when a new animation driver is needed for a specific driver container.
+ * @param identifier String identifier used for debugging.
  *
  * @see PoseSampler
  * @see AnimationDriverContainer
  */
-public class AnimationDriverKey<D> {
+public record AnimationDriverKey<D>(Supplier<D> defaultValue, String identifier) {
 
-    /**
-     * The supplier used for providing a template for when new animation variable
-     * objects are assigned to each individual animation data container.
-     * <p>
-     *
-     * @implNote This {@link Supplier} supplies a value upon each access, so a default value can be variable
-     * if the input involves things like random number generation
-     */
-    private final Supplier<D> defaultValue;
-    private final String identifier;
-
-    protected AnimationDriverKey(Supplier<D> defaultValue, String identifier) {
+    public AnimationDriverKey(Supplier<D> defaultValue, String identifier) {
         this.defaultValue = defaultValue;
         this.identifier = identifier;
     }
@@ -48,14 +39,6 @@ public class AnimationDriverKey<D> {
      */
     public static <D> Builder<D> builder(Supplier<D> defaultValue){
         return new Builder<>(defaultValue);
-    }
-
-    public Supplier<D> getDefaultValue() {
-        return this.defaultValue;
-    }
-
-    public String getIdentifier() {
-        return identifier;
     }
 
     public static class Builder<D> {

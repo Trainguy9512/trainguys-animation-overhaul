@@ -1,5 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
+import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerKey;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
 import org.jetbrains.annotations.NotNull;
@@ -25,18 +26,36 @@ public class PoseSampler implements Comparable<PoseSampler> {
 
     public static class Builder<B extends Builder<B>> {
 
-        private String identifier;
+        private String identifier = "null";
         private int updateOrder = 50;
 
         protected Builder() {
         }
 
+        /**
+         * Sets the update order for the pose sampler builder.
+         * <p>
+         * When pose samplers are being ticked, the update order determines the order
+         * in which each pose sampler is updated. This is important for when the ticking
+         * of one pose sampler relies on another.
+         * @implNote State machines automatically tick prior to everything else, regardless of update order.
+         * @return This key builder
+         */
         @SuppressWarnings("unchecked")
         public B setUpdateOrder(int updateOrder){
             this.updateOrder = updateOrder;
             return (B) this;
         }
 
+        /**
+         * Sets the identifier for this pose sampler builder.
+         * <p>
+         * This is used in in-game value debugging for
+         * identifying pose samplers and printing them to the screen.
+         *
+         * @param identifier the string name used in the identifier
+         * @return This key builder
+         */
         @SuppressWarnings("unchecked")
         public B setIdentifier(String identifier){
             this.identifier = identifier;
@@ -59,10 +78,6 @@ public class PoseSampler implements Comparable<PoseSampler> {
 
     public String getIdentifier(){
         return this.identifier;
-    }
-
-    public void setIdentifier(String identifier){
-        this.identifier = identifier;
     }
 
     public UpdateCategory getUpdateCategory(){

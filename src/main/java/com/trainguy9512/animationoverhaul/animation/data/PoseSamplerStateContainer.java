@@ -35,7 +35,7 @@ public class PoseSamplerStateContainer {
     private void tickUpdateOrderGroup(AnimationDriverContainer animationDriverContainer, PoseSampler.UpdateCategory updateOrder){
         this.poseSamplers.values().stream()
                 .filter((poseSampler -> poseSampler.getUpdateCategory() == updateOrder))
-                .sorted((poseSampler) -> )
+                .sorted(PoseSampler::compareTo)
                 .forEach((poseSampler -> poseSampler.tick(animationDriverContainer, this)));
     }
 
@@ -53,11 +53,11 @@ public class PoseSamplerStateContainer {
         return (P) this.poseSamplers.computeIfAbsent(poseSamplerKey, PoseSamplerKey::constructPoseSampler);
     }
 
-    public AnimationPose sample(PoseSamplerKey<? extends Sampleable> poseSamplerKey){
-        return this.getPoseSampler(poseSamplerKey).sample(this.jointSkeleton);
+    public AnimationPose sample(PoseSamplerKey<? extends Sampleable> poseSamplerKey, AnimationDriverContainer animationDriverContainer){
+        return this.getPoseSampler(poseSamplerKey).sample(animationDriverContainer, this, this.jointSkeleton);
     }
 
-    public AnimationPose sample(PoseSamplerKey<? extends SampleableFromInput> poseSamplerKey, AnimationPose animationPose){
-        return this.getPoseSampler(poseSamplerKey).sample(this.jointSkeleton, animationPose);
+    public AnimationPose sample(PoseSamplerKey<? extends SampleableFromInput> poseSamplerKey, AnimationDriverContainer animationDriverContainer, AnimationPose animationPose){
+        return this.getPoseSampler(poseSamplerKey).sample(animationDriverContainer, this, this.jointSkeleton, animationPose);
     }
 }
