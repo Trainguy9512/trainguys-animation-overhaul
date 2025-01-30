@@ -2,16 +2,25 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
+import org.jetbrains.annotations.NotNull;
 
-public class PoseSampler {
+public class PoseSampler implements Comparable<PoseSampler> {
 
     private String identifier;
+    private int updateOrder;
 
     protected PoseSampler(Builder<?> builder){
+        this.identifier = builder.identifier;
+        this.updateOrder = builder.updateOrder;
     }
 
     public static Builder<?> of(){
         return new Builder<>();
+    }
+
+    @Override
+    public int compareTo(@NotNull PoseSampler poseSampler) {
+        return Integer.compare(this.updateOrder, poseSampler.updateOrder);
     }
 
     public static class Builder<B extends Builder<B>> {
@@ -22,7 +31,17 @@ public class PoseSampler {
         protected Builder() {
         }
 
-        public B setUpdateOrder(int)
+        @SuppressWarnings("unchecked")
+        public B setUpdateOrder(int updateOrder){
+            this.updateOrder = updateOrder;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B setIdentifier(String identifier){
+            this.identifier = identifier;
+            return (B) this;
+        }
 
         public PoseSampler build(){
             return new PoseSampler(this);
