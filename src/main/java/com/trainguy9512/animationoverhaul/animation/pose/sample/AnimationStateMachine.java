@@ -25,7 +25,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     /**
      * The hashmap containing all the possible states, with the keys being enums.
      */
-    private final HashMap<S, State<S>> statesHashMap;
+    private final EnumMap<S, State<S>> statesHashMap;
 
     /**
      * The list of enum keys that point to states with a blend value greater than 0
@@ -47,15 +47,15 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
     public static class Builder<B extends Builder<B, S>, S extends Enum<S>> extends TimeBasedPoseSampler.Builder<B> {
 
-        private final HashMap<S, State<S>> statesHashMap = Maps.newHashMap();
+        private final EnumMap<S, State<S>> statesHashMap = Maps.newHashMap();
         private final ArrayList<S> activeStates = new ArrayList<>();
 
 
-        protected Builder(S[] states) {
+        protected Builder() {
             super();
 
             for(int i = 0; i < states.length; i++){
-                State<S> state = new State<>(i == 0 ? 1 : 0);
+                State<S> state = new State<>(i == 0);
                 this.statesHashMap.put(states[i], state);
             }
             this.activeStates.add(states[0]);
@@ -73,6 +73,12 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         @SuppressWarnings("unchecked")
         public B addStateTransition(S origin, S destination, StateTransition stateTransition){
             this.statesHashMap.get(origin).addStateTransition(destination, stateTransition);
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B addState(S identifier, Sampleable sampleable, StateTransition... stateTransitions){
+
             return (B) this;
         }
 
@@ -252,13 +258,15 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     public static class State<S extends Enum<S>> {
 
         private boolean isActive;
+        private float weight;
+        private final Sampleable sampleable;
+        private final HashMap<S, StateTransition> stateTransitions;
         private StateTransition currentTransition;
 
-        private float weight;
-        private final HashMap<S, StateTransition> stateTransitions;
-
-        private State(float defaultWeight){
-            this.weight = defaultWeight;
+        private State(boolean isActive, Sampleable sampleable){
+            this.isActive = isActive;
+            this.weight = isActive ? 1 : 0;
+            this.sampleable = sampleable;
             this.stateTransitions = Maps.newHashMap();
         }
 
