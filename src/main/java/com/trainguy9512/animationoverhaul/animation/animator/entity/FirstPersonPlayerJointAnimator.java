@@ -2,12 +2,10 @@ package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
 import com.trainguy9512.animationoverhaul.animation.data.*;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointTransform;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;
@@ -18,7 +16,6 @@ import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
 import java.util.List;
-import java.util.function.BiFunction;
 
 public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator<LocalPlayer, PlayerRenderState> {
 
@@ -80,14 +77,14 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     }
 
     public static final PoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = PoseSamplerKey.builder(() -> AnimationStateMachine.of(TestStates.values())
-            .addStateTransition(TestStates.IDLE, TestStates.MOVING, AnimationStateMachine.StateTransition.of(
+            .addStateTransition(TestStates.IDLE, TestStates.MOVING, AnimationStateMachine.StateTransition.builder(
                             animationDataContainer -> animationDataContainer.get(WALK_SPEED) > 0.1F)
-                    .setTransitionTime(5)
+                    .setTransitionDuration(5)
                     .setEasing(Easing.CubicBezier.SINE_IN_OUT())
                     .build())
-            .addStateTransition(TestStates.MOVING, TestStates.IDLE, AnimationStateMachine.StateTransition.of(
+            .addStateTransition(TestStates.MOVING, TestStates.IDLE, AnimationStateMachine.StateTransition.builder(
                             animationDataContainer -> animationDataContainer.get(WALK_SPEED) <= 0.1F)
-                    .setTransitionTime(10)
+                    .setTransitionDuration(10)
                     .setEasing(Easing.CubicBezier.SINE_OUT())
                     .build())
             .build()).build();

@@ -11,7 +11,6 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 // Enum S is for state definitions
@@ -32,7 +31,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
      */
     private final ArrayList<S> activeStates;
 
-    //private int timeElapsedInState = 0;
+    private int timeElapsedInState = 0;
 
     private AnimationStateMachine(Builder<?, S> builder) {
         super(builder);
@@ -40,19 +39,21 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         this.activeStates = builder.activeStates;
     }
 
-    public static <S extends Enum<S>> Builder<?, S> of(S[] states){
-        return new Builder<>(states);
+    public static <S extends Enum<S>> Builder<?, S> builder(S[] states){
+        return new Builder<>();
     }
 
 
     public static class Builder<B extends Builder<B, S>, S extends Enum<S>> extends TimeBasedPoseSampler.Builder<B> {
 
-        private final EnumMap<S, State<S>> statesHashMap = Maps.newHashMap();
-        private final ArrayList<S> activeStates = new ArrayList<>();
+        private final HashMap<S, State<S>> statesHashMap;
+        private final ArrayList<S> activeStates;
 
 
         protected Builder() {
             super();
+            this.statesHashMap = Maps.newHashMap();
+            this.activeStates = new ArrayList<>();
 
             for(int i = 0; i < states.length; i++){
                 State<S> state = new State<>(i == 0);
@@ -67,7 +68,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
          * @param origin                Origin state enum
          * @param destination           Destination state enum
          * @param stateTransition       The state transition object with parameters such as transition time, easing, and priority. Created using its builder class
-         * @return The animation state machine builder
+         * @return                      This animation state machine builder
          * @see StateTransition.Builder
          */
         @SuppressWarnings("unchecked")
@@ -76,9 +77,24 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             return (B) this;
         }
 
+        /**
+         * Adds a state to the state machine builder with its outgoing transitions.
+         *
+         * @param identifier            Enum identifier that is associated with the state machine's enum type
+         * @param sampleable            Functional interface for sampling a pose from the state
+         * @param stateTransitions      Outbound transition paths from this state to other states
+         * @return                      This animation state machine builder
+         * @see StateTransition.Builder
+         */
         @SuppressWarnings("unchecked")
         public B addState(S identifier, Sampleable sampleable, StateTransition... stateTransitions){
-
+            State<S> state = new State<>(this.statesHashMap.isEmpty(), sampleable);
+            for(StateTransition stateTransition : stateTransitions){
+                state.addStateTransition(stateTransition.);
+            }
+            if (this.statesHashMap.isEmpty()){
+                this.activeStates.add(identifier);
+            }
             return (B) this;
         }
 
@@ -153,8 +169,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     }
 
     private AnimationPose getPoseFromState(S identifier, AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton){
-        BiFunction<AnimationDriverContainer, JointSkeleton, AnimationPose> biFunction = identifier.getStatePose();
-        return biFunction.apply(this.getAnimationDataContainer(), jointSkeleton);
+        return this.statesHashMap.get(identifier).sample(animationDriverContainer, poseSamplerStateContainer, jointSkeleton);
     }
 
     @Override
@@ -186,6 +201,9 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
         // Add to the current elapsed ticks
         super.tick(animationDriverContainer, poseSamplerStateContainer);
+        if(this.getIsPlaying()){
+            this.timeElapsed += this.getPlayRate();
+        }
 
         // Get the previous active state
         S currentActiveStateIdentifier = this.activeStates.getLast();
@@ -199,7 +217,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             if(isValidTransition(currentActiveStateIdentifier, stateIdentifier)){
                 StateTransition currentStateTransition = currentActiveState.getTransition(stateIdentifier);
                 assert currentStateTransition != null;
-                if(currentStateTransition.getCondition(animationDriverContainer)){
+                if(currentStateTransition.testCondition(animationDriverContainer)){
                     // If the loop has already determined a state transition to be true, update the transition IF the new one has a higher priority
                     if(canEnterTransition && currentStateTransition.getPriority() < stateTransition.getPriority()){
                         stateTransition = currentStateTransition;
@@ -257,10 +275,11 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
     public static class State<S extends Enum<S>> {
 
-        private boolean isActive;
-        private float weight;
         private final Sampleable sampleable;
         private final HashMap<S, StateTransition> stateTransitions;
+
+        private boolean isActive;
+        private float weight;
         private StateTransition currentTransition;
 
         private State(boolean isActive, Sampleable sampleable){
@@ -273,7 +292,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         private void tick(){
             if(this.currentTransition != null){
                 float increaseDecreaseMultiplier = this.getIsActive() ? 1 : -1;
-                this.setWeight(Mth.clamp(this.getWeight() + ((1 / this.getCurrentTransition().transitionTime) * increaseDecreaseMultiplier), 0, 1));
+                this.setWeight(Mth.clamp(this.getWeight() + ((1 / this.getCurrentTransition().transitionDuration) * increaseDecreaseMultiplier), 0, 1));
             }
         }
 
@@ -317,63 +336,38 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             return null;
         }
 
+        public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton){
+            return this.sampleable.sample(animationDriverContainer, poseSamplerStateContainer, jointSkeleton);
+        }
+
     }
 
-    public static class StateTransition {
+    public record StateTransition(float transitionDuration, Easing easing, int priority, ConditionPredicate conditionPredicate) {
 
-        private final float transitionTime;
-        private final Easing easing;
-        private final int priority;
-        private final Predicate<AnimationDriverContainer> conditionPredicate;
-        //private final Enum<S> destinationStateIdentifier;
-
-        //private boolean condition = false;
-
-        private StateTransition(Builder builder) {
-            this.transitionTime = builder.transitionTime;
-            this.easing = builder.easing;
-            this.priority = builder.priority;
-            this.conditionPredicate = builder.conditionPredicate;
-        }
-
-        public static Builder of(Predicate<AnimationDriverContainer> stateConditionPredicate){
-            return new Builder(stateConditionPredicate);
-        }
-
-        public Easing getEasing(){
-            return this.easing;
-        }
-
-        public float getTransitionTime() {
-            return this.transitionTime;
-        }
-
-        public boolean getCondition(AnimationDriverContainer animationDriverContainer){
-            return this.conditionPredicate.test(animationDriverContainer);
-        }
-
-        public int getPriority(){
-            return this.priority;
+        public static Builder builder(ConditionPredicate conditionPredicate){
+            return new Builder(conditionPredicate);
         }
 
         public static class Builder {
-            private float transitionTime = 1;
-            private Easing easing = Easing.LINEAR;
-            private int priority = 1;
-            private final Predicate<AnimationDriverContainer> conditionPredicate;
+            private final ConditionPredicate conditionPredicate;
+            private float transitionDuration;
+            private Easing easing;
+            private int priority;
 
-            private Builder(Predicate<AnimationDriverContainer> conditionPredicate){
+            private Builder(ConditionPredicate conditionPredicate){
                 this.conditionPredicate = conditionPredicate;
+                this.transitionDuration = 1;
+                this.easing = Easing.LINEAR;
+                this.priority = 50;
             }
 
             /**
              * Sets the transition time for the state transition
              *
-             * @param transitionTime Transition time, in ticks
-             * @return The state transition builder
+             * @param transitionDuration Transition duration, in ticks
              */
-            public Builder setTransitionTime(float transitionTime){
-                this.transitionTime = transitionTime;
+            public Builder setTransitionDuration(float transitionDuration){
+                this.transitionDuration = transitionDuration;
                 return this;
             }
 
@@ -381,7 +375,6 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
              * Sets the easing for the state transition
              *
              * @param easing         Easing function
-             * @return The state transition builder
              */
             public Builder setEasing(Easing easing){
                 this.easing = easing;
@@ -392,7 +385,6 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
              * Sets the transition priority for the state transition, for when multiple transitions originating from one state are simultaneously active. Lower integers specify a lower priority
              *
              * @param priority      Priority integer
-             * @return The animation state machine
              */
             public Builder setPriority(int priority){
                 this.priority = priority;
@@ -400,8 +392,13 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             }
 
             public StateTransition build(){
-                return new StateTransition(this);
+                return new StateTransition(this.transitionDuration, this.easing, this.priority, this.conditionPredicate);
             }
+        }
+
+        @FunctionalInterface
+        public interface ConditionPredicate {
+            boolean test(AnimationDriverContainer animationDriverContainer, float ticksInCurrentState);
         }
     }
 }
