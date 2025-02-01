@@ -254,11 +254,12 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         private boolean isActive;
         private StateTransition currentTransition;
 
-        private float weight = 0;
-        private final HashMap<S, StateTransition> stateTransitions = Maps.newHashMap();
+        private float weight;
+        private final HashMap<S, StateTransition> stateTransitions;
 
         private State(float defaultWeight){
             this.weight = defaultWeight;
+            this.stateTransitions = Maps.newHashMap();
         }
 
         private void tick(){
