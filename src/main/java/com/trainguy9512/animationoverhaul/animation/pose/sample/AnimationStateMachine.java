@@ -6,8 +6,10 @@ import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContaine
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.notify.AnimNotify;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.util.Mth;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -86,6 +88,32 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             }
             if (this.statesHashMap.isEmpty()){
                 this.activeStates.add(stateIdentifier);
+            }
+            return (B) this;
+        }
+
+        /**
+         * Binds an anim notify to fire every time a state's weight goes from 0 to greater than 0
+         * @param stateIdentifier       State to bind anim notify to. Must already be added to builder.
+         * @param animNotify            Functional interface to fire on the notify call.
+         */
+        @SuppressWarnings("unchecked")
+        public B bindAnimNotifyOnStateRelevant(S stateIdentifier, AnimNotify animNotify){
+            if(this.statesHashMap.containsKey(stateIdentifier)){
+                this.statesHashMap.get(stateIdentifier).bindAnimNotifyOnRelevant(animNotify);
+            }
+            return (B) this;
+        }
+
+        /**
+         * Binds an anim notify to fire every time a state's weight goes from greater than 0 to 0
+         * @param stateIdentifier       State to bind anim notify to. Must already be added to builder.
+         * @param animNotify            Functional interface to fire on the notify call.
+         */
+        @SuppressWarnings("unchecked")
+        public B bindAnimNotifyOnStateIrrelevant(S stateIdentifier, AnimNotify animNotify){
+            if(this.statesHashMap.containsKey(stateIdentifier)){
+                this.statesHashMap.get(stateIdentifier).bindAnimNotifyOnIrrelevant(animNotify);
             }
             return (B) this;
         }
@@ -241,7 +269,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
         // Tick each state
         for(State<S> state : this.statesHashMap.values()){
-            state.tick();
+            state.tick(animationDriverContainer, poseSamplerStateContainer);
         }
 
         // Evaluated last, remove states from the active state list that have a weight of 0.
@@ -270,6 +298,9 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         private final Sampleable sampleable;
         private final HashMap<S, StateTransition> stateTransitions;
 
+        private AnimNotify onStateRelevantAnimNotify = null;
+        private AnimNotify onStateIrrelevantAnimNotify = null;
+
         private boolean isActive;
         private float weight;
         private StateTransition currentTransition;
@@ -281,42 +312,52 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             this.stateTransitions = Maps.newHashMap();
         }
 
-        private void tick(){
+        private void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
             if(this.currentTransition != null){
                 float increaseDecreaseMultiplier = this.getIsActive() ? 1 : -1;
-                this.setWeight(Mth.clamp(this.getWeight() + ((1 / this.getCurrentTransition().transitionDuration) * increaseDecreaseMultiplier), 0, 1));
+                float newWeight = Mth.clamp(this.getWeight() + ((1 / this.getCurrentTransition().transitionDuration) * increaseDecreaseMultiplier), 0, 1);
+
+                // Notify calls
+                if(newWeight > 0 && this.getWeight() == 0){
+                    this.onStateRelevantAnimNotify.notify(animationDriverContainer, poseSamplerStateContainer);
+                }
+                if(newWeight == 0 && this.getWeight() > 0){
+                    this.onStateIrrelevantAnimNotify.notify(animationDriverContainer, poseSamplerStateContainer);
+                }
+
+                this.setWeight(newWeight);
             }
         }
 
-        public boolean getIsActive(){
+        private boolean getIsActive(){
             return this.isActive;
         }
 
-        public void setIsActive(boolean isActive){
+        private void setIsActive(boolean isActive){
             this.isActive = isActive;
         }
 
-        public StateTransition getCurrentTransition(){
+        private StateTransition getCurrentTransition(){
             return this.currentTransition;
         }
 
-        public void setCurrentTransition(StateTransition stateTransition){
+        private void setCurrentTransition(StateTransition stateTransition){
             this.currentTransition = stateTransition;
         }
 
-        public float getWeight(){
+        private float getWeight(){
             return this.weight;
         }
 
-        public void setWeight(float weight){
+        private void setWeight(float weight){
             this.weight = weight;
         }
 
-        public void addStateTransition(S target, StateTransition transition){
+        private void addStateTransition(S target, StateTransition transition){
             this.stateTransitions.put(target, transition);
         }
 
-        public Set<S> getTransitionTargets(){
+        private Set<S> getTransitionTargets(){
             return this.stateTransitions.keySet();
         }
 
@@ -328,8 +369,16 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             return null;
         }
 
-        public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton){
+        private AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton){
             return this.sampleable.sample(animationDriverContainer, poseSamplerStateContainer, jointSkeleton);
+        }
+
+        private void bindAnimNotifyOnRelevant(@NotNull AnimNotify animNotify){
+            this.onStateRelevantAnimNotify = AnimNotify.Multi.add(this.onStateRelevantAnimNotify, animNotify);
+        }
+
+        private void bindAnimNotifyOnIrrelevant(@NotNull AnimNotify animNotify){
+            this.onStateIrrelevantAnimNotify = AnimNotify.Multi.add(this.onStateIrrelevantAnimNotify, animNotify);
         }
 
     }
