@@ -66,6 +66,10 @@ public class AnimationSequenceData {
 
     public record AnimationSequence(HashMap<String, Timeline<JointTransform>> jointTimelines, float frameLength) {
 
+        public AnimationSequence(Builder builder){
+            this(builder.jointTimelines, builder.frameLength);
+        }
+
         public static AnimationSequence.Builder builder(float frameLength){
             return new AnimationSequence.Builder(frameLength);
         }
@@ -100,7 +104,7 @@ public class AnimationSequenceData {
             }
 
             public AnimationSequence build(){
-                return new AnimationSequence(jointTimelines, frameLength);
+                return new AnimationSequence(this);
             }
 
         }

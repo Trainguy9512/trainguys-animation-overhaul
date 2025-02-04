@@ -1,5 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
+import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
@@ -8,7 +10,8 @@ import net.minecraft.util.Mth;
 
 import java.util.TreeMap;
 
-public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
+//TODO: 2-dimensional blendspace stuff.
+public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements Sampleable {
 
     private final TreeMap<Float, BlendSpaceEntry> blendSpaceEntryTreeMap;
     private float currentValue = 0;
@@ -97,7 +100,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sample(JointSkeleton<L> jointSkeleton) {
+    public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
         if(this.blendSpaceEntryTreeMap.entrySet().isEmpty()){
             return AnimationPose.of(jointSkeleton);
         }
@@ -122,12 +125,12 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
     }
 
     @Override
-    public void tick(){
+    public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
         // Update current value
 
         // Advance time
         this.setPlayRate(this.getPlayRateBlended() * this.playRateMultiplier);
-        super.tick();
+        super.tick(animationDriverContainer, poseSamplerStateContainer);
     }
 
     private record BlendSpaceEntry(ResourceLocation resourceLocation, float playRate) {
@@ -137,11 +140,11 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler {
         }
 
         private float getTimeFromTicks(float time) {
-            float frameLength = AnimationSequenceData.INSTANCE.get(this.resourceLocation).getFrameLength();
+            float frameLength = AnimationSequenceData.INSTANCE.get(this.resourceLocation).frameLength();
             return (time % frameLength) / frameLength;
         }
 
-        private<L extends Enum<L>>  AnimationPose<L> sampleEntry(JointSkeleton<L> jointSkeleton, float time) {
+        private AnimationPose sampleEntry(JointSkeleton jointSkeleton, float time) {
             return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.getTimeFromTicks(time));
         }
     }

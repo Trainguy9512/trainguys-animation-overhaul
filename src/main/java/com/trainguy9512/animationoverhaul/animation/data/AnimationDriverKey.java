@@ -27,9 +27,8 @@ import java.util.function.Supplier;
  */
 public record AnimationDriverKey<D>(Supplier<D> defaultValue, String identifier) {
 
-    public AnimationDriverKey(Supplier<D> defaultValue, String identifier) {
-        this.defaultValue = defaultValue;
-        this.identifier = identifier;
+    public AnimationDriverKey(Builder<D> builder) {
+        this(builder.defaultValue, builder.identifier);
     }
 
     /**
@@ -65,7 +64,7 @@ public record AnimationDriverKey<D>(Supplier<D> defaultValue, String identifier)
         }
 
         public AnimationDriverKey<D> build(){
-            return new AnimationDriverKey<>(this.defaultValue, this.identifier);
+            return new AnimationDriverKey<>(this);
         }
     }
 }
