@@ -15,8 +15,8 @@ public class AnimationMontage {
     private float playRate = 1;
     private float blendInDuration = 1;
     private float blendOutDuration = 1;
-    private Easing blendInEasing = Easing.Linear.of();
-    private Easing blendOutEasing = Easing.Linear.of();
+    private Easing blendInEasing = Easing.LINEAR;
+    private Easing blendOutEasing = Easing.LINEAR;
 
     public float timeElapsed = 0;
     private boolean active = true;
@@ -32,10 +32,10 @@ public class AnimationMontage {
     }
 
     public void tick(){
-        // Tick time forwards using the playrare
+        // Tick time forwards using the play rate
         this.timeElapsed += this.playRate;
 
-        // Only make the active state changable when its active. Once it becomes deactive, it will be destroyed upon blendWeight == 0
+        // Only make the active state changeable when its active. Once it becomes deactive, it will be destroyed upon blendWeight == 0
         if(isActive()){
             setActive(this.timeElapsed < this.length);
         }
@@ -45,7 +45,7 @@ public class AnimationMontage {
     }
 
     public <L extends Enum<L>> AnimationPose<L> getAnimationPose(JointSkeleton<L> jointSkeleton){
-        return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / AnimationSequenceData.INSTANCE.get(resourceLocation).getFrameLength());
+        return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / AnimationSequenceData.INSTANCE.get(resourceLocation).frameLength());
     }
 
     /**

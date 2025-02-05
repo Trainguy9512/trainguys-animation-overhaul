@@ -63,11 +63,6 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements S
         }
     }
 
-    public AnimationBlendSpacePlayer addEntry(float position, ResourceLocation resourceLocation, float playRate){
-        blendSpaceEntryTreeMap.put(position, new BlendSpaceEntry(resourceLocation, playRate));
-        return this;
-    }
-
     public AnimationBlendSpacePlayer setPlayRateMultipler(float newPlayRate){
         this.playRateMultiplier = newPlayRate;
         return this;

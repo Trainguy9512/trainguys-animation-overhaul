@@ -1,11 +1,13 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
+import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import net.minecraft.util.Mth;
 import java.util.ArrayList;
 
-public class AnimationMontageTrack extends PoseSampler {
+public class AnimationMontageTrack extends PoseSampler implements SampleableFromInput {
 
     private final ArrayList<AnimationMontage> activeMontages = new ArrayList<AnimationMontage>();
 
@@ -31,9 +33,9 @@ public class AnimationMontageTrack extends PoseSampler {
     }
 
     @Override
-    public void tick(){
+    public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
         // Only run if there's actually montages currently loaded
-        if(this.isActive()){
+        if(this.hasActiveMontages()){
             ArrayList<AnimationMontage> montagesToRemove = new ArrayList<>();
             for(AnimationMontage animationMontage : activeMontages){
                 animationMontage.tick();
@@ -50,20 +52,12 @@ public class AnimationMontageTrack extends PoseSampler {
     }
 
     @Override
-    public <L extends Enum<L>> AnimationPose<L> sampleFromInputPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton) {
-        return getBlendedPose(inputPose, jointSkeleton);
-    }
-
-    public boolean isActive(){
-        return !this.activeMontages.isEmpty();
-    }
-
-    private <L extends Enum<L>> AnimationPose<L> getBlendedPose(AnimationPose<L> inputPose, JointSkeleton<L> jointSkeleton){
+    public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton, AnimationPose inputPose) {
         // Initialize the animation pose
-        AnimationPose<L> animationPose = AnimationPose.of(jointSkeleton);
+        AnimationPose animationPose = AnimationPose.of(jointSkeleton);
 
         // Only do this stuff if there's any loaded animation montages
-        if(this.isActive()){
+        if(this.hasActiveMontages()){
             // Iterate over each montage and get the blended animation between top and bottom layers
             for(int i = 0; i < this.activeMontages.size(); i++){
                 AnimationMontage animationMontage = this.activeMontages.get(i);
@@ -84,6 +78,10 @@ public class AnimationMontageTrack extends PoseSampler {
             return inputPose;
         }
         return animationPose;
+    }
+
+    public boolean hasActiveMontages(){
+        return !this.activeMontages.isEmpty();
     }
 
     /**

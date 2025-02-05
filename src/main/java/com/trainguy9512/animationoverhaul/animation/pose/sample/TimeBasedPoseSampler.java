@@ -1,29 +1,25 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
-import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerKey;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.notify.AnimNotify;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public class TimeBasedPoseSampler extends PoseSampler {
 
     protected float timeElapsed;
     private float playRate;
     private boolean playing;
-    private final HashMap<PoseSamplerKey<? extends AnimationStateMachine<?>>, List<Enum<?>>> playFromStartOnActiveStates;
-    private final HashMap<PoseSamplerKey<? extends AnimationStateMachine<?>>, List<Enum<?>>> progressTimeOnActiveStates;
+    private boolean resetting;
 
     protected TimeBasedPoseSampler(Builder<?> builder) {
         super(builder);
         this.timeElapsed = 0;
         this.playRate = builder.playRate;
-        this.playing = builder.isPlaying;
-        this.playFromStartOnActiveStates = builder.playFromStartOnActiveStates;
-        this.progressTimeOnActiveStates = builder.progressTimeOnActiveStates;
+        this.playing = builder.playing;
+        this.resetting = false;
     }
 
     public static Builder<?> of(){
@@ -34,14 +30,10 @@ public class TimeBasedPoseSampler extends PoseSampler {
     public static class Builder<B extends Builder<B>> extends PoseSampler.Builder<B> {
 
         private float playRate = 1;
-        private boolean isPlaying = true;
-        private final HashMap<PoseSamplerKey<? extends AnimationStateMachine<?>>, List<Enum<?>>> playFromStartOnActiveStates;
-        private final HashMap<PoseSamplerKey<? extends AnimationStateMachine<?>>, List<Enum<?>>> progressTimeOnActiveStates;
+        private boolean playing = true;
 
         protected Builder() {
             super();
-            this.playFromStartOnActiveStates = Maps.newHashMap();
-            this.progressTimeOnActiveStates = Maps.newHashMap();
         }
 
         @SuppressWarnings("unchecked")
@@ -51,26 +43,8 @@ public class TimeBasedPoseSampler extends PoseSampler {
         }
 
         @SuppressWarnings("unchecked")
-        public B setIsPlaying(boolean isPlaying){
-            this.isPlaying = isPlaying;
-            return (B) this;
-        }
-
-        @SuppressWarnings("unchecked")
-        public <S extends Enum<S>> B addPlayFromStartOnActiveStates(PoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, Enum<S>... states){
-            this.playFromStartOnActiveStates.putIfAbsent(animationStateMachineKey, new ArrayList<>());
-            for(Enum<S> state : states){
-                this.playFromStartOnActiveStates.get(animationStateMachineKey).add(state);
-            }
-            return (B) this;
-        }
-
-        @SuppressWarnings("unchecked")
-        public <S extends Enum<S>> B addProgressTimeOnActiveStates(PoseSamplerKey<AnimationStateMachine<S>> animationStateMachineKey, Enum<S>... states){
-            this.progressTimeOnActiveStates.putIfAbsent( animationStateMachineKey, new ArrayList<>());
-            for(Enum<S> state : states){
-                this.progressTimeOnActiveStates.get(animationStateMachineKey).add(state);
-            }
+        public B setPlaying(boolean playing){
+            this.playing = playing;
             return (B) this;
         }
 
@@ -92,62 +66,29 @@ public class TimeBasedPoseSampler extends PoseSampler {
         this.timeElapsed = timeElapsed;
     }
 
-    public void resetTime(){
-        this.setTimeElapsed(0);
-    }
-
-    public boolean getIsPlaying(){
-        return this.playing;
-    }
-
     public float getTimeElapsed(){
         return this.timeElapsed;
     }
 
-
-    /**
-     * Iterates over all state machines/state enums listed for playing from start on state active, and if the state is currently not active then it repeatedly resets until the state is active.
-     */
-    public void playFromStartOnStateActive(PoseSamplerStateContainer poseSamplerStateContainer){
-        if(!this.playFromStartOnActiveStates.isEmpty()) {
-            for (PoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey : this.playFromStartOnActiveStates.keySet()) {
-                AnimationStateMachine<?> animationStateMachine = poseSamplerStateContainer.getPoseSampler(animationStateMachineKey);
-
-                for (Enum<?> stateEnum : this.playFromStartOnActiveStates.get(animationStateMachineKey)) {
-                    if (animationStateMachine.getActiveStates().contains(stateEnum)) {
-                        return;
-                    }
-                }
-            }
-            this.resetTime();
-        }
+    public void resetTime(){
+        this.setTimeElapsed(0);
+        this.resetting = true;
     }
 
-    /**
-     * Iterates over all state machine/state enums listed for progressing time on state active, and if any of the states are active then time is progressed.
-     */
-    public void progressTimeIfStateActive(PoseSamplerStateContainer poseSamplerStateContainer){
-        if(!this.progressTimeOnActiveStates.isEmpty()){
-            for(PoseSamplerKey<? extends AnimationStateMachine<?>> animationStateMachineKey : this.progressTimeOnActiveStates.keySet()){
-                AnimationStateMachine<?> animationStateMachine = poseSamplerStateContainer.getPoseSampler(animationStateMachineKey);
-
-                for(Enum<?> stateEnum : this.progressTimeOnActiveStates.get(animationStateMachineKey)){
-                    if(animationStateMachine.getActiveStates().contains(stateEnum)){
-                        this.playing = true;
-                        return;
-                    }
-                }
-            }
-            this.playing = false;
-        }
+    public void setPlaying(boolean playing){
+        this.playing = playing;
     }
+
+    public boolean getPlaying(){
+        return this.playing;
+    }
+
 
     @Override
     public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
-        progressTimeIfStateActive(poseSamplerStateContainer);
-        if(this.getIsPlaying()){
+        if(this.getPlaying() && !this.resetting){
             this.timeElapsed += this.playRate;
         }
-        playFromStartOnStateActive(poseSamplerStateContainer);
+        this.resetting = false;
     }
 }

@@ -38,7 +38,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
 
     @Override
     public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
-        return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.getTimeFromTicks());
+        return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.processTime(this.getTimeElapsed()));
     }
 
 
@@ -97,10 +97,10 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
         super.tick(animationDriverContainer, poseSamplerStateContainer);
     }
 
-    private float getTimeFromTicks(){
+    private float processTime(float inputTime){
         return this.looping ?
-                (((this.getTimeElapsed()) % (this.endTime - this.startTime)) + this.startTime) / this.frameLength :
-                Mth.clamp(this.getTimeElapsed(), 0, this.endTime) / this.frameLength;
+                (((inputTime) % (this.endTime - this.startTime)) + this.startTime) / this.frameLength :
+                Mth.clamp(inputTime, 0, this.endTime) / this.frameLength;
     }
 
     public float getTimeElapsedLooped(){
