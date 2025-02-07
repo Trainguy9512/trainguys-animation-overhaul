@@ -50,14 +50,14 @@ public class PoseSamplerStateContainer {
      */
     @SuppressWarnings("unchecked")
     public <P extends PoseSampler> P getPoseSampler(AnimationDataKey<P> poseSamplerKey){
-        return (P) this.poseSamplers.computeIfAbsent(poseSamplerKey, PoseSamplerKey::constructPoseSampler);
+        return (P) this.poseSamplers.computeIfAbsent(poseSamplerKey, AnimationDataKey::createInstance);
     }
 
-    public AnimationPose sample(AnimationDataKey<? extends Sampleable> poseSamplerKey, AnimationDriverContainer animationDriverContainer){
+    public <P extends PoseSampler & Sampleable> AnimationPose sample(AnimationDataKey<P> poseSamplerKey, AnimationDriverContainer animationDriverContainer){
         return this.getPoseSampler(poseSamplerKey).sample(animationDriverContainer, this, this.jointSkeleton);
     }
 
-    public AnimationPose sample(AnimationDataKey<? extends SampleableFromInput> poseSamplerKey, AnimationDriverContainer animationDriverContainer, AnimationPose animationPose){
+    public <P extends PoseSampler & SampleableFromInput> AnimationPose sample(AnimationDataKey<P> poseSamplerKey, AnimationDriverContainer animationDriverContainer, AnimationPose animationPose){
         return this.getPoseSampler(poseSamplerKey).sample(animationDriverContainer, this, this.jointSkeleton, animationPose);
     }
 }
