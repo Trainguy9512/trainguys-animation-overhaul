@@ -32,7 +32,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
         this.timeElapsed = startTime;
     }
 
-    public static Builder<?> of(ResourceLocation resourceLocation){
+    public static Builder<?> builder(ResourceLocation resourceLocation){
         return new Builder<>(resourceLocation);
     }
 

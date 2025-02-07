@@ -11,7 +11,7 @@ import java.util.HashMap;
 
 public class PoseSamplerStateContainer {
 
-    private final HashMap<PoseSamplerKey<?>, PoseSampler> poseSamplers;
+    private final HashMap<AnimationDataKey<? extends PoseSampler>, PoseSampler> poseSamplers;
     private final JointSkeleton jointSkeleton;
 
     public PoseSamplerStateContainer(JointSkeleton jointSkeleton) {
@@ -44,20 +44,20 @@ public class PoseSamplerStateContainer {
      * this pose sampler state container, then a new one is created from the key's default
      * value and loaded into this animation data container and returned.
      *
-     * @param poseSamplerKey the {@link PoseSamplerKey} attached to the desired {@link PoseSampler}
+     * @param poseSamplerKey the {@link AnimationDataKey<PoseSampler>} attached to the desired {@link PoseSampler}
      *
      * @return a {@link PoseSampler} object reference
      */
     @SuppressWarnings("unchecked")
-    public <P extends PoseSampler> P getPoseSampler(PoseSamplerKey<P> poseSamplerKey){
+    public <P extends PoseSampler> P getPoseSampler(AnimationDataKey<P> poseSamplerKey){
         return (P) this.poseSamplers.computeIfAbsent(poseSamplerKey, PoseSamplerKey::constructPoseSampler);
     }
 
-    public AnimationPose sample(PoseSamplerKey<? extends Sampleable> poseSamplerKey, AnimationDriverContainer animationDriverContainer){
+    public AnimationPose sample(AnimationDataKey<? extends Sampleable> poseSamplerKey, AnimationDriverContainer animationDriverContainer){
         return this.getPoseSampler(poseSamplerKey).sample(animationDriverContainer, this, this.jointSkeleton);
     }
 
-    public AnimationPose sample(PoseSamplerKey<? extends SampleableFromInput> poseSamplerKey, AnimationDriverContainer animationDriverContainer, AnimationPose animationPose){
+    public AnimationPose sample(AnimationDataKey<? extends SampleableFromInput> poseSamplerKey, AnimationDriverContainer animationDriverContainer, AnimationPose animationPose){
         return this.getPoseSampler(poseSamplerKey).sample(animationDriverContainer, this, this.jointSkeleton, animationPose);
     }
 }

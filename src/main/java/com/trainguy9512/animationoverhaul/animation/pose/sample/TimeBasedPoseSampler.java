@@ -1,11 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
-import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerKey;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.notify.AnimNotify;
-
-import java.util.ArrayList;
 
 public class TimeBasedPoseSampler extends PoseSampler {
 
@@ -22,7 +18,7 @@ public class TimeBasedPoseSampler extends PoseSampler {
         this.resetting = false;
     }
 
-    public static Builder<?> of(){
+    public static Builder<?> builder(){
         return new Builder<>();
     }
 

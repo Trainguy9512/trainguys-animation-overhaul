@@ -38,7 +38,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         this.activeStates = builder.activeStates;
     }
 
-    public static <S extends Enum<S>> Builder<?, S> builder(S[] states){
+    public static <S extends Enum<S>> Builder<?, S> stateMachineBuilder(){
         return new Builder<>();
     }
 
@@ -106,7 +106,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         }
 
         /**
-         * Binds an anim notify to fire every time a state's weight goes from greater than 0 to 0
+         * Binds an anim notify to fire every time a state's weight goes from greater than 0
          * @param stateIdentifier       State to bind anim notify to. Must already be added to builder.
          * @param animNotify            Functional interface to fire on the notify call.
          */

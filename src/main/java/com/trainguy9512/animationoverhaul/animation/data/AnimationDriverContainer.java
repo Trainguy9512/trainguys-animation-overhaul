@@ -1,7 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -12,13 +11,10 @@ import java.util.function.Supplier;
  *     <li>Animation Variables</li>
  *     <li>Pose Samplers</li>
  * </ul>
- *
- * @see AnimationDriverKey
- * @see PoseSamplerKey
  */
 public class AnimationDriverContainer {
 
-    private final HashMap<AnimationDriverKey<?>, AnimationDriver<?>> animationDrivers;
+    private final HashMap<AnimationDataKey<?>, AnimationDriver<?>> animationDrivers;
 
     public AnimationDriverContainer(){
         this.animationDrivers = Maps.newHashMap();
@@ -27,11 +23,11 @@ public class AnimationDriverContainer {
     /**
      * Retrieves value of animation driver from the given key.
      *
-     * @param dataKey   the {@link AnimationDriverKey} attached to the desired {@link AnimationDriver}
+     * @param dataKey   the {@link AnimationDataKey} attached to the desired {@link AnimationDriver}
      *
      * @return an {@link AnimationDriver} object reference
      */
-    public <D> D get(AnimationDriverKey<D> dataKey) {
+    public <D> D get(AnimationDataKey<D> dataKey) {
         return this.getDriver(dataKey).get();
     }
 
@@ -41,12 +37,12 @@ public class AnimationDriverContainer {
      * @param dataKey   Data key value of param
      * @param value     New value to set
      */
-    public <D> void set(AnimationDriverKey<D> dataKey, D value){
+    public <D> void set(AnimationDataKey<D> dataKey, D value){
         this.getDriver(dataKey).set(value);
     }
 
     @SuppressWarnings("unchecked")
-    private <D> AnimationDriver<D> getDriver(AnimationDriverKey<D> dataKey) {
+    private <D> AnimationDriver<D> getDriver(AnimationDataKey<D> dataKey) {
         return (AnimationDriver<D>) this.animationDrivers.computeIfAbsent(dataKey, AnimationDriver::new);
     }
 
@@ -55,9 +51,9 @@ public class AnimationDriverContainer {
         private D value;
         private final Supplier<D> defaultValue;
 
-        private AnimationDriver(AnimationDriverKey<D> key){
-            this.value = key.defaultValue().get();
-            this.defaultValue = key.defaultValue();
+        private AnimationDriver(AnimationDataKey<D> key){
+            this.value = key.dataSupplier().get();
+            this.defaultValue = key.dataSupplier();
         }
 
         public D get(){

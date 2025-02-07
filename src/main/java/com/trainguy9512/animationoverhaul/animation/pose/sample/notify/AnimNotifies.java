@@ -1,6 +1,5 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample.notify;
 
-import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerKey;
 import com.trainguy9512.animationoverhaul.animation.pose.sample.TimeBasedPoseSampler;
 
 /**

@@ -178,7 +178,7 @@ public class AnimationPose {
     }
 
     public void blendLinear(AnimationPose animationPose, float alpha){
-        this.blend(animationPose, alpha, Easing.Linear.of());
+        this.blend(animationPose, alpha, Easing.LINEAR);
     }
 
     public AnimationPose getBlended(AnimationPose animationPose, float alpha, Easing easing){
@@ -188,7 +188,7 @@ public class AnimationPose {
     }
 
     public AnimationPose getBlendedLinear(AnimationPose animationPose, float alpha){
-        return this.getBlended(animationPose, alpha, Easing.Linear.of());
+        return this.getBlended(animationPose, alpha, Easing.LINEAR);
     }
 
     public void blendByJoints(AnimationPose animationPose, @NotNull List<String> joints, float alpha, Easing easing){
@@ -206,7 +206,7 @@ public class AnimationPose {
     }
 
     public AnimationPose getBlendedByJointsLinear(AnimationPose animationPose, List<String> joints, float alpha){
-        return this.getBlendedByJoints(animationPose, joints, alpha, Easing.Linear.of());
+        return this.getBlendedByJoints(animationPose, joints, alpha, Easing.LINEAR);
     }
 
     public AnimationPose getSelectedByJoints(AnimationPose animationPose, List<String> joints){

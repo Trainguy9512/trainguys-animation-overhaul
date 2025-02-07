@@ -38,7 +38,7 @@ public class JointTransform {
     public static JointTransform getJointTransformFromAnimationSequence(ResourceLocation resourceLocation, String joint, float time){
         if(AnimationSequenceData.INSTANCE.isValid(resourceLocation)){
             Timeline<JointTransform> timeline = AnimationSequenceData.INSTANCE.get(resourceLocation).getJointTimeline(joint);
-            return new JointTransform(timeline.getValueAt(time));
+            return new JointTransform(timeline.getValueAtFractional(time));
         } else {
             return JointTransform.ZERO;
         }

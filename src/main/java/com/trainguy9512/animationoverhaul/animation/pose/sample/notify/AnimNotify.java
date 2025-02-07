@@ -3,7 +3,6 @@ package com.trainguy9512.animationoverhaul.animation.pose.sample.notify;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 
-import java.awt.*;
 import java.util.EventListener;
 
 @FunctionalInterface

@@ -24,7 +24,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements S
         this.playRateMultiplier = builder.playRateMultiplier;
     }
 
-    public static Builder<?> of(){
+    public static Builder<?> builder(){
         return new Builder<>();
     }
 

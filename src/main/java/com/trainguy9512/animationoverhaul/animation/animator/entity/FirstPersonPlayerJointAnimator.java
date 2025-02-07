@@ -76,7 +76,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         MOVING
     }
 
-    public static final PoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = PoseSamplerKey.builder(() -> AnimationStateMachine.of(TestStates.values())
+    public static final PoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = PoseSamplerKey.builder(() -> AnimationStateMachine.builder(TestStates.values())
             .addStateTransition(TestStates.IDLE, TestStates.MOVING, AnimationStateMachine.StateTransition.builder(
                             animationDataContainer -> animationDataContainer.get(WALK_SPEED) > 0.1F)
                     .setTransitionDuration(5)
@@ -90,12 +90,12 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
             .build()).build();
 
     public static final PoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = PoseSamplerKey.builder(
-            () -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
+            () -> AnimationSequencePlayer.builder(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(0)
             .setStartTime(0)
             .build()).setIdentifier("idle_sequence_player").build();
     public static final PoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER_ALT = PoseSamplerKey.builder(
-            () -> AnimationSequencePlayer.of(ANIMATION_FP_PLAYER_IDLE)
+            () -> AnimationSequencePlayer.builder(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(1)
             .setStartTime(20)
             .addProgressTimeOnActiveStates(TEST_STATE_MACHINE, TestStates.MOVING)

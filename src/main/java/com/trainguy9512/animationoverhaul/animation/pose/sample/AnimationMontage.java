@@ -24,7 +24,7 @@ public class AnimationMontage {
 
     private AnimationMontage(ResourceLocation resourceLocation){
         this.resourceLocation = resourceLocation;
-        this.length = AnimationSequenceData.INSTANCE.get(resourceLocation).getFrameLength();
+        this.length = AnimationSequenceData.INSTANCE.get(resourceLocation).frameLength();
     }
 
     public static AnimationMontage of(ResourceLocation resourceLocation){

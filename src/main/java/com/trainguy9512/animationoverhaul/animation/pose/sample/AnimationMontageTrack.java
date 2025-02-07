@@ -4,6 +4,8 @@ import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContaine
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
+import com.trainguy9512.animationoverhaul.util.time.Easing;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import java.util.ArrayList;
 
@@ -15,7 +17,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
         super(builder);
     }
 
-    public static Builder<?> of(){
+    public static Builder<?> builder(){
         return new Builder<>();
     }
 
@@ -102,5 +104,26 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
         if(activeMontages.size() == 2){
             activeMontages.get(0).forceInactive(activeMontages.get(1).getBlendDuration(true));
         }
+    }
+
+
+    private final ResourceLocation resourceLocation;
+
+    private float length;
+    private float startOffset;
+    private float playRate = 1;
+    private float blendInDuration = 1;
+    private float blendOutDuration = 1;
+    private Easing blendInEasing = Easing.LINEAR;
+    private Easing blendOutEasing = Easing.LINEAR;
+
+    public record MontageConfiguration(ResourceLocation animationSequence, float length, float startOffset, float playRate, float blendInDuration, float blendOutDuration, Easing blendInEaring, Easing blendOutEasing){
+
+        public static Builder builder(ResourceLocation animationSequence)
+
+        public static class Builder {
+
+        }
+
     }
 }

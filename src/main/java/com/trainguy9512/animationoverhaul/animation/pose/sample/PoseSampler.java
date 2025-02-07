@@ -1,8 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
-import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerKey;
-import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
+import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import org.jetbrains.annotations.NotNull;
 
 public class PoseSampler implements Comparable<PoseSampler> {
@@ -15,7 +14,7 @@ public class PoseSampler implements Comparable<PoseSampler> {
         this.updateOrder = builder.updateOrder;
     }
 
-    public static Builder<?> of(){
+    public static Builder<?> builder(){
         return new Builder<>();
     }
 

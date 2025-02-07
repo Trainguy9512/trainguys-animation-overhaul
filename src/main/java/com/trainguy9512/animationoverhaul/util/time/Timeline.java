@@ -13,6 +13,11 @@ public class Timeline<T> {
         this.lerper = lerper;
     }
 
+    /**
+     * Returns the value at the given frame
+     * @param time  Time in keyframes
+     * @return
+     */
     public T getValueAtFrame(float time) {
         var firstKeyframe = keyframes.floorEntry(time);
         var secondKeyframe = keyframes.ceilingEntry(time);
@@ -38,8 +43,13 @@ public class Timeline<T> {
         );
     }
 
-    public T getValueAt(float t) {
-        return getValueAtFrame(t * this.keyframes.lastKey());
+    /**
+     * Returns the value at the given time from 0 to 1, with 0 being the beginning and 1 being the end
+     * @param time  Time from 0 to 1
+     * @return
+     */
+    public T getValueAtFractional(float time) {
+        return getValueAtFrame(time * this.keyframes.lastKey() + this.keyframes.firstKey());
     }
 
     public Timeline<T> addKeyframe(float time, T value) {
