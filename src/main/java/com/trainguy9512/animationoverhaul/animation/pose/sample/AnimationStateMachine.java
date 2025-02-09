@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 // Enum S is for state definitions
 
@@ -64,7 +65,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
          * @see StateTransition.Builder
          */
         @SuppressWarnings("unchecked")
-        public B addState(S stateIdentifier, Sampleable sampleable, StateTransition... stateTransitions){
+        public B addState(S stateIdentifier, Sampleable sampleable, StateTransition<S>... stateTransitions){
             State<S> state = new State<S>(this.statesHashMap.isEmpty(), sampleable, Set.of(stateTransitions));
 
             // If this is the first state to be added, set it to be active.
@@ -77,12 +78,12 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         /**
          * Binds an anim notify to fire every time a state's weight goes from 0 to greater than 0
          * @param stateIdentifier       State to bind anim notify to. Must already be added to builder.
-         * @param animNotify            Functional interface to fire on the notify call.
+         * @param notifyListener        Functional interface to fire on the notify call.
          */
         @SuppressWarnings("unchecked")
-        public B bindNotifyToOnStateRelevant(S stateIdentifier, NotifyListener animNotify){
+        public B bindNotifyToOnStateRelevant(S stateIdentifier, NotifyListener notifyListener){
             if(this.statesHashMap.containsKey(stateIdentifier)){
-                this.statesHashMap.get(stateIdentifier).bindNotifyToOnStateRelevant(animNotify);
+                this.statesHashMap.get(stateIdentifier).bindNotifyToOnStateRelevant(notifyListener);
             }
             return (B) this;
         }
@@ -90,12 +91,12 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         /**
          * Binds an anim notify to fire every time a state's weight goes from greater than 0
          * @param stateIdentifier       State to bind anim notify to. Must already be added to builder.
-         * @param animNotify            Functional interface to fire on the notify call.
+         * @param notifyListener        Functional interface to fire on the notify call.
          */
         @SuppressWarnings("unchecked")
-        public B bindNotifyToOnStateIrrelevant(S stateIdentifier, NotifyListener animNotify){
+        public B bindNotifyToOnStateIrrelevant(S stateIdentifier, NotifyListener notifyListener){
             if(this.statesHashMap.containsKey(stateIdentifier)){
-                this.statesHashMap.get(stateIdentifier).bindNotifyToOnStateIrrelevant(animNotify);
+                this.statesHashMap.get(stateIdentifier).bindNotifyToOnStateIrrelevant(notifyListener);
             }
             return (B) this;
         }
@@ -180,34 +181,37 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         S currentActiveStateIdentifier = this.activeStates.getLast();
         State<S> currentActiveState = this.statesHashMap.get(currentActiveStateIdentifier);
 
-        // Determine if the current state can transition, and get that state transition object
-        // TODO: Rewrite this to have transitions of equal priority fire randomly.
-        //boolean canEnterTransition = false;
-
-        @Nullable
-        StateTransition<S> newStateTransition = currentActiveState.getPotentialTransitions().stream()
+        // Filter each potential state transition by whether it's valid, then filter by whether its condition predicate is true,
+        // then shuffle it in order to make equal priority transitions randomized and re-order the valid transitions by filter order.
+        Optional<StateTransition<S>> potentialStateTransition = currentActiveState.getPotentialTransitions().stream()
                 .filter((transition) -> this.statesHashMap.containsKey(transition.target()))
                 .filter((transition) -> transition.target() != currentActiveStateIdentifier)
                 .filter((transition) -> transition.conditionPredicate().test(animationDriverContainer, this.getTimeElapsed()))
+                .collect(Collectors.collectingAndThen(Collectors.toList(), collected -> {
+                    Collections.shuffle(collected);
+                    return collected;
+                }))
+                .stream()
                 .sorted()
-                .toList()
-                .getFirst();
+                .findFirst();
 
 
         // Set all states to inactive except the new destination state. Also set the transition to all states for when they're ticked
-        if(newStateTransition != null){
+
+        if(potentialStateTransition.isPresent()){
+            StateTransition<S> stateTransition = potentialStateTransition.get();
             this.resetTime();
             for(S stateIdentifier : this.statesHashMap.keySet()){
-                this.statesHashMap.get(stateIdentifier).setCurrentTransition(newStateTransition);
+                this.statesHashMap.get(stateIdentifier).setCurrentTransition(stateTransition);
                 this.statesHashMap.get(stateIdentifier).setIsActive(false);
             }
             //Enum<S> destinationStateIdentifier = stateTransition.;
-            this.statesHashMap.get(newStateTransition.target()).setIsActive(true);
+            this.statesHashMap.get(stateTransition.target()).setIsActive(true);
 
             // Update the active states array
             // Make sure there already isn't this state present in active states
-            this.activeStates.remove(newStateTransition.target());
-            this.activeStates.add(newStateTransition.target());
+            this.activeStates.remove(stateTransition.target());
+            this.activeStates.add(stateTransition.target());
         }
 
         // Tick each state
@@ -307,12 +311,13 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
     }
 
-    public record StateTransition<S extends Enum<S>> (S target, ConditionPredicate conditionPredicate, float transitionDuration, Easing easing, int priority) implements Comparable<StateTransition> {
+    public record StateTransition<S extends Enum<S>> (S target, ConditionPredicate conditionPredicate, float transitionDuration, Easing easing, int priority) implements Comparable<StateTransition<S>> {
 
         public static <S extends Enum<S>> Builder<S> builder(S target, ConditionPredicate conditionPredicate){
             return new Builder<>(target, conditionPredicate);
         }
 
+        @SuppressWarnings("comparable")
         @Override
         public int compareTo(@NotNull AnimationStateMachine.StateTransition stateTransition) {
             return Integer.compare(this.priority(), stateTransition.priority());

@@ -6,20 +6,20 @@ import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContain
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.notify.NotifyListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 
 public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sampleable {
 
-    private boolean looping;
-    private ResourceLocation resourceLocation;
-    private float frameLength;
-    private float startTime;
-    private float endTime;
-
-    HashMap<String, AnimNotify> animNotifyMap = Maps.newHashMap();
+    private final boolean looping;
+    private final ResourceLocation resourceLocation;
+    private final float frameLength;
+    private final float startTime;
+    private final float endTime;
+    TreeMap<Float, NotifyListener> animationTickNotifyListeners;
 
     private AnimationSequencePlayer(Builder<?> builder) {
         super(builder);
@@ -28,19 +28,13 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
         this.frameLength = builder.frameLength;
         this.startTime = builder.startTime;
         this.endTime = builder.endTime;
-
+        this.animationTickNotifyListeners = builder.animationTickNotifyListeners;
         this.timeElapsed = startTime;
     }
 
     public static Builder<?> builder(ResourceLocation resourceLocation){
         return new Builder<>(resourceLocation);
     }
-
-    @Override
-    public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
-        return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.processTime(this.getTimeElapsed()));
-    }
-
 
     public static class Builder<B extends Builder<B>> extends TimeBasedPoseSampler.Builder<B> {
 
@@ -49,6 +43,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
         private final float frameLength;
         private float startTime = 0f;
         private float endTime;
+        TreeMap<Float, NotifyListener> animationTickNotifyListeners = Maps.newTreeMap();
 
         protected Builder(ResourceLocation resourceLocation) {
             super();
@@ -75,6 +70,17 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
             return (B) this;
         }
 
+        /**
+         * Binds a notify to fire every time the animation sequence player hits the specified frame of animation measured in ticks
+         * @param tick                  Frame of the animation to bind to, in ticks.
+         * @param notifyListener        Notify listener to notify
+         */
+        @SuppressWarnings("unchecked")
+        public B bindNotifyToAnimationTick(float tick, NotifyListener notifyListener){
+            animationTickNotifyListeners.merge(tick, notifyListener, (time, notify) -> NotifyListener.Multi.combine(notify, notifyListener));
+            return (B) this;
+        }
+
         @Override
         public AnimationSequencePlayer build() {
             return new AnimationSequencePlayer(this);
@@ -83,18 +89,21 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
 
     @Override
     public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
-        for(AnimNotify animNotify : animNotifyMap.values()){
-            if(animNotify.isActive()){
-                animNotify.setActive(false);
-            } else if(this.looping){
-                if(((this.getTimeElapsed() % this.frameLength) + this.getPlayRate()) > animNotify.getFrame() && (this.getTimeElapsed() % this.frameLength) < animNotify.getFrame()){
-                    animNotify.setActive(true);
+        for(float tick : this.animationTickNotifyListeners.keySet()){
+            if(this.looping){
+                if(((this.getTimeElapsed() % this.frameLength) + this.getPlayRate()) > tick && (this.getTimeElapsed() % this.frameLength) < tick){
+                   animationTickNotifyListeners.get(tick).notify(animationDriverContainer, poseSamplerStateContainer);
                 }
-            } else if((this.getTimeElapsed() + this.getPlayRate()) > animNotify.getFrame() && this.getTimeElapsed() < animNotify.getFrame()){
-                animNotify.setActive(true);
+            } else if((this.getTimeElapsed() + this.getPlayRate()) > tick && this.getTimeElapsed() < tick){
+                animationTickNotifyListeners.get(tick).notify(animationDriverContainer, poseSamplerStateContainer);
             }
         }
         super.tick(animationDriverContainer, poseSamplerStateContainer);
+    }
+
+    @Override
+    public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
+        return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.processTime(this.getTimeElapsed()));
     }
 
     private float processTime(float inputTime){
@@ -110,18 +119,6 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
     @Override
     public void resetTime() {
         this.setTimeElapsed(this.startTime);
-    }
-
-    public AnimationSequencePlayer addAnimNotify(String identifier, float tick){
-        this.animNotifyMap.put(identifier, new AnimNotify(tick));
-        return this;
-    }
-
-    public boolean isAnimNotityActive(String identifier){
-        if(this.animNotifyMap.containsKey(identifier)){
-            return this.animNotifyMap.get(identifier).isActive();
-        }
-        return false;
     }
 
     //TODO: Rewrite this with functions
