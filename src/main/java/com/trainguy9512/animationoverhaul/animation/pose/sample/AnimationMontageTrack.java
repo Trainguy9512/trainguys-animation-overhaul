@@ -106,7 +106,6 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
         }
     }
 
-
     private final ResourceLocation resourceLocation;
 
     private float length;

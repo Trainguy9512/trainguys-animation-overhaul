@@ -44,7 +44,7 @@ public class AnimationMontage {
         setBlendWeight(Mth.clamp(isActive() ? getBlendWeight() + getBlendSpeed(true) : getBlendWeight() - getBlendSpeed(false), 0, 1));
     }
 
-    public <L extends Enum<L>> AnimationPose<L> getAnimationPose(JointSkeleton<L> jointSkeleton){
+    public <L extends Enum<L>> AnimationPose getAnimationPose(JointSkeleton jointSkeleton){
         return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / AnimationSequenceData.INSTANCE.get(resourceLocation).frameLength());
     }
 
@@ -98,7 +98,7 @@ public class AnimationMontage {
     }
 
     public void setBlendDuration(float blendDuration, boolean in){
-        setBlendDuration(blendDuration, in, Easing.Linear.of());
+        setBlendDuration(blendDuration, in, Easing.LINEAR);
     }
 
     public AnimationMontage setLength(float length){

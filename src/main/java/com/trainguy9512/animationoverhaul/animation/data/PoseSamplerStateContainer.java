@@ -35,7 +35,7 @@ public class PoseSamplerStateContainer {
     private void tickUpdateOrderGroup(AnimationDriverContainer animationDriverContainer, PoseSampler.UpdateCategory updateOrder){
         this.poseSamplers.values().stream()
                 .filter((poseSampler -> poseSampler.getUpdateCategory() == updateOrder))
-                .sorted(PoseSampler::compareTo)
+                .sorted()
                 .forEach((poseSampler -> poseSampler.tick(animationDriverContainer, this)));
     }
 

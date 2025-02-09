@@ -6,16 +6,16 @@ import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContain
 import java.util.EventListener;
 
 @FunctionalInterface
-public interface AnimNotify extends EventListener {
+public interface NotifyListener extends EventListener {
 
     void notify(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer);
 
-    public class Multi implements AnimNotify {
+    public class Multi implements NotifyListener {
 
-        private final AnimNotify a;
-        private final AnimNotify b;
+        private final NotifyListener a;
+        private final NotifyListener b;
 
-        public Multi(AnimNotify a, AnimNotify b) {
+        public Multi(NotifyListener a, NotifyListener b) {
             this.a = a;
             this.b = b;
         }
@@ -26,7 +26,7 @@ public interface AnimNotify extends EventListener {
             this.b.notify(animationDriverContainer, poseSamplerStateContainer);
         }
 
-        public static AnimNotify add(AnimNotify a, AnimNotify b){
+        public static NotifyListener combine(NotifyListener a, NotifyListener b){
             if (a == null) {
                 return b;
             } else {
