@@ -221,7 +221,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                                     keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(2).getAsFloat()
                             );
                             Vector3f scale = new Vector3f(1);
-                            timeline.addKeyframe(keyframeNumber, JointTransform.of(translation, rotation, scale));
+                            timeline.addKeyframe(keyframeNumber, JointTransform.ofTranslationRotationScaleQuaternion(translation, rotation, scale));
                         }
                         animationSequenceBuilder.addTimelineForJoint(partName, timeline);
                     }

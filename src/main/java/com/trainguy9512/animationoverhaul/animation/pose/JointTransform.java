@@ -13,7 +13,7 @@ public class JointTransform {
 
     private Matrix4f transform;
 
-    public static final JointTransform ZERO = JointTransform.of(PartPose.ZERO);
+    public static final JointTransform ZERO = JointTransform.ofPartPose(PartPose.ZERO);
 
     private JointTransform(Matrix4f matrix4f) {
         this.transform = matrix4f;
@@ -23,15 +23,15 @@ public class JointTransform {
         this.transform = new Matrix4f(other.transform);
     }
 
-    public static JointTransform of(PartPose partPose){
-        return of(new Vector3f(partPose.x(), partPose.y(), partPose.z()), new Vector3f(partPose.xRot(), partPose.yRot(), partPose.zRot()), new Vector3f(partPose.xScale(), partPose.yScale(), partPose.zScale()));
+    public static JointTransform ofPartPose(PartPose partPose){
+        return ofTranslationRotationScaleEuler(new Vector3f(partPose.x(), partPose.y(), partPose.z()), new Vector3f(partPose.xRot(), partPose.yRot(), partPose.zRot()), new Vector3f(partPose.xScale(), partPose.yScale(), partPose.zScale()));
     }
 
-    public static JointTransform of(Vector3f translation, Vector3f rotationEuler, Vector3f scale){
-        return of(translation, new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), scale);
+    public static JointTransform ofTranslationRotationScaleEuler(Vector3f translation, Vector3f rotationEuler, Vector3f scale){
+        return ofTranslationRotationScaleQuaternion(translation, new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), scale);
     }
 
-    public static JointTransform of(Vector3f translation, Quaternionf rotation, Vector3f scale){
+    public static JointTransform ofTranslationRotationScaleQuaternion(Vector3f translation, Quaternionf rotation, Vector3f scale){
         return of(new Matrix4f().translate(translation).rotate(rotation).scale(scale));
     }
 

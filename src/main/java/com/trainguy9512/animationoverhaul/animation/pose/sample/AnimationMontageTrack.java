@@ -95,7 +95,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
     public void playMontage(AnimationMontage animationMontage){
         // If the length of the montage is 2, remove entry 0 (the back layer)
         if(activeMontages.size() == 2){
-            activeMontages.remove(0);
+            activeMontages.removeFirst();
         }
 
         // Add the montage to the front layer
@@ -107,7 +107,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
         }
     }
 
-    public record MontageConfiguration(ResourceLocation animationSequence, float startTime, float endTime, float playRate, float transitionInDuration, float transitionOutDuration, Easing transitionInEasing, Easing transitionOutEasing){
+    public record MontageConfiguration(ResourceLocation animationSequence, float startTime, float endTime, float playRate, float transitionInDuration, float transitionOutDuration, Easing transitionInEasing, Easing transitionOutEasing, float ){
 
         private MontageConfiguration(Builder builder){
             this(builder.animationSequence, builder.startTime, builder.endTime, builder.playRate, builder.transitionInDuration, builder.transitionOutDuration, builder.transitionInEasing, builder.transitionOutEasing);
@@ -161,7 +161,6 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
              * Sets the easing used for either the in or out transition.
              * @param easing        Easing interface to use.
              * @param in            Whether the easing will be for the in transition or out transition. True = in, false = out.
-             * @return
              */
             public Builder setTransitionEasing(Easing easing, boolean in){
                 if(in){
@@ -176,7 +175,6 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
              * Sets the duration of either the in or out transition.
              * @param duration      Duration of the transition, in ticks.
              * @param in            Whether the duration will be for the in transition or out transition. True = in, false = out.
-             * @return
              */
             public Builder setTransitionDuration(float duration, boolean in){
                 if(in){

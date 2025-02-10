@@ -41,7 +41,7 @@ public class AnimationMontage {
         }
 
         // Adjust the current blend weight
-        setBlendWeight(Mth.clamp(isActive() ? getBlendWeight() + getBlendSpeed(true) : getBlendWeight() - getBlendSpeed(false), 0, 1));
+        this.setBlendWeight(Mth.clamp(isActive() ? getBlendWeight() + getBlendSpeed(true) : getBlendWeight() - getBlendSpeed(false), 0, 1));
     }
 
     public <L extends Enum<L>> AnimationPose getAnimationPose(JointSkeleton jointSkeleton){
