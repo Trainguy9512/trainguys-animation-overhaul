@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
@@ -106,22 +107,90 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
         }
     }
 
-    private final ResourceLocation resourceLocation;
+    public record MontageConfiguration(ResourceLocation animationSequence, float startTime, float endTime, float playRate, float transitionInDuration, float transitionOutDuration, Easing transitionInEasing, Easing transitionOutEasing){
 
-    private float length;
-    private float startOffset;
-    private float playRate = 1;
-    private float blendInDuration = 1;
-    private float blendOutDuration = 1;
-    private Easing blendInEasing = Easing.LINEAR;
-    private Easing blendOutEasing = Easing.LINEAR;
+        private MontageConfiguration(Builder builder){
+            this(builder.animationSequence, builder.startTime, builder.endTime, builder.playRate, builder.transitionInDuration, builder.transitionOutDuration, builder.transitionInEasing, builder.transitionOutEasing);
+        }
 
-    public record MontageConfiguration(ResourceLocation animationSequence, float length, float startOffset, float playRate, float blendInDuration, float blendOutDuration, Easing blendInEaring, Easing blendOutEasing){
-
-        public static Builder builder(ResourceLocation animationSequence)
+        public static Builder builder(ResourceLocation animationSequence){
+            return new Builder(animationSequence);
+        }
 
         public static class Builder {
 
+            private final ResourceLocation animationSequence;
+            private float startTime = 0;
+            private float endTime;
+            private float playRate = 1;
+            private float transitionInDuration = 1;
+            private float transitionOutDuration = 1;
+            private Easing transitionInEasing = Easing.LINEAR;
+            private Easing transitionOutEasing = Easing.LINEAR;
+
+            private Builder(ResourceLocation animationSequence){
+                this.animationSequence = animationSequence;
+                this.endTime = AnimationSequenceData.INSTANCE.get(this.animationSequence).frameLength();
+            }
+
+            /**
+             * Sets the frame of animation on which the montage will start. Default is 0
+             */
+            public Builder setStartTime(float startTime){
+                this.startTime = startTime;
+                return this;
+            }
+
+            /**
+             * Sets the frame of animation on which the montage will end. Default is the end of the animation sequence.
+             */
+            public Builder setEndTime(float endTime){
+                this.endTime = endTime;
+                return this;
+            }
+
+            /**
+             * Sets the rate at which the montage will play. Default is 1.
+             */
+            public Builder setPlayRate(float playRate){
+                this.playRate = playRate;
+                return this;
+            }
+
+            /**
+             * Sets the easing used for either the in or out transition.
+             * @param easing        Easing interface to use.
+             * @param in            Whether the easing will be for the in transition or out transition. True = in, false = out.
+             * @return
+             */
+            public Builder setTransitionEasing(Easing easing, boolean in){
+                if(in){
+                    this.transitionInEasing = easing;
+                } else {
+                    this.transitionOutEasing = easing;
+                }
+                return this;
+            }
+
+            /**
+             * Sets the duration of either the in or out transition.
+             * @param duration      Duration of the transition, in ticks.
+             * @param in            Whether the duration will be for the in transition or out transition. True = in, false = out.
+             * @return
+             */
+            public Builder setTransitionDuration(float duration, boolean in){
+                if(in){
+                    this.transitionInDuration = duration;
+                } else {
+                    this.transitionOutDuration = duration;
+                }
+                return this;
+            }
+
+
+            public MontageConfiguration build(){
+                return new MontageConfiguration(this);
+            }
         }
 
     }
