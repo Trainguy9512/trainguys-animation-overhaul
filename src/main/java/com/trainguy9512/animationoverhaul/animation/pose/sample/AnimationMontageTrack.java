@@ -107,7 +107,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
         }
     }
 
-    public record MontageConfiguration(ResourceLocation animationSequence, float startTime, float endTime, float playRate, float transitionInDuration, float transitionOutDuration, Easing transitionInEasing, Easing transitionOutEasing, float ){
+    public record MontageConfiguration(ResourceLocation animationSequence, float startTime, float endTime, float playRate, float transitionInDuration, float transitionOutDuration, Easing transitionInEasing, Easing transitionOutEasing){
 
         private MontageConfiguration(Builder builder){
             this(builder.animationSequence, builder.startTime, builder.endTime, builder.playRate, builder.transitionInDuration, builder.transitionOutDuration, builder.transitionInEasing, builder.transitionOutEasing);

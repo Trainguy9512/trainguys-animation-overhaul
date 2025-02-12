@@ -44,6 +44,16 @@ public class AnimationMontage {
         this.setBlendWeight(Mth.clamp(isActive() ? getBlendWeight() + getBlendSpeed(true) : getBlendWeight() - getBlendSpeed(false), 0, 1));
     }
 
+    public float getBlend(){
+        float blendOutStartTime = 1;
+        if(this.timeElapsed < this.blendInDuration){
+            return this.blendInEasing.ease(this.timeElapsed / this.blendInDuration);
+        } else if(this.timeElapsed > this.blendOutDuration * (blendOutStartTime * 0.5f - 0.5f) + this.length){
+            return this.blendOutEasing.ease((this.blendOutDuration * (blendOutStartTime * 0.5f - 0.5f) + this.length));
+        }
+        return 1;
+    }
+
     public <L extends Enum<L>> AnimationPose getAnimationPose(JointSkeleton jointSkeleton){
         return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, (this.timeElapsed + this.startOffset) / AnimationSequenceData.INSTANCE.get(resourceLocation).frameLength());
     }
