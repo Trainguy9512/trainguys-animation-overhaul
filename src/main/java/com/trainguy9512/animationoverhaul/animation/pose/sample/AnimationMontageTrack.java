@@ -1,5 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
+import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
@@ -9,19 +10,22 @@ import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class AnimationMontageTrack extends PoseSampler implements SampleableFromInput {
 
     private final ArrayList<AnimationMontage> activeMontages = new ArrayList<AnimationMontage>();
+    private final HashMap<MontageConfiguration, Float> montages;
 
     protected AnimationMontageTrack(Builder<?> builder) {
         super(builder);
+        this.montages = Maps.newHashMap();
     }
 
     public static Builder<?> builder(){
         return new Builder<>();
     }
-
 
     public static class Builder<B extends Builder<B>> extends PoseSampler.Builder<B> {
 
@@ -37,6 +41,14 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
 
     @Override
     public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
+
+        this.montages.keySet().forEach((key) -> this.montages.compute(key, (i, value) -> (value == null ? 0 : value) + key.playRate()));
+
+        List<MontageConfiguration> finishedMontages = this.montages.keySet().stream().filter((key) -> this.montages.get(key) == 0).toList();
+        finishedMontages.forEach(this.montages::remove);
+
+       //TODO: Remove this vvvv
+
         // Only run if there's actually montages currently loaded
         if(this.hasActiveMontages()){
             ArrayList<AnimationMontage> montagesToRemove = new ArrayList<>();

@@ -46,10 +46,11 @@ public class AnimationMontage {
 
     public float getBlend(){
         float blendOutStartTime = 1;
+        float offsetEndTime = (blendOutStartTime * 0.5f - 0.5f) * this.blendOutDuration + this.length;
         if(this.timeElapsed < this.blendInDuration){
-            return this.blendInEasing.ease(this.timeElapsed / this.blendInDuration);
-        } else if(this.timeElapsed > this.blendOutDuration * (blendOutStartTime * 0.5f - 0.5f) + this.length){
-            return this.blendOutEasing.ease((this.blendOutDuration * (blendOutStartTime * 0.5f - 0.5f) + this.length));
+            return Math.max(this.blendInEasing.ease(this.timeElapsed / this.blendInDuration), 0);
+        } else if(this.timeElapsed > offsetEndTime){
+            return Math.max(this.blendOutEasing.ease(1 - ((this.timeElapsed - offsetEndTime) / this.blendOutDuration)), 0);
         }
         return 1;
     }
