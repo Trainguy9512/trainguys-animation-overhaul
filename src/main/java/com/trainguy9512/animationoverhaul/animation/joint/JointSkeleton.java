@@ -1,4 +1,4 @@
-package com.trainguy9512.animationoverhaul.animation.pose;
+package com.trainguy9512.animationoverhaul.animation.joint;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;

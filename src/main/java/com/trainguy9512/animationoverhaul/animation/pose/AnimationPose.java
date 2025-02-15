@@ -2,6 +2,8 @@ package com.trainguy9512.animationoverhaul.animation.pose;
 
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +45,7 @@ public class AnimationPose {
     public static AnimationPose fromAnimationSequence(JointSkeleton jointSkeleton, ResourceLocation resourceLocation, float time){
         AnimationPose animationPose = AnimationPose.of(jointSkeleton);
         for(String joint : jointSkeleton.getJoints()){
-            animationPose.setJointTransform(joint, JointTransform.getJointTransformFromAnimationSequence(resourceLocation, joint, time));
+            animationPose.setJointTransform(joint, JointTransform.ofAnimationSequenceJoint(resourceLocation, joint, time));
         }
         return animationPose;
     }
@@ -164,7 +166,7 @@ public class AnimationPose {
         }
 
         if(jointsToConvert.contains(parent)){
-            parentJointPose.transform(parentMatrix.invert(), JointTransform.TransformSpace.LOCAL);
+            parentJointPose.multipliedBy(parentMatrix.invert(), JointTransform.TransformSpace.LOCAL);
             this.setJointTransform(parent, parentJointPose);
         }
     }
@@ -173,7 +175,7 @@ public class AnimationPose {
         for(String joint : this.getJointSkeleton().getJoints()){
             JointTransform jointPoseA = this.getJointTransform(joint);
             JointTransform jointPoseB = animationPose.getJointTransform(joint);
-            this.setJointTransform(joint, jointPoseA.blend(jointPoseB, alpha, easing));
+            this.setJointTransform(joint, jointPoseA.interpolated(jointPoseB, alpha, easing));
         }
     }
 
@@ -195,7 +197,7 @@ public class AnimationPose {
         for(String joint : joints){
             JointTransform jointPoseA = this.getJointTransform(joint);
             JointTransform jointPoseB = animationPose.getJointTransform(joint);
-            this.setJointTransform(joint, jointPoseA.blend(jointPoseB, alpha, easing));
+            this.setJointTransform(joint, jointPoseA.interpolated(jointPoseB, alpha, easing));
         }
     }
 
@@ -216,7 +218,7 @@ public class AnimationPose {
     public void inverseMultiply(AnimationPose animationPose){
         for(String joint : this.getJointSkeleton().getJoints()){
             JointTransform jointTransform = this.getJointTransform(joint);
-            jointTransform.inverseMultiplyTransform(animationPose.getJointTransform(joint));
+            jointTransform.inverseMultipliedBy(animationPose.getJointTransform(joint));
             this.setJointTransform(joint, jointTransform);
         }
     }
@@ -230,7 +232,7 @@ public class AnimationPose {
     public void multiply(AnimationPose animationPose){
         for(String joint : this.getJointSkeleton().getJoints()){
             JointTransform jointTransform = this.getJointTransform(joint);
-            jointTransform.multiplyTransform(animationPose.getJointTransform(joint));
+            jointTransform.multipliedBy(animationPose.getJointTransform(joint));
             this.setJointTransform(joint, jointTransform);
         }
     }
@@ -251,9 +253,9 @@ public class AnimationPose {
 
         JointTransform jointTransform = animationPose.getJointTransform(joint);
         if(additive){
-            jointTransform.translate(translation, transformSpace);
+            jointTransform.translated(translation, transformSpace);
         } else {
-            jointTransform.setTranslation(translation);
+            jointTransform.withTranslation(translation);
         }
         animationPose.setJointTransform(joint, jointTransform);
 
@@ -268,9 +270,9 @@ public class AnimationPose {
 
         JointTransform jointTransform = animationPose.getJointTransform(joint);
         if(additive){
-            jointTransform.rotate(rotationXYZ, transformSpace);
+            jointTransform.rotated(rotationXYZ, transformSpace);
         } else {
-            jointTransform.setRotation(rotationXYZ);
+            jointTransform.withRotation(rotationXYZ);
         }
 
         return animationPose.getConvertedToLocalSpace();

@@ -2,7 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
-import com.trainguy9512.animationoverhaul.animation.pose.JointTransform;
+import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import com.trainguy9512.animationoverhaul.util.time.Timeline;
 import net.minecraft.resources.ResourceLocation;
 

@@ -3,7 +3,7 @@ package com.trainguy9512.animationoverhaul.animation.animator;
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.LivingEntityJointAnimator;
-import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.world.entity.Entity;

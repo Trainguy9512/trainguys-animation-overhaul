@@ -2,16 +2,14 @@ package com.trainguy9512.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorRegistry;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.JointTransform;
+import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -78,14 +76,14 @@ public abstract class MixinGameRenderer {
                 AnimationPose animationPose = EntityJointAnimatorDispatcher.INSTANCE.getFirstPersonPlayerBakedAnimationPose().getBlendedPose(f);
                 JointTransform cameraPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.CAMERA_JOINT);
                 JointTransform rootPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.ROOT_JOINT);
-                cameraPose.multiplyTransform(rootPose);
+                cameraPose.multipliedBy(rootPose);
 
                 //poseStack.translate(cameraPose.y / 16F, cameraPose.x / -16F, cameraPose.z / -16F);
 
                 PoseStack poseStack1 = new PoseStack();
                 Vector3f cameraRot = cameraPose.getEulerRotationZYX();
                 cameraRot.z *= -1;
-                cameraPose.setRotation(cameraRot);
+                cameraPose.withRotation(cameraRot);
 
                 poseStack1.mulPose(cameraPose.getRotation());
                 poseStack1.translate(cameraPose.getTranslation().x / 16F, cameraPose.getTranslation().y / 16F, cameraPose.getTranslation().z / -16F);

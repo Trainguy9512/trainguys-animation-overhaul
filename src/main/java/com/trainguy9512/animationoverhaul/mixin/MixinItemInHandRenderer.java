@@ -5,7 +5,7 @@ import com.mojang.math.Axis;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.JointTransform;
+import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;

@@ -1,6 +1,8 @@
 package com.trainguy9512.animationoverhaul.animation.pose;
 
 
+import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
+
 public class BakedAnimationPose {
 
     private AnimationPose pose;

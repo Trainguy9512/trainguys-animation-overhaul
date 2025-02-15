@@ -3,7 +3,7 @@ package com.trainguy9512.animationoverhaul.animation.animator;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 
 /**
  * Uses a data reference and a joint skeleton to calculate a pose once per tick.

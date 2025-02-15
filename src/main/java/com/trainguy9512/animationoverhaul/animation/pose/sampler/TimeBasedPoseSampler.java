@@ -1,4 +1,4 @@
-package com.trainguy9512.animationoverhaul.animation.pose.sample;
+package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;

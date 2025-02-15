@@ -1,6 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.data;
 
-import com.trainguy9512.animationoverhaul.animation.pose.sample.PoseSampler;
+import com.trainguy9512.animationoverhaul.animation.pose.sampler.PoseSampler;
 
 import java.util.function.Supplier;
 

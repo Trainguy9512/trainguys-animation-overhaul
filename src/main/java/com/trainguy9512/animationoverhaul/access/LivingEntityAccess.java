@@ -1,6 +1,6 @@
 package com.trainguy9512.animationoverhaul.access;
 
-import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import net.minecraft.core.BlockPos;
 
 public interface LivingEntityAccess {

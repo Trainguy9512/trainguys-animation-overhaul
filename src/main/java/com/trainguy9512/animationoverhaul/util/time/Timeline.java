@@ -1,6 +1,6 @@
 package com.trainguy9512.animationoverhaul.util.time;
 
-import com.trainguy9512.animationoverhaul.animation.pose.JointTransform;
+import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 
 import java.util.TreeMap;
 
@@ -48,7 +48,7 @@ public class Timeline<T> {
      * @param time  Time from 0 to 1
      * @return
      */
-    public T getValueAtFractional(float time) {
+    public T getValueAtPercentage(float time) {
         return getValueAtFrame(time * this.keyframes.lastKey() + this.keyframes.firstKey());
     }
 

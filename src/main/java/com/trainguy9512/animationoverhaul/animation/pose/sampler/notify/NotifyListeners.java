@@ -1,7 +1,7 @@
-package com.trainguy9512.animationoverhaul.animation.pose.sample.notify;
+package com.trainguy9512.animationoverhaul.animation.pose.sampler.notify;
 
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataKey;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.TimeBasedPoseSampler;
+import com.trainguy9512.animationoverhaul.animation.pose.sampler.TimeBasedPoseSampler;
 
 /**
  * Class with preset anim notify functions

@@ -1,12 +1,12 @@
-package com.trainguy9512.animationoverhaul.animation.pose.sample;
+package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.notify.NotifyListener;
+import com.trainguy9512.animationoverhaul.animation.pose.sampler.notify.NotifyListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 

@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 /**
- * Represents a container for data kept track of and updated by a part animator, such as:
+ * Represents a container for animation drivers kept track of and updated by a part animator, such as:
  * <ul>
  *     <li>Animation Variables</li>
  *     <li>Pose Samplers</li>

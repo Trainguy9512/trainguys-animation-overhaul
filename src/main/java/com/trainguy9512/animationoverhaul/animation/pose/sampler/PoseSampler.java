@@ -1,4 +1,4 @@
-package com.trainguy9512.animationoverhaul.animation.pose.sample;
+package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
@@ -6,8 +6,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class PoseSampler implements Comparable<PoseSampler> {
 
-    private String identifier;
-    private int updateOrder;
+    private final String identifier;
+    private final int updateOrder;
 
     protected PoseSampler(Builder<?> builder){
         this.identifier = builder.identifier;

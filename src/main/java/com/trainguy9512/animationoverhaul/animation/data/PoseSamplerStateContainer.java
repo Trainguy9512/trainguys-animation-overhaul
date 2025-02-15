@@ -2,10 +2,10 @@ package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.PoseSampler;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.Sampleable;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.SampleableFromInput;
+import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.pose.sampler.PoseSampler;
+import com.trainguy9512.animationoverhaul.animation.pose.sampler.Sampleable;
+import com.trainguy9512.animationoverhaul.animation.pose.sampler.SampleableFromInput;
 
 import java.util.HashMap;
 

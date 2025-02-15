@@ -2,9 +2,9 @@ package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
 import com.trainguy9512.animationoverhaul.animation.data.*;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.JointTransform;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
-import com.trainguy9512.animationoverhaul.animation.pose.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
+import com.trainguy9512.animationoverhaul.animation.pose.sampler.*;
+import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -168,7 +168,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
         pose.setJointTransform(
                 ARM_BUFFER_JOINT,
-                pose.getJointTransform(ARM_BUFFER_JOINT).rotate(
+                pose.getJointTransform(ARM_BUFFER_JOINT).rotated(
                         new Vector3f(
                                 (dampenedCameraRotation.x() - cameraRotation.x()) * (cameraDampWeight.x() * 0.01F),
                                 (dampenedCameraRotation.y() - cameraRotation.y()) * (cameraDampWeight.y() * 0.01F),
