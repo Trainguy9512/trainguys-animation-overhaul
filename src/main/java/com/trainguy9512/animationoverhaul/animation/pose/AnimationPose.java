@@ -35,23 +35,23 @@ public class AnimationPose {
 
     /**
      * Creates an animation pose from a point in time within the provided animation sequence
-     * @param jointSkeleton Template jointe skeleton
-     * @param resourceLocation Animation sequence resource location
-     * @param time Point of time in animation sequence
-     * @return Animation pose
+     * @param jointSkeleton         Template jointe skeleton
+     * @param resourceLocation      Animation sequence resource location
+     * @param timePercentage        Point of time in animation sequence
+     * @return                      New animation pose
      */
-    public static AnimationPose fromAnimationSequence(JointSkeleton jointSkeleton, ResourceLocation resourceLocation, float time){
+    public static AnimationPose fromAnimationSequence(JointSkeleton jointSkeleton, ResourceLocation resourceLocation, float timePercentage){
         AnimationPose animationPose = AnimationPose.of(jointSkeleton);
         for(String joint : jointSkeleton.getJoints()){
-            animationPose.setJointTransform(joint, JointTransform.ofAnimationSequenceJoint(resourceLocation, joint, time));
+            animationPose.setJointTransform(joint, JointTransform.ofAnimationSequenceJoint(resourceLocation, joint, timePercentage));
         }
         return animationPose;
     }
 
     /**
      * Creates a blank animation pose using a joint skeleton as the template.
-     * @param jointSkeleton Template joint skeleton
-     * @return New animation pose
+     * @param jointSkeleton         Template joint skeleton
+     * @return                      New animation pose
      */
     public static AnimationPose of(JointSkeleton jointSkeleton){
         return new AnimationPose(jointSkeleton);
@@ -59,7 +59,7 @@ public class AnimationPose {
 
     /**
      * Retrieves the animation pose's skeleton.
-     * @return Joint skeleton
+     * @return                      Joint skeleton
      */
     public JointSkeleton getJointSkeleton(){
         return this.jointSkeleton;
@@ -67,7 +67,7 @@ public class AnimationPose {
 
     /**
      * Retrieves this pose's current pose space
-     * @return Pose space
+     * @return                      Pose space
      */
     public PoseSpace getPoseSpace(){
         return this.poseSpace;
@@ -75,7 +75,7 @@ public class AnimationPose {
 
     /**
      * Sets this pose's current pose space to the provided value.
-     * @param poseSpace New pose space
+     * @param poseSpace             New pose space
      */
     private void setPoseSpace(PoseSpace poseSpace){
         this.poseSpace = poseSpace;
@@ -83,19 +83,19 @@ public class AnimationPose {
 
     /**
      * Sets the transform for the supplied joint by its string identifier.
-     * @param joint Joint string identifier
-     * @param jointPose Joint transform
+     * @param joint                 Joint string identifier
+     * @param jointTransform        Joint transform
      */
-    public void setJointTransform(String joint, JointTransform jointPose){
+    public void setJointTransform(String joint, JointTransform jointTransform){
         if(this.jointSkeleton.containsJoint(joint)){
-            this.jointTransforms.put(joint, jointPose);
+            this.jointTransforms.put(joint, jointTransform);
         }
     }
 
     /**
      * Retrieves a copy of the transform for the supplied joint.
-     * @param joint Joint string identifier
-     * @return Joint transform
+     * @param joint                 Joint string identifier
+     * @return                      Joint transform
      */
     public JointTransform getJointTransform(String joint){
         return JointTransform.of(this.jointTransforms.getOrDefault(joint, JointTransform.ZERO));
@@ -208,37 +208,44 @@ public class AnimationPose {
         return interpolatedFilteredByJoints(other, 1, joints);
     }
 
-    public AnimationPose jointTranslated(String joint, Vector3f translation, JointTransform.TransformSpace transformSpace, boolean additive){
-        AnimationPose animationPose = switch(transformSpace){
-            case ENTITY, PARENT -> this.convertedToEntitySpace();
-            case LOCAL -> this.convertedToLocalSpace();
-        };
+    public AnimationPose jointTranslated(String joint, Vector3f translation, JointTransform.TransformSpace transformSpace, boolean relative){
+        if(this.jointSkeleton.containsJoint(joint)){
+            AnimationPose animationPose = switch(transformSpace){
+                case ENTITY, PARENT -> this.convertedToEntitySpace();
+                case LOCAL -> this.convertedToLocalSpace();
+            };
 
-        JointTransform jointTransform = animationPose.getJointTransform(joint);
-        if(additive){
-            jointTransform.translate(translation, transformSpace);
-        } else {
-            jointTransform.setTranslation(translation);
+            JointTransform jointTransform = animationPose.getJointTransform(joint);
+            if(relative){
+                jointTransform.translate(translation, transformSpace);
+            } else {
+                jointTransform.setTranslation(translation);
+            }
+
+            animationPose.setJointTransform(joint, jointTransform);
+            return animationPose.convertedToLocalSpace();
         }
-        animationPose.setJointTransform(joint, jointTransform);
-
-        return animationPose.convertedToLocalSpace();
+        return this;
     }
 
-    public AnimationPose jointRotated(String joint, Vector3f rotationXYZ, JointTransform.TransformSpace transformSpace, boolean additive){
-        AnimationPose animationPose = switch(transformSpace){
-            case ENTITY, PARENT -> this.convertedToEntitySpace();
-            case LOCAL -> this.convertedToLocalSpace();
-        };
+    public AnimationPose jointRotated(String joint, Vector3f rotationXYZ, JointTransform.TransformSpace transformSpace, boolean relative){
+        if(this.jointSkeleton.containsJoint(joint)){
+            AnimationPose animationPose = switch(transformSpace){
+                case ENTITY, PARENT -> this.convertedToEntitySpace();
+                case LOCAL -> this.convertedToLocalSpace();
+            };
 
-        JointTransform jointTransform = animationPose.getJointTransform(joint);
-        if(additive){
-            jointTransform.rotate(rotationXYZ, transformSpace);
-        } else {
-            jointTransform.setRotation(rotationXYZ);
+            JointTransform jointTransform = animationPose.getJointTransform(joint);
+            if(relative){
+                jointTransform.rotate(rotationXYZ, transformSpace);
+            } else {
+                jointTransform.setRotation(rotationXYZ);
+            }
+
+            animationPose.setJointTransform(joint, jointTransform);
+            return animationPose.convertedToLocalSpace();
         }
-
-        return animationPose.convertedToLocalSpace();
+        return this;
     }
 
 
