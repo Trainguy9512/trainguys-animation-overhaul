@@ -180,7 +180,7 @@ public class AnimationPose {
     public AnimationPose interpolatedFilteredByJoints(AnimationPose other, float weight, Set<String> joints){
         // If the weight is 0, don't interpolate anything and just return this.
         if(weight == 0){
-            return this;
+            return new AnimationPose(this);
         }
         // TODO: Ensure pose samplers interpolate poses correctly to preserve pose spaces.
         // Convert the other pose's pose space to match this pose's pose space.
