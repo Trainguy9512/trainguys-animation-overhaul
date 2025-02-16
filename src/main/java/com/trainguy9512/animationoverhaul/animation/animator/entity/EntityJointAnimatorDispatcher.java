@@ -56,7 +56,7 @@ public class EntityJointAnimatorDispatcher {
         }
 
         // Step 4: Push the local space pose to the baked pose, and save the baked pose.
-        bakedPose.pushPose(calculatedAnimationPose.getConvertedToLocalSpace());
+        bakedPose.pushPose(calculatedAnimationPose.convertedToLocalSpace());
         this.saveBakedPose(entityUUID, bakedPose);
     }
 
@@ -90,7 +90,7 @@ public class EntityJointAnimatorDispatcher {
             }
 
             // Step 4: Push the local space pose to the baked pose, and save the baked pose.
-            this.firstPersonPlayerBakedAnimationPose.pushPose(calculatedAnimationPose.getConvertedToLocalSpace());
+            this.firstPersonPlayerBakedAnimationPose.pushPose(calculatedAnimationPose.convertedToLocalSpace());
         }
     }
 

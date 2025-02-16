@@ -197,8 +197,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
         // Set all states to inactive except the new destination state. Also set the transition to all states for when they're ticked
 
-        if(potentialStateTransition.isPresent()){
-            StateTransition<S> stateTransition = potentialStateTransition.get();
+        potentialStateTransition.ifPresent(stateTransition -> {
             this.resetTime();
             for(S stateIdentifier : this.statesHashMap.keySet()){
                 this.statesHashMap.get(stateIdentifier).setCurrentTransition(stateTransition);
@@ -211,7 +210,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             // Make sure there already isn't this state present in active states
             this.activeStates.remove(stateTransition.target());
             this.activeStates.add(stateTransition.target());
-        }
+        });
 
         // Tick each state
         for(State<S> state : this.statesHashMap.values()){

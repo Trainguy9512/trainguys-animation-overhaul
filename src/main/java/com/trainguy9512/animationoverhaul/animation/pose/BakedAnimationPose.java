@@ -30,7 +30,7 @@ public class BakedAnimationPose {
     public AnimationPose getBlendedPose(float partialTicks){
         // uncomment this for debugging
         //partialTicks = 1;
-        return this.poseOld.getBlendedLinear(this.pose, partialTicks).getConvertedToEntitySpace();
+        return this.poseOld.getBlendedLinear(this.pose, partialTicks).convertedToEntitySpace();
     }
 
     /*

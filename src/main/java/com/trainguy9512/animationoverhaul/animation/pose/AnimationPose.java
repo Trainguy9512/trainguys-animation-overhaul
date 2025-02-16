@@ -9,9 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class AnimationPose {
 
@@ -89,7 +87,9 @@ public class AnimationPose {
      * @param jointPose Joint transform
      */
     public void setJointTransform(String joint, JointTransform jointPose){
-        this.jointTransforms.put(joint, jointPose);
+        if(this.jointSkeleton.containsJoint(joint)){
+            this.jointTransforms.put(joint, jointPose);
+        }
     }
 
     /**
@@ -98,28 +98,14 @@ public class AnimationPose {
      * @return Joint transform
      */
     public JointTransform getJointTransform(String joint){
-        return new JointTransform(this.jointTransforms.getOrDefault(joint, JointTransform.ZERO));
+        return JointTransform.of(this.jointTransforms.getOrDefault(joint, JointTransform.ZERO));
     }
 
-    @Deprecated
-    public JointTransform getJointPoseReference(String joint){
-        return this.jointTransforms.getOrDefault(joint, JointTransform.ZERO);
-    }
-
-    /*
-    public void subtractPose(AnimationPose animationPose){
-        for(LocatorSkeleton.LocatorEntry locatorEntry : animationPose.getSkeleton().getLocatorEntries()){
-            this.setLocatorPose(locatorEntry.getLocatorIdentifier(), MutablePartPose);
-        }
-    }
-
+    /**
+     * If this pose is in local space, returns a new pose converted to entity space.
      */
-
-
-
-
-    public AnimationPose getConvertedToEntitySpace(){
-        if(this.getPoseSpace() == PoseSpace.LOCAL){
+    public AnimationPose convertedToEntitySpace(){
+        if(this.poseSpace == PoseSpace.LOCAL){
             AnimationPose animationPose = new AnimationPose(this);
             animationPose.convertChildrenJointsToEntitySpace(this.getJointSkeleton().getRootJoint(), new PoseStack(), this.getJointSkeleton().getJoints());
             animationPose.setPoseSpace(PoseSpace.ENTITY);
@@ -129,27 +115,30 @@ public class AnimationPose {
     }
 
     private void convertChildrenJointsToEntitySpace(String parent, PoseStack poseStack, Set<String> jointsToConvert){
-        JointTransform localParentJointPose = new JointTransform(this.getJointTransform(parent));
+        JointTransform localParentJointPose = JointTransform.of(this.getJointTransform(parent));
 
         poseStack.pushPose();
 
-        poseStack.mulPose(localParentJointPose.getTransform());
+        poseStack.mulPose(localParentJointPose.composeMatrix());
 
         for (String child : this.getJointSkeleton().getDirectChildrenOfJoint(parent)){
-            convertChildrenJointsToEntitySpace(child, poseStack, jointsToConvert);
+            this.convertChildrenJointsToEntitySpace(child, poseStack, jointsToConvert);
         }
 
         for(String joint : jointsToConvert){
             if((this.getJointSkeleton().jointIsParentOfChild(parent, joint) || jointsToConvert.contains(parent))){
-                this.setJointTransform(parent, localParentJointPose.setTransform(new Matrix4f(poseStack.last().pose())));
+                this.setJointTransform(parent, JointTransform.of(new Matrix4f(poseStack.last().pose())));
                 break;
             }
         }
         poseStack.popPose();
     }
 
-    public AnimationPose getConvertedToLocalSpace(){
-        if(this.getPoseSpace() == PoseSpace.ENTITY){
+    /**
+     * If this pose is in entity space, returns a new pose converted to local space.
+     */
+    public AnimationPose convertedToLocalSpace(){
+        if(this.poseSpace == PoseSpace.ENTITY){
             AnimationPose animationPose = new AnimationPose(this);
             animationPose.convertChildrenJointsToLocalSpace(this.getJointSkeleton().getRootJoint(), new Matrix4f(), this.getJointSkeleton().getJoints());
             animationPose.setPoseSpace(PoseSpace.LOCAL);
@@ -162,138 +151,115 @@ public class AnimationPose {
         JointTransform parentJointPose = this.getJointTransform(parent);
 
         for (String child : this.getJointSkeleton().getDirectChildrenOfJoint(parent)){
-            convertChildrenJointsToLocalSpace(child, parentJointPose.getTransform(), jointsToConvert);
+            this.convertChildrenJointsToLocalSpace(child, parentJointPose.composeMatrix(), jointsToConvert);
         }
 
         if(jointsToConvert.contains(parent)){
-            parentJointPose.multipliedBy(parentMatrix.invert(), JointTransform.TransformSpace.LOCAL);
+            parentJointPose.multiply(parentMatrix.invert(), JointTransform.TransformSpace.LOCAL);
             this.setJointTransform(parent, parentJointPose);
         }
     }
 
-    public void blend(AnimationPose animationPose, float alpha, Easing easing){
-        for(String joint : this.getJointSkeleton().getJoints()){
-            JointTransform jointPoseA = this.getJointTransform(joint);
-            JointTransform jointPoseB = animationPose.getJointTransform(joint);
-            this.setJointTransform(joint, jointPoseA.interpolated(jointPoseB, alpha, easing));
+    /**
+     * Returns a new animation pose interpolated between this pose and the provided pose.
+     * @param other     Animation pose to interpolate to.
+     * @param weight    Weight value, 0 is the original pose and 1 is the other pose.
+     * @return          New interpolated animation pose.
+     */
+    public AnimationPose interpolated(AnimationPose other, float weight){
+        return interpolatedFilteredByJoints(other, weight, this.jointSkeleton.getJoints());
+    }
+
+    /**
+     * Returns a new animation pose interpolated between this pose and the provided pose, only on the specified joints.
+     * @param other     Animation pose to interpolate to.
+     * @param weight    Weight value, 0 is the original pose and 1 is the other pose.
+     * @param joints    Set of joints to interpolate.
+     * @return          New interpolated animation pose.
+     */
+    public AnimationPose interpolatedFilteredByJoints(AnimationPose other, float weight, Set<String> joints){
+        // If the weight is 0, don't interpolate anything and just return this.
+        if(weight == 0){
+            return this;
         }
+        // TODO: Ensure pose samplers interpolate poses correctly to preserve pose spaces.
+        // Convert the other pose's pose space to match this pose's pose space.
+        AnimationPose otherConverted = this.poseSpace == other.poseSpace ? other :
+                this.poseSpace == PoseSpace.ENTITY ? other.convertedToEntitySpace() :
+                        other.convertedToLocalSpace();
+
+        AnimationPose interpolatedAnimationPose = new AnimationPose(this);
+        joints.stream()
+                .filter(joint -> this.getJointSkeleton().containsJoint(joint))
+                .forEach(joint -> interpolatedAnimationPose.setJointTransform(joint,
+                        weight == 1 ? otherConverted.getJointTransform(joint) :
+                                this.getJointTransform(joint).interpolated(other.getJointTransform(joint), weight))
+                );
+        return interpolatedAnimationPose;
     }
 
-    public void blendLinear(AnimationPose animationPose, float alpha){
-        this.blend(animationPose, alpha, Easing.LINEAR);
+    /**
+     * Returns a new animation pose with the other pose filtered by the selected joints.
+     * @param other     Animation pose to filter.
+     * @param joints    Set of joints to filter by.
+     * @return          New filtered animation pose.
+     */
+    public AnimationPose filteredByJoints(AnimationPose other, Set<String> joints){
+        return interpolatedFilteredByJoints(other, 1, joints);
     }
 
-    public AnimationPose getBlended(AnimationPose animationPose, float alpha, Easing easing){
-        AnimationPose newAnimationPose = new AnimationPose(this);
-        newAnimationPose.blend(animationPose, alpha, easing);
-        return newAnimationPose;
-    }
-
-    public AnimationPose getBlendedLinear(AnimationPose animationPose, float alpha){
-        return this.getBlended(animationPose, alpha, Easing.LINEAR);
-    }
-
-    public void blendByJoints(AnimationPose animationPose, @NotNull List<String> joints, float alpha, Easing easing){
-        for(String joint : joints){
-            JointTransform jointPoseA = this.getJointTransform(joint);
-            JointTransform jointPoseB = animationPose.getJointTransform(joint);
-            this.setJointTransform(joint, jointPoseA.interpolated(jointPoseB, alpha, easing));
-        }
-    }
-
-    public AnimationPose getBlendedByJoints(AnimationPose animationPose, @NotNull List<String> joints, float alpha, Easing easing){
-        AnimationPose newAnimationPose = new AnimationPose(this);
-        newAnimationPose.blendByJoints(animationPose, joints, alpha, easing);
-        return newAnimationPose;
-    }
-
-    public AnimationPose getBlendedByJointsLinear(AnimationPose animationPose, List<String> joints, float alpha){
-        return this.getBlendedByJoints(animationPose, joints, alpha, Easing.LINEAR);
-    }
-
-    public AnimationPose getSelectedByJoints(AnimationPose animationPose, List<String> joints){
-        return this.getBlendedByJointsLinear(animationPose, joints, 1);
-    }
-
-    public void inverseMultiply(AnimationPose animationPose){
-        for(String joint : this.getJointSkeleton().getJoints()){
-            JointTransform jointTransform = this.getJointTransform(joint);
-            jointTransform.inverseMultipliedBy(animationPose.getJointTransform(joint));
-            this.setJointTransform(joint, jointTransform);
-        }
-    }
-
-    public AnimationPose getInverseMultiplied(AnimationPose animationPose){
-        AnimationPose newAnimationPose = new AnimationPose(this);
-        newAnimationPose.inverseMultiply(animationPose);
-        return newAnimationPose;
-    }
-
-    public void multiply(AnimationPose animationPose){
-        for(String joint : this.getJointSkeleton().getJoints()){
-            JointTransform jointTransform = this.getJointTransform(joint);
-            jointTransform.multipliedBy(animationPose.getJointTransform(joint));
-            this.setJointTransform(joint, jointTransform);
-        }
-    }
-
-    public AnimationPose getMultiplied(AnimationPose animationPose){
-        AnimationPose newAnimationPose = new AnimationPose(this);
-        newAnimationPose.multiply(animationPose);
-        return newAnimationPose;
-    }
-
-
-
-    public AnimationPose translateJoint(String joint, Vector3f translation, JointTransform.TransformSpace transformSpace, boolean additive){
+    public AnimationPose jointTranslated(String joint, Vector3f translation, JointTransform.TransformSpace transformSpace, boolean additive){
         AnimationPose animationPose = switch(transformSpace){
-            case ENTITY, PARENT -> this.getConvertedToEntitySpace();
-            case LOCAL -> this.getConvertedToLocalSpace();
+            case ENTITY, PARENT -> this.convertedToEntitySpace();
+            case LOCAL -> this.convertedToLocalSpace();
         };
 
         JointTransform jointTransform = animationPose.getJointTransform(joint);
         if(additive){
-            jointTransform.translated(translation, transformSpace);
+            jointTransform.translate(translation, transformSpace);
         } else {
-            jointTransform.withTranslation(translation);
+            jointTransform.setTranslation(translation);
         }
         animationPose.setJointTransform(joint, jointTransform);
 
-        return animationPose.getConvertedToLocalSpace();
+        return animationPose.convertedToLocalSpace();
     }
 
-    public AnimationPose rotateJoint(String joint, Vector3f rotationXYZ, JointTransform.TransformSpace transformSpace, boolean additive){
+    public AnimationPose jointRotated(String joint, Vector3f rotationXYZ, JointTransform.TransformSpace transformSpace, boolean additive){
         AnimationPose animationPose = switch(transformSpace){
-            case ENTITY, PARENT -> this.getConvertedToEntitySpace();
-            case LOCAL -> this.getConvertedToLocalSpace();
+            case ENTITY, PARENT -> this.convertedToEntitySpace();
+            case LOCAL -> this.convertedToLocalSpace();
         };
 
         JointTransform jointTransform = animationPose.getJointTransform(joint);
         if(additive){
-            jointTransform.rotated(rotationXYZ, transformSpace);
+            jointTransform.rotate(rotationXYZ, transformSpace);
         } else {
-            jointTransform.withRotation(rotationXYZ);
+            jointTransform.setRotation(rotationXYZ);
         }
 
-        return animationPose.getConvertedToLocalSpace();
+        return animationPose.convertedToLocalSpace();
     }
 
 
 
-    public void mirror(){
-        this.mirrorBlended(1);
+    public AnimationPose mirrored(){
+        return this.mirroredWeighted(1);
     }
 
-    public void mirrorBlended(float alpha){
-        HashMap<String, JointTransform> mirroredPose = Maps.newHashMap();
+    public AnimationPose mirroredWeighted(float weight){
+        // Pose mirroring should only occur on local space poses. If the pose is in entity space, have it be converted
+        AnimationPose localSpaceCurrentPose = this.convertedToLocalSpace();
+        AnimationPose mirroredPose = AnimationPose.of(this.jointSkeleton);
+        this.jointTransforms.forEach((joint, transform) -> {
+
+        });
         for(String joint : this.getJointSkeleton().getJoints()){
-            JointTransform jointPose = this.getJointTransform(joint);
-            JointTransform mirroredJointPose = this.getJointTransform(this.getJointSkeleton().getJointConfiguration(joint).mirrorJoint());
-            mirroredPose.put(joint, new JointTransform(jointPose).blendLinear(mirroredJointPose, alpha));
+            JointTransform jointTransform = localSpaceCurrentPose.getJointTransform(joint);
+            JointTransform mirroredJointTransform = localSpaceCurrentPose.getJointTransform(this.getJointSkeleton().getJointConfiguration(joint).mirrorJoint()).mirrored();
+            mirroredPose.setJointTransform(joint, jointTransform.interpolated(mirroredJointTransform, weight));
         }
-        for(String joint : mirroredPose.keySet()){
-            this.setJointTransform(joint, mirroredPose.get(joint));
-        }
+        return mirroredPose;
     }
 
     public enum PoseSpace {

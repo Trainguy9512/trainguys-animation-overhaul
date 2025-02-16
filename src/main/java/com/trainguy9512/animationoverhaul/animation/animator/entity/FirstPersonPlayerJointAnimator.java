@@ -168,7 +168,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
         pose.setJointTransform(
                 ARM_BUFFER_JOINT,
-                pose.getJointTransform(ARM_BUFFER_JOINT).rotated(
+                pose.getJointTransform(ARM_BUFFER_JOINT).rotate(
                         new Vector3f(
                                 (dampenedCameraRotation.x() - cameraRotation.x()) * (cameraDampWeight.x() * 0.01F),
                                 (dampenedCameraRotation.y() - cameraRotation.y()) * (cameraDampWeight.y() * 0.01F),

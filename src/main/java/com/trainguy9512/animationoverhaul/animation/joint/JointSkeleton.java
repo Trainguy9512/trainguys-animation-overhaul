@@ -7,6 +7,7 @@ import org.apache.commons.compress.utils.Lists;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Structure used for associating locator enums with data such as transform hierarchy, default offset poses, model parts, and mirrors.
@@ -103,6 +104,10 @@ public class JointSkeleton {
         return this.joints.get(joint);
     }
 
+    public boolean containsJoint(String joint){
+        return this.joints.containsKey(joint);
+    }
+
     public static class Builder {
 
         private final HashMap<String, JointConfiguration.Builder> joints = Maps.newHashMap();
@@ -114,15 +119,26 @@ public class JointSkeleton {
         }
 
         public Builder addJointUnderRoot(String joint){
-            this.joints.putIfAbsent(joint, JointConfiguration.Builder.of(this.rootJoint));
+            this.joints.putIfAbsent(joint, JointConfiguration.Builder.of(joint, this.rootJoint));
+            this.joints.get(this.rootJoint).addChild(joint);
             return this;
         }
 
         public Builder addJointUnderParent(String joint, String parent){
             if(this.joints.containsKey(parent)){
-                this.joints.putIfAbsent(joint, JointConfiguration.Builder.of(parent));
+                this.joints.putIfAbsent(joint, JointConfiguration.Builder.of(joint, parent));
+                this.joints.get(parent).addChild(joint);
             } else {
                 AnimationOverhaulMain.LOGGER.warn("Joint {} not added due to parent joint {} not being present in the skeleton.", joint, parent);
+            }
+            return this;
+        }
+
+        public Builder setModelPartIdentifier(String joint, String modelPartIdentifier){
+            if(this.joints.containsKey(joint)){
+                this.joints.get(joint).setModelPartIdentifier(modelPartIdentifier);
+            } else {
+                AnimationOverhaulMain.LOGGER.warn("Model part identifier not set during joint skeleton construction for joint {}, due to joint {} not being defined in the skeleton.", joint, joint);
             }
             return this;
         }
@@ -153,31 +169,28 @@ public class JointSkeleton {
     }
 
 
-    public record JointConfiguration(boolean isRoot, String parent, List<String> children, boolean usesMirrorJoint, String mirrorJoint, boolean usesModelPart, String modelPartIdentifier, PartPose modelPartOffset) {
+    public record JointConfiguration(boolean isRoot, String parent, List<String> children, String mirrorJoint, boolean usesModelPart, String modelPartIdentifier, PartPose modelPartOffset) {
 
         public static class Builder {
             private final boolean isRoot;
             private final String parent;
             private final ArrayList<String> children;
-            private boolean usesMirrorJoint;
             private String mirrorJoint;
             private boolean usesModelPart;
             private String modelPartIdentifier;
             private PartPose modelPartOffset;
 
-            private Builder(String parent){
+            private Builder(String joint, String parent){
                 this.isRoot = parent == null;
                 this.parent = parent;
                 this.children = Lists.newArrayList();
-                this.usesMirrorJoint = false;
-                this.mirrorJoint = null;
                 this.usesModelPart = false;
                 this.modelPartIdentifier = null;
                 this.modelPartOffset = PartPose.ZERO;
             }
 
-            public static Builder of(@Nullable String parent){
-                return new Builder(parent);
+            public static Builder of(String joint, @Nullable String parent){
+                return new Builder(joint, parent);
             }
 
             public Builder addChild(String child){
@@ -185,11 +198,8 @@ public class JointSkeleton {
                 return this;
             }
 
-            public Builder setMirrorJoint(String mirorJoint){
-                if(mirrorJoint != null){
-                    this.mirrorJoint = mirorJoint;
-                    this.usesMirrorJoint = true;
-                }
+            public Builder setMirrorJoint(String mirrorJoint){
+                this.mirrorJoint = mirrorJoint;
                 return this;
             }
 
@@ -207,7 +217,7 @@ public class JointSkeleton {
             }
 
             protected JointConfiguration build(){
-                return new JointConfiguration(this.isRoot, this.parent, this.children, this.usesMirrorJoint, this.mirrorJoint, this.usesModelPart, this.modelPartIdentifier, this.modelPartOffset);
+                return new JointConfiguration(this.isRoot, this.parent, this.children, this.mirrorJoint, this.usesModelPart, this.modelPartIdentifier, this.modelPartOffset);
             }
         }
     }

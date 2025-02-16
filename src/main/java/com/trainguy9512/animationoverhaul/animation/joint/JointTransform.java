@@ -2,7 +2,6 @@ package com.trainguy9512.animationoverhaul.animation.joint;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
-import com.trainguy9512.animationoverhaul.util.time.Easing;
 import com.trainguy9512.animationoverhaul.util.time.Timeline;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -17,6 +16,14 @@ public final class JointTransform {
 
     private JointTransform(Matrix4f transform) {
         this.transform = transform;
+    }
+
+    public static JointTransform of(Matrix4f matrix4f){
+        return new JointTransform(new Matrix4f(matrix4f));
+    }
+
+    public static JointTransform of(JointTransform jointTransform){
+        return JointTransform.of(jointTransform.transform);
     }
 
     public static JointTransform ofPartPose(PartPose partPose){
@@ -40,22 +47,9 @@ public final class JointTransform {
         }
     }
 
-    public static JointTransform of(Matrix4f matrix4f){
-        return new JointTransform(matrix4f);
-    }
-
-    /*
-
-
-
-    GETTER
-
-
-
-    public Matrix4f getTransform(){
+    public Matrix4f composeMatrix(){
         return new Matrix4f(this.transform);
     }
-     */
     public Vector3f getTranslation(){
         return this.transform.getTranslation(new Vector3f());
     }
@@ -68,16 +62,16 @@ public final class JointTransform {
         return this.transform.getEulerAnglesZYX(new Vector3f());
     }
 
-    public JointTransform withTranslation(Vector3f translation){
-        return JointTransform.of(new Matrix4f(this.transform).setTranslation(translation));
+    public void setTranslation(Vector3f translation){
+        this.transform.setTranslation(translation);
     }
 
-    public JointTransform withRotation(Quaternionf quaternionRotation){
-        return this.withRotation(quaternionRotation.getEulerAnglesXYZ(new Vector3f()));
+    public void setRotation(Quaternionf quaternionRotation){
+        this.setRotation(quaternionRotation.getEulerAnglesXYZ(new Vector3f()));
     }
 
-    public JointTransform withRotation(Vector3f eulerRotation){
-        return JointTransform.of(new Matrix4f(this.transform).setRotationXYZ(eulerRotation.x(), eulerRotation.y(), eulerRotation.z()));
+    public void setRotation(Vector3f eulerRotation){
+        this.transform.setRotationXYZ(eulerRotation.x(), eulerRotation.y(), eulerRotation.z());
     }
 
     public PartPose asPartPose(){
@@ -93,55 +87,52 @@ public final class JointTransform {
         );
     }
 
-    public JointTransform translated(Vector3f translation, TransformSpace transformSpace){
+    public void translate(Vector3f translation, TransformSpace transformSpace){
         if(translation.x() != 0 || translation.y() != 0 || translation.z() != 0){
-            return switch (transformSpace){
-                case ENTITY, PARENT -> of(this.transform.translateLocal(translation, new Matrix4f()));
-                case LOCAL -> of(this.transform.translate(translation, new Matrix4f()));
-            };
+            switch (transformSpace){
+                case ENTITY, PARENT -> this.transform.translateLocal(translation);
+                case LOCAL -> this.transform.translate(translation);
+            }
         }
-        return this;
     }
 
-    public JointTransform rotated(Quaternionf rotation, TransformSpace transformSpace){
-        return switch (transformSpace){
-            case ENTITY, PARENT -> this.withRotation(this.transform.getNormalizedRotation(new Quaternionf()).premul(rotation));
-            case LOCAL -> JointTransform.of(this.transform.rotate(rotation, new Matrix4f()));
+    public void rotate(Quaternionf rotation, TransformSpace transformSpace){
+        switch (transformSpace){
+            case ENTITY, PARENT -> this.setRotation(this.transform.getNormalizedRotation(new Quaternionf()).premul(rotation));
+            case LOCAL -> this.transform.rotate(rotation);
         };
     }
 
-    public JointTransform rotated(Vector3f rotationEuler, TransformSpace transformSpace){
-        return this.rotated(new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), transformSpace);
+    public void rotate(Vector3f rotationEuler, TransformSpace transformSpace){
+        this.rotate(new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), transformSpace);
     }
 
-    public JointTransform multipliedBy(Matrix4f transform, TransformSpace transformSpace){
-        return switch (transformSpace){
-            case ENTITY, PARENT -> JointTransform.of(this.transform.mul(transform, new Matrix4f()));
-            case LOCAL -> JointTransform.of(this.transform.mulLocal(transform, new Matrix4f()));
-        };
+    public void multiply(Matrix4f transform, TransformSpace transformSpace){
+        switch (transformSpace){
+            case ENTITY, PARENT -> JointTransform.of(this.transform.mul(transform));
+            case LOCAL -> JointTransform.of(this.transform.mulLocal(transform));
+        }
     }
 
     //TODO: Why does this use translated and rotated?
-    public JointTransform multipliedBy(JointTransform jointTransform){
-        this.translated(jointTransform.getTranslation(), TransformSpace.ENTITY);
-        this.rotated(jointTransform.getRotation(), TransformSpace.ENTITY);
-        return this;
+    public void multiply(JointTransform jointTransform){
+        this.translate(jointTransform.getTranslation(), TransformSpace.ENTITY);
+        this.rotate(jointTransform.getRotation(), TransformSpace.ENTITY);
     }
 
-    public JointTransform inverseMultipliedBy(JointTransform jointTransform){
-        this.translated(jointTransform.getTranslation().negate(), TransformSpace.ENTITY);
-        this.rotated(jointTransform.getRotation().invert(), TransformSpace.ENTITY);
-        return this;
+    public void inverseMultiply(JointTransform jointTransform){
+        this.translate(jointTransform.getTranslation().negate(), TransformSpace.ENTITY);
+        this.rotate(jointTransform.getRotation().invert(), TransformSpace.ENTITY);
     }
 
     public JointTransform mirrored(){
         Vector3f mirroredTranslation = this.getTranslation().mul(-1, 1, 1);
         Vector3f mirroredRotation = this.getEulerRotationZYX().mul(1, -1, -1);
-        return this.withTranslation(mirroredTranslation).withRotation(mirroredRotation);
+        return JointTransform.ofTranslationRotationScaleEuler(mirroredTranslation, mirroredRotation, new Vector3f(1));
     }
 
-    public JointTransform interpolated(JointTransform other, float alpha){
-        return JointTransform.of(this.transform.lerp(other.transform, alpha, new Matrix4f()));
+    public JointTransform interpolated(JointTransform other, float weight){
+        return JointTransform.of(this.transform.lerp(other.transform, weight, new Matrix4f()));
     }
 
     public void translateAndRotatePoseStack(PoseStack poseStack){
