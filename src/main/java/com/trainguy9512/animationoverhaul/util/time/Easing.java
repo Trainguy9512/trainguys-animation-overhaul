@@ -2,6 +2,9 @@ package com.trainguy9512.animationoverhaul.util.time;
 
 import net.minecraft.util.Mth;
 
+/**
+ * @author Marvin Schürz
+ */
 @FunctionalInterface
 public interface Easing {
 

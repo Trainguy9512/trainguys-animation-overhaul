@@ -182,18 +182,15 @@ public class AnimationPose {
         if(weight == 0){
             return new AnimationPose(this);
         }
-        // TODO: Ensure pose samplers interpolate poses correctly to preserve pose spaces.
         // Convert the other pose's pose space to match this pose's pose space.
-        AnimationPose otherConverted = this.poseSpace == other.poseSpace ? other :
-                this.poseSpace == PoseSpace.ENTITY ? other.convertedToEntitySpace() :
-                        other.convertedToLocalSpace();
+        AnimationPose otherConverted = other.convertedToLocalSpace();
 
-        AnimationPose interpolatedAnimationPose = new AnimationPose(this);
+        AnimationPose interpolatedAnimationPose = this.convertedToLocalSpace();
         joints.stream()
                 .filter(joint -> this.getJointSkeleton().containsJoint(joint))
                 .forEach(joint -> interpolatedAnimationPose.setJointTransform(joint,
                         weight == 1 ? otherConverted.getJointTransform(joint) :
-                                this.getJointTransform(joint).interpolated(other.getJointTransform(joint), weight))
+                                interpolatedAnimationPose.getJointTransform(joint).interpolated(other.getJointTransform(joint), weight))
                 );
         return interpolatedAnimationPose;
     }

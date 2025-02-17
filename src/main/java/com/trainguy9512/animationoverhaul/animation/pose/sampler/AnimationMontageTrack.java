@@ -11,6 +11,7 @@ import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class AnimationMontageTrack extends PoseSampler implements SampleableFromInput {
 
@@ -49,7 +50,14 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
     public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton, AnimationPose inputPose) {
         if(!this.montages.isEmpty()){
             AnimationPose pose = new AnimationPose(inputPose);
-            this.montages.forEach((configuration, timeElapsed) -> pose.blend(AnimationPose.fromAnimationSequence(jointSkeleton, configuration.animationSequence, (timeElapsed + configuration.startTime) / AnimationSequenceData.INSTANCE.get(configuration.animationSequence).frameLength()), configuration.getWeight(timeElapsed), Easing.LINEAR));
+            for (Map.Entry<MontageConfiguration, Float> entry : this.montages.entrySet()){
+                MontageConfiguration configuration = entry.getKey();
+                float timeElapsed = entry.getValue();
+                float weight = configuration.getWeight(timeElapsed);
+                if(weight > 0){
+                    pose = pose.interpolated(AnimationPose.fromAnimationSequence(jointSkeleton, configuration.animationSequence, (timeElapsed + configuration.startTime) / AnimationSequenceData.INSTANCE.get(configuration.animationSequence).frameLength()), weight);
+                }
+            }
             return pose;
         }
         return inputPose;

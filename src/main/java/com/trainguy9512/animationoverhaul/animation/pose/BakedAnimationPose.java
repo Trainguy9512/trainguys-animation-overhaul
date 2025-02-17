@@ -30,30 +30,6 @@ public class BakedAnimationPose {
     public AnimationPose getBlendedPose(float partialTicks){
         // uncomment this for debugging
         //partialTicks = 1;
-        return this.poseOld.getBlendedLinear(this.pose, partialTicks).convertedToEntitySpace();
+        return this.poseOld.interpolated(this.pose, partialTicks).convertedToEntitySpace();
     }
-
-    /*
-    private static Locator lerpLocator(float value, Locator locatorOld, Locator locator){
-        Locator locatorNew = new Locator(locator.getIdentifier());
-        locatorNew.translateX = Mth.lerp(value, locatorOld.translateX, locator.translateX);
-        locatorNew.translateY = Mth.lerp(value, locatorOld.translateY, locator.translateY);
-        locatorNew.translateZ = Mth.lerp(value, locatorOld.translateZ, locator.translateZ);
-        locatorNew.rotateX = Mth.rotLerp(value, locatorOld.rotateX, locator.rotateX);
-        locatorNew.rotateY = Mth.rotLerp(value, locatorOld.rotateY, locator.rotateY);
-        locatorNew.rotateZ = Mth.rotLerp(value, locatorOld.rotateZ, locator.rotateZ);
-        return locatorNew;
-    }
-    public String getLocator(String identifier){
-        return this.pose.getSkeleton().containsLocator(identifier) ? identifier : "null";
-    }
-
-     */
-
-    /*
-    public boolean containsLocator(String identifier){
-        return this.pose.getSkeleton().containsLocator(identifier);
-    }
-
-     */
 }

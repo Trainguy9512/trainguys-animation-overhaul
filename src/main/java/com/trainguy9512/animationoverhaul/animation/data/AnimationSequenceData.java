@@ -91,7 +91,7 @@ public class AnimationSequenceData {
         }
 
         public static class Builder{
-            private HashMap<String, Timeline<JointTransform>> jointTimelines;
+            private final HashMap<String, Timeline<JointTransform>> jointTimelines;
             private final float frameLength;
 
             protected Builder(float frameLength){

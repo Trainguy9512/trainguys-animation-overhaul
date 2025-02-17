@@ -1,19 +1,42 @@
 # 🏃 Trainguy's Animation Overhaul
 
-Repository for a 1.19.3+ Minecraft mod centered around improving the game's character animations via a realtime animation system, included in the Moonflower suite of mods. The primary focus is third and first person character animation improvements, and once those are done the mod will be released and I will move on to entity and block animations.
+Repository for a 1.21.4+ Minecraft mod centered around complex gameplay-driven character animations through a real-time animation system I'm building inspired by Unreal Engine's Animation Blueprints. Is currently included in the Moonflower suite of mods.
 
-> **Warning**
-> This project is still in heavy development! You are free to compile yourself and try it out, but keep in mind that there will be missing animations, placeholders, and debugging visuals that will not look correct. **This mod is not in a playable state!**
+> **Warning!**
+> This project is still in heavy development! You are free to compile yourself and try it out, but keep in mind that there will be missing animations, placeholders, and debugging visuals that will not look correct in a normal gameplay context.
+
+## 📜 Planned Features
+
+- 🟩 Complete
+- 🟨 High Priority
+- 🟥 Low Priority
+- ❌ Currently out-of-scope (not permanently though!)
+
+| Feature                         | Status | Notes                                                                                                                                                                                         |
+|:--------------------------------|:-------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Pose Sampler System             | 🟩     | Implementation of state machines, blend spaces, and montage tracks.                                                                                                                           |
+| PyQT Maya Exporter              | 🟨     | Tool for exporting animations out of Maya with new format with scale support.                                                                                                                 |
+| First Person Player Animations  | 🟨     | The first proper stress-test of the system.                                                                                                                                                   |
+| In-game configuration           | 🟨     | Settings for tweaking individual aspects of different joint animators.                                                                                                                        |
+| Block / Block Entity Animations | 🟥     | Would like to re-add support for block animations, similar to the earlier implementation with Pollen, after first person animations are far enough along.                                     |
+| Third Person Player Animations  | 🟥     | Whether or not this will be included with the release version or not is TBD.                                                                                                                  |
+| Back-porting                    | 🟥     | Depends on the demand, given that this mod is intended to be used on vanilla-ish versions of the game and usually people playing vanilla don't often play older versions.                     |
+| Synchronised Sound              | ❌      | I don't know how the sound system works currently, or what it would take to make sounds trigger with animations without breaking other sound mods, but it's something I'm keeping in mind.    |
+| Open API for Modding            | ❌      | I would like to lock down the design of the animation systems further before considering making this an open API                                                                              |
+| Entity Animations               | ❌      | Too high-scope to do on my own at this juncture, requires a large amount of animations/character rigs. Functionality will support it if I were to find somebody to help out on this.          |
+| Data-Driven Joint Animators     | ❌      | Design would need to be locked down enough prior to considering this.                                                                                                                         |
 
 ## 🔗 Socials
-- My Discord server: https://discord.gg/HRg4nxvWWW
+- My Discord server: _Work-in-progress_
 - My Twitter: https://twitter.com/Trainguy9512
 - Moonflower Website: https://moonflower.gg/
 - Moonflower Twitter: https://www.moonflower.gg/twitter
 - Moonflower Discord: https://www.moonflower.gg/discord
 
-## 📘 Additional Credits
-- Timeline and lerp system
+## 📘 Credits
+- Lead Development, Rigging, Animation
+  - [James Pelter (Trainguy9512)](https://x.com/Trainguy9512)
+- Timeline and easing system
   - [Marvin Schürz](https://twitter.com/minetoblend)
 - Contributors
   - [TomB-134](https://github.com/TomB-134)
@@ -21,6 +44,7 @@ Repository for a 1.19.3+ Minecraft mod centered around improving the game's char
   - [LizIsTired](https://github.com/LizIsTired)
   - [CaioMGT](https://github.com/CaioMGT)
   - [Superpowers04](https://github.com/superpowers04)
+- Special thanks to members of the Moonflower team for supporting my development on this and helping answer my questions!
 
 ## 🧵 Usage and Contribution
 - Pull requests are welcome!
@@ -31,12 +55,16 @@ Repository for a 1.19.3+ Minecraft mod centered around improving the game's char
 ## 🔍 FAQ
 
 - What versions of the game will this mod support?
-> For right now, the mod is being worked on in 1.19.3. Once I figure out better methods of version control for handling multiple versions, I would like to make the mod available on 1.18.2+, but this depends on whether 1.19's keyframed animation changes make me want to make 1.19.2 as the floor version. It will always support the latest release version of the game, barring huge rendering or animation changes.
-- Will the mod come to forge?
-> Yes, for the time being the mod is being developed on Fabric but the mod will eventually be moved back to an architectury project once the mod is finished enough to move back over to a pollen-based architectury project.
+> For right now, the mod is being worked on in the latest version of Java Minecraft. Upon release, the plan is to gear the project towards supporting multiple versions at once onwards. Whether or not there will be backports is TBD
+- What mod loaders will this mod be compatible with?
+> Initially, likely only Fabric, as this mod being built to be used in a vanilla-ish setting and to my knowledge, Fabric is generally more geared towards vanilla gameplay than Forge is.
+- Will the mod come to Forge/NeoForge?
+> Likely yes, as part of multi-version development I plan on gearing the project for closer to release.
 - What will the mod require as a dependency?
-> Right now, just Fabric API. Once Pollen is updated to 1.19, the project will be reformatted to an architectury project which will add Pollen as a dependency, for things like registries and custom block renderers.
+> Right now, just the Fabric API.
 - What is this mod compatible with?
-> Currently there is no official list of what will or will not work, but generally most cosmetic vanilla-friendly mods like Essential, 3D Skin Layers, and armor mods should work perfectly fine. Mods that change the player model to add additional animations like Better Combat or Emotecraft will not work, as they have different implementations for their animations that either overwrite or get overwritten by this mod. Content heavy mods that add additional animations for items and abilities are very likely to be visually absent, but this shouldn't inherently break anything.
+> Currently there is no official list of what will or will not work, but generally most cosmetic vanilla-friendly mods like Essential, 3D Skin Layers, and other cosmetic mods should work perfectly fine. Mods that change the player model to add additional animations like Better Combat or Emotecraft will probably not work, as they have different implementations for their animations that either overwrite or get overwritten by this mod. 
+>
+> Additionally, right now there are no plans to implement compatibility with heavier content mods which would have their own interaction animations, though one day this may come in the form of separate mods with an API.
 
-If you feel this FAQ is missing anything or you have any additional questions, please let me know! You can reach me at Trainguy#9512 on discord
+If you feel this FAQ is missing anything or you have any additional questions, please let me know by sending a message request to my Discord account, `Trainguy9512`

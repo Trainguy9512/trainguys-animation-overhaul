@@ -113,7 +113,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements S
             return firstEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed());
 
         float relativeTime = (this.currentValue - firstEntry.getKey()) / (secondEntry.getKey() - firstEntry.getKey());
-        return firstEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed()).getBlendedLinear(
+        return firstEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed()).interpolated(
                 secondEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed()),
                 relativeTime
         );

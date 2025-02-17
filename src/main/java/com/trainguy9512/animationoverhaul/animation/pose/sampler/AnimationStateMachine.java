@@ -152,16 +152,18 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             AnimationPose animationPose = this.getPoseFromState(this.activeStates.getFirst(), animationDriverContainer, poseSamplerStateContainer, jointSkeleton);
             if(this.activeStates.size() > 1){
                 for(S stateIdentifier : this.activeStates){
-                    animationPose.blend(
+                    animationPose = animationPose.interpolated(
                             this.getPoseFromState(stateIdentifier, animationDriverContainer, poseSamplerStateContainer, jointSkeleton),
-                            this.statesHashMap.get(stateIdentifier).getWeight(),
-                            this.statesHashMap.get(stateIdentifier).getCurrentTransition().easing());
+                            this.statesHashMap.get(stateIdentifier).getCurrentTransition().easing().ease(
+                                    this.statesHashMap.get(stateIdentifier).getWeight()
+                            )
+                    );
                 }
             }
             //AnimationOverhaulMain.LOGGER.info(this.activeStates.toString());
             return animationPose;
         }
-        AnimationOverhaulMain.LOGGER.warn("No active states in state machine {}", this.getIdentifier());
+        //AnimationOverhaulMain.LOGGER.warn("No active states in state machine {}", this.getIdentifier());
         return AnimationPose.of(jointSkeleton);
     }
 

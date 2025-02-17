@@ -4,12 +4,15 @@ import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 
 import java.util.TreeMap;
 
+/**
+ * @author Marvin Schürz
+ */
 public class Timeline<T> {
 
     private TreeMap<Float, Keyframe<T>> keyframes = new TreeMap();
-    private final Lerper<T> lerper;
+    private final Interpolator<T> lerper;
 
-    public Timeline(Lerper<T> lerper) {
+    public Timeline(Interpolator<T> lerper) {
         this.lerper = lerper;
     }
 
@@ -36,7 +39,7 @@ public class Timeline<T> {
         float relativeTime = (time - firstKeyframe.getKey()) / (secondKeyframe.getKey() - firstKeyframe.getKey());
 
 
-        return lerper.lerp(
+        return lerper.interpolate(
                 firstKeyframe.getValue().getValue(),
                 secondKeyframe.getValue().getValue(),
                 secondKeyframe.getValue().getEasing().ease(relativeTime)
@@ -53,7 +56,7 @@ public class Timeline<T> {
     }
 
     public Timeline<T> addKeyframe(float time, T value) {
-        return addKeyframe(time, value, new Easing.Linear());
+        return addKeyframe(time, value, Easing.LINEAR);
     }
 
     public Timeline<T> addKeyframe(float time, T value, Easing easing) {
@@ -85,6 +88,6 @@ public class Timeline<T> {
     }
 
     public static Timeline<JointTransform> jointTransformTimeline() {
-        return new Timeline<>(JointTransform::blendLinear);
+        return new Timeline<>(JointTransform::interpolated);
     }
 }
