@@ -5,6 +5,7 @@ import com.mojang.math.Axis;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.access.LivingEntityRenderStateAccess;
 import com.trainguy9512.animationoverhaul.access.ModelAccess;
+import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorRegistry;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
@@ -45,39 +46,28 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
         EntityJointAnimatorDispatcher entityJointAnimatorDispatcher = EntityJointAnimatorDispatcher.INSTANCE;
 
         // If the entity joint animator dispatcher has animation data for this specific entity under its UUID, and it's registered in the main class.
-        if(entityJointAnimatorDispatcher.entityHasBakedAnimationPose(livingEntity.getUUID()) && AnimationOverhaulMain.ENTITY_ANIMATORS.contains(livingEntity.getType())){
-            EntityJointAnimator<?, ?, ?, ?> livingEntityJointAnimator = AnimationOverhaulMain.ENTITY_ANIMATORS.get(livingEntity.getType());
-            JointSkeleton<?> jointSkeleton = livingEntityJointAnimator.getJointSkeleton();
+        JointAnimatorRegistry.getThirdPersonJointAnimator(livingEntity.getType()).ifPresent(jointAnimator ->
+                JointAnimatorRegistry.getThirdPersonJointSkeleton(livingEntity.getType()).ifPresent(jointSkeleton -> {
 
-            // Get the blended animation pose, get the interpolated pose at the current frame, and then save it to the entity render state.
-            ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$setInterpolatedAnimationPose(entityJointAnimatorDispatcher.getEntityBakedAnimationPose(livingEntity.getUUID(), jointSkeleton).getBlendedPose(partialTicks)
-            );
-            // Get the joint animator from the registry and save it to the entity render state. This is used for model part application later on.
-            ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$setEntityJointAnimator(livingEntityJointAnimator);
-        }
+                    // Get the blended animation pose, get the interpolated pose at the current frame, and then save it to the entity render state.
+                    ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$setInterpolatedAnimationPose(entityJointAnimatorDispatcher.getEntityBakedAnimationPose(livingEntity.getUUID(), jointSkeleton).getBlendedPose(partialTicks)
+                    );
+                    // Get the joint animator from the registry and save it to the entity render state. This is used for model part application later on.
+                    ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$setEntityJointAnimator(jointAnimator);
+
+        }));
     }
 
+    @SuppressWarnings("unchecked")
     @Redirect(method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;setupAnim(Lnet/minecraft/client/renderer/entity/state/EntityRenderState;)V"))
     private <L extends Enum<L>> void redirectSetupAnim(EntityModel<S> entityModel, S livingEntityRenderState){
         // Unchecked cast, but I can make assumptions given this is always called after extractRenderState within the same renderer class.
-        AnimationPose<L> animationPose = (AnimationPose<L>) ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getInterpolatedAnimationPose();
-        EntityJointAnimator<T, S, M, L> entityJointAnimator = (EntityJointAnimator<T, S, M, L>) ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getEntityJointAnimator();
-
+        AnimationPose animationPose = ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getInterpolatedAnimationPose();
+        EntityJointAnimator<T, S> entityJointAnimator = (EntityJointAnimator<T, S>) ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getEntityJointAnimator();
 
         // If the supplied animation pose is valid and the entity model implements ModelAccess, apply the animation pose. If not, then run the vanilla functionality
-        if(animationPose != null && entityModel instanceof ModelAccess){
-            entityModel.root();
-            ModelPart rootModelPart = entityModel.root();
-
-            for(Enum<L> locator : animationPose.getJointSkeleton().getJoints()){
-                if((animationPose).getJointSkeleton().getLocatorUsesModelPart(locator)){
-                    ModelPart modelPart = rootModelPart;
-                    for(String individualPartString : animationPose.getJointSkeleton().getLocatorModelPartIdentifier(locator).split("\\.")){
-                        modelPart = modelPart.getChild(individualPartString);
-                    }
-                    modelPart.loadPose(animationPose.getJointTransform(locator).asPartPose());
-                }
-            }
+        if(animationPose != null && entityJointAnimator != null){
+            EntityJointAnimatorDispatcher.setupAnimWithAnimationPose(entityModel, livingEntityRenderState, animationPose, entityJointAnimator);
         } else {
             entityModel.setupAnim(livingEntityRenderState);
         }
@@ -85,15 +75,12 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
 
     @Inject(method = "setupRotations", at = @At("HEAD"), cancellable = true)
     private void overrideSetupRotation(R livingEntityRenderState, PoseStack poseStack, float f, float g, CallbackInfo ci){
+        AnimationPose animationPose = ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getInterpolatedAnimationPose();
 
-        //poseStack.translate(Mth.sin(bob / 6), 0, 0);
-        //poseStack.mulPose(Vector3f.ZP.rotation(Mth.sin(bob / 6) / 4));
 
-        AnimationPose<?> animationPose = ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getInterpolatedAnimationPose();
+        // TODO: Will revisit this later once I continue work on third person animations.
+        if(false){
 
-        //BakedAnimationPose<?> bakedPose = EntityJointAnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
-
-        if(shouldUseAlternateRotations(animationPose)){
 
             poseStack.popPose();
             poseStack.pushPose();
@@ -106,17 +93,6 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
                 poseStack.mulPose(Axis.YP.rotationDegrees(j - 90));
             } else {
 
-                /*
-
-                float bodyRot = 0 ;//Mth.rotLerp(frameTime, ((LivingEntity)livingEntity).yHeadRotO, ((LivingEntity)livingEntity).yHeadRot);
-                //bodyRot = AnimatorDispatcher.INSTANCE.getEntityAnimationData(livingEntity).getLerped(LivingEntityPartAnimator.BODY_Y_ROT, frameTime);
-                if(livingEntityRenderState.passengerOffset != null){
-                    bodyRot = Mth.rotLerp(frameTime, ((LivingEntity)livingEntity).yHeadRotO, ((LivingEntity)livingEntity).yHeadRot);
-                }
-
-                 */
-
-                //poseStack.mulPose(Axis.YP.rotationDegrees(180 - bodyRot));
             }
             ci.cancel();
         }
@@ -124,8 +100,11 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
 
     @Redirect(method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V", ordinal = 0))
     private void removeBedTranslation(PoseStack instance, float f, float g, float h, LivingEntityRenderState livingEntityRenderState){
-        AnimationPose<?> animationPose = ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getInterpolatedAnimationPose();
-        if(shouldUseAlternateRotations(animationPose)){
+        AnimationPose animationPose = ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getInterpolatedAnimationPose();
+
+
+        // TODO: Will revisit this later once I continue work on third person animations.
+        if(false){
 
         } else {
             instance.translate(f, g, h);
@@ -136,35 +115,21 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
 
 
     @Inject(method = "render(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
-    private <L extends Enum<L>> void translateAndRotateAfterScale(R livingEntityRenderState, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
-        AnimationPose<L> animationPose = (AnimationPose<L>) ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getInterpolatedAnimationPose();
+    private void translateAndRotateAfterScale(R livingEntityRenderState, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci){
+        AnimationPose animationPose = ((LivingEntityRenderStateAccess)livingEntityRenderState).animationOverhaul$getInterpolatedAnimationPose();
 
-        if(shouldUseAlternateRotations(animationPose)){
+
+        // TODO: Will revisit this later once I continue work on third person animations.
+        if(false){
             poseStack.translate(0, -1.5, 0);
 
-            Enum<L> root = animationPose.getJointSkeleton().getRootJoint();
+            String root = animationPose.getJointSkeleton().getRootJoint();
 
             animationPose.getJointTransform(root).translateAndRotatePoseStack(poseStack);
             poseStack.translate(0, 1.5, 0);
         }
 
 
-    }
-
-
-
-    @Unique
-    private boolean shouldUseAlternateRotations(AnimationPose<?> animationPose){
-        /*
-        if(bakedPose != null){
-            if(bakedPose.containsLocator(ROOT)){
-                return true;
-            }
-        }
-        return false;
-
-         */
-        return false;
     }
 
     @Unique

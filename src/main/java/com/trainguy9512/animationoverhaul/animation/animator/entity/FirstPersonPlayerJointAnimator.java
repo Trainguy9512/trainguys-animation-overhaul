@@ -6,6 +6,7 @@ import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.*;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
+import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;
@@ -71,6 +72,11 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     public static final AnimationDriverKey<Boolean> IS_JUMPING = AnimationDriverKey.builder(() -> false).setIdentifier("is_jumping").build();
     public static final AnimationDriverKey<Float> WALK_SPEED = AnimationDriverKey.builder(() -> 0f).setIdentifier("walk_speed").build();
 
+    @Override
+    public void postProcessModelParts(EntityModel<PlayerRenderState> entityModel, PlayerRenderState entityRenderState) {
+
+    }
+
     public enum TestStates {
         IDLE,
         MOVING
@@ -101,10 +107,6 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
             .addProgressTimeOnActiveStates(TEST_STATE_MACHINE, TestStates.MOVING)
             .build()).setIdentifier("idle_sequence_player").build();
 
-    @Override
-    public void postProcessModelParts(PlayerRenderState entityRenderState, ModelPart rootModelPart) {
-
-    }
 
 
 

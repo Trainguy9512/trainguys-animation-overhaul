@@ -40,7 +40,6 @@ public class AnimationOverhaulMain implements ModInitializer {
 
 	private static void registerTimelineGroupLoader(){
 		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new AnimationSequenceDataLoader());
-		//ResourceRegistry.registerReloadListener(PackType.CLIENT_RESOURCES, new TimelineGroupDataLoader());
 	}
 
 	@Override

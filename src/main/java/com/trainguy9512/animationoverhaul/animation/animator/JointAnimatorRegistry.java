@@ -11,6 +11,7 @@ import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 public class JointAnimatorRegistry {
 
@@ -49,10 +50,9 @@ public class JointAnimatorRegistry {
      * @param entityType                Entity type
      * @return                          Entity joint animator
      */
-    @Nullable
     @SuppressWarnings("unchecked")
-    public static <T extends Entity> EntityJointAnimator<T, ?> getThirdPersonJointAnimator(EntityType<T> entityType){
-        return (EntityJointAnimator<T, ?>) THIRD_PERSON_ENTITY_JOINT_ANIMATORS.get(entityType);
+    public static <T extends Entity> Optional<EntityJointAnimator<T, ?>> getThirdPersonJointAnimator(EntityType<T> entityType){
+        return Optional.ofNullable((EntityJointAnimator<T, ?>) THIRD_PERSON_ENTITY_JOINT_ANIMATORS.get(entityType));
     }
 
     /**
@@ -60,24 +60,21 @@ public class JointAnimatorRegistry {
      * @param entityType                Entity type
      * @return Joint skeleton
      */
-    @Nullable
-    public static JointSkeleton getThirdPersonJointSkeleton(EntityType<?> entityType){
-        return THIRD_PERSON_ENTITY_JOINT_SKELETONS.get(entityType);
+    public static Optional<JointSkeleton> getThirdPersonJointSkeleton(EntityType<?> entityType){
+        return Optional.ofNullable(THIRD_PERSON_ENTITY_JOINT_SKELETONS.get(entityType));
     }
 
     /**
      * Returns the first person player joint animator, if it has been registered. If not, it returns null.
      */
-    @Nullable
-    public static LivingEntityJointAnimator<LocalPlayer, PlayerRenderState> getFirstPersonPlayerJointAnimator(){
-        return FIRST_PERSON_PLAYER_JOINT_ANIMATOR;
+    public static Optional<LivingEntityJointAnimator<LocalPlayer, PlayerRenderState>> getFirstPersonPlayerJointAnimator(){
+        return Optional.ofNullable(FIRST_PERSON_PLAYER_JOINT_ANIMATOR);
     }
 
     /**
      * Returns the first person player joint skeleton, if it has been registered. If not, it returns null.
      */
-    @Nullable
-    public static JointSkeleton getFirstPersonPlayerJointSkeleton(){
-        return FIRST_PERSON_PLAYER_JOINT_SKELETON;
+    public static Optional<JointSkeleton> getFirstPersonPlayerJointSkeleton(){
+        return Optional.ofNullable(FIRST_PERSON_PLAYER_JOINT_SKELETON);
     }
 }
