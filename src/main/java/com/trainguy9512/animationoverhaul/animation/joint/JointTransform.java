@@ -168,13 +168,6 @@ public final class JointTransform {
         this.transformPoseStack(poseStack, 1F);
     }
 
-    public void transformModelPart(ModelPart modelPart){
-        Vector3f translation = this.getTranslation();
-        Vector3f rotation = this.getEulerRotationZYX();
-        modelPart.setPos(translation.x(), translation.y(), translation.z());
-        modelPart.setRotation(rotation.x(), rotation.y(), rotation.z());
-    }
-
     public enum TransformSpace {
         ENTITY,
         PARENT,

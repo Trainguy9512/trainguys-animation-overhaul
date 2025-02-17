@@ -4,17 +4,15 @@
   "package": "com.trainguy9512.animationoverhaul.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "MixinItemInHandRenderer",
-    "MixinMinecraft"
   ],
   "client": [
+    "MixinItemInHandRenderer",
+    "MixinMinecraft",
     "MixinCapeLayer",
     "MixinElytraLayer",
     "MixinLivingEntityRenderState",
     "MixinGameRenderer",
-    "MixinInventoryScreen",
     "MixinItemInHandLayer",
-    "MixinLivingEntity",
     "MixinLivingEntityRenderer",
     "debug.MixinPlayerSkin"
   ],

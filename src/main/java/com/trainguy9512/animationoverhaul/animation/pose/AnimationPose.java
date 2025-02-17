@@ -107,30 +107,22 @@ public class AnimationPose {
     public AnimationPose convertedToEntitySpace(){
         if(this.poseSpace == PoseSpace.LOCAL){
             AnimationPose animationPose = new AnimationPose(this);
-            animationPose.convertChildrenJointsToEntitySpace(this.getJointSkeleton().getRootJoint(), new PoseStack(), this.getJointSkeleton().getJoints());
+            animationPose.convertChildrenJointsToEntitySpace(this.getJointSkeleton().getRootJoint(), new PoseStack());
             animationPose.setPoseSpace(PoseSpace.ENTITY);
             return animationPose;
         }
-        return this;
+        return new AnimationPose(this);
     }
 
-    private void convertChildrenJointsToEntitySpace(String parent, PoseStack poseStack, Set<String> jointsToConvert){
+    private void convertChildrenJointsToEntitySpace(String parent, PoseStack poseStack){
         JointTransform localParentJointPose = JointTransform.of(this.getJointTransform(parent));
 
         poseStack.pushPose();
-
         poseStack.mulPose(localParentJointPose.composeMatrix());
 
-        for (String child : this.getJointSkeleton().getDirectChildrenOfJoint(parent)){
-            this.convertChildrenJointsToEntitySpace(child, poseStack, jointsToConvert);
-        }
+        this.getJointSkeleton().getDirectChildrenOfJoint(parent).ifPresent(children -> children.forEach(child -> this.convertChildrenJointsToEntitySpace(child, poseStack)));
 
-        for(String joint : jointsToConvert){
-            if((this.getJointSkeleton().jointIsParentOfChild(parent, joint) || jointsToConvert.contains(parent))){
-                this.setJointTransform(parent, JointTransform.of(new Matrix4f(poseStack.last().pose())));
-                break;
-            }
-        }
+        this.setJointTransform(parent, JointTransform.of(new Matrix4f(poseStack.last().pose())));
         poseStack.popPose();
     }
 
@@ -140,24 +132,20 @@ public class AnimationPose {
     public AnimationPose convertedToLocalSpace(){
         if(this.poseSpace == PoseSpace.ENTITY){
             AnimationPose animationPose = new AnimationPose(this);
-            animationPose.convertChildrenJointsToLocalSpace(this.getJointSkeleton().getRootJoint(), new Matrix4f(), this.getJointSkeleton().getJoints());
+            animationPose.convertChildrenJointsToLocalSpace(this.getJointSkeleton().getRootJoint(), new Matrix4f());
             animationPose.setPoseSpace(PoseSpace.LOCAL);
             return animationPose;
         }
-        return this;
+        return new AnimationPose(this);
     }
 
-    private void convertChildrenJointsToLocalSpace(String parent, Matrix4f parentMatrix, Set<String> jointsToConvert){
+    private void convertChildrenJointsToLocalSpace(String parent, Matrix4f parentMatrix){
         JointTransform parentJointPose = this.getJointTransform(parent);
 
-        for (String child : this.getJointSkeleton().getDirectChildrenOfJoint(parent)){
-            this.convertChildrenJointsToLocalSpace(child, parentJointPose.composeMatrix(), jointsToConvert);
-        }
+        this.getJointSkeleton().getDirectChildrenOfJoint(parent).ifPresent(children -> children.forEach(child -> this.convertChildrenJointsToLocalSpace(child, parentJointPose.composeMatrix())));
 
-        if(jointsToConvert.contains(parent)){
-            parentJointPose.multiply(parentMatrix.invert(), JointTransform.TransformSpace.LOCAL);
-            this.setJointTransform(parent, parentJointPose);
-        }
+        parentJointPose.multiply(parentMatrix.invert(), JointTransform.TransformSpace.LOCAL);
+        this.setJointTransform(parent, parentJointPose);
     }
 
     /**

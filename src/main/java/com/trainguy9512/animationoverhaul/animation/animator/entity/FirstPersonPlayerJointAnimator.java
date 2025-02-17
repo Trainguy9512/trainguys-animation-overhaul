@@ -5,9 +5,8 @@ import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.*;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
-import com.trainguy9512.animationoverhaul.util.time.Easing;
+import com.trainguy9512.animationoverhaul.animation.pose.sampler.notify.NotifyListeners;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.entity.state.PlayerRenderState;
@@ -16,7 +15,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
-import java.util.List;
+import java.util.Set;
 
 public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator<LocalPlayer, PlayerRenderState> {
 
@@ -30,12 +29,12 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     public static final String RIGHT_HAND_JOINT = "rightHand";
     public static final String LEFT_HAND_JOINT = "leftHand";
 
-    public static final List<String> ARM_BUFFER_JOINTS = List.of(
+    public static final Set<String> ARM_BUFFER_JOINTS = Set.of(
             RIGHT_ARM_BUFFER_JOINT,
             LEFT_ARM_BUFFER_JOINT
     );
 
-    public static final List<String> ARM_JOINTS = List.of(
+    public static final Set<String> ARM_JOINTS = Set.of(
             RIGHT_ARM_JOINT,
             LEFT_ARM_JOINT,
             RIGHT_ARM_BUFFER_JOINT,
@@ -44,33 +43,27 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
             LEFT_HAND_JOINT
     );
 
-    public static final List<String> ARM_POSE_JOINTS = List.of(
+    public static final Set<String> ARM_POSE_JOINTS = Set.of(
             RIGHT_ARM_JOINT,
             LEFT_ARM_JOINT
     );
 
-    public static final List<String> HAND_JOINTS = List.of(
+    public static final Set<String> HAND_JOINTS = Set.of(
             RIGHT_HAND_JOINT,
             LEFT_HAND_JOINT
     );
 
+    public static final AnimationDataKey<Float> TIME_TEST = AnimationDataKey.of("time_test", () -> 0f);
 
-    public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
-
-
-    public static final AnimationDriverKey<Float> TIME_TEST = AnimationDriverKey.builder(() -> 0F).setIdentifier("time_test").build();
-
-
-
-    public static final AnimationDriverKey<Vector3f> CAMERA_ROTATION = AnimationDriverKey.builder(() -> new Vector3f(0, 0, 0)).setIdentifier("camera_rotation").build();
-    public static final AnimationDriverKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationDriverKey.builder(() -> new Vector3f(0, 0, 0)).setIdentifier("dampened_camera_rotation").build();
-    public static final AnimationDriverKey<ItemStack> MAIN_HAND_ITEM = AnimationDriverKey.builder(() -> ItemStack.EMPTY).setIdentifier("main_hand_item_stack").build();
-    public static final AnimationDriverKey<Boolean> IS_ATTACKING = AnimationDriverKey.builder(() -> false).setIdentifier("is_attacking").build();
-    public static final AnimationDriverKey<Boolean> IS_USING_ITEM = AnimationDriverKey.builder(() -> false).setIdentifier("is_using_item").build();
-    public static final AnimationDriverKey<Boolean> IS_MINING = AnimationDriverKey.builder(() -> false).setIdentifier("is_mining").build();
-    public static final AnimationDriverKey<Boolean> IS_FALLING = AnimationDriverKey.builder(() -> false).setIdentifier("is_falling").build();
-    public static final AnimationDriverKey<Boolean> IS_JUMPING = AnimationDriverKey.builder(() -> false).setIdentifier("is_jumping").build();
-    public static final AnimationDriverKey<Float> WALK_SPEED = AnimationDriverKey.builder(() -> 0f).setIdentifier("walk_speed").build();
+    public static final AnimationDataKey<Vector3f> CAMERA_ROTATION = AnimationDataKey.of("camera rotation", () -> new Vector3f(0));
+    public static final AnimationDataKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationDataKey.of("dampened_camera", () -> new Vector3f(0));
+    public static final AnimationDataKey<ItemStack> MAIN_HAND_ITEM = AnimationDataKey.of("main_hand_item", () -> ItemStack.EMPTY);
+    public static final AnimationDataKey<Boolean> IS_ATTACKING = AnimationDataKey.of("is_attacking", () -> false);
+    public static final AnimationDataKey<Boolean> IS_USING_ITEM = AnimationDataKey.of("is_using_item", () -> false);
+    public static final AnimationDataKey<Boolean> IS_MINING = AnimationDataKey.of("is_mining", () -> false);
+    public static final AnimationDataKey<Boolean> IS_FALLING = AnimationDataKey.of("is_falling", () -> false);
+    public static final AnimationDataKey<Boolean> IS_JUMPING = AnimationDataKey.of("is_jumping", () -> false);
+    public static final AnimationDataKey<Float> WALK_SPEED = AnimationDataKey.of("walk_speed", () -> 0f);
 
     @Override
     public void postProcessModelParts(EntityModel<PlayerRenderState> entityModel, PlayerRenderState entityRenderState) {
@@ -82,57 +75,48 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         MOVING
     }
 
-    public static final PoseSamplerKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = PoseSamplerKey.builder(() -> AnimationStateMachine.builder(TestStates.values())
-            .addStateTransition(TestStates.IDLE, TestStates.MOVING, AnimationStateMachine.StateTransition.builder(
-                            animationDataContainer -> animationDataContainer.get(WALK_SPEED) > 0.1F)
-                    .setTransitionDuration(5)
-                    .setEasing(Easing.CubicBezier.SINE_IN_OUT())
-                    .build())
-            .addStateTransition(TestStates.MOVING, TestStates.IDLE, AnimationStateMachine.StateTransition.builder(
-                            animationDataContainer -> animationDataContainer.get(WALK_SPEED) <= 0.1F)
-                    .setTransitionDuration(10)
-                    .setEasing(Easing.CubicBezier.SINE_OUT())
-                    .build())
-            .build()).build();
 
-    public static final PoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = PoseSamplerKey.builder(
-            () -> AnimationSequencePlayer.builder(ANIMATION_FP_PLAYER_IDLE)
+    public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
+    public static final AnimationDataKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER_FROZEN = AnimationDataKey.of("idle_sequence_player", () -> AnimationSequencePlayer.builder(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(0)
             .setStartTime(0)
-            .build()).setIdentifier("idle_sequence_player").build();
-    public static final PoseSamplerKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER_ALT = PoseSamplerKey.builder(
-            () -> AnimationSequencePlayer.builder(ANIMATION_FP_PLAYER_IDLE)
+            .build()
+    );
+    public static final AnimationDataKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = AnimationDataKey.of("idle_sequence_player", () -> AnimationSequencePlayer.builder(ANIMATION_FP_PLAYER_IDLE)
             .setPlayRate(1)
             .setStartTime(20)
-            .addProgressTimeOnActiveStates(TEST_STATE_MACHINE, TestStates.MOVING)
-            .build()).setIdentifier("idle_sequence_player").build();
+            .build()
+    );
 
 
+    public static final AnimationDataKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = AnimationDataKey.of("test_state_machine", () -> AnimationStateMachine.builder(TestStates.values())
+                    .addState(TestStates.IDLE,
+                            ((animationDriverContainer, poseSamplerStateContainer, jointSkeleton) -> poseSamplerStateContainer.sample(IDLE_SEQUENCE_PLAYER_FROZEN, animationDriverContainer)),
+                            AnimationStateMachine.StateTransition.builder(TestStates.MOVING, ((animationDriverContainer, ticksElapsedInCurrentState) -> animationDriverContainer.get(WALK_SPEED) > 0.1F)).build())
+                    .addState(TestStates.MOVING,
+                            ((animationDriverContainer, poseSamplerStateContainer, jointSkeleton) -> poseSamplerStateContainer.sample(IDLE_SEQUENCE_PLAYER, animationDriverContainer)),
+                            AnimationStateMachine.StateTransition.builder(TestStates.MOVING, ((animationDriverContainer, ticksElapsedInCurrentState) -> animationDriverContainer.get(WALK_SPEED) <= 0.1F)).build())
+                    .bindNotifyToOnStateRelevant(TestStates.MOVING, NotifyListeners.resetTimeNotifyListener(IDLE_SEQUENCE_PLAYER))
+                    .build()
+            );
 
 
-
-
-
-
-    public FirstPersonPlayerJointAnimator(){
-        super();
-    }
-
-    protected JointSkeleton.Builder buildSkeleton() {
-        return JointSkeleton.of()
-        return JointSkeleton.of(FPPlayerJoints.root)
-                .addChildToRoot(FPPlayerJoints.camera)
-                .addChildToRoot(FPPlayerJoints.armBuffer)
-                .addChildToParent(FPPlayerJoints.leftArmBuffer, FPPlayerJoints.armBuffer)
-                .addChildToParent(FPPlayerJoints.rightArmBuffer, FPPlayerJoints.armBuffer)
-                .addChildToParent(FPPlayerJoints.leftArm, FPPlayerJoints.leftArmBuffer)
-                .addChildToParent(FPPlayerJoints.rightArm, FPPlayerJoints.rightArmBuffer)
-                .addChildToParent(FPPlayerJoints.leftHand, FPPlayerJoints.leftArm)
-                .addChildToParent(FPPlayerJoints.rightHand, FPPlayerJoints.rightArm)
-                .setDefaultJointTransform(FPPlayerJoints.leftHand, PartPose.offsetAndRotation(1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
-                .setDefaultJointTransform(FPPlayerJoints.rightHand, PartPose.offsetAndRotation(-1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
-                .setLocatorMirror(FPPlayerJoints.rightArm, FPPlayerJoints.leftArm)
-                .setLocatorMirror(FPPlayerJoints.rightHand, FPPlayerJoints.leftHand);
+    public JointSkeleton buildSkeleton() {
+        return JointSkeleton.of(ROOT_JOINT)
+                .addJointUnderRoot(CAMERA_JOINT)
+                .addJointUnderRoot(ARM_BUFFER_JOINT)
+                .addJointUnderParent(LEFT_ARM_BUFFER_JOINT, ARM_BUFFER_JOINT)
+                .addJointUnderParent(RIGHT_ARM_BUFFER_JOINT, ARM_BUFFER_JOINT)
+                .addJointUnderParent(LEFT_ARM_JOINT, LEFT_ARM_BUFFER_JOINT)
+                .addJointUnderParent(RIGHT_ARM_JOINT, RIGHT_ARM_BUFFER_JOINT)
+                .addJointUnderParent(LEFT_HAND_JOINT, LEFT_ARM_JOINT)
+                .addJointUnderParent(RIGHT_HAND_JOINT, RIGHT_ARM_JOINT)
+                .setModelPartOffset(LEFT_HAND_JOINT, PartPose.offsetAndRotation(1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
+                .setModelPartOffset(RIGHT_HAND_JOINT, PartPose.offsetAndRotation(-1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
+                .setMirrorJoint(RIGHT_ARM_BUFFER_JOINT, LEFT_ARM_BUFFER_JOINT)
+                .setMirrorJoint(RIGHT_ARM_JOINT, LEFT_ARM_JOINT)
+                .setMirrorJoint(RIGHT_HAND_JOINT, LEFT_HAND_JOINT)
+                .build();
 
     }
 
@@ -144,10 +128,10 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
         //setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
 
-        AnimationPose pose = poseSamplerStateContainer.sample(TEST_STATE_MACHINE);
+        AnimationPose pose = poseSamplerStateContainer.sample(TEST_STATE_MACHINE, animationDriverContainer);
 
 
-        pose = dampenArmRotation(pose, animationDriverContainer);
+        dampenArmRotation(pose, animationDriverContainer);
 
 
         Vector3f rotation = new Vector3f(Mth.sin(animationDriverContainer.get(TIME_TEST) * 0.2F) * Mth.HALF_PI * 0.7f, 0, 0);
@@ -162,23 +146,22 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     /*
     Get the pose with the added dampened camera rotation
      */
-    private AnimationPose dampenArmRotation(AnimationPose pose, AnimationDriverContainer animationDriverContainer){
+    private void dampenArmRotation(AnimationPose pose, AnimationDriverContainer animationDriverContainer){
         Vector3f cameraRotation = animationDriverContainer.get(CAMERA_ROTATION);
         Vector3f dampenedCameraRotation = animationDriverContainer.get(DAMPENED_CAMERA_ROTATION);
 
         Vector3f cameraDampWeight = new Vector3f(0.6F, 0.3F, 0.1F);
 
-        pose.setJointTransform(
-                ARM_BUFFER_JOINT,
-                pose.getJointTransform(ARM_BUFFER_JOINT).rotate(
-                        new Vector3f(
-                                (dampenedCameraRotation.x() - cameraRotation.x()) * (cameraDampWeight.x() * 0.01F),
-                                (dampenedCameraRotation.y() - cameraRotation.y()) * (cameraDampWeight.y() * 0.01F),
-                                (dampenedCameraRotation.z() - cameraRotation.z()) * (cameraDampWeight.z() * 0.01F)
-                        ),
-                        JointTransform.TransformSpace.ENTITY
-                ));
-        return pose;
+        JointTransform jointTransform = pose.getJointTransform(ARM_BUFFER_JOINT);
+        jointTransform.rotate(
+                new Vector3f(
+                        (dampenedCameraRotation.x() - cameraRotation.x()) * (cameraDampWeight.x() * 0.01F),
+                        (dampenedCameraRotation.y() - cameraRotation.y()) * (cameraDampWeight.y() * 0.01F),
+                        (dampenedCameraRotation.z() - cameraRotation.z()) * (cameraDampWeight.z() * 0.01F)
+                ),
+                JointTransform.TransformSpace.ENTITY
+        );
+        pose.setJointTransform(ARM_BUFFER_JOINT, jointTransform);
     }
 
 

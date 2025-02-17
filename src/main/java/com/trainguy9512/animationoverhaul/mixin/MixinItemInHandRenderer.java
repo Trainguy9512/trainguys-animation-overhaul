@@ -63,8 +63,8 @@ public abstract class MixinItemInHandRenderer {
             PlayerModel playerModel = playerRenderer.getModel();
 
 
-            rightArmPose.transformModelPart(playerModel.rightArm);
-            leftArmPose.transformModelPart(playerModel.leftArm);
+            playerModel.rightArm.loadPose(rightArmPose.asPartPose());
+            playerModel.leftArm.loadPose(leftArmPose.asPartPose());
 
             /*
 

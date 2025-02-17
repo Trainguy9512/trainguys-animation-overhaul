@@ -20,7 +20,7 @@ import java.util.function.Supplier;
  */
 public record AnimationDataKey<D>(String identifier, Supplier<D> dataSupplier) {
 
-    public AnimationDataKey<D> of(String identifier, Supplier<D> dataSupplier){
+    public static <D> AnimationDataKey<D> of(String identifier, Supplier<D> dataSupplier){
         return new AnimationDataKey<>(identifier, dataSupplier);
     }
 

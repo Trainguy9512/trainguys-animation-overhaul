@@ -36,8 +36,8 @@ public class JointSkeleton {
      * @param joint Joint to search for children of.
      * @return List of
      */
-    public List<String> getDirectChildrenOfJoint(String joint){
-        return this.joints.get(joint).children();
+    public Optional<List<String>> getDirectChildrenOfJoint(String joint){
+        return Optional.of(this.joints.get(joint).children());
     }
 
     /**
@@ -46,17 +46,7 @@ public class JointSkeleton {
      * @param child Child joint identifier
      */
     public boolean jointIsParentOfChild(String parent, String child){
-
-        while(this.joints.get(child).parent() != null){
-            String currentChildParent = this.joints.get(child).parent();
-            if(Objects.equals(currentChildParent, parent)){
-                return true;
-            } else {
-                child = currentChildParent;
-            }
-        }
-
-        return false;
+        return Objects.equals(this.joints.get(child).parent(), parent);
     }
     //TODO: SEARCH HEIARCHY FOR IF CHILD IS PARENTED UNDER JOINT!!!!!!!!! (2025 update: why?)
 
@@ -71,12 +61,13 @@ public class JointSkeleton {
         for(int i = 0; i <= size; i++){
             dashes = dashes.concat("--");
         }
-        for (String child : this.getDirectChildrenOfJoint(joint)){
-            AnimationOverhaulMain.LOGGER.info(dashes.concat(child));
-            printHierarchyChild(child, size + 1);
-        }
-
-
+        String finalDashes = dashes;
+        this.getDirectChildrenOfJoint(joint).ifPresent(
+                joints -> joints.forEach(child -> {
+                    AnimationOverhaulMain.LOGGER.info(finalDashes.concat(child));
+                    printHierarchyChild(child, size + 1);
+                })
+        );
     }
 
     /**
@@ -115,7 +106,7 @@ public class JointSkeleton {
 
         protected Builder(String rootJoint){
             this.rootJoint = rootJoint;
-            this.joints.put(rootJoint, JointConfiguration.Builder.of(null));
+            this.joints.put(rootJoint, JointConfiguration.Builder.of(rootJoint, null));
         }
 
         public Builder addJointUnderRoot(String joint){

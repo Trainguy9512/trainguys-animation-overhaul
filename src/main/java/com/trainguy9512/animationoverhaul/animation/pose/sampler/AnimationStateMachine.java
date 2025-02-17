@@ -25,7 +25,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     /**
      * The hashmap containing all the possible states, with the keys being enums.
      */
-    private final HashMap<S, State<S>> statesHashMap;
+    private final HashMap<S, State<S>> states;
 
     /**
      * The list of enum keys that point to states with a blend value greater than 0
@@ -34,24 +34,24 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
     private AnimationStateMachine(Builder<?, S> builder) {
         super(builder);
-        this.statesHashMap = builder.statesHashMap;
+        this.states = builder.states;
         this.activeStates = builder.activeStates;
     }
 
-    public static <S extends Enum<S>> Builder<?, S> stateMachineBuilder(){
+    public static <S extends Enum<S>> Builder<?, S> builder(S[] values){
         return new Builder<>();
     }
 
 
     public static class Builder<B extends Builder<B, S>, S extends Enum<S>> extends TimeBasedPoseSampler.Builder<B> {
 
-        private final HashMap<S, State<S>> statesHashMap;
+        private final HashMap<S, State<S>> states;
         private final ArrayList<S> activeStates;
 
 
         protected Builder() {
             super();
-            this.statesHashMap = Maps.newHashMap();
+            this.states = Maps.newHashMap();
             this.activeStates = new ArrayList<>();
         }
 
@@ -63,14 +63,16 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
          * @param stateTransitions      Outbound transition paths from this state to other states
          * @see StateTransition.Builder
          */
+        @SafeVarargs
         @SuppressWarnings("unchecked")
-        public B addState(S stateIdentifier, Sampleable sampleable, StateTransition<S>... stateTransitions){
-            State<S> state = new State<S>(this.statesHashMap.isEmpty(), sampleable, Set.of(stateTransitions));
+        public final B addState(S stateIdentifier, Sampleable sampleable, StateTransition<S>... stateTransitions){
+            State<S> state = new State<>(this.states.isEmpty(), sampleable, Set.of(stateTransitions));
 
             // If this is the first state to be added, set it to be active.
-            if (this.statesHashMap.isEmpty()){
+            if (this.activeStates.isEmpty()){
                 this.activeStates.add(stateIdentifier);
             }
+            this.states.put(stateIdentifier, state);
             return (B) this;
         }
 
@@ -81,8 +83,8 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
          */
         @SuppressWarnings("unchecked")
         public B bindNotifyToOnStateRelevant(S stateIdentifier, NotifyListener notifyListener){
-            if(this.statesHashMap.containsKey(stateIdentifier)){
-                this.statesHashMap.get(stateIdentifier).bindNotifyToOnStateRelevant(notifyListener);
+            if(this.states.containsKey(stateIdentifier)){
+                this.states.get(stateIdentifier).bindNotifyToOnStateRelevant(notifyListener);
             }
             return (B) this;
         }
@@ -94,8 +96,8 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
          */
         @SuppressWarnings("unchecked")
         public B bindNotifyToOnStateIrrelevant(S stateIdentifier, NotifyListener notifyListener){
-            if(this.statesHashMap.containsKey(stateIdentifier)){
-                this.statesHashMap.get(stateIdentifier).bindNotifyToOnStateIrrelevant(notifyListener);
+            if(this.states.containsKey(stateIdentifier)){
+                this.states.get(stateIdentifier).bindNotifyToOnStateIrrelevant(notifyListener);
             }
             return (B) this;
         }
@@ -104,28 +106,6 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         public AnimationStateMachine<S> build() {
             return new AnimationStateMachine<>(this);
         }
-    }
-
-    public State<S> getState(S stateIdentifier){
-        return this.statesHashMap.get(stateIdentifier);
-    }
-
-    public ArrayList<S> getActiveStates(){
-        return this.activeStates;
-    }
-
-    public S getActiveState(){
-        return this.activeStates.getLast();
-    }
-
-    public boolean containsState(Enum<S> stateIdentifier){
-        for(S state : this.statesHashMap.keySet()){
-            if(state.equals(stateIdentifier)){
-                return true;
-            }
-        }
-        return false;
-        //return this.statesHashMap.containsKey(stateIdentifier);
     }
 
     /*
@@ -143,7 +123,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
      */
 
     private AnimationPose getPoseFromState(S identifier, AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton){
-        return this.statesHashMap.get(identifier).sample(animationDriverContainer, poseSamplerStateContainer, jointSkeleton);
+        return this.states.get(identifier).sample(animationDriverContainer, poseSamplerStateContainer, jointSkeleton);
     }
 
     @Override
@@ -154,8 +134,8 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
                 for(S stateIdentifier : this.activeStates){
                     animationPose = animationPose.interpolated(
                             this.getPoseFromState(stateIdentifier, animationDriverContainer, poseSamplerStateContainer, jointSkeleton),
-                            this.statesHashMap.get(stateIdentifier).getCurrentTransition().easing().ease(
-                                    this.statesHashMap.get(stateIdentifier).getWeight()
+                            this.states.get(stateIdentifier).getCurrentTransition().easing().ease(
+                                    this.states.get(stateIdentifier).getWeight()
                             )
                     );
                 }
@@ -170,7 +150,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     @Override
     public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
         // Don't evaluate if the state machine has no states
-        if(this.statesHashMap.isEmpty()){
+        if(this.activeStates.isEmpty()){
             AnimationOverhaulMain.LOGGER.warn("State machine {} not evaluated due to no active states", this.getIdentifier());
             return;
         }
@@ -180,12 +160,12 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
         // Get the current active state
         S currentActiveStateIdentifier = this.activeStates.getLast();
-        State<S> currentActiveState = this.statesHashMap.get(currentActiveStateIdentifier);
+        State<S> currentActiveState = this.states.get(currentActiveStateIdentifier);
 
         // Filter each potential state transition by whether it's valid, then filter by whether its condition predicate is true,
         // then shuffle it in order to make equal priority transitions randomized and re-order the valid transitions by filter order.
         Optional<StateTransition<S>> potentialStateTransition = currentActiveState.getPotentialTransitions().stream()
-                .filter((transition) -> this.statesHashMap.containsKey(transition.target()))
+                .filter((transition) -> this.states.containsKey(transition.target()))
                 .filter((transition) -> transition.target() != currentActiveStateIdentifier)
                 .filter((transition) -> transition.conditionPredicate().test(animationDriverContainer, this.getTimeElapsed()))
                 .collect(Collectors.collectingAndThen(Collectors.toList(), collected -> {
@@ -201,12 +181,12 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
         potentialStateTransition.ifPresent(stateTransition -> {
             this.resetTime();
-            for(S stateIdentifier : this.statesHashMap.keySet()){
-                this.statesHashMap.get(stateIdentifier).setCurrentTransition(stateTransition);
-                this.statesHashMap.get(stateIdentifier).setIsActive(false);
+            for(S stateIdentifier : this.states.keySet()){
+                this.states.get(stateIdentifier).setCurrentTransition(stateTransition);
+                this.states.get(stateIdentifier).setIsActive(false);
             }
             //Enum<S> destinationStateIdentifier = stateTransition.;
-            this.statesHashMap.get(stateTransition.target()).setIsActive(true);
+            this.states.get(stateTransition.target()).setIsActive(true);
 
             // Update the active states array
             // Make sure there already isn't this state present in active states
@@ -215,12 +195,12 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         });
 
         // Tick each state
-        for(State<S> state : this.statesHashMap.values()){
+        for(State<S> state : this.states.values()){
             state.tick(animationDriverContainer, poseSamplerStateContainer);
         }
 
         // Evaluated last, remove states from the active state list that have a weight of 0.
-        List<S> statesToRemove = this.activeStates.stream().filter((stateIdentifer) -> this.statesHashMap.get(stateIdentifer).getWeight() != 0).toList();
+        List<S> statesToRemove = this.activeStates.stream().filter((stateIdentifer) -> this.states.get(stateIdentifer).getWeight() == 0).toList();
         this.activeStates.removeAll(statesToRemove);
     }
 
@@ -259,10 +239,14 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
                 // Notify calls
                 if(newWeight > 0 && this.getWeight() == 0){
-                    this.onStateRelevantNotifyListeners.notify(animationDriverContainer, poseSamplerStateContainer);
+                    if(this.onStateRelevantNotifyListeners != null){
+                        this.onStateRelevantNotifyListeners.notify(animationDriverContainer, poseSamplerStateContainer);
+                    }
                 }
                 if(newWeight == 0 && this.getWeight() > 0){
-                    this.onStateIrrelevantNotifyListeners.notify(animationDriverContainer, poseSamplerStateContainer);
+                    if(this.onStateIrrelevantNotifyListeners != null){
+                        this.onStateIrrelevantNotifyListeners.notify(animationDriverContainer, poseSamplerStateContainer);
+                    }
                 }
 
                 this.setWeight(newWeight);
