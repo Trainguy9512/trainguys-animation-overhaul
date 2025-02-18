@@ -216,9 +216,9 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                                     keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(2).getAsFloat()
                             );
                             Quaternionf rotation = new Quaternionf().rotationZYX(
-                                    keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(0).getAsFloat(),
+                                    keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(2).getAsFloat(),
                                     keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(1).getAsFloat(),
-                                    keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(2).getAsFloat()
+                                    keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(0).getAsFloat()
                             );
                             Vector3f scale = new Vector3f(1);
                             timeline.addKeyframe(keyframeNumber, JointTransform.ofTranslationRotationScaleQuaternion(translation, rotation, scale));

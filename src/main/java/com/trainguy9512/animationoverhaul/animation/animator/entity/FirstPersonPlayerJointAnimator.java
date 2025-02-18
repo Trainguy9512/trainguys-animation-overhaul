@@ -84,7 +84,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
             .build()
     );
     public static final AnimationDataKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = AnimationDataKey.of("idle_sequence_player", () -> AnimationSequencePlayer.builder(ANIMATION_FP_PLAYER_IDLE)
-            .setPlayRate(0)
+            .setPlayRate(1)
             .setStartTime(40)
             .build()
     );
@@ -93,13 +93,13 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     public static final AnimationDataKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = AnimationDataKey.of("test_state_machine", () -> AnimationStateMachine.builder(TestStates.values())
                     .addState(TestStates.IDLE,
                             ((animationDriverContainer, poseSamplerStateContainer, jointSkeleton) -> poseSamplerStateContainer.sample(IDLE_SEQUENCE_PLAYER_FROZEN, animationDriverContainer)),
-                            AnimationStateMachine.StateTransition.builder(TestStates.MOVING, ((animationDriverContainer, ticksElapsedInCurrentState) -> animationDriverContainer.get(WALK_SPEED) > 0.1F))
+                            AnimationStateMachine.StateTransition.builder(TestStates.MOVING, ((animationDriverContainer, ticksElapsedInCurrentState, currentStateWeight) -> animationDriverContainer.get(WALK_SPEED) > 0.1F && currentStateWeight == 1))
                                     .setTransitionDuration(20)
                                     .setEasing(Easing.BOUNCE_OUT)
                                     .build())
                     .addState(TestStates.MOVING,
                             ((animationDriverContainer, poseSamplerStateContainer, jointSkeleton) -> poseSamplerStateContainer.sample(IDLE_SEQUENCE_PLAYER, animationDriverContainer)),
-                            AnimationStateMachine.StateTransition.builder(TestStates.IDLE, ((animationDriverContainer, ticksElapsedInCurrentState) -> animationDriverContainer.get(WALK_SPEED) <= 0.1F))
+                            AnimationStateMachine.StateTransition.builder(TestStates.IDLE, ((animationDriverContainer, ticksElapsedInCurrentState, currentStateWeight) -> animationDriverContainer.get(WALK_SPEED) <= 0.1F && currentStateWeight == 1))
                                     .setTransitionDuration(20)
                                     .setEasing(Easing.ELASTIC_OUT)
                                     .build())
@@ -178,6 +178,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
         animationDriverContainer.set(WALK_SPEED, dataReference.walkAnimation.speed());
         animationDriverContainer.set(TIME_TEST, animationDriverContainer.get(TIME_TEST) + 1);
+        animationDriverContainer.set(MAIN_HAND_ITEM, dataReference.getMainHandItem());
 
 
         //Tick the dampened camera rotation.

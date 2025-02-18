@@ -47,7 +47,7 @@ public interface Easing {
     Easing BACK_OUT = Easing.easeOut(BACK_IN);
     Easing BACK_IN_OUT = Easing.easeInOut(BACK_IN);
 
-    Easing ELASTIC_IN = Easing.easeIn(Easing.Elastic.easeInOf(14));
+    Easing ELASTIC_IN = Easing.easeIn(Easing.Elastic.easeInOf(18, 3f));
     Easing ELASTIC_OUT = Easing.easeOut(ELASTIC_IN);
     Easing ELASTIC_IN_OUT = Easing.easeInOut(ELASTIC_IN);
 
@@ -71,23 +71,27 @@ public interface Easing {
     public static class Elastic implements Easing {
 
         private final float bounceFactor;
+        private final float falloffExponent;
 
-        private Elastic(float bounceFactor){
+        private Elastic(float bounceFactor, float falloffExponent){
             this.bounceFactor = bounceFactor;
+            this.falloffExponent = falloffExponent;
         }
 
         /**
          * Returns an ease-in elastic function using the given bounce factor.
          * <p>
          * Bounce factor preview graph: <a href="https://www.desmos.com/calculator/rtycpc7igu">Desmos</a>
+         * @param falloffExponent   Exponent that controls how sharp the falloff is. The higher the exponent, the faster the falloff. Default is 2.
+         * @param bounceFactor      Value that controls the number of waves in the elastic shape.
          */
-        public static Elastic easeInOf(float bounceFactor){
-            return new Elastic(bounceFactor);
+        public static Elastic easeInOf(float bounceFactor, float falloffExponent){
+            return new Elastic(bounceFactor, falloffExponent);
         }
 
         @Override
         public float ease(float time) {
-            return time == 0 ? 0 : time == 1 ? 1 : (float) (Math.pow(time, 2) * ((2 * Math.sin(1 - time) * this.bounceFactor) / this.bounceFactor + Math.cos((1 - time) * this.bounceFactor)));
+            return time == 0 ? 0 : time == 1 ? 1 : (float) (Math.pow(time, falloffExponent) * ((2 * Math.sin(1 - time) * this.bounceFactor) / this.bounceFactor + Math.cos((1 - time) * this.bounceFactor)));
         }
     }
 

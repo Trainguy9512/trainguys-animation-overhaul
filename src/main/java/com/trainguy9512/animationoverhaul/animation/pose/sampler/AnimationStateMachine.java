@@ -167,7 +167,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         Optional<StateTransition<S>> potentialStateTransition = currentActiveState.getPotentialTransitions().stream()
                 .filter((transition) -> this.states.containsKey(transition.target()))
                 .filter((transition) -> transition.target() != currentActiveStateIdentifier)
-                .filter((transition) -> transition.conditionPredicate().test(animationDriverContainer, this.getTimeElapsed()))
+                .filter((transition) -> transition.conditionPredicate().test(animationDriverContainer, this.getTimeElapsed(), this.states.get(this.activeStates.getLast()).getWeight()))
                 .collect(Collectors.collectingAndThen(Collectors.toList(), collected -> {
                     Collections.shuffle(collected);
                     return collected;
@@ -359,7 +359,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
         @FunctionalInterface
         public interface ConditionPredicate {
-            boolean test(AnimationDriverContainer animationDriverContainer, float ticksElapsedInCurrentState);
+            boolean test(AnimationDriverContainer animationDriverContainer, float ticksElapsedInCurrentState, float currentStateWeight);
         }
     }
 }

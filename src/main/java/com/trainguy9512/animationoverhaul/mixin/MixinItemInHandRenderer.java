@@ -25,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -144,6 +145,7 @@ public abstract class MixinItemInHandRenderer {
         ci.cancel();
     }
 
+    @Unique
     private void renderItemInHand(AbstractClientPlayer abstractClientPlayer, ItemStack itemStack, PoseStack poseStack, HumanoidArm humanoidArm, AnimationPose animationPose, MultiBufferSource multiBufferSource, int i){
 
         JointTransform armPose = animationPose.getJointTransform(humanoidArm == HumanoidArm.LEFT ? FirstPersonPlayerJointAnimator.LEFT_ARM_JOINT : FirstPersonPlayerJointAnimator.RIGHT_ARM_JOINT);
@@ -155,11 +157,13 @@ public abstract class MixinItemInHandRenderer {
         //armPose.transformPoseStack(poseStack);
         //poseStack.translate((humanoidArm == HumanoidArm.LEFT ? 1 : -1) /16F, 9/16F, 0);
         handPose.transformPoseStack(poseStack, 16F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(180.0f));
+        //poseStack.mulPose(Axis.XP.rotationDegrees(180.0f));
+        //poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0f));
 
-        //poseStack.mulPose(Axis.XP.rotationDegrees(-90.0f));
-        //poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
-        //poseStack.translate(0F, 2F/16F, -1F/16F);
+        poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+        boolean bl = humanoidArm == HumanoidArm.LEFT;
+        poseStack.translate((bl ? -0.5F : 0.5F) / 16.0F, 2F/16F, -10F/16F);
         this.renderItem(abstractClientPlayer, itemStack, humanoidArm == HumanoidArm.LEFT ? ItemDisplayContext.THIRD_PERSON_LEFT_HAND : ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, humanoidArm == HumanoidArm.LEFT, poseStack, multiBufferSource, i);
         //this.renderItem(abstractClientPlayer, itemStack, humanoidArm == HumanoidArm.LEFT ? ItemDisplayContext.THIRD_PERSON_LEFT_HAND : ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, humanoidArm == HumanoidArm.LEFT, poseStack, multiBufferSource, i);
         poseStack.popPose();
