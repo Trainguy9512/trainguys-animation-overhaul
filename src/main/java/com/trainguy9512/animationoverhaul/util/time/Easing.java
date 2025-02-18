@@ -10,7 +10,86 @@ public interface Easing {
 
     public float ease(float time);
 
-    public static Easing LINEAR = time -> time;
+    Easing LINEAR = time -> time;
+
+    // Preset cubic beziers
+    // https://easings.net/
+
+    Easing SINE_IN = Easing.easeIn(time -> (float) (1f - Math.cos((time * Math.PI) / 2f)));
+    Easing SINE_OUT = Easing.easeOut(SINE_IN);
+    Easing SINE_IN_OUT = Easing.easeInOut(SINE_IN);
+
+    Easing QUAD_IN = Easing.easeIn(time -> time * time);
+    Easing QUAD_OUT = Easing.easeOut(QUAD_IN);
+    Easing QUAD_IN_OUT = Easing.easeInOut(QUAD_IN);
+
+    Easing CUBIC_IN = Easing.easeIn(time -> time * time * time);
+    Easing CUBIC_OUT = Easing.easeOut(CUBIC_IN);
+    Easing CUBIC_IN_OUT = Easing.easeInOut(CUBIC_IN);
+
+    Easing QUART_IN = Easing.easeIn(time -> time * time * time * time);
+    Easing QUART_OUT = Easing.easeOut(QUART_IN);
+    Easing QUART_IN_OUT = Easing.easeInOut(QUART_IN);
+
+    Easing QUINT_IN = Easing.easeIn(time -> time * time * time * time * time);
+    Easing QUINT_OUT = Easing.easeOut(QUINT_IN);
+    Easing QUINT_IN_OUT = Easing.easeInOut(QUINT_IN);
+
+    Easing POW_IN = Easing.easeIn(time -> time == 0 ? 0 : (float) Math.pow(2, 10 * time - 10));
+    Easing POW_OUT = Easing.easeOut(POW_IN);
+    Easing POW_IN_OUT = Easing.easeInOut(POW_IN);
+
+    Easing CIRC_IN = Easing.easeIn(time -> (float) Math.sqrt(1 - Math.pow(time - 1, 2)));
+    Easing CIRC_OUT = Easing.easeOut(CIRC_IN);
+    Easing CIRC_IN_OUT = Easing.easeInOut(CIRC_IN);
+
+    Easing BACK_IN = Easing.easeIn(Easing.CubicBezier.easeInOf(0.36f, 0f, 0.66f, -0.56f));
+    Easing BACK_OUT = Easing.easeOut(BACK_IN);
+    Easing BACK_IN_OUT = Easing.easeInOut(BACK_IN);
+
+    Easing ELASTIC_IN = Easing.easeIn(Easing.Elastic.easeInOf(14));
+    Easing ELASTIC_OUT = Easing.easeOut(ELASTIC_IN);
+    Easing ELASTIC_IN_OUT = Easing.easeInOut(ELASTIC_IN);
+
+    Easing BOUNCE_IN = Easing.easeIn(Easing.inverse(time -> {
+        float n1 = 7.5625f;
+        float d1 = 2.75f;
+
+        if (time < 1f / d1) {
+            return n1 * time * time;
+        } else if (time < 2f / d1) {
+            return n1 * (time -= 1.5f / d1) * time + 0.75f;
+        } else if (time < 2.5f / d1) {
+            return n1 * (time -= 2.25f / d1) * time + 0.9375f;
+        } else {
+            return n1 * (time -= 2.625f / d1) * time + 0.984375f;
+        }
+    }));
+    Easing BOUNCE_OUT = Easing.easeOut(BOUNCE_IN);
+    Easing BOUNCE_IN_OUT = Easing.easeInOut(BOUNCE_IN);
+
+    public static class Elastic implements Easing {
+
+        private final float bounceFactor;
+
+        private Elastic(float bounceFactor){
+            this.bounceFactor = bounceFactor;
+        }
+
+        /**
+         * Returns an ease-in elastic function using the given bounce factor.
+         * <p>
+         * Bounce factor preview graph: <a href="https://www.desmos.com/calculator/rtycpc7igu">Desmos</a>
+         */
+        public static Elastic easeInOf(float bounceFactor){
+            return new Elastic(bounceFactor);
+        }
+
+        @Override
+        public float ease(float time) {
+            return time == 0 ? 0 : time == 1 ? 1 : (float) (Math.pow(time, 2) * ((2 * Math.sin(1 - time) * this.bounceFactor) / this.bounceFactor + Math.cos((1 - time) * this.bounceFactor)));
+        }
+    }
 
     public static class CubicBezier implements Easing {
 
@@ -25,70 +104,7 @@ public interface Easing {
         float startGradient;
         float endGradient;
 
-        // Preset cubic beziers
-        // https://easings.net/
-
-        public static CubicBezier SINE_IN_OUT() {
-            return new CubicBezier(0.37F, 0, 0.63F, 1);
-        }
-        public static CubicBezier SINE_IN() {
-            return new CubicBezier(0.12F, 0, 0.39F, 0);
-        }
-        public static CubicBezier SINE_OUT() {
-            return new CubicBezier(0.61F, 1, 0.88F, 1);
-        }
-
-        public static CubicBezier QUAD_IN_OUT() {
-            return new CubicBezier(0.45F, 0, 0.55F, 1);
-        }
-        public static CubicBezier QUAD_IN() {
-            return new CubicBezier(0.11F, 0, 0.5F, 0);
-        }
-        public static CubicBezier QUAD_OUT() {
-            return new CubicBezier(0.5F, 1, 0.89F, 1);
-        }
-
-        public static CubicBezier CUBIC_IN_OUT() {
-            return new CubicBezier(0.65F, 0, 0.35F, 1);
-        }
-        public static CubicBezier CUBIC_IN() {
-            return new CubicBezier(0.32F, 0, 0.67F, 0);
-        }
-        public static CubicBezier CUBIC_OUT() {
-            return new CubicBezier(0.33F, 1, 0.68F, 1);
-        }
-
-        public static CubicBezier QUART_IN_OUT() {
-            return new CubicBezier(0.76F, 0, 0.24F, 1);
-        }
-        public static CubicBezier QUART_IN() {
-            return new CubicBezier(0.5F, 0, 0.75F, 0);
-        }
-        public static CubicBezier QUART_OUT() {
-            return new CubicBezier(0.25F, 1, 0.5F, 1);
-        }
-
-        public static CubicBezier QUINT_IN_OUT() {
-            return new CubicBezier(0.83F, 0, 0.17F, 1);
-        }
-        public static CubicBezier QUINT_IN() {
-            return new CubicBezier(0.64F, 0, 0.78F, 0);
-        }
-        public static CubicBezier QUINT_OUT() {
-            return new CubicBezier(0.22F, 1, 0.36F, 1);
-        }
-
-        public static CubicBezier CIRC_IN_OUT() {
-            return new CubicBezier(0.85F, 0, 0.15F, 1);
-        }
-        public static CubicBezier CIRC_IN() {
-            return new CubicBezier(0.55F, 0, 1F, 0.45F);
-        }
-        public static CubicBezier CIRC_OUT() {
-            return new CubicBezier(0F, 0.55F, 0.45F, 1);
-        }
-
-        public CubicBezier(float p1x, float p1y, float p2x, float p2y) {
+        private CubicBezier(float p1x, float p1y, float p2x, float p2y) {
             cx = 3f * p1x;
             bx = 3f * (p2x - p1x) - cx;
             ax = 1f - cx - bx;
@@ -180,13 +196,53 @@ public interface Easing {
             return solve(time, 0.01f);
         }
 
-        public static CubicBezier getInverseBezier(float p1x, float p1y, float p2x, float p2y) {
-            return new CubicBezier(1 - p2x, 1 - p2y, 1 - p1x, 1 - p1y);
+        /**
+         * Creates a cubic bezier easing using two handle points.
+         * Values from this website may be used as parameters here: <a href="https://cubic-bezier.com/">https://cubic-bezier.com</a>
+         * @param point1X   X of point 1
+         * @param point1Y   Y of point 1
+         * @param point2X   X of point 2
+         * @param point2Y   Y of point 2
+         */
+        public static CubicBezier easeInOf(float point1X, float point1Y, float point2X, float point2Y){
+            return new CubicBezier(point1X, point1Y, point2X, point2Y);
         }
     }
 
-    public static CubicBezier easeInOut(float easeIn, float easeOut) {
-        return new CubicBezier(easeIn, 0, 1 - easeOut, 1);
+    /**
+     * Returns the inverse for the provided easing.
+     */
+    public static Easing inverse(Easing easing){
+        return time -> 1 - easing.ease(1 - time);
+    }
+
+    /**
+     * Returns the ease-in equivalent of the provided ease-in function, which by default is itself.
+     * @param easeIn    Ease-in function
+     * @return          Ease-in function
+     */
+    public static Easing easeIn(Easing easeIn){
+        return easeIn;
+    }
+
+    /**
+     * Returns the ease-out equivalent of the provided ease-in function.
+     * @param easeIn    Ease-in function
+     * @return          Ease-out function
+     */
+    public static Easing easeOut(Easing easeIn){
+        return Easing.inverse(easeIn);
+    }
+
+    /**
+     * Returns the ease-in-out equivalent of the provided ease-in function.
+     * @param easeIn    Ease-in function
+     * @return          Ease-in-out function
+     */
+    public static Easing easeInOut(Easing easeIn){
+        return time -> time < 0.5f ?
+                Easing.easeIn(easeIn).ease(time * 2f) / 2f :
+                Easing.easeOut(easeIn).ease(time * 2f - 1f) / 2f + 0.5f;
     }
 
 }

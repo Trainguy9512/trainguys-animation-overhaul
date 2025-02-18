@@ -6,6 +6,7 @@ import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.*;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.notify.NotifyListeners;
+import com.trainguy9512.animationoverhaul.util.time.Easing;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;
@@ -83,8 +84,8 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
             .build()
     );
     public static final AnimationDataKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = AnimationDataKey.of("idle_sequence_player", () -> AnimationSequencePlayer.builder(ANIMATION_FP_PLAYER_IDLE)
-            .setPlayRate(1)
-            .setStartTime(20)
+            .setPlayRate(0)
+            .setStartTime(40)
             .build()
     );
 
@@ -92,10 +93,16 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     public static final AnimationDataKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = AnimationDataKey.of("test_state_machine", () -> AnimationStateMachine.builder(TestStates.values())
                     .addState(TestStates.IDLE,
                             ((animationDriverContainer, poseSamplerStateContainer, jointSkeleton) -> poseSamplerStateContainer.sample(IDLE_SEQUENCE_PLAYER_FROZEN, animationDriverContainer)),
-                            AnimationStateMachine.StateTransition.builder(TestStates.MOVING, ((animationDriverContainer, ticksElapsedInCurrentState) -> animationDriverContainer.get(WALK_SPEED) > 0.1F)).build())
+                            AnimationStateMachine.StateTransition.builder(TestStates.MOVING, ((animationDriverContainer, ticksElapsedInCurrentState) -> animationDriverContainer.get(WALK_SPEED) > 0.1F))
+                                    .setTransitionDuration(20)
+                                    .setEasing(Easing.BOUNCE_OUT)
+                                    .build())
                     .addState(TestStates.MOVING,
                             ((animationDriverContainer, poseSamplerStateContainer, jointSkeleton) -> poseSamplerStateContainer.sample(IDLE_SEQUENCE_PLAYER, animationDriverContainer)),
-                            AnimationStateMachine.StateTransition.builder(TestStates.MOVING, ((animationDriverContainer, ticksElapsedInCurrentState) -> animationDriverContainer.get(WALK_SPEED) <= 0.1F)).build())
+                            AnimationStateMachine.StateTransition.builder(TestStates.IDLE, ((animationDriverContainer, ticksElapsedInCurrentState) -> animationDriverContainer.get(WALK_SPEED) <= 0.1F))
+                                    .setTransitionDuration(20)
+                                    .setEasing(Easing.ELASTIC_OUT)
+                                    .build())
                     .bindNotifyToOnStateRelevant(TestStates.MOVING, NotifyListeners.resetTimeNotifyListener(IDLE_SEQUENCE_PLAYER))
                     .build()
             );

@@ -78,7 +78,7 @@ public class AnimationSequenceData {
             return AnimationSequence.builder(10).build();
         }
 
-        public Timeline<JointTransform> getJointTimeline(String joint){
+        public Timeline<JointTransform> getJointTransformTimeline(String joint){
             return this.jointTimelines.getOrDefault(joint, Timeline.jointTransformTimeline());
         }
 

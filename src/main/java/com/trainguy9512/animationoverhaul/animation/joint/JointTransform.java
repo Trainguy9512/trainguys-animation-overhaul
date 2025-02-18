@@ -3,7 +3,6 @@ package com.trainguy9512.animationoverhaul.animation.joint;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
 import com.trainguy9512.animationoverhaul.util.time.Timeline;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.*;
@@ -40,7 +39,7 @@ public final class JointTransform {
 
     public static JointTransform ofAnimationSequenceJoint(ResourceLocation animationSequence, String jointIdentifier, float timePercentage){
         if(AnimationSequenceData.INSTANCE.isValid(animationSequence)){
-            Timeline<JointTransform> timeline = AnimationSequenceData.INSTANCE.get(animationSequence).getJointTimeline(jointIdentifier);
+            Timeline<JointTransform> timeline = AnimationSequenceData.INSTANCE.get(animationSequence).getJointTransformTimeline(jointIdentifier);
             return timeline.getValueAtPercentage(timePercentage);
         } else {
             return JointTransform.ZERO;
