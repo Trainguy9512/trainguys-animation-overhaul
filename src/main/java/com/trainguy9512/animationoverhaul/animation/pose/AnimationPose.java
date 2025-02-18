@@ -105,17 +105,17 @@ public class AnimationPose {
      * If this pose is in local space, returns a new pose converted to entity space.
      */
     public AnimationPose convertedToEntitySpace(){
+        AnimationPose animationPose = new AnimationPose(this);
         if(this.poseSpace == PoseSpace.LOCAL){
-            AnimationPose animationPose = new AnimationPose(this);
             animationPose.convertChildrenJointsToEntitySpace(this.getJointSkeleton().getRootJoint(), new PoseStack());
             animationPose.setPoseSpace(PoseSpace.ENTITY);
             return animationPose;
         }
-        return new AnimationPose(this);
+        return animationPose;
     }
 
     private void convertChildrenJointsToEntitySpace(String parent, PoseStack poseStack){
-        JointTransform localParentJointPose = JointTransform.of(this.getJointTransform(parent));
+        JointTransform localParentJointPose = this.getJointTransform(parent);
 
         poseStack.pushPose();
         poseStack.mulPose(localParentJointPose.composeMatrix());
