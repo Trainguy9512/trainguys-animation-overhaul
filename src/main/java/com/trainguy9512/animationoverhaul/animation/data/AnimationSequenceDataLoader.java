@@ -7,7 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
-import com.trainguy9512.animationoverhaul.util.time.Timeline;
+import com.trainguy9512.animationoverhaul.util.Timeline;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
@@ -37,7 +37,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
     public CompletableFuture<Map<ResourceLocation, JsonElement>> load(ResourceManager resourceManager, Executor executor) {
         Gson gson = new Gson();
 
-        Map<ResourceLocation, Resource> passedFiles = resourceManager.listResources("timelinegroups", (string) -> {
+        Map<ResourceLocation, Resource> passedFiles = resourceManager.listResources("sequences", (string) -> {
             return string.toString().endsWith(".json");
         });
 
@@ -177,7 +177,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
 
 
                 String resourceNamespace = resourceLocationKey.toString().split(":")[0];
-                String resourceBody = resourceLocationKey.toString().split(":")[1].split("\\.")[0].replace("timelinegroups/", "");
+                String resourceBody = resourceLocationKey.toString().split(":")[1].split("\\.")[0].replace("sequences/", "");
                 ResourceLocation finalResourceLocation = ResourceLocation.fromNamespaceAndPath(resourceNamespace, resourceBody);
 
                 //String entityKey = resourceLocationKey.toString().split("/")[1];

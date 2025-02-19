@@ -3,7 +3,7 @@ package com.trainguy9512.animationoverhaul.animation.data;
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
-import com.trainguy9512.animationoverhaul.util.time.Timeline;
+import com.trainguy9512.animationoverhaul.util.Timeline;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;

@@ -7,7 +7,7 @@ import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
-import com.trainguy9512.animationoverhaul.util.time.Easing;
+import com.trainguy9512.animationoverhaul.util.Easing;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.LinkedHashMap;

@@ -1,4 +1,4 @@
-package com.trainguy9512.animationoverhaul.util.time;
+package com.trainguy9512.animationoverhaul.util;
 
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 

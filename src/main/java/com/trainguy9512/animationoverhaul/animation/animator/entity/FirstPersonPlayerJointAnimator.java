@@ -6,7 +6,7 @@ import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.*;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.notify.NotifyListeners;
-import com.trainguy9512.animationoverhaul.util.time.Easing;
+import com.trainguy9512.animationoverhaul.util.Easing;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;

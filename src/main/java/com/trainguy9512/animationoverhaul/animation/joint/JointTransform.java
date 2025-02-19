@@ -2,7 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.joint;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
-import com.trainguy9512.animationoverhaul.util.time.Timeline;
+import com.trainguy9512.animationoverhaul.util.Timeline;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.*;
