@@ -1,8 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
-import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
@@ -88,21 +86,21 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
     }
 
     @Override
-    public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
+    public void tick(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
         for(float tick : this.animationTickNotifyListeners.keySet()){
             if(this.looping){
                 if(((this.getTimeElapsed() % this.frameLength) + this.getPlayRate()) > tick && (this.getTimeElapsed() % this.frameLength) < tick){
-                   animationTickNotifyListeners.get(tick).notify(animationDriverContainer, poseSamplerStateContainer);
+                   animationTickNotifyListeners.get(tick).notify(driverContainer, poseSamplerStateContainer);
                 }
             } else if((this.getTimeElapsed() + this.getPlayRate()) > tick && this.getTimeElapsed() < tick){
-                animationTickNotifyListeners.get(tick).notify(animationDriverContainer, poseSamplerStateContainer);
+                animationTickNotifyListeners.get(tick).notify(driverContainer, poseSamplerStateContainer);
             }
         }
-        super.tick(animationDriverContainer, poseSamplerStateContainer);
+        super.tick(driverContainer, poseSamplerStateContainer);
     }
 
     @Override
-    public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
+    public AnimationPose sample(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
         return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.processTime(this.getTimeElapsed()));
     }
 

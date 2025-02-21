@@ -1,7 +1,5 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
-import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
-import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
@@ -95,7 +93,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements S
     }
 
     @Override
-    public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
+    public AnimationPose sample(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
         if(this.blendSpaceEntryTreeMap.entrySet().isEmpty()){
             return AnimationPose.of(jointSkeleton);
         }
@@ -120,12 +118,12 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements S
     }
 
     @Override
-    public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
+    public void tick(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
         // Update current value
 
         // Advance time
         this.setPlayRate(this.getPlayRateBlended() * this.playRateMultiplier);
-        super.tick(animationDriverContainer, poseSamplerStateContainer);
+        super.tick(driverContainer, poseSamplerStateContainer);
     }
 
     private record BlendSpaceEntry(ResourceLocation resourceLocation, float playRate) {

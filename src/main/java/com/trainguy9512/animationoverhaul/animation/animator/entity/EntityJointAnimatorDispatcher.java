@@ -2,8 +2,6 @@ package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorRegistry;
-import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
-import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
@@ -20,11 +18,11 @@ import java.util.UUID;
 public class EntityJointAnimatorDispatcher {
     public static final EntityJointAnimatorDispatcher INSTANCE = new EntityJointAnimatorDispatcher();
 
-    private final HashMap<UUID, AnimationDriverContainer> entityAnimationDataContainerStorage;
+    private final HashMap<UUID, DriverAnimationContainer> entityAnimationDataContainerStorage;
     private final HashMap<UUID, PoseSamplerStateContainer> entityPoseSamplerStateContainerStorage;
     private final HashMap<UUID, BakedAnimationPose> entityBakedAnimationPoseStorage;
 
-    private final AnimationDriverContainer firstPersonPlayerAnimationDriverContainer = new AnimationDriverContainer();
+    private final DriverAnimationContainer firstPersonPlayerDriverContainer = new DriverAnimationContainer();
     private PoseSamplerStateContainer firstPersonPoseSamplerStateContainer;
     private BakedAnimationPose firstPersonPlayerBakedAnimationPose;
 
@@ -44,17 +42,17 @@ public class EntityJointAnimatorDispatcher {
                 JointAnimatorRegistry.getThirdPersonJointSkeleton(entityType).ifPresent(jointSkeleton -> {
 
                     BakedAnimationPose bakedPose = this.getEntityBakedAnimationPose(entityUUID, jointSkeleton);
-                    AnimationDriverContainer animationDriverContainer = this.getEntityAnimationDataContainer(entityUUID);
+                    DriverAnimationContainer driverContainer = this.getEntityAnimationDataContainer(entityUUID);
                     PoseSamplerStateContainer poseSamplerStateContainer = this.getEntityPoseSamplerStateContainer(entityUUID, jointSkeleton);
 
                     // Step 1: Extract animation driver data
-                    jointAnimator.extractAnimationData(entity, animationDriverContainer);
+                    jointAnimator.extractAnimationData(entity, driverContainer);
 
                     // Step 2: Update pose samplers using animation driver data
-                    poseSamplerStateContainer.tick(animationDriverContainer);
+                    poseSamplerStateContainer.tick(driverContainer);
 
                     // Step 3: Calculate pose
-                    AnimationPose calculatedAnimationPose = jointAnimator.calculatePose(animationDriverContainer, poseSamplerStateContainer, jointSkeleton);
+                    AnimationPose calculatedAnimationPose = jointAnimator.calculatePose(driverContainer, poseSamplerStateContainer, jointSkeleton);
                     if (calculatedAnimationPose == null){
                         calculatedAnimationPose = AnimationPose.of(jointSkeleton);
                     }
@@ -82,13 +80,13 @@ public class EntityJointAnimatorDispatcher {
                     LocalPlayer player = Minecraft.getInstance().player;
 
                     // Step 1: Extract animation driver data
-                    jointAnimator.extractAnimationData(player, this.firstPersonPlayerAnimationDriverContainer);
+                    jointAnimator.extractAnimationData(player, this.firstPersonPlayerDriverContainer);
 
                     // Step 2: Update pose samplers using animation driver data
-                    this.firstPersonPoseSamplerStateContainer.tick(this.firstPersonPlayerAnimationDriverContainer);
+                    this.firstPersonPoseSamplerStateContainer.tick(this.firstPersonPlayerDriverContainer);
 
                     // Step 3: Calculate pose
-                    AnimationPose calculatedAnimationPose = jointAnimator.calculatePose(this.firstPersonPlayerAnimationDriverContainer, this.firstPersonPoseSamplerStateContainer, jointSkeleton);
+                    AnimationPose calculatedAnimationPose = jointAnimator.calculatePose(this.firstPersonPlayerDriverContainer, this.firstPersonPoseSamplerStateContainer, jointSkeleton);
                     if (calculatedAnimationPose == null){
                         calculatedAnimationPose = AnimationPose.of(jointSkeleton);
                     }
@@ -126,16 +124,16 @@ public class EntityJointAnimatorDispatcher {
      * @param uuid Entity UUID
      * @return Animation data container
      */
-    private AnimationDriverContainer getEntityAnimationDataContainer(UUID uuid){
-        return this.entityAnimationDataContainerStorage.computeIfAbsent(uuid, uuid1 -> new AnimationDriverContainer());
+    private DriverAnimationContainer getEntityAnimationDataContainer(UUID uuid){
+        return this.entityAnimationDataContainerStorage.computeIfAbsent(uuid, uuid1 -> new DriverAnimationContainer());
     }
 
     public BakedAnimationPose getFirstPersonPlayerBakedAnimationPose(){
         return this.firstPersonPlayerBakedAnimationPose;
     }
 
-    public AnimationDriverContainer getFirstPersonPlayerAnimationDriverContainer(){
-        return this.firstPersonPlayerAnimationDriverContainer;
+    public DriverAnimationContainer getFirstPersonPlayerAnimationDriverContainer(){
+        return this.firstPersonPlayerDriverContainer;
     }
 
     public static <S extends EntityRenderState> void setupAnimWithAnimationPose(EntityModel<S> entityModel, S livingEntityRenderState, AnimationPose animationPose, EntityJointAnimator<?, S> entityJointAnimator){

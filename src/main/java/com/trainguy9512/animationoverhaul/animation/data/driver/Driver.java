@@ -1,15 +1,18 @@
-package com.trainguy9512.animationoverhaul.animation.driver;
+package com.trainguy9512.animationoverhaul.animation.data.driver;
 
 import com.trainguy9512.animationoverhaul.util.Interpolator;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.Vector;
 import java.util.function.Supplier;
 
-public class Driver<D>{
+/**
+ * Value
+ * @param <D>
+ */
+public final class Driver<D>{
 
-    private D value;
+    private D valueCurrent;
     private D valuePrevious;
     private final Supplier<D> defaultValue;
 
@@ -20,7 +23,8 @@ public class Driver<D>{
         this.defaultValue = defaultValue;
         this.interpolator = interpolator;
 
-        this.value = defaultValue.get();
+        this.valueCurrent = defaultValue.get();
+        this.valuePrevious = defaultValue.get();
     }
 
     /**
@@ -40,35 +44,67 @@ public class Driver<D>{
         return Driver.ofInterpolatable(defaultValue, null);
     }
 
+    /**
+     * Returns the interpolated value between the previous tick and the current tick.
+     * @param partialTicks      Percentage of a tick since the previous tick.
+     * @return                  Interpolated value.
+     */
     public D getValueInterpolated(float partialTicks){
-        if(this.interpolator == null){
-            return this.value;
+        if(this.interpolator == null || this.valueCurrent.equals(this.valuePrevious) || partialTicks == 1){
+            return this.valueCurrent;
         }
-        return interpolator.interpolate(this.valuePrevious, this.value, partialTicks);
+        if(partialTicks == 0){
+            return this.valuePrevious;
+        }
+        return interpolator.interpolate(this.valuePrevious, this.valueCurrent, partialTicks);
     }
 
+    /**
+     * Returns the value of the previous tick.
+     */
     public D getValuePrevious(){
         return this.valuePrevious;
     }
 
+    /**
+     * Returns the value of the current tick.
+     */
     public D getValueCurrent(){
-        return this.value;
+        return this.valueCurrent;
     }
 
+    /**
+     * Loads a new value into the current tick.
+     * If the new value is null, the default value is used instead.
+     * @param newValue      Value to load for the current tick.
+     * @implNote            Ensure that any mutable values inputted here are copies of themselves!
+     */
     public void loadValue(D newValue){
-        this.value = newValue;
+        this.valueCurrent = newValue != null ? newValue : this.defaultValue.get();
     }
 
-    public void set(D value){
-        this.value = value != null ? value : this.defaultValue.get();
+    /**
+     * Pushes the current value to the previous tick's value and replaces it with a new value.
+     * If the new value is null, the default value is used instead.
+     * @param newValue      Value to load for the current tick
+     */
+    public void loadValueAndPush(D newValue){
+        this.pushValueToPrevious();
+        this.loadValue(newValue);
     }
 
+    /**
+     * Pushes the current value to the previous tick's value.
+     */
     public void pushValueToPrevious(){
-        this.valuePrevious = this.value;
+        this.valuePrevious = this.valueCurrent;
     }
 
+    /**
+     * Loads the driver with the driver's default value.
+     */
     public void resetValue(){
-        this.set(this.defaultValue.get());
+        this.loadValue(this.defaultValue.get());
     }
 
     /**

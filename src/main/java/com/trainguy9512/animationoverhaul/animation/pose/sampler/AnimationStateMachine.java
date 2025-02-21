@@ -2,8 +2,6 @@ package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
-import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
-import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.notify.NotifyListener;
@@ -122,18 +120,18 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
      */
 
-    private AnimationPose getPoseFromState(S identifier, AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton){
-        return this.states.get(identifier).sample(animationDriverContainer, poseSamplerStateContainer, jointSkeleton);
+    private AnimationPose getPoseFromState(S identifier, DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton){
+        return this.states.get(identifier).sample(driverContainer, poseSamplerStateContainer, jointSkeleton);
     }
 
     @Override
-    public AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
+    public AnimationPose sample(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
         if(!this.activeStates.isEmpty()){
-            AnimationPose animationPose = this.getPoseFromState(this.activeStates.getFirst(), animationDriverContainer, poseSamplerStateContainer, jointSkeleton);
+            AnimationPose animationPose = this.getPoseFromState(this.activeStates.getFirst(), driverContainer, poseSamplerStateContainer, jointSkeleton);
             if(this.activeStates.size() > 1){
                 for(S stateIdentifier : this.activeStates){
                     animationPose = animationPose.interpolated(
-                            this.getPoseFromState(stateIdentifier, animationDriverContainer, poseSamplerStateContainer, jointSkeleton),
+                            this.getPoseFromState(stateIdentifier, driverContainer, poseSamplerStateContainer, jointSkeleton),
                             this.states.get(stateIdentifier).getCurrentTransition().easing().ease(
                                     this.states.get(stateIdentifier).getWeight()
                             )
@@ -148,7 +146,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     }
 
     @Override
-    public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
+    public void tick(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
         // Don't evaluate if the state machine has no states
         if(this.activeStates.isEmpty()){
             AnimationOverhaulMain.LOGGER.warn("State machine {} not evaluated due to no active states", this.getIdentifier());
@@ -156,7 +154,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         }
 
         // Add to the current elapsed ticks
-        super.tick(animationDriverContainer, poseSamplerStateContainer);
+        super.tick(driverContainer, poseSamplerStateContainer);
 
         // Get the current active state
         S currentActiveStateIdentifier = this.activeStates.getLast();
@@ -167,7 +165,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
         Optional<StateTransition<S>> potentialStateTransition = currentActiveState.getPotentialTransitions().stream()
                 .filter((transition) -> this.states.containsKey(transition.target()))
                 .filter((transition) -> transition.target() != currentActiveStateIdentifier)
-                .filter((transition) -> transition.conditionPredicate().test(animationDriverContainer, this.getTimeElapsed(), this.states.get(this.activeStates.getLast()).getWeight()))
+                .filter((transition) -> transition.conditionPredicate().test(driverContainer, this.getTimeElapsed(), this.states.get(this.activeStates.getLast()).getWeight()))
                 .collect(Collectors.collectingAndThen(Collectors.toList(), collected -> {
                     Collections.shuffle(collected);
                     return collected;
@@ -196,7 +194,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
         // Tick each state
         for(State<S> state : this.states.values()){
-            state.tick(animationDriverContainer, poseSamplerStateContainer);
+            state.tick(driverContainer, poseSamplerStateContainer);
         }
 
         // Evaluated last, remove states from the active state list that have a weight of 0.
@@ -232,7 +230,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             this.weight = isActive ? 1 : 0;
         }
 
-        private void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
+        private void tick(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
             if(this.currentTransition != null){
                 float increaseDecreaseMultiplier = this.getIsActive() ? 1 : -1;
                 float newWeight = Mth.clamp(this.getWeight() + ((1 / this.getCurrentTransition().transitionDuration()) * increaseDecreaseMultiplier), 0, 1);
@@ -240,12 +238,12 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
                 // Notify calls
                 if(newWeight > 0 && this.getWeight() == 0){
                     if(this.onStateRelevantNotifyListeners != null){
-                        this.onStateRelevantNotifyListeners.notify(animationDriverContainer, poseSamplerStateContainer);
+                        this.onStateRelevantNotifyListeners.notify(driverContainer, poseSamplerStateContainer);
                     }
                 }
                 if(newWeight == 0 && this.getWeight() > 0){
                     if(this.onStateIrrelevantNotifyListeners != null){
-                        this.onStateIrrelevantNotifyListeners.notify(animationDriverContainer, poseSamplerStateContainer);
+                        this.onStateIrrelevantNotifyListeners.notify(driverContainer, poseSamplerStateContainer);
                     }
                 }
 
@@ -281,8 +279,8 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             return this.potentialStateTransitions;
         }
 
-        private AnimationPose sample(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton){
-            return this.sampleable.sample(animationDriverContainer, poseSamplerStateContainer, jointSkeleton);
+        private AnimationPose sample(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton){
+            return this.sampleable.sample(driverContainer, poseSamplerStateContainer, jointSkeleton);
         }
 
         private void bindNotifyToOnStateRelevant(@NotNull NotifyListener animNotify){
@@ -359,7 +357,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
         @FunctionalInterface
         public interface ConditionPredicate {
-            boolean test(AnimationDriverContainer animationDriverContainer, float ticksElapsedInCurrentState, float currentStateWeight);
+            boolean test(DriverAnimationContainer driverContainer, float ticksElapsedInCurrentState, float currentStateWeight);
         }
     }
 }

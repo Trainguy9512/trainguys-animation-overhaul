@@ -1,14 +1,11 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sampler.notify;
 
-import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
-import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
-
 import java.util.EventListener;
 
 @FunctionalInterface
 public interface NotifyListener extends EventListener {
 
-    void notify(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer);
+    void notify(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer);
 
     public class Multi implements NotifyListener {
 
@@ -21,9 +18,9 @@ public interface NotifyListener extends EventListener {
         }
 
         @Override
-        public void notify(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer) {
-            this.a.notify(animationDriverContainer, poseSamplerStateContainer);
-            this.b.notify(animationDriverContainer, poseSamplerStateContainer);
+        public void notify(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer) {
+            this.a.notify(driverContainer, poseSamplerStateContainer);
+            this.b.notify(driverContainer, poseSamplerStateContainer);
         }
 
         public static NotifyListener combine(NotifyListener a, NotifyListener b){

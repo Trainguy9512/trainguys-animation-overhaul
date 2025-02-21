@@ -1,7 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
 import com.trainguy9512.animationoverhaul.animation.data.*;
-import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.*;
@@ -94,13 +93,13 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     public static final AnimationDataKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = AnimationDataKey.of("test_state_machine", () -> AnimationStateMachine.builder(TestStates.values())
                     .addState(TestStates.IDLE,
                             ((animationDriverContainer, poseSamplerStateContainer, jointSkeleton) -> poseSamplerStateContainer.sample(IDLE_SEQUENCE_PLAYER_FROZEN, animationDriverContainer)),
-                            AnimationStateMachine.StateTransition.builder(TestStates.MOVING, ((animationDriverContainer, ticksElapsedInCurrentState, currentStateWeight) -> animationDriverContainer.get(WALK_SPEED) > 0.1F && currentStateWeight == 1))
+                            AnimationStateMachine.StateTransition.builder(TestStates.MOVING, ((animationDriverContainer, ticksElapsedInCurrentState, currentStateWeight) -> animationDriverContainer.getDriverValueInterpolated(WALK_SPEED) > 0.1F && currentStateWeight == 1))
                                     .setTransitionDuration(20)
                                     .setEasing(Easing.BOUNCE_OUT)
                                     .build())
                     .addState(TestStates.MOVING,
                             ((animationDriverContainer, poseSamplerStateContainer, jointSkeleton) -> poseSamplerStateContainer.sample(IDLE_SEQUENCE_PLAYER, animationDriverContainer)),
-                            AnimationStateMachine.StateTransition.builder(TestStates.IDLE, ((animationDriverContainer, ticksElapsedInCurrentState, currentStateWeight) -> animationDriverContainer.get(WALK_SPEED) <= 0.1F && currentStateWeight == 1))
+                            AnimationStateMachine.StateTransition.builder(TestStates.IDLE, ((animationDriverContainer, ticksElapsedInCurrentState, currentStateWeight) -> animationDriverContainer.getDriverValueInterpolated(WALK_SPEED) <= 0.1F && currentStateWeight == 1))
                                     .setTransitionDuration(20)
                                     .setEasing(Easing.ELASTIC_OUT)
                                     .build())
@@ -129,20 +128,20 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     }
 
     @Override
-    public AnimationPose calculatePose(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton, float partialTicks) {
+    public AnimationPose calculatePose(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton, float partialTicks) {
         // Update main hand item based on the anim notify
         //animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
 
 
         //setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
 
-        AnimationPose pose = poseSamplerStateContainer.sample(TEST_STATE_MACHINE, animationDriverContainer);
+        AnimationPose pose = poseSamplerStateContainer.sample(TEST_STATE_MACHINE, driverContainer);
 
 
-        dampenArmRotation(pose, animationDriverContainer);
+        dampenArmRotation(pose, driverContainer);
 
 
-        Vector3f rotation = new Vector3f(Mth.sin(animationDriverContainer.get(TIME_TEST) * 0.2F) * Mth.HALF_PI * 0.7f, 0, 0);
+        Vector3f rotation = new Vector3f(Mth.sin(driverContainer.getDriverValueInterpolated(TIME_TEST) * 0.2F) * Mth.HALF_PI * 0.7f, 0, 0);
         //Vector3f translation = new Vector3f(Mth.sin(getEntityAnimationVariable(TIME_TEST) * 1.3F) * 3F, 0, 0);
         //pose.translateJoint(FPPlayerLocators.rightArm, translation, AnimationPose.TransformSpace.ENTITY, false);
         //pose.rotateJoint(FPPlayerLocators.rightArm, rotation, AnimationPose.TransformSpace.ENTITY, false);
@@ -154,9 +153,9 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     /*
     Get the pose with the added dampened camera rotation
      */
-    private void dampenArmRotation(AnimationPose pose, AnimationDriverContainer animationDriverContainer){
-        Vector3f cameraRotation = animationDriverContainer.get(CAMERA_ROTATION);
-        Vector3f dampenedCameraRotation = animationDriverContainer.get(DAMPENED_CAMERA_ROTATION);
+    private void dampenArmRotation(AnimationPose pose, DriverAnimationContainer driverContainer){
+        Vector3f cameraRotation = driverContainer.getDriverValueInterpolated(CAMERA_ROTATION);
+        Vector3f dampenedCameraRotation = driverContainer.getDriverValueInterpolated(DAMPENED_CAMERA_ROTATION);
 
         Vector3f cameraDampWeight = new Vector3f(0.6F, 0.3F, 0.1F);
 
@@ -174,12 +173,12 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
 
     @Override
-    public void extractAnimationData(LocalPlayer dataReference, AnimationDriverContainer animationDriverContainer){
+    public void extractAnimationData(LocalPlayer dataReference, DriverAnimationContainer driverContainer){
 
 
-        animationDriverContainer.set(WALK_SPEED, dataReference.walkAnimation.speed());
-        animationDriverContainer.set(TIME_TEST, animationDriverContainer.get(TIME_TEST) + 1);
-        animationDriverContainer.set(MAIN_HAND_ITEM, dataReference.getMainHandItem());
+        driverContainer.set(WALK_SPEED, dataReference.walkAnimation.speed());
+        driverContainer.set(TIME_TEST, driverContainer.getDriverValueInterpolated(TIME_TEST) + 1);
+        driverContainer.set(MAIN_HAND_ITEM, dataReference.getMainHandItem());
 
 
         //Tick the dampened camera rotation.
@@ -187,10 +186,10 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
         // First, set the target camera rotation from the living entity.
         Vector3f targetRotation = new Vector3f(dataReference.getXRot(), dataReference.getYRot(), dataReference.getYRot());
-        animationDriverContainer.set(CAMERA_ROTATION, targetRotation);
+        driverContainer.set(CAMERA_ROTATION, targetRotation);
 
 
-        Vector3f dampenedCameraRotation = animationDriverContainer.get(DAMPENED_CAMERA_ROTATION);
+        Vector3f dampenedCameraRotation = driverContainer.getDriverValueInterpolated(DAMPENED_CAMERA_ROTATION);
 
         // If the dampened camera rotation is 0 (which is what it is upon initialization), set it to the target
         if(dampenedCameraRotation.x() == 0F && dampenedCameraRotation.y() == 0F){
@@ -204,7 +203,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
             );
             //dampenedCameraRotation.lerp(targetRotation, 0.5F);
         }
-        animationDriverContainer.set(DAMPENED_CAMERA_ROTATION, dampenedCameraRotation);
+        driverContainer.set(DAMPENED_CAMERA_ROTATION, dampenedCameraRotation);
 
     }
 }

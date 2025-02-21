@@ -132,7 +132,7 @@ public abstract class MixinItemInHandRenderer {
 
 
 
-            this.renderItemInHand(abstractClientPlayer, EntityJointAnimatorDispatcher.INSTANCE.getFirstPersonPlayerAnimationDriverContainer().get(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM), poseStack, HumanoidArm.RIGHT, animationPose, bufferSource, i);
+            this.renderItemInHand(abstractClientPlayer, EntityJointAnimatorDispatcher.INSTANCE.getFirstPersonPlayerAnimationDriverContainer().getDriverValueInterpolated(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM), poseStack, HumanoidArm.RIGHT, animationPose, bufferSource, i);
             //this.renderItemInHand(abstractClientPlayer, ItemStack.EMPTY, poseStack, HumanoidArm.LEFT, animationPose, bufferSource, i);
 
 

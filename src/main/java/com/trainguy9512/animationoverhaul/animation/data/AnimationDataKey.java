@@ -1,6 +1,5 @@
 package com.trainguy9512.animationoverhaul.animation.data;
 
-import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.PoseSampler;
 
 import java.util.function.Supplier;
@@ -17,7 +16,7 @@ import java.util.function.Supplier;
  * @param dataSupplier  The default value of the key
  *
  * @see PoseSampler
- * @see AnimationDriverContainer
+ * @see DriverAnimationContainer
  */
 public record AnimationDataKey<D>(String identifier, Supplier<D> dataSupplier) {
 

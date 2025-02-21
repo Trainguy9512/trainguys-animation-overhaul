@@ -1,7 +1,5 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
-import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
-import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import org.jetbrains.annotations.NotNull;
 
 public class PoseSampler implements Comparable<PoseSampler> {
@@ -69,10 +67,10 @@ public class PoseSampler implements Comparable<PoseSampler> {
     /**
      * Updates the pose sampler using information from the data container. Called once per tick after animation data is extracted by the joint animator but prior to pose calculation.
      *
-     * @param animationDriverContainer Extracted animation data
+     * @param driverContainer Extracted animation data
      * @param poseSamplerStateContainer Pose sampler state container used for referencing information from other pose samplers. Only
      */
-    public void tick(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
+    public void tick(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
     }
 
     public String getIdentifier(){
