@@ -1,6 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.animator;
 
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
+import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
@@ -28,7 +28,14 @@ public interface JointAnimator<T> {
      * Calculates and returns an animation pose once per tick, after pose sampler update and animation data extraction
      * @param animationDriverContainer      Data container containing extracted animation variable data.
      * @param poseSamplerStateContainer     Data container containing pose sampler states, used for sampling poses.
-     * @return                              Calculated animation pose to be passed off to the baked animation pose
+     * @param jointSkeleton                 Joint skeleton used by the animator.
+     * @param partialTicks                  The percentage of a tick since the previous tick.
+     * @return                              Calculated animation pose to be passed off to the baked animation pose.
      */
-    public abstract AnimationPose calculatePose(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton);
+    public abstract AnimationPose calculatePose(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton, float partialTicks);
+
+    public enum PoseCalculationFrequency {
+        CALCULATE_EVERY_FRAME,
+        CALCULATE_ONCE_PER_TICK
+    }
 }

@@ -1,6 +1,7 @@
-package com.trainguy9512.animationoverhaul.animation.data;
+package com.trainguy9512.animationoverhaul.animation.driver;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDataKey;
 
 import java.util.*;
 import java.util.function.Supplier;

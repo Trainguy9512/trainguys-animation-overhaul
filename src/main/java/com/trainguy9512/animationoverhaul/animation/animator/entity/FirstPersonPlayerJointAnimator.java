@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
 import com.trainguy9512.animationoverhaul.animation.data.*;
+import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.*;
@@ -128,7 +129,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     }
 
     @Override
-    public AnimationPose calculatePose(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
+    public AnimationPose calculatePose(AnimationDriverContainer animationDriverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton, float partialTicks) {
         // Update main hand item based on the anim notify
         //animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
 

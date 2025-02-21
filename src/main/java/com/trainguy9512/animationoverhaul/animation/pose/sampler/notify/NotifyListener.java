@@ -1,6 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sampler.notify;
 
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
+import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 
 import java.util.EventListener;

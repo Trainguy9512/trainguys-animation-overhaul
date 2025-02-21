@@ -9,17 +9,22 @@ import java.util.TreeMap;
  */
 public class Timeline<T> {
 
-    private TreeMap<Float, Keyframe<T>> keyframes = new TreeMap();
-    private final Interpolator<T> lerper;
+    private final TreeMap<Float, Keyframe<T>> keyframes;
+    private final Interpolator<T> interpolator;
 
-    public Timeline(Interpolator<T> lerper) {
-        this.lerper = lerper;
+    private Timeline(Interpolator<T> interpolator) {
+        this.keyframes = new TreeMap<>();
+        this.interpolator = interpolator;
+    }
+
+    public static <T> Timeline<T> of(Interpolator<T> interpolator){
+        return new Timeline<>(interpolator);
     }
 
     /**
      * Returns the value at the given frame
-     * @param time  Time in keyframes
-     * @return
+     * @param time      Time in keyframes
+     * @return          Value
      */
     public T getValueAtFrame(float time) {
         var firstKeyframe = keyframes.floorEntry(time);
@@ -39,7 +44,7 @@ public class Timeline<T> {
         float relativeTime = (time - firstKeyframe.getKey()) / (secondKeyframe.getKey() - firstKeyframe.getKey());
 
 
-        return lerper.interpolate(
+        return this.interpolator.interpolate(
                 firstKeyframe.getValue().getValue(),
                 secondKeyframe.getValue().getValue(),
                 secondKeyframe.getValue().getEasing().ease(relativeTime)
@@ -84,7 +89,7 @@ public class Timeline<T> {
     }
 
     public static Timeline<Float> floatTimeline() {
-        return new Timeline<>((a, b, t) -> a + (b - a) * t);
+        return new Timeline<>(Interpolator.FLOAT);
     }
 
     public static Timeline<JointTransform> jointTransformTimeline() {

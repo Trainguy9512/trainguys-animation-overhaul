@@ -1,9 +1,8 @@
 package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.animation.animator.JointAnimator;
 import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorRegistry;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDriverContainer;
+import com.trainguy9512.animationoverhaul.animation.driver.AnimationDriverContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseSamplerStateContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
@@ -12,12 +11,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.UUID;
 
 public class EntityJointAnimatorDispatcher {
