@@ -1,7 +1,8 @@
 package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
-import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.animation.animator.JointAnimator;
 import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorRegistry;
+import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
@@ -12,24 +13,34 @@ import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 
-import java.util.HashMap;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.WeakHashMap;
 
 public class EntityJointAnimatorDispatcher {
     public static final EntityJointAnimatorDispatcher INSTANCE = new EntityJointAnimatorDispatcher();
 
-    private final HashMap<UUID, DriverAnimationContainer> entityAnimationDataContainerStorage;
-    private final HashMap<UUID, PoseSamplerStateContainer> entityPoseSamplerStateContainerStorage;
-    private final HashMap<UUID, BakedAnimationPose> entityBakedAnimationPoseStorage;
-
-    private final DriverAnimationContainer firstPersonPlayerDriverContainer = new DriverAnimationContainer();
-    private PoseSamplerStateContainer firstPersonPoseSamplerStateContainer;
-    private BakedAnimationPose firstPersonPlayerBakedAnimationPose;
+    private final WeakHashMap<UUID, AnimationDataContainer> entityAnimationDataContainerStorage;
+    private AnimationDataContainer firstPersonPlayerDataContainer;
 
     public EntityJointAnimatorDispatcher(){
-        this.entityAnimationDataContainerStorage = Maps.newHashMap();
-        this.entityBakedAnimationPoseStorage = Maps.newHashMap();
-        this.entityPoseSamplerStateContainerStorage = Maps.newHashMap();
+        this.entityAnimationDataContainerStorage = new WeakHashMap<>();
+    }
+
+    public static EntityJointAnimatorDispatcher getInstance(){
+        return INSTANCE;
+    }
+
+    public <T extends Entity> void tickThirdPersonEntityAnimation(T entity){
+
+        @SuppressWarnings("unchecked")
+        EntityType<T> type = (EntityType<T>) entity.getType();
+        UUID entityUUID = entity.getUUID();
+
+        JointAnimatorRegistry.getThirdPersonJointAnimator(type).ifPresent(jointAnimator -> {
+
+        });
+
     }
 
     public <T extends Entity> void tickThirdPersonJointAnimators(T entity){
@@ -132,8 +143,16 @@ public class EntityJointAnimatorDispatcher {
         return this.firstPersonPlayerBakedAnimationPose;
     }
 
-    public DriverAnimationContainer getFirstPersonPlayerAnimationDriverContainer(){
-        return this.firstPersonPlayerDriverContainer;
+    public Optional<AnimationDataContainer> getFirstPersonPlayerDataContainer(){
+        JointAnimatorRegistry.getFirstPersonPlayerJointAnimator().ifPresent(jointAnimator -> {
+            return Optional.of(createDataContainer(jointAnimator));
+        });
+        return Optional.empty();
+        return this.firstPersonPlayerDataContainer;
+    }
+
+    private AnimationDataContainer createDataContainer(JointAnimator<?> jointAnimator){
+        return AnimationDataContainer.of(jointAnimator.buildSkeleton());
     }
 
     public static <S extends EntityRenderState> void setupAnimWithAnimationPose(EntityModel<S> entityModel, S livingEntityRenderState, AnimationPose animationPose, EntityJointAnimator<?, S> entityJointAnimator){

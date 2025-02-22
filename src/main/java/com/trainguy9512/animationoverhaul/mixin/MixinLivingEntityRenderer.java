@@ -43,7 +43,7 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
 
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V", at = @At("HEAD"))
     private <L extends Enum<L>> void extractAnimationPoseToRenderState(T livingEntity, R livingEntityRenderState, float partialTicks, CallbackInfo ci){
-        EntityJointAnimatorDispatcher entityJointAnimatorDispatcher = EntityJointAnimatorDispatcher.INSTANCE;
+        EntityJointAnimatorDispatcher entityJointAnimatorDispatcher = EntityJointAnimatorDispatcher.getInstance();
 
         // If the entity joint animator dispatcher has animation data for this specific entity under its UUID, and it's registered in the main class.
         JointAnimatorRegistry.getThirdPersonJointAnimator(livingEntity.getType()).ifPresent(jointAnimator ->

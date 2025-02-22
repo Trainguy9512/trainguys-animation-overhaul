@@ -20,11 +20,19 @@ public class AnimationDataContainer implements PoseCalculationDataContainer, OnT
     private final JointSkeleton jointSkeleton;
     private final AnimationDataKey<Driver<AnimationPose>> perTickCalculatedPoseDriverKey;
 
-    public AnimationDataContainer(JointSkeleton jointSkeleton){
+    private AnimationDataContainer(JointSkeleton jointSkeleton){
         this.drivers = Maps.newHashMap();
         this.poseSamplers = Maps.newHashMap();
         this.jointSkeleton = jointSkeleton;
         this.perTickCalculatedPoseDriverKey = AnimationDataKey.dataKeyOf("per_tick_calculated_pose", () -> Driver.ofInterpolatable(() -> AnimationPose.of(jointSkeleton), Interpolator.ANIMATION_POSE));
+    }
+
+    public static AnimationDataContainer of(JointSkeleton jointSkeleton){
+        return new AnimationDataContainer(jointSkeleton);
+    }
+
+    public JointSkeleton getJointSkeleton(){
+        return this.jointSkeleton;
     }
 
     @SuppressWarnings("unchecked")

@@ -59,12 +59,12 @@ public abstract class MixinGameRenderer {
                 if(entity instanceof LivingEntity){
                     EntityType<?> entityType = entity.getType();
                     if(JointAnimatorRegistry.entityTypeRegisteredWithJointAnimator(entityType)){
-                        EntityJointAnimatorDispatcher.INSTANCE.tickThirdPersonJointAnimators(entity);
+                        EntityJointAnimatorDispatcher.getInstance().tickThirdPersonJointAnimators(entity);
                     }
                 }
             }
             // Special functionality for the first person player joint animator
-            EntityJointAnimatorDispatcher.INSTANCE.tickFirstPersonJointAnimator();
+            EntityJointAnimatorDispatcher.getInstance().tickFirstPersonJointAnimator();
         }
 
     }
@@ -72,8 +72,8 @@ public abstract class MixinGameRenderer {
     @Inject(method = "bobView", at = @At(value = "HEAD"), cancellable = true)
     private void injectCameraRotation(PoseStack poseStack, float f, CallbackInfo ci){
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
-            if(EntityJointAnimatorDispatcher.INSTANCE.getFirstPersonPlayerBakedAnimationPose() != null){
-                AnimationPose animationPose = EntityJointAnimatorDispatcher.INSTANCE.getFirstPersonPlayerBakedAnimationPose().getBlendedPose(f);
+            if(EntityJointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose() != null){
+                AnimationPose animationPose = EntityJointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose().getBlendedPose(f);
                 JointTransform cameraPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.CAMERA_JOINT);
                 JointTransform rootPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.ROOT_JOINT);
                 cameraPose.multiply(rootPose);
