@@ -1,5 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
+import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
+
 public class TimeBasedPoseSampler extends PoseSampler {
 
     protected float timeElapsed;
@@ -78,7 +80,7 @@ public class TimeBasedPoseSampler extends PoseSampler {
 
 
     @Override
-    public void tick(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
+    public void tick(OnTickDataContainer dataContainer){
         if(this.getPlaying() && !this.resetting){
             this.timeElapsed += this.playRate;
         }

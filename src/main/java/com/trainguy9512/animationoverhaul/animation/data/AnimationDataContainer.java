@@ -2,6 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
+import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDataKey;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.PoseSampler;
@@ -11,7 +12,7 @@ import com.trainguy9512.animationoverhaul.util.Interpolator;
 
 import java.util.HashMap;
 
-public class AnimationDataContainer implements PoseCalculationDataContainer {
+public class AnimationDataContainer implements PoseCalculationDataContainer, OnTickDataContainer {
 
     private final HashMap<AnimationDataKey<? extends Driver<?>>, Driver<?>> drivers;
     private final HashMap<AnimationDataKey<? extends PoseSampler>, PoseSampler> poseSamplers;
@@ -23,61 +24,39 @@ public class AnimationDataContainer implements PoseCalculationDataContainer {
         this.drivers = Maps.newHashMap();
         this.poseSamplers = Maps.newHashMap();
         this.jointSkeleton = jointSkeleton;
-        this.perTickCalculatedPoseDriverKey = AnimationDataKey.of("per_tick_calculated_pose", () -> Driver.ofInterpolatable(() -> AnimationPose.of(jointSkeleton), Interpolator.ANIMATION_POSE));
+        this.perTickCalculatedPoseDriverKey = AnimationDataKey.dataKeyOf("per_tick_calculated_pose", () -> Driver.ofInterpolatable(() -> AnimationPose.of(jointSkeleton), Interpolator.ANIMATION_POSE));
     }
 
     @SuppressWarnings("unchecked")
-    private <D> D getOrCreateDriver(AnimationDataKey<D> dataKey){
-        return (D) this.drivers.computeIfAbsent(dataKey, (animationDataKey -> animationDataKey.createInstance()));
+    private <D> Driver<D> getOrCreateDriver(AnimationDataKey<Driver<D>> driverKey){
+        return (Driver<D>) this.drivers.computeIfAbsent(driverKey, (AnimationDataKey::createInstance));
     }
 
-    /**
-     * Returns the value of a driver during the current tick.
-     * @param driverKey         {@link AnimationDataKey<>} associated with driver.
-     * @return                  Value
-     */
+    @SuppressWarnings("unchecked")
+    private <P extends PoseSampler> P getOrCreatePoseSampler(AnimationDataKey<P> poseSamplerKey){
+        return (P) this.poseSamplers.computeIfAbsent(poseSamplerKey, (AnimationDataKey::createInstance));
+    }
+
+    @Override
     public <D> D getDriverValue(AnimationDataKey<Driver<D>> driverKey) {
-        return (D) this.getOrCreateDriver(driverKey).getValueCurrent();
+        return this.getOrCreateDriver(driverKey).getValueCurrent();
     }
 
-    /**
-     * Returns the value of a driver during the previous tick.
-     * @param driverKey         {@link AnimationDataKey<>} associated with driver.
-     * @return                  Value
-     */
+    @Override
     public <D> D getPreviousDriverValue(AnimationDataKey<Driver<D>> driverKey) {
         return (D) this.getOrCreateDriver(driverKey).getValuePrevious();
     }
 
-    /**
-     * Loads a driver with a new value for the current tick.
-     * @param driverKey         {@link AnimationDataKey<>} of the driver to load
-     * @param newValue          Value to load.
-     * @implNote                Ensure that any mutable values inputted here are copies of themselves!
-     */
+    @Override
     public <D> void loadValueIntoDriver(AnimationDataKey<Driver<D>> driverKey, D newValue) {
         this.getOrCreateDriver(driverKey).loadValue(newValue);
 
         this.resetDriverValue(driverKey);
     }
 
-    /**
-     * Resets the value of a driver to the default, which is specified by the key.
-     * @param driverKey         {@link AnimationDataKey<>} of the driver being reset.
-     */
+    @Override
     public <D> void resetDriverValue(AnimationDataKey<Driver<D>> driverKey) {
         this.getOrCreateDriver(driverKey).resetValue();
-    }
-
-    /**
-     * Retrieves a pose sampler from the given key.
-     *
-     * @param poseSamplerKey    The {@link AnimationDataKey<>} attached to the desired pose sampler.
-     *
-     * @return a {@link PoseSampler} object reference
-     */
-    public <P extends PoseSampler> P getPoseSampler(AnimationDataKey<P> poseSamplerKey){
-
     }
 
     @Override
@@ -86,40 +65,38 @@ public class AnimationDataContainer implements PoseCalculationDataContainer {
     }
 
     @Override
-    public <P extends PoseSampler & Sampleable> AnimationPose sample(AnimationDataKey<P> poseSamplerKey) {
-        return null;
+    public <P extends PoseSampler> P getPoseSampler(AnimationDataKey<P> poseSamplerKey){
+        return this.getOrCreatePoseSampler(poseSamplerKey);
     }
 
     @Override
-    public <P extends PoseSampler & SampleableFromInput> AnimationPose sample(AnimationDataKey<P> poseSamplerKey, AnimationPose animationPose) {
-        return null;
+    public <P extends PoseSampler & Sampleable> AnimationPose sample(AnimationDataKey<P> poseSamplerKey, float partialTicks) {
+        return this.getOrCreatePoseSampler(poseSamplerKey).sample(this, jointSkeleton, partialTicks);
+    }
+
+    @Override
+    public <P extends PoseSampler & SampleableFromInput> AnimationPose sample(AnimationDataKey<P> poseSamplerKey, AnimationPose animationPose, float partialTicks) {
+        return this.getOrCreatePoseSampler(poseSamplerKey).sample(this, jointSkeleton, animationPose, partialTicks);
     }
 
     public void pushDriverValuesToPrevious(){
-        this.drivers.forEach((dataKey, dataObject) -> {
-            if(dataObject instanceof Driver<?>){
-                ((Driver<?>) dataObject).pushValueToPrevious();
-            }
-        });
+        this.drivers.values().forEach(Driver::pushValueToPrevious);
     }
 
-    /**
-     * Iterates over every currently loaded pose sampler and executes the {@link PoseSampler#tick(DriverAnimationContainer, PoseSamplerStateContainer)} method
-     * <p>
-     * The update order is as follows: State machines first, then all others.
-     *
-     * @param driverContainer Extracted animation data
-     * @implNote Only do this once per game tick! For entities, this is handled in the entity joint animator dispatcher.
-     */
-    public void tick(DriverAnimationContainer driverContainer){
-        this.tickUpdateOrderGroup(driverContainer, PoseSampler.UpdateCategory.STATE_MACHINES);
-        this.tickUpdateOrderGroup(driverContainer, PoseSampler.UpdateCategory.OTHER);
+    public void tick(){
+        this.tickUpdateOrderGroup(PoseSampler.UpdateCategory.STATE_MACHINES);
+        this.tickUpdateOrderGroup(PoseSampler.UpdateCategory.OTHER);
+        this.pushDriverValuesToPrevious();
     }
 
-    private void tickUpdateOrderGroup(DriverAnimationContainer driverContainer, PoseSampler.UpdateCategory updateOrder){
-        this.poseSamplers.values().stream()
-                .filter((poseSampler -> poseSampler.getUpdateCategory() == updateOrder))
+    private void tickUpdateOrderGroup(PoseSampler.UpdateCategory updateCategory){
+        this.poseSamplers.values()
+                .stream()
                 .sorted()
-                .forEach((poseSampler -> poseSampler.tick(driverContainer, this)));
+                .forEach(poseSampler -> {
+                    if(poseSampler.getUpdateCategory() == updateCategory){
+                        poseSampler.tick(this);
+                    }
+                });
     }
 }

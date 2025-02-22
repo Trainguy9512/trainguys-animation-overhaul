@@ -1,8 +1,10 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.animation.data.AnimationDataKey;
+import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDataKey;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
+import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
+import com.trainguy9512.animationoverhaul.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.util.Easing;
@@ -37,7 +39,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
     }
 
     @Override
-    public void tick(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
+    public void tick(OnTickDataContainer dataContainer){
         // Increment the elapsed time of each active montage
         this.montages.forEach((configuration, timeElapsed) -> this.montages.put(configuration, (timeElapsed == null ? 0 : timeElapsed) + configuration.playRate()));
         // Remove any montage that has an elapsed time greater than the montage's length
@@ -45,7 +47,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
     }
 
     @Override
-    public AnimationPose sample(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton, AnimationPose inputPose) {
+    public AnimationPose sample(PoseCalculationDataContainer dataContainer, JointSkeleton jointSkeleton, AnimationPose inputPose, float partialTicks) {
         if(!this.montages.isEmpty()){
             AnimationPose pose = new AnimationPose(inputPose);
             for (Map.Entry<MontageConfiguration, Float> entry : this.montages.entrySet()){

@@ -1,6 +1,8 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
+import com.trainguy9512.animationoverhaul.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
@@ -86,21 +88,21 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
     }
 
     @Override
-    public void tick(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer){
+    public void tick(OnTickDataContainer dataContainer){
         for(float tick : this.animationTickNotifyListeners.keySet()){
             if(this.looping){
                 if(((this.getTimeElapsed() % this.frameLength) + this.getPlayRate()) > tick && (this.getTimeElapsed() % this.frameLength) < tick){
-                   animationTickNotifyListeners.get(tick).notify(driverContainer, poseSamplerStateContainer);
+                   animationTickNotifyListeners.get(tick).notify(dataContainer);
                 }
             } else if((this.getTimeElapsed() + this.getPlayRate()) > tick && this.getTimeElapsed() < tick){
-                animationTickNotifyListeners.get(tick).notify(driverContainer, poseSamplerStateContainer);
+                animationTickNotifyListeners.get(tick).notify(dataContainer);
             }
         }
-        super.tick(driverContainer, poseSamplerStateContainer);
+        super.tick(dataContainer);
     }
 
     @Override
-    public AnimationPose sample(DriverAnimationContainer driverContainer, PoseSamplerStateContainer poseSamplerStateContainer, JointSkeleton jointSkeleton) {
+    public AnimationPose sample(PoseCalculationDataContainer dataContainer, JointSkeleton jointSkeleton, float partialTicks) {
         return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.processTime(this.getTimeElapsed()));
     }
 
