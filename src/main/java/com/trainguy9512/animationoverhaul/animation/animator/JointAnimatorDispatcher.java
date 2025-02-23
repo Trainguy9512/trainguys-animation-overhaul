@@ -30,89 +30,43 @@ public class JointAnimatorDispatcher {
         return INSTANCE;
     }
 
-    public <T extends Entity> void tickThirdPersonEntityAnimation(T entity){
-
-        @SuppressWarnings("unchecked")
-        EntityType<T> type = (EntityType<T>) entity.getType();
-        UUID entityUUID = entity.getUUID();
-
-        JointAnimatorRegistry.getThirdPersonJointAnimator(type).ifPresent(jointAnimator -> {
-
-        });
-
-    }
-
-    public <T extends Entity> void tick()
-
-    public <T extends Entity> void tickThirdPersonJointAnimators(T entity){
-
-        @SuppressWarnings("unchecked")
-        EntityType<T> entityType = (EntityType<T>) entity.getType();
-        UUID entityUUID = entity.getUUID();
-
-        JointAnimatorRegistry.getThirdPersonJointAnimator(entityType).ifPresent(jointAnimator ->
-                JointAnimatorRegistry.getThirdPersonJointSkeleton(entityType).ifPresent(jointSkeleton -> {
-
-                    BakedAnimationPose bakedPose = this.getEntityBakedAnimationPose(entityUUID, jointSkeleton);
-                    DriverAnimationContainer driverContainer = this.getEntityAnimationDataContainer(entityUUID);
-                    PoseSamplerStateContainer poseSamplerStateContainer = this.getEntityPoseSamplerStateContainer(entityUUID, jointSkeleton);
-
-                    // Step 1: Extract animation driver data
-                    jointAnimator.extractAnimationData(entity, driverContainer);
-
-                    // Step 2: Update pose samplers using animation driver data
-                    poseSamplerStateContainer.tick(driverContainer);
-
-                    // Step 3: Calculate pose
-                    AnimationPose calculatedAnimationPose = jointAnimator.calculatePose(driverContainer, poseSamplerStateContainer, jointSkeleton);
-                    if (calculatedAnimationPose == null){
-                        calculatedAnimationPose = AnimationPose.of(jointSkeleton);
-                    }
-
-                    // Step 4: Push the local space pose to the baked pose, and save the baked pose.
-                    bakedPose.pushPose(calculatedAnimationPose.convertedToLocalSpace());
-                    this.saveBakedPose(entityUUID, bakedPose);
-                })
+    public <T extends Entity> void tickEntityJointAnimators(Iterable<T> entitiesForRendering){
+        entitiesForRendering.forEach(entity ->
+                JointAnimatorRegistry.getThirdPersonJointAnimator(entity).ifPresent(jointAnimator ->
+                        this.getEntityAnimationDataContainer(entity).ifPresent(dataContainer ->
+                                this.tickJointAnimator(jointAnimator, entity, dataContainer)
+                        )
+                )
         );
     }
 
-    public void tickFirstPersonJointAnimator(){
+    public void tickFirstPersonPlayerJointAnimator(){
         JointAnimatorRegistry.getFirstPersonPlayerJointAnimator().ifPresent(jointAnimator ->
-                JointAnimatorRegistry.getFirstPersonPlayerJointSkeleton().ifPresent(jointSkeleton -> {
-                    // Initialize the pose sampler state container
-                    if(this.firstPersonPoseSamplerStateContainer == null){
-                        this.firstPersonPoseSamplerStateContainer = new PoseSamplerStateContainer(jointSkeleton);
-                    }
-
-                    // Initialize the baked animation pose
-                    if(this.firstPersonPlayerBakedAnimationPose == null){
-                        this.firstPersonPlayerBakedAnimationPose = new BakedAnimationPose(jointSkeleton);
-                    }
-
-                    LocalPlayer player = Minecraft.getInstance().player;
-
-                    // Step 1: Extract animation driver data
-                    jointAnimator.extractAnimationData(player, this.firstPersonPlayerDriverContainer);
-
-                    // Step 2: Update pose samplers using animation driver data
-                    this.firstPersonPoseSamplerStateContainer.tick(this.firstPersonPlayerDriverContainer);
-
-                    // Step 3: Calculate pose
-                    AnimationPose calculatedAnimationPose = jointAnimator.calculatePose(this.firstPersonPlayerDriverContainer, this.firstPersonPoseSamplerStateContainer, jointSkeleton);
-                    if (calculatedAnimationPose == null){
-                        calculatedAnimationPose = AnimationPose.of(jointSkeleton);
-                    }
-
-                    // Step 4: Push the local space pose to the baked pose, and save the baked pose.
-                    this.firstPersonPlayerBakedAnimationPose.pushPose(calculatedAnimationPose.convertedToLocalSpace());
-                })
+                this.getFirstPersonPlayerDataContainer().ifPresent(dataContainer ->
+                        this.tickJointAnimator(jointAnimator, Minecraft.getInstance().player, dataContainer)
+                )
         );
+    }
+
+    /**
+     * Updates the data container every tick and if the joint animator is set to calculate once per tick, samples the animation pose and loads it into the data container.
+     * @param jointAnimator         Joint animator
+     * @param dataReference         Animation data reference
+     * @param dataContainer         Animation data container
+     */
+    private <T> void tickJointAnimator(JointAnimator<T> jointAnimator, T dataReference, AnimationDataContainer dataContainer){
+        dataContainer.pushDriverValuesToPrevious();
+        jointAnimator.extractAnimationData(dataReference, dataContainer);
+        dataContainer.tickPoseSamplers();
+        if(jointAnimator.getPoseCalulationFrequency() == JointAnimator.PoseCalculationFrequency.CALCULATE_ONCE_PER_TICK){
+            dataContainer.loadValueIntoDriver(dataContainer.getPerTickCalculatedPoseDriverKey(), jointAnimator.calculatePose(dataContainer, dataContainer.getJointSkeleton(), 1));
+        }
     }
 
     private <T extends Entity> Optional<AnimationDataContainer> getEntityAnimationDataContainer(T entity){
         UUID uuid = entity.getUUID();
         if(!this.entityAnimationDataContainerStorage.containsKey(uuid)){
-            JointAnimatorRegistry.getThirdPersonJointAnimator(entity.getType()).ifPresent(jointAnimator ->
+            JointAnimatorRegistry.getThirdPersonJointAnimator(entity).ifPresent(jointAnimator ->
                     this.entityAnimationDataContainerStorage.put(uuid, this.createDataContainer(jointAnimator))
             );
         }

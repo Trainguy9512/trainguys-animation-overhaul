@@ -37,12 +37,12 @@ public class JointAnimatorRegistry {
 
     /**
      * Returns the entity joint animator for the provided entity type. If the entity type does not have a joint animator registered, null is returned.
-     * @param entityType                Entity type
+     * @param entity                    Entity
      * @return                          Entity joint animator
      */
     @SuppressWarnings("unchecked")
-    public static <T extends Entity> Optional<EntityJointAnimator<T, ?>> getThirdPersonJointAnimator(EntityType<T> entityType){
-        return Optional.ofNullable((EntityJointAnimator<T, ?>) THIRD_PERSON_ENTITY_JOINT_ANIMATORS.get(entityType));
+    public static <T extends Entity> Optional<EntityJointAnimator<T, ?>> getThirdPersonJointAnimator(T entity){
+        return Optional.ofNullable((EntityJointAnimator<T, ?>) THIRD_PERSON_ENTITY_JOINT_ANIMATORS.get(entity.getType()));
     }
 
     /**

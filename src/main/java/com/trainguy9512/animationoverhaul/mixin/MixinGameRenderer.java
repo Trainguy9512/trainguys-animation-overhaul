@@ -27,47 +27,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGameRenderer {
     @Shadow @Final Minecraft minecraft;
 
-
-
-    /*
-    @Inject(method = "renderLevel", at = @At("HEAD"))
-    private void adjustTimersForAllEntities(float f, long l, PoseStack poseStack, CallbackInfo ci){
-        for(Entity entity : this.minecraft.level.entitiesForRendering()){
-            if(entity instanceof LivingEntity){
-
-                EntityType<?> entityType = entity.getType();
-                if(AnimationOverhaulMain.ENTITY_ANIMATORS.contains(entityType)){
-                    LivingEntityAnimator livingEntityAnimator = AnimationOverhaulMain.ENTITY_ANIMATORS.get(entityType);
-                    livingEntityAnimator.setPartialTicks(f);
-                    livingEntityAnimator.tick((LivingEntity) entity);
-                }
-            }
-        }
-    }
-
-     */
-
-
     @Shadow private boolean renderHand;
 
     @Shadow @Final private Camera mainCamera;
-
-    @Inject(method = "tick", at = @At("TAIL"))
-    private <T extends Entity, L extends Enum<L>> void tickEntityInformation(CallbackInfo ci){
-        if(this.minecraft.level != null){
-            for(Entity entity : this.minecraft.level.entitiesForRendering()){
-                if(entity instanceof LivingEntity){
-                    EntityType<?> entityType = entity.getType();
-                    if(JointAnimatorRegistry.entityTypeRegisteredWithJointAnimator(entityType)){
-                        JointAnimatorDispatcher.getInstance().tickThirdPersonJointAnimators(entity);
-                    }
-                }
-            }
-            // Special functionality for the first person player joint animator
-            JointAnimatorDispatcher.getInstance().tickFirstPersonJointAnimator();
-        }
-
-    }
 
     @Inject(method = "bobView", at = @At(value = "HEAD"), cancellable = true)
     private void injectCameraRotation(PoseStack poseStack, float f, CallbackInfo ci){

@@ -6,14 +6,14 @@
   "mixins": [
   ],
   "client": [
-    "MixinItemInHandRenderer",
-    "MixinMinecraft",
     "MixinCapeLayer",
     "MixinElytraLayer",
-    "MixinLivingEntityRenderState",
     "MixinGameRenderer",
     "MixinItemInHandLayer",
+    "MixinItemInHandRenderer",
     "MixinLivingEntityRenderer",
+    "MixinLivingEntityRenderState",
+    "MixinMinecraft",
     "debug.MixinPlayerSkin"
   ],
   "injectors": {
