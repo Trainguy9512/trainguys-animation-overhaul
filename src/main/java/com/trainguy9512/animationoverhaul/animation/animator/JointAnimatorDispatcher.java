@@ -1,7 +1,6 @@
-package com.trainguy9512.animationoverhaul.animation.animator.entity;
+package com.trainguy9512.animationoverhaul.animation.animator;
 
-import com.trainguy9512.animationoverhaul.animation.animator.JointAnimator;
-import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorRegistry;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
@@ -17,17 +16,17 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
-public class EntityJointAnimatorDispatcher {
-    public static final EntityJointAnimatorDispatcher INSTANCE = new EntityJointAnimatorDispatcher();
+public class JointAnimatorDispatcher {
+    private static final JointAnimatorDispatcher INSTANCE = new JointAnimatorDispatcher();
 
     private final WeakHashMap<UUID, AnimationDataContainer> entityAnimationDataContainerStorage;
     private AnimationDataContainer firstPersonPlayerDataContainer;
 
-    public EntityJointAnimatorDispatcher(){
+    public JointAnimatorDispatcher(){
         this.entityAnimationDataContainerStorage = new WeakHashMap<>();
     }
 
-    public static EntityJointAnimatorDispatcher getInstance(){
+    public static JointAnimatorDispatcher getInstance(){
         return INSTANCE;
     }
 
@@ -42,6 +41,8 @@ public class EntityJointAnimatorDispatcher {
         });
 
     }
+
+    public <T extends Entity> void tick()
 
     public <T extends Entity> void tickThirdPersonJointAnimators(T entity){
 
@@ -108,47 +109,23 @@ public class EntityJointAnimatorDispatcher {
         );
     }
 
-    public <L extends Enum<L>> void saveBakedPose(UUID uuid, BakedAnimationPose bakedPose){
-        this.entityBakedAnimationPoseStorage.put(uuid, bakedPose);
-    }
-
-    /**
-     * Returns a baked animation pose for the specified entity's UUID. If one does not exist for the entity, a new one is created and returned.
-     * @param uuid Entity UUID
-     * @return Animation data container
-     */
-    public PoseSamplerStateContainer getEntityPoseSamplerStateContainer(UUID uuid, JointSkeleton jointSkeleton){
-        return this.entityPoseSamplerStateContainerStorage.computeIfAbsent(uuid, (uuid1 -> new PoseSamplerStateContainer(jointSkeleton)));
-    }
-
-    /**
-     * Returns a baked animation pose for the specified entity's UUID. If one does not exist for the entity, a new one is created and returned.
-     * @param uuid Entity UUID
-     * @return Animation data container
-     */
-    public <L extends Enum<L>> BakedAnimationPose getEntityBakedAnimationPose(UUID uuid, JointSkeleton jointSkeleton){
-        return this.entityBakedAnimationPoseStorage.getOrDefault(uuid, new BakedAnimationPose(jointSkeleton));
-    }
-
-    /**
-     * Returns an animation data container for the specified entity's UUID. If one does not exist for the entity, a new one is created and returned.
-     * @param uuid Entity UUID
-     * @return Animation data container
-     */
-    private DriverAnimationContainer getEntityAnimationDataContainer(UUID uuid){
-        return this.entityAnimationDataContainerStorage.computeIfAbsent(uuid, uuid1 -> new DriverAnimationContainer());
-    }
-
-    public BakedAnimationPose getFirstPersonPlayerBakedAnimationPose(){
-        return this.firstPersonPlayerBakedAnimationPose;
+    private <T extends Entity> Optional<AnimationDataContainer> getEntityAnimationDataContainer(T entity){
+        UUID uuid = entity.getUUID();
+        if(!this.entityAnimationDataContainerStorage.containsKey(uuid)){
+            JointAnimatorRegistry.getThirdPersonJointAnimator(entity.getType()).ifPresent(jointAnimator ->
+                    this.entityAnimationDataContainerStorage.put(uuid, this.createDataContainer(jointAnimator))
+            );
+        }
+        return Optional.ofNullable(this.entityAnimationDataContainerStorage.get(uuid));
     }
 
     public Optional<AnimationDataContainer> getFirstPersonPlayerDataContainer(){
-        JointAnimatorRegistry.getFirstPersonPlayerJointAnimator().ifPresent(jointAnimator -> {
-            return Optional.of(createDataContainer(jointAnimator));
-        });
-        return Optional.empty();
-        return this.firstPersonPlayerDataContainer;
+        if(this.firstPersonPlayerDataContainer == null){
+            JointAnimatorRegistry.getFirstPersonPlayerJointAnimator().ifPresent(jointAnimator ->
+                this.firstPersonPlayerDataContainer = this.createDataContainer(jointAnimator)
+            );
+        }
+        return Optional.ofNullable(this.firstPersonPlayerDataContainer);
     }
 
     private AnimationDataContainer createDataContainer(JointAnimator<?> jointAnimator){

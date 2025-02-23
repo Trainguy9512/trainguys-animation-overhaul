@@ -3,7 +3,7 @@ package com.trainguy9512.animationoverhaul.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorRegistry;
-import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimatorDispatcher;
+import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
@@ -59,12 +59,12 @@ public abstract class MixinGameRenderer {
                 if(entity instanceof LivingEntity){
                     EntityType<?> entityType = entity.getType();
                     if(JointAnimatorRegistry.entityTypeRegisteredWithJointAnimator(entityType)){
-                        EntityJointAnimatorDispatcher.getInstance().tickThirdPersonJointAnimators(entity);
+                        JointAnimatorDispatcher.getInstance().tickThirdPersonJointAnimators(entity);
                     }
                 }
             }
             // Special functionality for the first person player joint animator
-            EntityJointAnimatorDispatcher.getInstance().tickFirstPersonJointAnimator();
+            JointAnimatorDispatcher.getInstance().tickFirstPersonJointAnimator();
         }
 
     }
@@ -72,8 +72,8 @@ public abstract class MixinGameRenderer {
     @Inject(method = "bobView", at = @At(value = "HEAD"), cancellable = true)
     private void injectCameraRotation(PoseStack poseStack, float f, CallbackInfo ci){
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
-            if(EntityJointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose() != null){
-                AnimationPose animationPose = EntityJointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose().getBlendedPose(f);
+            if(JointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose() != null){
+                AnimationPose animationPose = JointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose().getBlendedPose(f);
                 JointTransform cameraPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.CAMERA_JOINT);
                 JointTransform rootPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.ROOT_JOINT);
                 cameraPose.multiply(rootPose);

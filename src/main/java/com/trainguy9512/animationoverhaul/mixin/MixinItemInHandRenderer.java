@@ -2,7 +2,7 @@ package com.trainguy9512.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimatorDispatcher;
+import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
@@ -45,8 +45,8 @@ public abstract class MixinItemInHandRenderer {
     @Inject(method = "renderHandsWithItems", at = @At("HEAD"), cancellable = true)
     private void overwriteItemInHandRendering(float f, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, LocalPlayer localPlayer, int i, CallbackInfo ci){
 
-        if(EntityJointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose() != null){
-            AnimationPose animationPose = EntityJointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose().getBlendedPose(f);
+        if(JointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose() != null){
+            AnimationPose animationPose = JointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose().getBlendedPose(f);
             JointTransform rightArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_ARM_JOINT);
             JointTransform leftArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.LEFT_ARM_JOINT);
             JointTransform rightHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_HAND_JOINT);
@@ -132,7 +132,7 @@ public abstract class MixinItemInHandRenderer {
 
 
 
-            this.renderItemInHand(abstractClientPlayer, EntityJointAnimatorDispatcher.getInstance().getFirstPersonPlayerDataContainer().getDriverValueInterpolated(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM), poseStack, HumanoidArm.RIGHT, animationPose, bufferSource, i);
+            this.renderItemInHand(abstractClientPlayer, JointAnimatorDispatcher.getInstance().getFirstPersonPlayerDataContainer().getDriverValueInterpolated(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM), poseStack, HumanoidArm.RIGHT, animationPose, bufferSource, i);
             //this.renderItemInHand(abstractClientPlayer, ItemStack.EMPTY, poseStack, HumanoidArm.LEFT, animationPose, bufferSource, i);
 
 

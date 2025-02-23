@@ -2,16 +2,12 @@ package com.trainguy9512.animationoverhaul.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.access.LivingEntityRenderStateAccess;
-import com.trainguy9512.animationoverhaul.access.ModelAccess;
 import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorRegistry;
-import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimatorDispatcher;
+import com.trainguy9512.animationoverhaul.animation.animator.JointAnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.*;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
@@ -43,7 +39,7 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
 
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V", at = @At("HEAD"))
     private <L extends Enum<L>> void extractAnimationPoseToRenderState(T livingEntity, R livingEntityRenderState, float partialTicks, CallbackInfo ci){
-        EntityJointAnimatorDispatcher entityJointAnimatorDispatcher = EntityJointAnimatorDispatcher.getInstance();
+        JointAnimatorDispatcher entityJointAnimatorDispatcher = JointAnimatorDispatcher.getInstance();
 
         // If the entity joint animator dispatcher has animation data for this specific entity under its UUID, and it's registered in the main class.
         JointAnimatorRegistry.getThirdPersonJointAnimator(livingEntity.getType()).ifPresent(jointAnimator ->
@@ -67,7 +63,7 @@ public abstract class MixinLivingEntityRenderer<S extends EntityRenderState, R e
 
         // If the supplied animation pose is valid and the entity model implements ModelAccess, apply the animation pose. If not, then run the vanilla functionality
         if(animationPose != null && entityJointAnimator != null){
-            EntityJointAnimatorDispatcher.setupAnimWithAnimationPose(entityModel, livingEntityRenderState, animationPose, entityJointAnimator);
+            JointAnimatorDispatcher.setupAnimWithAnimationPose(entityModel, livingEntityRenderState, animationPose, entityJointAnimator);
         } else {
             entityModel.setupAnim(livingEntityRenderState);
         }
