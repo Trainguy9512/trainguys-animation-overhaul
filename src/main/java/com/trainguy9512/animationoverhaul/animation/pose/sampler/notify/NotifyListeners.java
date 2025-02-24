@@ -13,6 +13,6 @@ public class NotifyListeners {
      * @param poseSamplerKey    Time-based pose sampler key to reset the time on.
      */
     public static NotifyListener resetTimeNotifyListener(AnimationDataKey<? extends TimeBasedPoseSampler> poseSamplerKey){
-        return (animationDriverContainer, poseSamplerStateContainer) -> poseSamplerStateContainer.getPoseSampler(poseSamplerKey).resetTime();
+        return (onTickDataContainer) -> onTickDataContainer.getPoseSampler(poseSamplerKey).resetTime();
     }
 }

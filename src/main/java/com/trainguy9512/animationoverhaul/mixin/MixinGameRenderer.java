@@ -34,8 +34,7 @@ public abstract class MixinGameRenderer {
     @Inject(method = "bobView", at = @At(value = "HEAD"), cancellable = true)
     private void injectCameraRotation(PoseStack poseStack, float f, CallbackInfo ci){
         if(this.minecraft.options.getCameraType().isFirstPerson() && this.renderHand){
-            if(JointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose() != null){
-                AnimationPose animationPose = JointAnimatorDispatcher.getInstance().getFirstPersonPlayerBakedAnimationPose().getBlendedPose(f);
+            JointAnimatorDispatcher.getInstance().getInterpolatedFirstPersonPlayerPose().ifPresent(animationPose -> {
                 JointTransform cameraPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.CAMERA_JOINT);
                 JointTransform rootPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.ROOT_JOINT);
                 cameraPose.multiply(rootPose);
@@ -52,13 +51,7 @@ public abstract class MixinGameRenderer {
                 Matrix4f matrix4f = poseStack1.last().pose();
 
                 poseStack.mulPose(matrix4f);
-                //poseStack.mulPose(new Quaternionf().rotationZYX(-cameraPose.zRot, cameraPose.yRot, cameraPose.xRot));
-
-                //poseStack.mulPose(Axis.XP.rotationDegrees(this.mainCamera.getXRot()));
-                //poseStack.mulPose(Axis.YP.rotationDegrees(this.mainCamera.getYRot() + 180.0f));
-
-                //cameraPose.transformPoseStack(poseStack);
-            }
+            });
         } else {
             poseStack.mulPose(Axis.XP.rotationDegrees(this.mainCamera.getXRot()));
             poseStack.mulPose(Axis.YP.rotationDegrees(this.mainCamera.getYRot() + 180.0f));

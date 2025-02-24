@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
@@ -103,7 +104,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
 
     @Override
     public AnimationPose sample(PoseCalculationDataContainer dataContainer, JointSkeleton jointSkeleton, float partialTicks) {
-        return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.processTime(this.getTimeElapsed()));
+        return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.processTime(this.getTimeElapsed() - (this.getPlayRate() * (1 - partialTicks))));
     }
 
     private float processTime(float inputTime){

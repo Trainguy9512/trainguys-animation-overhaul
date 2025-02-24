@@ -1,6 +1,8 @@
 package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
+import com.trainguy9512.animationoverhaul.animation.animator.entity.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDataKey;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDriverKey;
@@ -41,7 +43,7 @@ public class AnimationDataContainer implements PoseCalculationDataContainer, OnT
     }
 
     @SuppressWarnings("unchecked")
-    private <D> Driver<D> getOrCreateDriver(AnimationDataKey<Driver<D>> driverKey){
+    private <D> Driver<D> getOrCreateDriver(AnimationDriverKey<D> driverKey){
         return (Driver<D>) this.drivers.computeIfAbsent(driverKey, (AnimationDataKey::createInstance));
     }
 
@@ -51,29 +53,27 @@ public class AnimationDataContainer implements PoseCalculationDataContainer, OnT
     }
 
     @Override
-    public <D> D getDriverValue(AnimationDataKey<Driver<D>> driverKey) {
+    public <D> D getDriverValue(AnimationDriverKey<D> driverKey) {
         return this.getOrCreateDriver(driverKey).getValueCurrent();
     }
 
     @Override
-    public <D> D getPreviousDriverValue(AnimationDataKey<Driver<D>> driverKey) {
+    public <D> D getPreviousDriverValue(AnimationDriverKey<D> driverKey) {
         return (D) this.getOrCreateDriver(driverKey).getValuePrevious();
     }
 
     @Override
-    public <D> void loadValueIntoDriver(AnimationDataKey<Driver<D>> driverKey, D newValue) {
+    public <D> void loadValueIntoDriver(AnimationDriverKey<D> driverKey, D newValue) {
         this.getOrCreateDriver(driverKey).loadValue(newValue);
-
-        this.resetDriverValue(driverKey);
     }
 
     @Override
-    public <D> void resetDriverValue(AnimationDataKey<Driver<D>> driverKey) {
+    public <D> void resetDriverValue(AnimationDriverKey<D> driverKey) {
         this.getOrCreateDriver(driverKey).resetValue();
     }
 
     @Override
-    public <D> D getDriverValueInterpolated(AnimationDataKey<Driver<D>> driverKey, float partialTicks) {
+    public <D> D getDriverValueInterpolated(AnimationDriverKey<D> driverKey, float partialTicks) {
         return this.getOrCreateDriver(driverKey).getValueInterpolated(partialTicks);
     }
 

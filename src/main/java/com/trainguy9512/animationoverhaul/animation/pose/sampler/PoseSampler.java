@@ -1,12 +1,15 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
 import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
+import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import org.jetbrains.annotations.NotNull;
 
 public class PoseSampler implements Comparable<PoseSampler> {
 
     private final String identifier;
     private final int updateOrder;
+
+    private AnimationPose poseCache;
 
     protected PoseSampler(Builder<?> builder){
         this.identifier = builder.identifier;

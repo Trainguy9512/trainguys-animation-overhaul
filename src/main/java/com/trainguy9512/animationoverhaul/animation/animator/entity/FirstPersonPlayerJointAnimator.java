@@ -1,5 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
+import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.data.*;
 import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDataKey;
@@ -59,8 +60,8 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
     public static final AnimationDriverKey<Float> TIME_TEST = AnimationDriverKey.driverKeyOf("time_test", () -> Driver.floatDriver(() -> 0f));
 
-    public static final AnimationDriverKey<Vector3f> CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("camera rotation", () -> Driver.vectorDriver(() -> new Vector3f(0)));
-    public static final AnimationDriverKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("dampened_camera", () -> Driver.vectorDriver(() -> new Vector3f(0)));
+    public static final AnimationDriverKey<Vector3f> CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("camera_rotation", () -> Driver.vectorDriver(() -> new Vector3f(0)));
+    public static final AnimationDriverKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("dampened_camera_rotation", () -> Driver.vectorDriver(() -> new Vector3f(0)));
     public static final AnimationDriverKey<ItemStack> MAIN_HAND_ITEM = AnimationDriverKey.driverKeyOf("main_hand_item", () -> Driver.ofConstant(() -> ItemStack.EMPTY));
     public static final AnimationDriverKey<Boolean> IS_ATTACKING = AnimationDriverKey.driverKeyOf("is_attacking", () -> Driver.booleanDriver(() -> false));
     public static final AnimationDriverKey<Boolean> IS_USING_ITEM = AnimationDriverKey.driverKeyOf("is_using_item", () -> Driver.booleanDriver(() -> false));
@@ -131,14 +132,22 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     }
 
     @Override
+    public PoseCalculationFrequency getPoseCalulationFrequency() {
+        return PoseCalculationFrequency.CALCULATE_EVERY_FRAME;
+    }
+
+    @Override
     public AnimationPose calculatePose(PoseCalculationDataContainer dataContainer, JointSkeleton jointSkeleton, float partialTicks) {
+
         // Update main hand item based on the anim notify
         //animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
 
 
         //setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
 
+
         AnimationPose pose = dataContainer.sample(TEST_STATE_MACHINE, partialTicks);
+        //AnimationPose pose = dataContainer.sample(IDLE_SEQUENCE_PLAYER, partialTicks);
 
 
         dampenArmRotation(pose, dataContainer, partialTicks);
@@ -178,7 +187,6 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     @Override
     public void extractAnimationData(LocalPlayer dataReference, OnTickDataContainer driverContainer){
 
-
         driverContainer.loadValueIntoDriver(WALK_SPEED, dataReference.walkAnimation.speed());
         driverContainer.loadValueIntoDriver(TIME_TEST, driverContainer.getPreviousDriverValue(TIME_TEST) + 1);
         driverContainer.loadValueIntoDriver(MAIN_HAND_ITEM, dataReference.getMainHandItem());
@@ -192,7 +200,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         driverContainer.loadValueIntoDriver(CAMERA_ROTATION, targetRotation);
 
 
-        Vector3f dampenedCameraRotation = driverContainer.getPreviousDriverValue(DAMPENED_CAMERA_ROTATION);
+        Vector3f dampenedCameraRotation = new Vector3f(driverContainer.getPreviousDriverValue(DAMPENED_CAMERA_ROTATION));
 
         // If the dampened camera rotation is 0 (which is what it is upon initialization), set it to the target
         if(dampenedCameraRotation.x() == 0F && dampenedCameraRotation.y() == 0F){

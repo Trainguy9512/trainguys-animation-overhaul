@@ -2,6 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDataKey;
+import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDriverKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.PoseSampler;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.Sampleable;
@@ -18,7 +19,7 @@ public interface PoseCalculationDataContainer {
      * @param partialTicks      Percentage of a tick since the previous tick.
      * @return                  Interpolated value
      */
-    public <D> D getDriverValueInterpolated(AnimationDataKey<Driver<D>> driverKey, float partialTicks);
+    public <D> D getDriverValueInterpolated(AnimationDriverKey<D> driverKey, float partialTicks);
 
     /**
      * Returns an animation pose sampled from the given pose sampler

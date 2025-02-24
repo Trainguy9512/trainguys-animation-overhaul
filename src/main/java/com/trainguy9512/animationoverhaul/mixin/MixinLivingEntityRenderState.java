@@ -7,6 +7,8 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
+import java.util.Optional;
+
 @Mixin(LivingEntityRenderState.class)
 public class MixinLivingEntityRenderState implements LivingEntityRenderStateAccess {
 
@@ -23,8 +25,8 @@ public class MixinLivingEntityRenderState implements LivingEntityRenderStateAcce
     }
 
     @Override
-    public AnimationPose animationOverhaul$getInterpolatedAnimationPose() {
-        return this.interpolatedAnimationPose;
+    public Optional<AnimationPose> animationOverhaul$getInterpolatedAnimationPose() {
+        return Optional.ofNullable(this.interpolatedAnimationPose);
     }
 
     @Override
@@ -33,7 +35,7 @@ public class MixinLivingEntityRenderState implements LivingEntityRenderStateAcce
     }
 
     @Override
-    public EntityJointAnimator<?, ?> animationOverhaul$getEntityJointAnimator() {
-        return this.entityJointAnimator;
+    public Optional<EntityJointAnimator<?, ?>> animationOverhaul$getEntityJointAnimator() {
+        return Optional.ofNullable(this.entityJointAnimator);
     }
 }

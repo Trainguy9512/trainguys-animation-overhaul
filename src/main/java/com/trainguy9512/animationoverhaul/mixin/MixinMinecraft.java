@@ -30,6 +30,7 @@ public abstract class MixinMinecraft {
             assert this.level != null;
             JointAnimatorDispatcher jointAnimatorDispatcher = JointAnimatorDispatcher.getInstance();
             jointAnimatorDispatcher.tickEntityJointAnimators(this.level.entitiesForRendering());
+            jointAnimatorDispatcher.tickFirstPersonPlayerJointAnimator();
         }
     }
 
