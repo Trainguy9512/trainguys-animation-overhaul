@@ -27,16 +27,14 @@ public class TimeBasedPoseFunction implements PoseFunction {
 
     @Override
     public void tick(FunctionEvaluationState evaluationState) {
-        if(evaluationState.isRelevant()){
-            this.playRate = playRateFunction.apply(evaluationState);
-            this.isPlaying = isPlayingFunction.apply(evaluationState);
+        this.playRate = playRateFunction.apply(evaluationState);
+        this.isPlaying = isPlayingFunction.apply(evaluationState);
 
-            if(evaluationState.shouldReset()){
-                this.timeTicksElapsed = 0;
-            }
-            if(this.isPlaying){
-                this.timeTicksElapsed += this.playRate;
-            }
+        if(evaluationState.shouldReset()){
+            this.timeTicksElapsed = 0;
+        }
+        if(this.isPlaying){
+            this.timeTicksElapsed += this.playRate;
         }
     }
 
