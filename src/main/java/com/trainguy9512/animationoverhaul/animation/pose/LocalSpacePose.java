@@ -17,25 +17,6 @@ public class LocalSpacePose extends AnimationPose {
         super(pose);
     }
 
-    @Override
-    public <P extends AnimationPose> P interpolatedFilteredByJoints(P other, float weight, Set<String> joints) {
-        // If the weight is 0, don't interpolate anything and just return this.
-        if(weight == 0){
-            return new AnimationPose(this);
-        }
-        // Convert the other pose's pose space to match this pose's pose space.
-        AnimationPose otherConverted = other.convertedToLocalSpace();
-
-        AnimationPose interpolatedAnimationPose = this.convertedToLocalSpace();
-        joints.stream()
-                .filter(joint -> this.getJointSkeleton().containsJoint(joint))
-                .forEach(joint -> interpolatedAnimationPose.setJointTransform(joint,
-                        weight == 1 ? otherConverted.getJointTransform(joint) :
-                                interpolatedAnimationPose.getJointTransform(joint).interpolated(other.getJointTransform(joint), weight))
-                );
-        return interpolatedAnimationPose;
-    }
-
 
     /**
      * Creates a blank animation pose using a joint skeleton as the template.
@@ -73,5 +54,59 @@ public class LocalSpacePose extends AnimationPose {
             pose.setJointTransform(joint, JointTransform.ofAnimationSequenceJoint(resourceLocation, joint, timePercentage));
         }
         return pose;
+    }
+
+    public void mirror(){
+        this.mirrorWeighted(1);
+    }
+
+    public void mirrorWeighted(float weight){
+        this.jointTransforms.forEach((joint, transform) -> {
+            JointTransform mirroredTransform = this.getJointTransform(this.getJointSkeleton().getJointConfiguration(joint).mirrorJoint()).mirrored();
+            this.setJointTransform(joint, transform.interpolated(mirroredTransform, weight));
+        });
+    }
+
+    /**
+     * Returns a new animation pose interpolated between this pose and the provided pose.
+     * @param other     Animation pose to interpolate to.
+     * @param weight    Weight value, 0 is the original pose and 1 is the other pose.
+     * @return          New interpolated animation pose.
+     */
+    public LocalSpacePose interpolated(LocalSpacePose other, float weight){
+        return interpolatedFilteredByJoints(other, weight, this.jointSkeleton.getJoints());
+    }
+
+    /**
+     * Returns a new animation pose interpolated between this pose and the provided pose, only on the specified joints.
+     * @param other     Animation pose to interpolate to.
+     * @param weight    Weight value, 0 is the original pose and 1 is the other pose.
+     * @param joints    Set of joints to interpolate.
+     * @return          New interpolated animation pose.
+     */
+    public LocalSpacePose interpolatedFilteredByJoints(LocalSpacePose other, float weight, Set<String> joints) {
+        LocalSpacePose pose = LocalSpacePose.of(this);
+        // If the weight is 0, don't interpolate anything and just return this.
+        if(weight == 0){
+            return pose;
+        }
+
+        joints.forEach(joint -> {
+            if(this.getJointSkeleton().containsJoint(joint)){
+                pose.setJointTransform(joint, weight == 1 ? other.getJointTransform(joint) :
+                        pose.getJointTransform(joint).interpolated(other.getJointTransform(joint), weight));
+            }
+        });
+        return pose;
+    }
+
+    /**
+     * Returns a new animation pose with the other pose filtered by the selected joints.
+     * @param other     Animation pose to filter.
+     * @param joints    Set of joints to filter by.
+     * @return          New filtered animation pose.
+     */
+    public LocalSpacePose filteredByJoints(LocalSpacePose other, Set<String> joints){
+        return interpolatedFilteredByJoints(other, 1, joints);
     }
 }

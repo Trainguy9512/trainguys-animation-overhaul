@@ -1,11 +1,12 @@
 package com.trainguy9512.animationoverhaul.animation.pose.function;
 
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
+import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public class TimeBasedPoseFunction<P extends AnimationPose> implements PoseFunction<P> {
+public abstract class TimeBasedPoseFunction<P extends AnimationPose> implements PoseFunction<P> {
 
     Function<FunctionEvaluationState, Float> playRateFunction;
     Function<FunctionEvaluationState, Boolean> isPlayingFunction;
@@ -18,12 +19,6 @@ public class TimeBasedPoseFunction<P extends AnimationPose> implements PoseFunct
         this.playRateFunction = (interpolationContext) -> 1f;
         this.isPlayingFunction = (interpolationContext) -> true;
         this.timeTicksElapsed = 0;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public @NotNull P compute(FunctionInterpolationContext context) {
-        return (P) AnimationPose.of(context.dataContainer().getJointSkeleton());
     }
 
     @Override
