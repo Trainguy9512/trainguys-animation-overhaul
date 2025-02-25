@@ -3,6 +3,7 @@ package com.trainguy9512.animationoverhaul.animation.data;
 import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDataKey;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDriverKey;
+import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.PoseSampler;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.Sampleable;
@@ -35,5 +36,10 @@ public interface PoseCalculationDataContainer {
      * @param partialTicks      Percentage of a tick since the previous tick.
      */
     public <P extends PoseSampler & SampleableFromInput> AnimationPose sample(AnimationDataKey<P> poseSamplerKey, AnimationPose animationPose, float partialTicks);
+
+    /**
+     * Returns the joint skeleton for the data container.
+     */
+    public JointSkeleton getJointSkeleton();
 
 }

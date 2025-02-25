@@ -34,6 +34,7 @@ public class AnimationDataContainer implements PoseCalculationDataContainer, OnT
         return new AnimationDataContainer(jointSkeleton);
     }
 
+    @Override
     public JointSkeleton getJointSkeleton(){
         return this.jointSkeleton;
     }
