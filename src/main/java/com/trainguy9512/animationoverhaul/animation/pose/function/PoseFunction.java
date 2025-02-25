@@ -9,19 +9,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public interface PoseFunction {
+public interface PoseFunction<P extends AnimationPose> {
 
-    @NotNull AnimationPose compute(PoseFunction.FunctionInterpolationContext context);
+    @NotNull P compute(PoseFunction.FunctionInterpolationContext context);
 
     void tick(FunctionEvaluationState evaluationState);
 
-    public record FunctionEvaluationState(OnTickDataContainer dataContainer, boolean isRelevant, boolean shouldReset){
-        public static FunctionEvaluationState of(OnTickDataContainer dataContainer, boolean isRelevant, boolean shouldReset){
-            return new FunctionEvaluationState(dataContainer, isRelevant, shouldReset);
+    public record FunctionEvaluationState(OnTickDataContainer dataContainer, boolean isResetting){
+        public static FunctionEvaluationState of(OnTickDataContainer dataContainer, boolean isResetting){
+            return new FunctionEvaluationState(dataContainer, isResetting);
         }
 
-        public FunctionEvaluationState modify(boolean isRelevant, boolean shouldReset){
-            return FunctionEvaluationState.of(this.dataContainer, isRelevant, shouldReset);
+        public FunctionEvaluationState modify(boolean isResetting){
+            return FunctionEvaluationState.of(this.dataContainer, isResetting);
         }
     }
 

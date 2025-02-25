@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public class TimeBasedPoseFunction implements PoseFunction {
+public class TimeBasedPoseFunction<P extends AnimationPose> implements PoseFunction<P> {
 
     Function<FunctionEvaluationState, Float> playRateFunction;
     Function<FunctionEvaluationState, Boolean> isPlayingFunction;
@@ -21,8 +21,9 @@ public class TimeBasedPoseFunction implements PoseFunction {
     }
 
     @Override
-    public @NotNull AnimationPose compute(FunctionInterpolationContext context) {
-        return AnimationPose.of(context.dataContainer().getJointSkeleton());
+    @SuppressWarnings("unchecked")
+    public @NotNull P compute(FunctionInterpolationContext context) {
+        return (P) AnimationPose.of(context.dataContainer().getJointSkeleton());
     }
 
     @Override
@@ -30,7 +31,7 @@ public class TimeBasedPoseFunction implements PoseFunction {
         this.playRate = playRateFunction.apply(evaluationState);
         this.isPlaying = isPlayingFunction.apply(evaluationState);
 
-        if(evaluationState.shouldReset()){
+        if(evaluationState.isResetting()){
             this.timeTicksElapsed = 0;
         }
         if(this.isPlaying){
