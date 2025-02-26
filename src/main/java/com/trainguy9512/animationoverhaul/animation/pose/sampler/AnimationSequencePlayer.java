@@ -121,27 +121,4 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
     public void resetTime() {
         this.setTimeElapsed(this.startTime);
     }
-
-    //TODO: Rewrite this with functions
-    private static class AnimNotify {
-
-        private boolean active = false;
-        private final float frame;
-
-        public AnimNotify(float frame){
-            this.frame = frame;
-        }
-
-        public void setActive(boolean active){
-            this.active = active;
-        }
-
-        public boolean isActive(){
-            return this.active;
-        }
-
-        public float getFrame(){
-            return this.frame;
-        }
-    }
 }

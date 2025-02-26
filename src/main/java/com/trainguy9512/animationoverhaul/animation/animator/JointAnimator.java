@@ -4,6 +4,9 @@ import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
+import com.trainguy9512.animationoverhaul.animation.pose.function.PoseFunction;
+import com.trainguy9512.animationoverhaul.animation.pose.function.cache.SavedCachedPoseContainer;
 
 /**
  * Uses a data reference and a joint skeleton to calculate a pose once per tick.
@@ -25,13 +28,11 @@ public interface JointAnimator<T> {
     void extractAnimationData(T dataReference, OnTickDataContainer dataContainer);
 
     /**
-     * Calculates and returns an animation pose once per tick, after pose sampler update and animation data extraction
-     * @param dataContainer                 Data container containing extracted animation variable data.
-     * @param jointSkeleton                 Joint skeleton used by the animator.
-     * @param partialTicks                  The percentage of a tick since the previous tick.
-     * @return                              Calculated animation pose to be passed off to the baked animation pose.
+     * Creates the pose function that will return an animation pose for the joint animator.
+     * @param cachedPoseContainer           Container for registering and retrieving saved cached poses.
+     * @return                              Pose function that returns a pose in local space.
      */
-    AnimationPose calculatePose(PoseCalculationDataContainer dataContainer, JointSkeleton jointSkeleton, float partialTicks);
+    PoseFunction<LocalSpacePose> createPoseFunction(SavedCachedPoseContainer cachedPoseContainer);
 
     default PoseCalculationFrequency getPoseCalulationFrequency(){
         return PoseCalculationFrequency.CALCULATE_ONCE_PER_TICK;

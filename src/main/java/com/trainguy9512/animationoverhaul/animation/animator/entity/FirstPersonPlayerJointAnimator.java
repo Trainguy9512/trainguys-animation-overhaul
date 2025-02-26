@@ -7,6 +7,9 @@ import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDataKey;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDriverKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
+import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
+import com.trainguy9512.animationoverhaul.animation.pose.function.PoseFunction;
+import com.trainguy9512.animationoverhaul.animation.pose.function.cache.SavedCachedPoseContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.*;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.notify.NotifyListeners;
@@ -216,5 +219,10 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         }
         driverContainer.loadValueIntoDriver(DAMPENED_CAMERA_ROTATION, dampenedCameraRotation);
 
+    }
+
+    @Override
+    public PoseFunction<LocalSpacePose> createPoseFunction(SavedCachedPoseContainer cachedPoseContainer) {
+        return null;
     }
 }
