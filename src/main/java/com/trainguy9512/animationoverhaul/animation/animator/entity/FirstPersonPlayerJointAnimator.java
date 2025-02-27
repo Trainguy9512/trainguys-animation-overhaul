@@ -108,6 +108,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
     @Override
     public PoseFunction<LocalSpacePose> constructPoseFunction(SavedCachedPoseContainer cachedPoseContainer) {
+        return SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).build();
 
         // Update main hand item based on the anim notify
         //animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
@@ -124,7 +125,6 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
         //Vector3f rotation = new Vector3f(Mth.sin(dataContainer.getDriverValueInterpolated(TIME_TEST, partialTicks) * 0.2F) * Mth.HALF_PI * 0.7f, 0, 0);
 
-        return SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).build();
     }
 
     /*
