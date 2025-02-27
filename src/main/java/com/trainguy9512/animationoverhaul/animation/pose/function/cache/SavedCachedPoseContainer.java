@@ -35,8 +35,4 @@ public class SavedCachedPoseContainer {
     public void clearCaches(){
         this.savedCachedPoses.values().forEach(CachedPoseFunction::clearCache);
     }
-
-    public void tickCacheInputs(){
-        this.savedCachedPoses.values().forEach(CachedPoseFunction::tickInput);
-    }
 }

@@ -45,13 +45,14 @@ public class LocalSpacePose extends AnimationPose {
      * Creates an animation pose from a point in time within the provided animation sequence
      * @param jointSkeleton         Template joint skeleton
      * @param resourceLocation      Animation sequence resource location
-     * @param timePercentage        Point of time in animation sequence
+     * @param timeInTicks           Point of time in the animation to get.
+     * @param looping               Whether the animation should be looped or not.
      * @return                      New animation pose
      */
-    public static LocalSpacePose fromAnimationSequence(JointSkeleton jointSkeleton, ResourceLocation resourceLocation, float timePercentage){
+    public static LocalSpacePose fromAnimationSequence(JointSkeleton jointSkeleton, ResourceLocation resourceLocation, float timeInTicks, boolean looping){
         LocalSpacePose pose = LocalSpacePose.of(jointSkeleton);
         for(String joint : jointSkeleton.getJoints()){
-            pose.setJointTransform(joint, JointTransform.ofAnimationSequenceJoint(resourceLocation, joint, timePercentage));
+            pose.setJointTransform(joint, JointTransform.ofAnimationSequenceJoint(resourceLocation, joint, timeInTicks, looping));
         }
         return pose;
     }

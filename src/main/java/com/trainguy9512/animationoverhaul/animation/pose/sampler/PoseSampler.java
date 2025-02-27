@@ -4,6 +4,7 @@ import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import org.jetbrains.annotations.NotNull;
 
+@Deprecated
 public class PoseSampler implements Comparable<PoseSampler> {
 
     private final String identifier;

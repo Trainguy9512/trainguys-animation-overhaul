@@ -37,18 +37,15 @@ public final class JointTransform {
         return of(new Matrix4f().translate(translation).rotate(rotation).scale(scale));
     }
 
-    public static JointTransform ofAnimationSequenceJoint(ResourceLocation animationSequence, String jointIdentifier, float timePercentage){
-        if(AnimationSequenceData.INSTANCE.isValid(animationSequence)){
-            Timeline<JointTransform> timeline = AnimationSequenceData.INSTANCE.get(animationSequence).getJointTransformTimeline(jointIdentifier);
-            return timeline.getValueAtPercentage(timePercentage);
-        } else {
-            return JointTransform.ZERO;
-        }
+    public static JointTransform ofAnimationSequenceJoint(ResourceLocation animationSequence, String jointIdentifier, float timeInTicks, boolean looping){
+        Timeline<JointTransform> timeline = AnimationSequenceData.INSTANCE.getOrThrow(animationSequence).getJointTransformTimeline(jointIdentifier);
+        return looping ? timeline.getValueAtFrameLooped(timeInTicks) : timeline.getValueAtFrame(timeInTicks);
     }
 
-    public Matrix4f composeMatrix(){
+    public Matrix4f getTransform(){
         return new Matrix4f(this.transform);
     }
+
     public Vector3f getTranslation(){
         return this.transform.getTranslation(new Vector3f());
     }

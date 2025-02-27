@@ -58,12 +58,12 @@ public class JointAnimatorDispatcher {
     private <T> void tickJointAnimator(JointAnimator<T> jointAnimator, T dataReference, AnimationDataContainer dataContainer){
         dataContainer.pushDriverValuesToPrevious();
         jointAnimator.extractAnimationData(dataReference, dataContainer);
-        dataContainer.tickPoseSamplers();
+        dataContainer.tick();
         if(jointAnimator.getPoseCalulationFrequency() == JointAnimator.PoseCalculationFrequency.CALCULATE_ONCE_PER_TICK){
             //AnimationPose animationPose = jointAnimator.calculatePose(dataContainer, dataContainer.getJointSkeleton(), 1);
             //AnimationOverhaulMain.LOGGER.info("{}", animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_ARM_JOINT).getRotation());
 
-            dataContainer.loadValueIntoDriver(dataContainer.getPerTickCalculatedPoseDriverKey(), jointAnimator.calculatePose(dataContainer, dataContainer.getJointSkeleton(), 1));
+            dataContainer.loadValueIntoDriver(dataContainer.getPerTickCalculatedPoseDriverKey(), dataContainer.computePose(1));
         }
     }
 
@@ -95,13 +95,13 @@ public class JointAnimatorDispatcher {
     }
 
     private AnimationDataContainer createDataContainer(JointAnimator<?> jointAnimator){
-        return AnimationDataContainer.of(jointAnimator.buildSkeleton());
+        return AnimationDataContainer.of(jointAnimator);
     }
 
     public AnimationPose getInterpolatedAnimationPose(JointAnimator<?> jointAnimator, AnimationDataContainer dataContainer, float partialTicks){
         return switch (jointAnimator.getPoseCalulationFrequency()) {
-            case CALCULATE_EVERY_FRAME -> jointAnimator.calculatePose(dataContainer, dataContainer.getJointSkeleton(), partialTicks).convertedToEntitySpace();
-            case CALCULATE_ONCE_PER_TICK -> dataContainer.getDriverValueInterpolated(dataContainer.getPerTickCalculatedPoseDriverKey(), partialTicks).convertedToEntitySpace();
+            case CALCULATE_EVERY_FRAME -> dataContainer.computePose(partialTicks).convertedToComponentSpace();
+            case CALCULATE_ONCE_PER_TICK -> dataContainer.getDriverValueInterpolated(dataContainer.getPerTickCalculatedPoseDriverKey(), partialTicks).convertedToComponentSpace();
         };
     }
 

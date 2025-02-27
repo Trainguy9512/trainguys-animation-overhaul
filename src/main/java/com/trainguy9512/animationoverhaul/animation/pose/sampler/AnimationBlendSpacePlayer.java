@@ -11,6 +11,7 @@ import net.minecraft.util.Mth;
 import java.util.TreeMap;
 
 //TODO: 2-dimensional blendspace stuff.
+@Deprecated
 public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements Sampleable {
 
     private final TreeMap<Float, BlendSpaceEntry> blendSpaceEntryTreeMap;
@@ -97,7 +98,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements S
     @Override
     public AnimationPose sample(PoseCalculationDataContainer dataContainer, JointSkeleton jointSkeleton, float partialTicks) {
         if(this.blendSpaceEntryTreeMap.entrySet().isEmpty()){
-            return AnimationPose.of(jointSkeleton);
+            return null;// AnimationPose.of(jointSkeleton);
         }
 
         var firstEntry = this.blendSpaceEntryTreeMap.floorEntry(this.currentValue);
@@ -113,10 +114,10 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements S
             return firstEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed());
 
         float relativeTime = (this.currentValue - firstEntry.getKey()) / (secondEntry.getKey() - firstEntry.getKey());
-        return firstEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed()).interpolated(
-                secondEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed()),
-                relativeTime
-        );
+        return null;// firstEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed()).interpolated(
+                //secondEntry.getValue().sampleEntry(jointSkeleton, this.getTimeElapsed()),
+                //relativeTime
+        //);
     }
 
     @Override
@@ -135,12 +136,12 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements S
         }
 
         private float getTimeFromTicks(float time) {
-            float frameLength = AnimationSequenceData.INSTANCE.get(this.resourceLocation).frameLength();
+            float frameLength = AnimationSequenceData.INSTANCE.getOrThrow(this.resourceLocation).frameLength();
             return (time % frameLength) / frameLength;
         }
 
         private AnimationPose sampleEntry(JointSkeleton jointSkeleton, float time) {
-            return AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.getTimeFromTicks(time));
+            return null;//AnimationPose.fromAnimationSequence(jointSkeleton, this.resourceLocation, this.getTimeFromTicks(time));
         }
     }
 }

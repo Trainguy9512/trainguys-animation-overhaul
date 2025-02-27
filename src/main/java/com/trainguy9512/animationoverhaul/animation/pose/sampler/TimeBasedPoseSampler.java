@@ -2,6 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.pose.sampler;
 
 import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
 
+@Deprecated
 public class TimeBasedPoseSampler extends PoseSampler {
 
     protected float timeElapsed;

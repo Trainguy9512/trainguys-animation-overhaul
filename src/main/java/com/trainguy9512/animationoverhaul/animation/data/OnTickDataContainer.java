@@ -34,13 +34,4 @@ public interface OnTickDataContainer {
      * @param driverKey         {@link AnimationDataKey<>} of the driver being reset.
      */
     public <D> void resetDriverValue(AnimationDriverKey<D> driverKey);
-
-    /**
-     * Retrieves a pose sampler from the given key.
-     *
-     * @param poseSamplerKey    The {@link AnimationDataKey<>} attached to the desired pose sampler.
-     *
-     * @return a {@link PoseSampler} object reference
-     */
-    public <P extends PoseSampler> P getPoseSampler(AnimationDataKey<P> poseSamplerKey);
 }

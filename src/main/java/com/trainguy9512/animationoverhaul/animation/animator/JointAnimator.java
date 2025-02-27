@@ -32,7 +32,7 @@ public interface JointAnimator<T> {
      * @param cachedPoseContainer           Container for registering and retrieving saved cached poses.
      * @return                              Pose function that returns a pose in local space.
      */
-    PoseFunction<LocalSpacePose> createPoseFunction(SavedCachedPoseContainer cachedPoseContainer);
+    PoseFunction<LocalSpacePose> constructPoseFunction(SavedCachedPoseContainer cachedPoseContainer);
 
     default PoseCalculationFrequency getPoseCalulationFrequency(){
         return PoseCalculationFrequency.CALCULATE_ONCE_PER_TICK;

@@ -9,12 +9,12 @@ public class CachedPoseFunction implements PoseFunction<LocalSpacePose> {
     private final PoseFunction<LocalSpacePose> input;
 
     LocalSpacePose poseCache;
-    FunctionEvaluationState evaluationStateCache;
+    boolean hasTickedAlready;
 
     private CachedPoseFunction(PoseFunction<LocalSpacePose> input){
         this.input = input;
         this.poseCache = null;
-        this.evaluationStateCache = null;
+        this.hasTickedAlready = false;
     }
 
     protected static CachedPoseFunction of(PoseFunction<LocalSpacePose> input){
@@ -31,24 +31,14 @@ public class CachedPoseFunction implements PoseFunction<LocalSpacePose> {
 
     @Override
     public void tick(FunctionEvaluationState evaluationState) {
-        if(this.evaluationStateCache == null){
-            this.evaluationStateCache = evaluationState;
-        } else {
-            if(evaluationState.isResetting()){
-                this.evaluationStateCache = this.evaluationStateCache.modify(true);
-            }
-        }
-    }
-
-    public void tickInput(){
-        if(this.evaluationStateCache != null){
-            this.input.tick(this.evaluationStateCache);
+        if(!this.hasTickedAlready){
+            this.input.tick(evaluationState.cancelMarkedForReset());
+            this.hasTickedAlready = true;
         }
     }
 
     public void clearCache(){
         this.poseCache = null;
-        this.evaluationStateCache = null;
-
+        this.hasTickedAlready = false;
     }
 }

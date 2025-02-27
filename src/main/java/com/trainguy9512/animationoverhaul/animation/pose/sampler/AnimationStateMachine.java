@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
  * Transitions between a series of states each with their own poses loaded
  * @param <S> Enum state identifiers
  */
+@Deprecated
 public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampler implements Sampleable {
 
     /**
@@ -132,19 +133,22 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             AnimationPose animationPose = this.getPoseFromState(this.activeStates.getFirst(), dataContainer, jointSkeleton, partialTicks);
             if(this.activeStates.size() > 1){
                 for(S stateIdentifier : this.activeStates){
+                    /*
                     animationPose = animationPose.interpolated(
                             this.getPoseFromState(stateIdentifier, dataContainer, jointSkeleton, partialTicks),
                             this.states.get(stateIdentifier).getCurrentTransition().easing().ease(
                                     this.states.get(stateIdentifier).getWeight()
                             )
                     );
+
+                     */
                 }
             }
             //AnimationOverhaulMain.LOGGER.info(this.activeStates.toString());
             return animationPose;
         }
         //AnimationOverhaulMain.LOGGER.warn("No active states in state machine {}", this.getIdentifier());
-        return AnimationPose.of(jointSkeleton);
+        return null;// AnimationPose.of(jointSkeleton);
     }
 
     @Override

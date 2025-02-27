@@ -4,6 +4,7 @@ import com.trainguy9512.animationoverhaul.animation.data.PoseCalculationDataCont
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 
+@Deprecated
 public interface SampleableFromInput {
     /**
      * Creates an animation pose from an input.

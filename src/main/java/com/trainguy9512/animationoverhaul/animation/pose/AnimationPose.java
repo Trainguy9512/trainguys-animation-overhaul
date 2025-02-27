@@ -4,8 +4,6 @@ import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
-import com.trainguy9512.animationoverhaul.util.Interpolator;
-import net.minecraft.resources.ResourceLocation;
 import org.joml.*;
 
 import java.util.*;
@@ -61,7 +59,7 @@ public abstract class AnimationPose {
         JointTransform localParentJointPose = this.getJointTransform(parent);
 
         poseStack.pushPose();
-        poseStack.mulPose(localParentJointPose.composeMatrix());
+        poseStack.mulPose(localParentJointPose.getTransform());
 
         this.getJointSkeleton().getDirectChildrenOfJoint(parent).ifPresent(children -> children.forEach(child -> this.convertChildrenJointsToComponentSpace(child, poseStack)));
 
@@ -72,7 +70,7 @@ public abstract class AnimationPose {
     protected void convertChildrenJointsToLocalSpace(String parent, Matrix4f parentMatrix){
         JointTransform parentJointPose = this.getJointTransform(parent);
 
-        this.getJointSkeleton().getDirectChildrenOfJoint(parent).ifPresent(children -> children.forEach(child -> this.convertChildrenJointsToLocalSpace(child, parentJointPose.composeMatrix())));
+        this.getJointSkeleton().getDirectChildrenOfJoint(parent).ifPresent(children -> children.forEach(child -> this.convertChildrenJointsToLocalSpace(child, parentJointPose.getTransform())));
 
         parentJointPose.multiply(parentMatrix.invert(), JointTransform.TransformSpace.LOCAL);
         this.setJointTransform(parent, parentJointPose);

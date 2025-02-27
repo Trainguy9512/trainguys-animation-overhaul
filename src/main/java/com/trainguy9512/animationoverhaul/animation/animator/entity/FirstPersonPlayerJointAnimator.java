@@ -9,6 +9,7 @@ import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import com.trainguy9512.animationoverhaul.animation.pose.function.PoseFunction;
+import com.trainguy9512.animationoverhaul.animation.pose.function.SequencePlayerFunction;
 import com.trainguy9512.animationoverhaul.animation.pose.function.cache.SavedCachedPoseContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.sampler.*;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
@@ -85,34 +86,6 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
 
     public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
-    public static final AnimationDataKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER_FROZEN = AnimationDataKey.dataKeyOf("idle_sequence_player", () -> AnimationSequencePlayer.builder(ANIMATION_FP_PLAYER_IDLE)
-            .setPlayRate(0)
-            .setStartTime(0)
-            .build()
-    );
-    public static final AnimationDataKey<AnimationSequencePlayer> IDLE_SEQUENCE_PLAYER = AnimationDataKey.dataKeyOf("idle_sequence_player", () -> AnimationSequencePlayer.builder(ANIMATION_FP_PLAYER_IDLE)
-            .setPlayRate(1)
-            .setStartTime(40)
-            .build()
-    );
-
-
-    public static final AnimationDataKey<AnimationStateMachine<TestStates>> TEST_STATE_MACHINE = AnimationDataKey.dataKeyOf("test_state_machine", () -> AnimationStateMachine.builder(TestStates.values())
-                    .addState(TestStates.IDLE,
-                            ((dataContainer, jointSkeleton, partialTicks) -> dataContainer.sample(IDLE_SEQUENCE_PLAYER_FROZEN, partialTicks)),
-                            AnimationStateMachine.StateTransition.builder(TestStates.MOVING, ((dataContainer, ticksElapsedInCurrentState, currentStateWeight) -> dataContainer.getDriverValue(WALK_SPEED) > 0.1F && currentStateWeight == 1))
-                                    .setTransitionDuration(20)
-                                    .setEasing(Easing.BOUNCE_OUT)
-                                    .build())
-                    .addState(TestStates.MOVING,
-                            ((dataContainer, jointSkeleton, partialTicks) -> dataContainer.sample(IDLE_SEQUENCE_PLAYER, partialTicks)),
-                            AnimationStateMachine.StateTransition.builder(TestStates.IDLE, ((dataContainer, ticksElapsedInCurrentState, currentStateWeight) -> dataContainer.getDriverValue(WALK_SPEED) <= 0.1F && currentStateWeight == 1))
-                                    .setTransitionDuration(20)
-                                    .setEasing(Easing.ELASTIC_OUT)
-                                    .build())
-                    .bindNotifyToOnStateRelevant(TestStates.MOVING, NotifyListeners.resetTimeNotifyListener(IDLE_SEQUENCE_PLAYER))
-                    .build()
-            );
 
 
     public JointSkeleton buildSkeleton() {
@@ -140,7 +113,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     }
 
     @Override
-    public AnimationPose calculatePose(PoseCalculationDataContainer dataContainer, JointSkeleton jointSkeleton, float partialTicks) {
+    public PoseFunction<LocalSpacePose> constructPoseFunction(SavedCachedPoseContainer cachedPoseContainer) {
 
         // Update main hand item based on the anim notify
         //animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
@@ -149,20 +122,15 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         //setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
 
 
-        AnimationPose pose = dataContainer.sample(TEST_STATE_MACHINE, partialTicks);
-        //AnimationPose pose = dataContainer.sample(IDLE_SEQUENCE_PLAYER, partialTicks);
+        //AnimationPose pose = dataContainer.sample(TEST_STATE_MACHINE, partialTicks);
 
 
-        dampenArmRotation(pose, dataContainer, partialTicks);
+        //dampenArmRotation(pose, dataContainer, partialTicks);
 
 
-        Vector3f rotation = new Vector3f(Mth.sin(dataContainer.getDriverValueInterpolated(TIME_TEST, partialTicks) * 0.2F) * Mth.HALF_PI * 0.7f, 0, 0);
-        //Vector3f translation = new Vector3f(Mth.sin(getEntityAnimationVariable(TIME_TEST) * 1.3F) * 3F, 0, 0);
-        //pose.translateJoint(FPPlayerLocators.rightArm, translation, AnimationPose.TransformSpace.ENTITY, false);
-        //pose.rotateJoint(FPPlayerLocators.rightArm, rotation, AnimationPose.TransformSpace.ENTITY, false);
+        //Vector3f rotation = new Vector3f(Mth.sin(dataContainer.getDriverValueInterpolated(TIME_TEST, partialTicks) * 0.2F) * Mth.HALF_PI * 0.7f, 0, 0);
 
-
-        return pose;
+        return SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).build();
     }
 
     /*
@@ -219,10 +187,5 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         }
         driverContainer.loadValueIntoDriver(DAMPENED_CAMERA_ROTATION, dampenedCameraRotation);
 
-    }
-
-    @Override
-    public PoseFunction<LocalSpacePose> createPoseFunction(SavedCachedPoseContainer cachedPoseContainer) {
-        return null;
     }
 }

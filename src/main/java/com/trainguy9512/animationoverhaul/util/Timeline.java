@@ -11,20 +11,21 @@ public class Timeline<T> {
 
     private final TreeMap<Float, Keyframe<T>> keyframes;
     private final Interpolator<T> interpolator;
+    private final float length;
 
-    private Timeline(Interpolator<T> interpolator) {
+    private Timeline(Interpolator<T> interpolator, float length) {
         this.keyframes = new TreeMap<>();
         this.interpolator = interpolator;
+        this.length = length;
     }
 
-    public static <T> Timeline<T> of(Interpolator<T> interpolator){
-        return new Timeline<>(interpolator);
+    public static <T> Timeline<T> of(Interpolator<T> interpolator, float length){
+        return new Timeline<>(interpolator, length);
     }
 
     /**
-     * Returns the value at the given frame
-     * @param time      Time in keyframes
-     * @return          Value
+     * Returns the value at the given frame.
+     * @param time      Time in ticks.
      */
     public T getValueAtFrame(float time) {
         var firstKeyframe = keyframes.floorEntry(time);
@@ -54,10 +55,17 @@ public class Timeline<T> {
     /**
      * Returns the value at the given time from 0 to 1, with 0 being the beginning and 1 being the end
      * @param time  Time from 0 to 1
-     * @return
      */
     public T getValueAtPercentage(float time) {
         return getValueAtFrame(time * this.keyframes.lastKey() + this.keyframes.firstKey());
+    }
+
+    /**
+     * Returns the value at the looped given time.
+     * @param time      Time in ticks.
+     */
+    public T getValueAtFrameLooped(float time) {
+        return this.getValueAtFrame(time % this.length);
     }
 
     public Timeline<T> addKeyframe(float time, T value) {
@@ -88,11 +96,11 @@ public class Timeline<T> {
 
     }
 
-    public static Timeline<Float> floatTimeline() {
-        return new Timeline<>(Interpolator.FLOAT);
+    public static Timeline<Float> ofFloat(float length) {
+        return Timeline.of(Interpolator.FLOAT, length);
     }
 
-    public static Timeline<JointTransform> jointTransformTimeline() {
-        return new Timeline<>(JointTransform::interpolated);
+    public static Timeline<JointTransform> ofJointTransform(float length) {
+        return Timeline.of(JointTransform::interpolated, length);
     }
 }

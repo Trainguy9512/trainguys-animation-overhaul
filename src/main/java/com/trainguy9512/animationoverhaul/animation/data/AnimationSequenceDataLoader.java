@@ -96,76 +96,6 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
             }
             return map;
         }, executor);
-
-        //String entity = "bee";
-        //EntityType<?> entityType = EntityType.byString(entity).isPresent() ? EntityType.byString(entity).get() : null;
-
-        //System.out.println(EntityType.getKey(entityType)[1]);
-        //Map<ResourceLocation, JsonElement> tempMap = null;
-
-
-        // NEW Iterate over each resource and put into
-
-
-
-        //Iterate over each found resource location and put its JSON element into a map
-        /*
-        Map<ResourceLocation, JsonElement> map = Maps.newHashMap();
-        for(ResourceLocation resourceLocation : passedFiles.keySet()){
-            String resourceLocationPath = resourceLocation.getPath();
-            try {
-                Optional<Resource> resourceOptional = resourceManager.getResource(resourceLocation);
-                Resource resource = resourceOptional.orElse(null);
-                try {
-                    InputStream inputStream = resource.open();
-                    try {
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-                        try {
-                            JsonElement jsonElement = GsonHelper.fromJson(gson, reader, JsonElement.class);
-                            if (jsonElement != null) {
-                                map.put(resourceLocation, jsonElement);
-                            } else {
-                                AnimationOverhaulMain.LOGGER.error("Couldn't load data file {} as it's null or empty", resourceLocation);
-                            }
-                        } catch (Throwable bufferedReaderThrowable) {
-                            try {
-                                reader.close();
-                            } catch (Throwable var16) {
-                                bufferedReaderThrowable.addSuppressed(var16);
-                            }
-                            throw bufferedReaderThrowable;
-                        }
-                        reader.close();
-                    } catch (Throwable inputStreamThrowable) {
-                        if (inputStream != null) {
-                            try {
-                                inputStream.close();
-                            } catch (Throwable closeInputStreamThrowable) {
-                                inputStreamThrowable.addSuppressed(closeInputStreamThrowable);
-                            }
-                        }
-                        throw inputStreamThrowable;
-                    }
-                    inputStream.close();
-                } catch (Throwable resourceThrowable) {
-                    if (resource != null) {
-                        try {
-                            //resource.close();
-                        } catch (Throwable closeResourceThrowable) {
-                            resourceThrowable.addSuppressed(closeResourceThrowable);
-                        }
-                    }
-                    throw resourceThrowable;
-                }
-                //resource.close();
-            } catch (IOException e) {
-                AnimationOverhaulMain.LOGGER.error("Error parsing data upon grabbing resource for resourceLocation " + resourceLocation);
-            }
-        }
-
-        return new CompletableFuture<>();
-
-         */
     }
 
     @Override
@@ -191,25 +121,35 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
 
                 if(Objects.equals(formatVersion, FORMAT_VERSION)){
                     float frameRate = animationJSON.getAsJsonObject().get("frame_rate").getAsFloat();
-                    float frameTime = animationJSON.getAsJsonObject().get("frame_length").getAsFloat() / (frameRate / 20F);
+                    float frameToTickDivisor = frameRate / 20f;
+                    float frameLengthInTicks = animationJSON.getAsJsonObject().get("frame_length").getAsFloat() / frameToTickDivisor;
 
-                    AnimationSequenceData.AnimationSequence.Builder animationSequenceBuilder = AnimationSequenceData.AnimationSequence.builder(frameTime);
+                    AnimationSequenceData.AnimationSequence.Builder animationSequenceBuilder = AnimationSequenceData.AnimationSequence.builder(frameLengthInTicks);
 
                     JsonArray partArrayJSON = animationJSON.getAsJsonObject().get("parts").getAsJsonArray();
+
+                    // Get the lowest keyframe in the animation. I can reasonably expect no animation will have a higher keyframe than 10,000,000 right? lol
+                    float startKeyframe = 10000000;
+                    for(int partIndex = 0; partIndex < partArrayJSON.size(); partIndex++){
+                        JsonObject partKeyframesJSON = partArrayJSON.get(partIndex).getAsJsonObject().get("keyframes").getAsJsonObject();
+                        for(String keyframe : partKeyframesJSON.keySet()){
+                            startKeyframe = Math.min(Integer.parseInt(keyframe), startKeyframe);
+                        }
+                    }
+
                     for(int partIndex = 0; partIndex < partArrayJSON.size(); partIndex++){
                         JsonObject partJSON = partArrayJSON.get(partIndex).getAsJsonObject();
                         String partName = partJSON.get("name").getAsString();
                         //AnimationOverhaul.LOGGER.info(partName);
 
-                        Timeline<JointTransform> timeline = Timeline.jointTransformTimeline();
+                        Timeline<JointTransform> timeline = Timeline.ofJointTransform(frameLengthInTicks);
 
                         JsonObject partKeyframesJSON = partJSON.get("keyframes").getAsJsonObject();
                         for(Map.Entry<String, JsonElement> keyframeEntry : partKeyframesJSON.entrySet()) {
                             int keyframeNumber = Integer.parseInt(keyframeEntry.getKey());
+                            float keyframeInTicks = (keyframeNumber - startKeyframe) / frameToTickDivisor;
                             JsonElement keyframeJSON = keyframeEntry.getValue();
                             //AnimationOverhaul.LOGGER.info(keyframeNumber);
-
-
                             Vector3f translation = new Vector3f(
                                     keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(0).getAsFloat(),
                                     keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(1).getAsFloat(),
@@ -221,14 +161,14 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                                     keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(0).getAsFloat()
                             );
                             Vector3f scale = new Vector3f(1);
-                            timeline.addKeyframe(keyframeNumber, JointTransform.ofTranslationRotationScaleQuaternion(translation, rotation, scale));
+                            timeline.addKeyframe(keyframeInTicks, JointTransform.ofTranslationRotationScaleQuaternion(translation, rotation, scale));
                         }
                         animationSequenceBuilder.addTimelineForJoint(partName, timeline);
                     }
 
 
                     newData.put(finalResourceLocation, animationSequenceBuilder.build());
-                    //AnimationOverhaul.LOGGER.info(frameTime);
+                    //AnimationOverhaul.LOGGER.info(frameLengthInTicks);
                     //AnimationOverhaul.LOGGER.info("Entity key: {} Animation key: {}", entityKey, animationKey);
 
 

@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Deprecated
 public class AnimationMontageTrack extends PoseSampler implements SampleableFromInput {
 
     private final LinkedHashMap<MontageConfiguration, Float> montages;
@@ -49,13 +50,13 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
     @Override
     public AnimationPose sample(PoseCalculationDataContainer dataContainer, JointSkeleton jointSkeleton, AnimationPose inputPose, float partialTicks) {
         if(!this.montages.isEmpty()){
-            AnimationPose pose = new AnimationPose(inputPose);
+            AnimationPose pose = null;// new AnimationPose(inputPose);
             for (Map.Entry<MontageConfiguration, Float> entry : this.montages.entrySet()){
                 MontageConfiguration configuration = entry.getKey();
                 float timeElapsed = entry.getValue();
                 float weight = configuration.getWeight(timeElapsed);
                 if(weight > 0){
-                    pose = pose.interpolated(AnimationPose.fromAnimationSequence(jointSkeleton, configuration.animationSequence, (timeElapsed + configuration.startTime) / AnimationSequenceData.INSTANCE.get(configuration.animationSequence).frameLength()), weight);
+                    pose = null; // pose.interpolated(AnimationPose.fromAnimationSequence(jointSkeleton, configuration.animationSequence, (timeElapsed + configuration.startTime) / AnimationSequenceData.INSTANCE.getOrThrow(configuration.animationSequence).frameLength()), weight);
                 }
             }
             return pose;
@@ -116,7 +117,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
 
             private Builder(ResourceLocation animationSequence){
                 this.animationSequence = animationSequence;
-                this.endTime = AnimationSequenceData.INSTANCE.get(this.animationSequence).frameLength();
+                this.endTime = AnimationSequenceData.INSTANCE.getOrThrow(this.animationSequence).frameLength();
             }
 
             /**

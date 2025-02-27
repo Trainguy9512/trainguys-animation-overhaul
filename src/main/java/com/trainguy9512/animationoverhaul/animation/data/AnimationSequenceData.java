@@ -7,7 +7,7 @@ import com.trainguy9512.animationoverhaul.util.Timeline;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
-import java.util.Set;
+import java.util.Map;
 
 public class AnimationSequenceData {
 
@@ -28,17 +28,12 @@ public class AnimationSequenceData {
         animationSequences.put(resourceLocation, animationSequence);
     }
 
-    public AnimationSequence get(ResourceLocation resourceLocation){
+    public AnimationSequence getOrThrow(ResourceLocation resourceLocation){
         if(animationSequences.containsKey(resourceLocation)){
             return animationSequences.get(resourceLocation);
         } else {
-            //AnimationOverhaulMain.LOGGER.error("Resource location {} not found in loaded data", resourceLocation);
-            return AnimationSequence.blank();
+            throw new IllegalArgumentException("Tried to access animation sequence from resource location " + resourceLocation + ", but it was not found in the loaded data.");
         }
-    }
-
-    public boolean isValid(ResourceLocation resourceLocation){
-        return animationSequences.containsKey(resourceLocation);
     }
 
     public static ResourceLocation getNativeResourceLocation(String path){
@@ -49,14 +44,14 @@ public class AnimationSequenceData {
         return ResourceLocation.fromNamespaceAndPath(AnimationOverhaulMain.MOD_ID, key.concat(path));
     }
 
-    public AnimationSequence get(String namespace, String path){
-        return get(ResourceLocation.fromNamespaceAndPath(namespace, path));
+    public AnimationSequence getOrThrow(String namespace, String path){
+        return getOrThrow(ResourceLocation.fromNamespaceAndPath(namespace, path));
     }
 
     public void clearAndReplace(AnimationSequenceData newAnimationData){
         this.animationSequences.clear();
         for(ResourceLocation resourceLocation : newAnimationData.getHashMap().keySet()){
-            this.put(resourceLocation, newAnimationData.get(resourceLocation));
+            this.put(resourceLocation, newAnimationData.getOrThrow(resourceLocation));
         }
     }
 
@@ -64,7 +59,7 @@ public class AnimationSequenceData {
         return animationSequences;
     }
 
-    public record AnimationSequence(HashMap<String, Timeline<JointTransform>> jointTimelines, float frameLength) {
+    public record AnimationSequence(Map<String, Timeline<JointTransform>> jointTimelines, float frameLength) {
 
         public AnimationSequence(Builder builder){
             this(builder.jointTimelines, builder.frameLength);
@@ -74,24 +69,12 @@ public class AnimationSequenceData {
             return new AnimationSequence.Builder(frameLength);
         }
 
-        public static AnimationSequence blank(){
-            return AnimationSequence.builder(10).build();
-        }
-
         public Timeline<JointTransform> getJointTransformTimeline(String joint){
-            return this.jointTimelines.getOrDefault(joint, Timeline.jointTransformTimeline());
-        }
-
-        public Set<String> getJoints(){
-            return this.jointTimelines.keySet();
-        }
-
-        public boolean containsTimelineForJoint(String joint){
-            return this.jointTimelines.containsKey(joint);
+            return this.jointTimelines.getOrDefault(joint, Timeline.ofJointTransform(0));
         }
 
         public static class Builder{
-            private final HashMap<String, Timeline<JointTransform>> jointTimelines;
+            private final Map<String, Timeline<JointTransform>> jointTimelines;
             private final float frameLength;
 
             protected Builder(float frameLength){

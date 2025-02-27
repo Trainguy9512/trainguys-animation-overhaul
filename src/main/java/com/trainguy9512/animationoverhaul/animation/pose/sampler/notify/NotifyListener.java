@@ -6,6 +6,7 @@ import com.trainguy9512.animationoverhaul.animation.data.PoseCalculationDataCont
 import java.util.EventListener;
 
 @FunctionalInterface
+@Deprecated
 public interface NotifyListener extends EventListener {
 
     void notify(OnTickDataContainer dataContainer);
