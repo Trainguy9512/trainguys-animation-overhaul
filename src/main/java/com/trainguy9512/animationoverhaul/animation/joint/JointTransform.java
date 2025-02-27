@@ -86,7 +86,7 @@ public final class JointTransform {
     public void translate(Vector3f translation, TransformSpace transformSpace){
         if(translation.x() != 0 || translation.y() != 0 || translation.z() != 0){
             switch (transformSpace){
-                case ENTITY, PARENT -> this.transform.translateLocal(translation);
+                case COMPONENT, PARENT -> this.transform.translateLocal(translation);
                 case LOCAL -> this.transform.translate(translation);
             }
         }
@@ -94,7 +94,7 @@ public final class JointTransform {
 
     public void rotate(Quaternionf rotation, TransformSpace transformSpace){
         switch (transformSpace){
-            case ENTITY, PARENT -> this.setRotation(this.transform.getNormalizedRotation(new Quaternionf()).premul(rotation));
+            case COMPONENT, PARENT -> this.setRotation(this.transform.getNormalizedRotation(new Quaternionf()).premul(rotation));
             case LOCAL -> this.transform.rotate(rotation);
         };
     }
@@ -105,20 +105,20 @@ public final class JointTransform {
 
     public void multiply(Matrix4f transform, TransformSpace transformSpace){
         switch (transformSpace){
-            case ENTITY, PARENT -> JointTransform.of(this.transform.mul(transform));
+            case COMPONENT, PARENT -> JointTransform.of(this.transform.mul(transform));
             case LOCAL -> JointTransform.of(this.transform.mulLocal(transform));
         }
     }
 
     //TODO: Why does this use translated and rotated?
     public void multiply(JointTransform jointTransform){
-        this.translate(jointTransform.getTranslation(), TransformSpace.ENTITY);
-        this.rotate(jointTransform.getRotation(), TransformSpace.ENTITY);
+        this.translate(jointTransform.getTranslation(), TransformSpace.COMPONENT);
+        this.rotate(jointTransform.getRotation(), TransformSpace.COMPONENT);
     }
 
     public void inverseMultiply(JointTransform jointTransform){
-        this.translate(jointTransform.getTranslation().negate(), TransformSpace.ENTITY);
-        this.rotate(jointTransform.getRotation().invert(), TransformSpace.ENTITY);
+        this.translate(jointTransform.getTranslation().negate(), TransformSpace.COMPONENT);
+        this.rotate(jointTransform.getRotation().invert(), TransformSpace.COMPONENT);
     }
 
     public JointTransform mirrored(){
@@ -165,7 +165,7 @@ public final class JointTransform {
     }
 
     public enum TransformSpace {
-        ENTITY,
+        COMPONENT,
         PARENT,
         LOCAL
     }

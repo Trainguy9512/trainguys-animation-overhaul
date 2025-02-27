@@ -1,9 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.data.*;
 import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
-import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDataKey;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDriverKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
@@ -11,10 +9,7 @@ import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import com.trainguy9512.animationoverhaul.animation.pose.function.PoseFunction;
 import com.trainguy9512.animationoverhaul.animation.pose.function.SequencePlayerFunction;
 import com.trainguy9512.animationoverhaul.animation.pose.function.cache.SavedCachedPoseContainer;
-import com.trainguy9512.animationoverhaul.animation.pose.sampler.*;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
-import com.trainguy9512.animationoverhaul.animation.pose.sampler.notify.NotifyListeners;
-import com.trainguy9512.animationoverhaul.util.Easing;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;
@@ -104,7 +99,6 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
                 .setMirrorJoint(RIGHT_ARM_JOINT, LEFT_ARM_JOINT)
                 .setMirrorJoint(RIGHT_HAND_JOINT, LEFT_HAND_JOINT)
                 .build();
-
     }
 
     @Override
@@ -149,7 +143,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
                         (dampenedCameraRotation.y() - cameraRotation.y()) * (cameraDampWeight.y() * 0.01F),
                         (dampenedCameraRotation.z() - cameraRotation.z()) * (cameraDampWeight.z() * 0.01F)
                 ),
-                JointTransform.TransformSpace.ENTITY
+                JointTransform.TransformSpace.COMPONENT
         );
         pose.setJointTransform(ARM_BUFFER_JOINT, jointTransform);
     }
