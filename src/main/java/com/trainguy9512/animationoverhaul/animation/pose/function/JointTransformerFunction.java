@@ -10,15 +10,29 @@ import org.joml.Vector3f;
 
 import java.util.function.Function;
 
-public record JointTransformerFunction<P extends AnimationPose>(PoseFunction<P> input, TransformChannelConfiguration<Vector3f> translationConfiguration, TransformChannelConfiguration<Quaternionf> rotationConfiguration, TransformChannelConfiguration<Vector3f> scaleConfiguration) implements PoseFunction<P> {
+public record JointTransformerFunction<P extends AnimationPose>(PoseFunction<P> input, String joint, TransformChannelConfiguration<Vector3f> translationConfiguration, TransformChannelConfiguration<Quaternionf> rotationConfiguration, TransformChannelConfiguration<Vector3f> scaleConfiguration) implements PoseFunction<P> {
 
     private static <P extends AnimationPose> JointTransformerFunction<P> of(Builder<P> builder){
-        return new JointTransformerFunction<>(builder.poseFunction, builder.translationConfiguration, builder.rotationConfiguration, builder.scaleConfiguration);
+        return new JointTransformerFunction<>(builder.poseFunction, builder.joint, builder.translationConfiguration, builder.rotationConfiguration, builder.scaleConfiguration);
     }
 
     @Override
     public @NotNull P compute(FunctionInterpolationContext context) {
-        return this.input.compute(context);
+        if(!context.dataContainer().getJointSkeleton().containsJoint(this.joint)){
+            throw new IllegalArgumentException("Cannot run joint transformer function on joint " + this.joint + ", for it is not present within the skeleton.");
+        }
+        P pose = this.input.compute(context);
+
+        JointTransform jointTransform = pose.getJointTransform(this.joint);
+        this.transformJoint(jointTransform, context, this.translationConfiguration, JointTransform::translate);
+        this.transformJoint(jointTransform, context, this.rotationConfiguration, JointTransform::rotate);
+        pose.setJointTransform(this.joint, jointTransform);
+
+        return pose;
+    }
+
+    private <X> void transformJoint(JointTransform jointTransform, FunctionInterpolationContext context, TransformChannelConfiguration<X> configuration, Transformer<X> transformer){
+        transformer.transform(jointTransform, configuration.transformFunction.apply(context), configuration.transformSpace, configuration.transformType);
     }
 
     @Override
@@ -26,26 +40,28 @@ public record JointTransformerFunction<P extends AnimationPose>(PoseFunction<P> 
         this.input.tick(evaluationState);
     }
 
-    public static Builder<LocalSpacePose> localOrParentSpaceBuilder(PoseFunction<LocalSpacePose> poseFunction){
-        return new Builder<>(poseFunction);
+    public static Builder<LocalSpacePose> localOrParentSpaceBuilder(PoseFunction<LocalSpacePose> poseFunction, String joint){
+        return new Builder<>(poseFunction, joint);
     }
 
-    public static Builder<ComponentSpacePose> componentSpaceBuilder(PoseFunction<ComponentSpacePose> poseFunction){
-        return new Builder<>(poseFunction);
+    public static Builder<ComponentSpacePose> componentSpaceBuilder(PoseFunction<ComponentSpacePose> poseFunction, String joint){
+        return new Builder<>(poseFunction, joint);
     }
 
     public static class Builder<P extends AnimationPose> {
 
         private final PoseFunction<P> poseFunction;
+        private final String joint;
         private TransformChannelConfiguration<Vector3f> translationConfiguration;
         private TransformChannelConfiguration<Quaternionf> rotationConfiguration;
         private TransformChannelConfiguration<Vector3f> scaleConfiguration;
 
-        private Builder(PoseFunction<P> poseFunction){
+        private Builder(PoseFunction<P> poseFunction, String joint){
+            this.joint = joint;
             this.poseFunction = poseFunction;
-            this.translationConfiguration = TransformChannelConfiguration.of((context) -> new Vector3f(0), TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);
-            this.rotationConfiguration = TransformChannelConfiguration.of((context) -> new Quaternionf().identity(), TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);
-            this.scaleConfiguration = TransformChannelConfiguration.of((context) -> new Vector3f(0), TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);
+            this.translationConfiguration = TransformChannelConfiguration.of((context) -> new Vector3f(0), JointTransform.TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);
+            this.rotationConfiguration = TransformChannelConfiguration.of((context) -> new Quaternionf().identity(), JointTransform.TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);
+            this.scaleConfiguration = TransformChannelConfiguration.of((context) -> new Vector3f(0), JointTransform.TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);
         }
 
         public Builder<P> setTranslationConfiguration(TransformChannelConfiguration<Vector3f> translationConfiguration){
@@ -63,21 +79,20 @@ public record JointTransformerFunction<P extends AnimationPose>(PoseFunction<P> 
             return this;
         }
 
-        public JointTransformerFunction<P> buildLocalOrParent(){
+        public JointTransformerFunction<P> build(){
             return JointTransformerFunction.of(this);
         }
     }
 
-    public record TransformChannelConfiguration<X>(Function<FunctionInterpolationContext, X> transformFunction, TransformType transformType, JointTransform.TransformSpace transformSpace){
+    public record TransformChannelConfiguration<X>(Function<FunctionInterpolationContext, X> transformFunction, JointTransform.TransformType transformType, JointTransform.TransformSpace transformSpace){
 
-        public static <X> TransformChannelConfiguration<X> of(Function<FunctionInterpolationContext, X> transformFunction, TransformType transformType, JointTransform.TransformSpace transformSpace){
+        public static <X> TransformChannelConfiguration<X> of(Function<FunctionInterpolationContext, X> transformFunction, JointTransform.TransformType transformType, JointTransform.TransformSpace transformSpace){
             return new TransformChannelConfiguration<>(transformFunction, transformType, transformSpace);
         }
     }
 
-    public enum TransformType {
-        IGNORE,
-        REPLACE,
-        ADD
+    @FunctionalInterface
+    private interface Transformer<X> {
+        void transform(JointTransform jointTransform, X value, JointTransform.TransformSpace transformSpace, JointTransform.TransformType transformType);
     }
 }

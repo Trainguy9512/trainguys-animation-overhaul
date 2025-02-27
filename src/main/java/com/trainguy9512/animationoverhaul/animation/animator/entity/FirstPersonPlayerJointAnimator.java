@@ -5,9 +5,9 @@ import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDriverKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
+import com.trainguy9512.animationoverhaul.animation.pose.ComponentSpacePose;
 import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
-import com.trainguy9512.animationoverhaul.animation.pose.function.PoseFunction;
-import com.trainguy9512.animationoverhaul.animation.pose.function.SequencePlayerFunction;
+import com.trainguy9512.animationoverhaul.animation.pose.function.*;
 import com.trainguy9512.animationoverhaul.animation.pose.function.cache.SavedCachedPoseContainer;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import net.minecraft.client.model.EntityModel;
@@ -108,7 +108,20 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
     @Override
     public PoseFunction<LocalSpacePose> constructPoseFunction(SavedCachedPoseContainer cachedPoseContainer) {
-        return SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).build();
+        PoseFunction<LocalSpacePose> testSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE)
+                .setLooping(true)
+                .setPlayRate((context) -> 0.3f)
+                .build();
+        PoseFunction<ComponentSpacePose> testTransformer = JointTransformerFunction.componentSpaceBuilder(
+                        ComponentPoseConversionFunction.of(testSequencePlayer),
+                        LEFT_ARM_JOINT)
+                .setTranslationConfiguration(JointTransformerFunction.TransformChannelConfiguration.of(
+                        (context) -> new Vector3f((float) Math.sin(context.gameTime() * 8f) * 4f, 0, 0),
+                        JointTransform.TransformType.ADD,
+                        JointTransform.TransformSpace.COMPONENT))
+                .build();
+
+        return LocalPoseConversionFunction.of(testTransformer);
 
         // Update main hand item based on the anim notify
         //animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
@@ -143,7 +156,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
                         (dampenedCameraRotation.y() - cameraRotation.y()) * (cameraDampWeight.y() * 0.01F),
                         (dampenedCameraRotation.z() - cameraRotation.z()) * (cameraDampWeight.z() * 0.01F)
                 ),
-                JointTransform.TransformSpace.COMPONENT
+                JointTransform.TransformSpace.COMPONENT, JointTransform.TransformType.ADD
         );
         pose.setJointTransform(ARM_BUFFER_JOINT, jointTransform);
     }

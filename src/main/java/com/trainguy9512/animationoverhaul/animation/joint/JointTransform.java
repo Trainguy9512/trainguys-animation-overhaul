@@ -58,18 +58,6 @@ public final class JointTransform {
         return this.transform.getEulerAnglesZYX(new Vector3f());
     }
 
-    public void setTranslation(Vector3f translation){
-        this.transform.setTranslation(translation);
-    }
-
-    public void setRotation(Quaternionf quaternionRotation){
-        this.setRotation(quaternionRotation.getEulerAnglesXYZ(new Vector3f()));
-    }
-
-    public void setRotation(Vector3f eulerRotation){
-        this.transform.setRotationXYZ(eulerRotation.x(), eulerRotation.y(), eulerRotation.z());
-    }
-
     public PartPose asPartPose(){
         Vector3f rotation = this.getEulerRotationZYX();
         Vector3f translation = this.getTranslation();
@@ -83,24 +71,34 @@ public final class JointTransform {
         );
     }
 
-    public void translate(Vector3f translation, TransformSpace transformSpace){
-        if(translation.x() != 0 || translation.y() != 0 || translation.z() != 0){
-            switch (transformSpace){
-                case COMPONENT, PARENT -> this.transform.translateLocal(translation);
-                case LOCAL -> this.transform.translate(translation);
+    public void translate(Vector3f translation, TransformSpace transformSpace, TransformType transformType){
+        switch (transformType){
+            case ADD -> {
+                if(translation.x() != 0 || translation.y() != 0 || translation.z() != 0){
+                    switch (transformSpace){
+                        case COMPONENT, PARENT -> this.transform.translateLocal(translation);
+                        case LOCAL -> this.transform.translate(translation);
+                    }
+                }
             }
+            case REPLACE -> this.transform.setTranslation(translation);
         }
     }
 
-    public void rotate(Quaternionf rotation, TransformSpace transformSpace){
-        switch (transformSpace){
-            case COMPONENT, PARENT -> this.setRotation(this.transform.getNormalizedRotation(new Quaternionf()).premul(rotation));
-            case LOCAL -> this.transform.rotate(rotation);
-        };
+    public void rotate(Quaternionf rotation, TransformSpace transformSpace, TransformType transformType){
+        switch (transformType){
+            case ADD -> {
+                switch (transformSpace){
+                    case COMPONENT, PARENT -> this.transform.rotation(this.transform.getNormalizedRotation(new Quaternionf()).premul(rotation));
+                    case LOCAL -> this.transform.rotate(rotation);
+                }
+            }
+            case REPLACE -> this.transform.rotation(rotation);
+        }
     }
 
-    public void rotate(Vector3f rotationEuler, TransformSpace transformSpace){
-        this.rotate(new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), transformSpace);
+    public void rotate(Vector3f rotationEuler, TransformSpace transformSpace, TransformType transformType){
+        this.rotate(new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), transformSpace, transformType);
     }
 
     public void multiply(Matrix4f transform, TransformSpace transformSpace){
@@ -112,13 +110,13 @@ public final class JointTransform {
 
     //TODO: Why does this use translated and rotated?
     public void multiply(JointTransform jointTransform){
-        this.translate(jointTransform.getTranslation(), TransformSpace.COMPONENT);
-        this.rotate(jointTransform.getRotation(), TransformSpace.COMPONENT);
+        this.translate(jointTransform.getTranslation(), TransformSpace.COMPONENT, TransformType.ADD);
+        this.rotate(jointTransform.getRotation(), TransformSpace.COMPONENT, TransformType.ADD);
     }
 
     public void inverseMultiply(JointTransform jointTransform){
-        this.translate(jointTransform.getTranslation().negate(), TransformSpace.COMPONENT);
-        this.rotate(jointTransform.getRotation().invert(), TransformSpace.COMPONENT);
+        this.translate(jointTransform.getTranslation().negate(), TransformSpace.COMPONENT, TransformType.ADD);
+        this.rotate(jointTransform.getRotation().invert(), TransformSpace.COMPONENT, TransformType.ADD);
     }
 
     public JointTransform mirrored(){
@@ -168,5 +166,11 @@ public final class JointTransform {
         COMPONENT,
         PARENT,
         LOCAL
+    }
+
+    public enum TransformType {
+        IGNORE,
+        REPLACE,
+        ADD
     }
 }

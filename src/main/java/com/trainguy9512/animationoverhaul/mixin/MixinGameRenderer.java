@@ -44,7 +44,7 @@ public abstract class MixinGameRenderer {
                 PoseStack poseStack1 = new PoseStack();
                 Vector3f cameraRot = cameraPose.getEulerRotationZYX();
                 cameraRot.z *= -1;
-                cameraPose.setRotation(cameraRot);
+                cameraPose.rotate(cameraRot, JointTransform.TransformSpace.LOCAL, JointTransform.TransformType.REPLACE);
 
                 poseStack1.mulPose(cameraPose.getRotation());
                 poseStack1.translate(cameraPose.getTranslation().x / 16F, cameraPose.getTranslation().y / 16F, cameraPose.getTranslation().z / -16F);

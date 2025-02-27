@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.function;
 
 import com.mojang.blaze3d.Blaze3D;
+import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
