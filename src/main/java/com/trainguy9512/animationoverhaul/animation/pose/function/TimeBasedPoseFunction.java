@@ -12,16 +12,17 @@ public abstract class TimeBasedPoseFunction<P extends AnimationPose> implements 
 
     protected final Function<FunctionEvaluationState, Boolean> isPlayingFunction;
     protected final Function<FunctionEvaluationState, Float> playRateFunction;
+    protected float resetStartTimeOffsetTicks;
 
     protected float timeTicksElapsed;
     protected float playRate;
     protected boolean isPlaying;
-    protected float resetStartTimeOffsetTicks;
 
-    protected TimeBasedPoseFunction(Builder<?> builder){
-        this.playRateFunction = builder.playRateFunction;
-        this.isPlayingFunction = builder.isPlayingFunction;
-        this.resetStartTimeOffsetTicks = builder.resetStartTimeOffsetTicks;
+    protected TimeBasedPoseFunction(Function<FunctionEvaluationState, Boolean> isPlayingFunction, Function<FunctionEvaluationState, Float> playRateFunction, float resetStartTimeOffsetTicks){
+        this.isPlayingFunction = isPlayingFunction;
+        this.playRateFunction = playRateFunction;
+        this.resetStartTimeOffsetTicks = resetStartTimeOffsetTicks;
+
         this.timeTicksElapsed = this.resetStartTimeOffsetTicks;
     }
 
@@ -44,9 +45,9 @@ public abstract class TimeBasedPoseFunction<P extends AnimationPose> implements 
 
     public static class Builder<B> {
 
-        private Function<FunctionEvaluationState, Float> playRateFunction;
-        private Function<FunctionEvaluationState, Boolean> isPlayingFunction;
-        private float resetStartTimeOffsetTicks;
+        protected Function<FunctionEvaluationState, Float> playRateFunction;
+        protected Function<FunctionEvaluationState, Boolean> isPlayingFunction;
+        protected float resetStartTimeOffsetTicks;
 
         protected Builder() {
             this.playRateFunction = (interpolationContext) -> 1f;

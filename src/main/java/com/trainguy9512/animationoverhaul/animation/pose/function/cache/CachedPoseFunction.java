@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class CachedPoseFunction implements PoseFunction<LocalSpacePose> {
 
-    private final PoseFunction<LocalSpacePose> input;
+    private PoseFunction<LocalSpacePose> input;
 
     LocalSpacePose poseCache;
     boolean hasTickedAlready;
@@ -35,6 +35,12 @@ public class CachedPoseFunction implements PoseFunction<LocalSpacePose> {
             this.input.tick(evaluationState.cancelMarkedForReset());
             this.hasTickedAlready = true;
         }
+    }
+
+    @Override
+    public PoseFunction<LocalSpacePose> wrapUnique() {
+        this.input = input.wrapUnique();
+        return this;
     }
 
     public void clearCache(){

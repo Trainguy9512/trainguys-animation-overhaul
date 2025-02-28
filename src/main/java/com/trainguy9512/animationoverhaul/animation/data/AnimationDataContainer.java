@@ -33,7 +33,7 @@ public class AnimationDataContainer implements PoseCalculationDataContainer, OnT
     private AnimationDataContainer(JointAnimator<?> jointAnimator){
         this.drivers = Maps.newHashMap();
         this.savedCachedPoseContainer = SavedCachedPoseContainer.of();
-        this.poseFunction = jointAnimator.constructPoseFunction(savedCachedPoseContainer);
+        this.poseFunction = jointAnimator.constructPoseFunction(savedCachedPoseContainer).wrapUnique();
         this.currentTick = 0;
 
         this.jointSkeleton = jointAnimator.buildSkeleton();

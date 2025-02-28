@@ -74,11 +74,6 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
     }
 
-    public enum TestStates {
-        IDLE,
-        MOVING
-    }
-
 
     public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
 
@@ -106,11 +101,16 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         return PoseCalculationFrequency.CALCULATE_EVERY_FRAME;
     }
 
+    public enum TestStates {
+        IDLE,
+        MOVING
+    }
+
     @Override
     public PoseFunction<LocalSpacePose> constructPoseFunction(SavedCachedPoseContainer cachedPoseContainer) {
         PoseFunction<LocalSpacePose> testSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE)
                 .setLooping(true)
-                .setPlayRate((context) -> 0.3f)
+                .setPlayRate((context) -> 1f)
                 .build();
         PoseFunction<ComponentSpacePose> testTransformer = JointTransformerFunction.componentSpaceBuilder(
                         ComponentPoseConversionFunction.of(testSequencePlayer),
@@ -122,23 +122,9 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
                 .build();
 
         return LocalPoseConversionFunction.of(testTransformer);
-
-        // Update main hand item based on the anim notify
-        //animationDataContainer.getAnimationVariable(MAIN_HAND_ITEM).set(localPlayer.getMainHandItem().copy());
-
-
-        //setEntityAnimationVariable(MAIN_HAND_ITEM, this.livingEntity.getMainHandItem().copy());
-
-
-        //AnimationPose pose = dataContainer.sample(TEST_STATE_MACHINE, partialTicks);
-
-
-        //dampenArmRotation(pose, dataContainer, partialTicks);
-
-
-        //Vector3f rotation = new Vector3f(Mth.sin(dataContainer.getDriverValueInterpolated(TIME_TEST, partialTicks) * 0.2F) * Mth.HALF_PI * 0.7f, 0, 0);
-
     }
+
+
 
     /*
     Get the pose with the added dampened camera rotation

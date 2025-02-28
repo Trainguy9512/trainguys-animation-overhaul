@@ -15,6 +15,11 @@ public record LocalPoseConversionFunction(PoseFunction<ComponentSpacePose> input
         this.input.tick(evaluationState);
     }
 
+    @Override
+    public PoseFunction<LocalSpacePose> wrapUnique() {
+        return LocalPoseConversionFunction.of(this.input.wrapUnique());
+    }
+
     public static LocalPoseConversionFunction of(PoseFunction<ComponentSpacePose> input){
         return new LocalPoseConversionFunction(input);
     }

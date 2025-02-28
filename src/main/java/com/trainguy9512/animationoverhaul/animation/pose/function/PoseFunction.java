@@ -1,21 +1,18 @@
 package com.trainguy9512.animationoverhaul.animation.pose.function;
 
 import com.mojang.blaze3d.Blaze3D;
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public interface PoseFunction<P extends AnimationPose> {
 
     @NotNull P compute(PoseFunction.FunctionInterpolationContext context);
 
     void tick(FunctionEvaluationState evaluationState);
+
+    PoseFunction<P> wrapUnique();
 
     record FunctionEvaluationState(OnTickDataContainer dataContainer, boolean isResetting, long currentTick){
 

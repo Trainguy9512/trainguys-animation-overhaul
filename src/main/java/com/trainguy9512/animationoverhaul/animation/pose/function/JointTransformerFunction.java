@@ -13,7 +13,7 @@ import java.util.function.Function;
 public record JointTransformerFunction<P extends AnimationPose>(PoseFunction<P> input, String joint, TransformChannelConfiguration<Vector3f> translationConfiguration, TransformChannelConfiguration<Quaternionf> rotationConfiguration, TransformChannelConfiguration<Vector3f> scaleConfiguration) implements PoseFunction<P> {
 
     private static <P extends AnimationPose> JointTransformerFunction<P> of(Builder<P> builder){
-        return new JointTransformerFunction<>(builder.poseFunction, builder.joint, builder.translationConfiguration, builder.rotationConfiguration, builder.scaleConfiguration);
+        return new JointTransformerFunction<>(builder.input, builder.joint, builder.translationConfiguration, builder.rotationConfiguration, builder.scaleConfiguration);
     }
 
     @Override
@@ -40,6 +40,11 @@ public record JointTransformerFunction<P extends AnimationPose>(PoseFunction<P> 
         this.input.tick(evaluationState);
     }
 
+    @Override
+    public PoseFunction<P> wrapUnique() {
+        return new JointTransformerFunction<>(this.input.wrapUnique(), this.joint, this.translationConfiguration, this.rotationConfiguration, this.scaleConfiguration);
+    }
+
     public static Builder<LocalSpacePose> localOrParentSpaceBuilder(PoseFunction<LocalSpacePose> poseFunction, String joint){
         return new Builder<>(poseFunction, joint);
     }
@@ -50,7 +55,7 @@ public record JointTransformerFunction<P extends AnimationPose>(PoseFunction<P> 
 
     public static class Builder<P extends AnimationPose> {
 
-        private final PoseFunction<P> poseFunction;
+        private final PoseFunction<P> input;
         private final String joint;
         private TransformChannelConfiguration<Vector3f> translationConfiguration;
         private TransformChannelConfiguration<Quaternionf> rotationConfiguration;
@@ -58,7 +63,7 @@ public record JointTransformerFunction<P extends AnimationPose>(PoseFunction<P> 
 
         private Builder(PoseFunction<P> poseFunction, String joint){
             this.joint = joint;
-            this.poseFunction = poseFunction;
+            this.input = poseFunction;
             this.translationConfiguration = TransformChannelConfiguration.of((context) -> new Vector3f(0), JointTransform.TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);
             this.rotationConfiguration = TransformChannelConfiguration.of((context) -> new Quaternionf().identity(), JointTransform.TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);
             this.scaleConfiguration = TransformChannelConfiguration.of((context) -> new Vector3f(0), JointTransform.TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);

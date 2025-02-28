@@ -5,15 +5,17 @@ import com.trainguy9512.animationoverhaul.animation.pose.sampler.AnimationSequen
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Function;
+
 public class SequencePlayerFunction extends TimeBasedPoseFunction<LocalSpacePose> {
 
     private final ResourceLocation animationSequence;
     private final boolean looping;
 
-    protected SequencePlayerFunction(Builder<?> builder){
-        super(builder);
-        this.animationSequence = builder.animationSequence;
-        this.looping = builder.looping;
+    protected SequencePlayerFunction(Function<FunctionEvaluationState, Boolean> isPlayingFunction, Function<FunctionEvaluationState, Float> playRateFunction, float resetStartTimeOffsetTicks, ResourceLocation animationSequence, boolean looping){
+        super(isPlayingFunction, playRateFunction, resetStartTimeOffsetTicks);
+        this.animationSequence = animationSequence;
+        this.looping = looping;
     }
 
     @Override
@@ -29,6 +31,11 @@ public class SequencePlayerFunction extends TimeBasedPoseFunction<LocalSpacePose
     @Override
     public void tick(FunctionEvaluationState evaluationState) {
         super.tick(evaluationState);
+    }
+
+    @Override
+    public PoseFunction<LocalSpacePose> wrapUnique() {
+        return new SequencePlayerFunction(this.isPlayingFunction, this.playRateFunction, this.resetStartTimeOffsetTicks, this.animationSequence, this.looping);
     }
 
     public static Builder<?> builder(ResourceLocation animationSequence){
@@ -58,7 +65,7 @@ public class SequencePlayerFunction extends TimeBasedPoseFunction<LocalSpacePose
         }
 
         public SequencePlayerFunction build(){
-            return new SequencePlayerFunction(this);
+            return new SequencePlayerFunction(this.isPlayingFunction, this.playRateFunction, this.resetStartTimeOffsetTicks, this.animationSequence, this.looping);
         }
     }
 }
