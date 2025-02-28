@@ -19,6 +19,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
+import java.util.Random;
 import java.util.Set;
 
 public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator<LocalPlayer, PlayerRenderState> {
@@ -108,20 +109,26 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
     @Override
     public PoseFunction<LocalSpacePose> constructPoseFunction(SavedCachedPoseContainer cachedPoseContainer) {
+        Random random = new Random();
         PoseFunction<LocalSpacePose> testSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE)
                 .setLooping(true)
-                .setPlayRate((context) -> 1f)
+                .setPlayRate((context) -> random.nextFloat(3))
                 .build();
-        PoseFunction<ComponentSpacePose> testTransformer = JointTransformerFunction.componentSpaceBuilder(
-                        ComponentPoseConversionFunction.of(testSequencePlayer),
-                        LEFT_ARM_JOINT)
+        //cachedPoseContainer.register("TEST_SEQ_PLAYER", testSequencePlayer);
+
+
+        PoseFunction<LocalSpacePose> testTransformer = LocalPoseConversionFunction.of(
+                JointTransformerFunction.componentSpaceBuilder(ComponentPoseConversionFunction.of(testSequencePlayer), LEFT_ARM_JOINT)
                 .setTranslationConfiguration(JointTransformerFunction.TransformChannelConfiguration.of(
-                        (context) -> new Vector3f((float) Math.sin(context.gameTime() * 8f) * 4f, 0, 0),
+                        (context) -> new Vector3f((float) Math.sin(context.gameTime() * 8f) * 0.6f, 0, 0),
                         JointTransform.TransformType.ADD,
                         JointTransform.TransformSpace.COMPONENT))
-                .build();
+                .build());
 
-        return LocalPoseConversionFunction.of(testTransformer);
+        //PoseFunction<LocalSpacePose> cached = cachedPoseContainer.getOrThrow("TEST_SEQ_PLAYER");
+        PoseFunction<LocalSpacePose> blendMultipleFunction = BlendMultipleFunction.builder(testSequencePlayer).addBlendInput(testSequencePlayer, (evaluationState) -> 0.5f).build();
+
+        return blendMultipleFunction;
     }
 
 

@@ -7,7 +7,7 @@ import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 @Deprecated
 public interface SampleableFromInput {
     /**
-     * Creates an animation pose from an input.
+     * Creates an animation pose from an inputFunction.
      * @param dataContainer     Animation data container for interpolated data.
      * @param jointSkeleton     Reference joint skeleton.
      * @param inputPose         Input animation pose.
