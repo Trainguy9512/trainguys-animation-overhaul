@@ -1,23 +1,16 @@
 package com.trainguy9512.animationoverhaul.animation.data;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.animator.JointAnimator;
-import com.trainguy9512.animationoverhaul.animation.animator.entity.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDataKey;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDriverKey;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
-import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import com.trainguy9512.animationoverhaul.animation.pose.function.PoseFunction;
 import com.trainguy9512.animationoverhaul.animation.pose.function.cache.SavedCachedPoseContainer;
-import com.trainguy9512.animationoverhaul.animation.pose.sampler.PoseSampler;
-import com.trainguy9512.animationoverhaul.animation.pose.sampler.Sampleable;
-import com.trainguy9512.animationoverhaul.animation.pose.sampler.SampleableFromInput;
 import com.trainguy9512.animationoverhaul.util.Interpolator;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class AnimationDataContainer implements PoseCalculationDataContainer, OnTickDataContainer {
@@ -25,19 +18,19 @@ public class AnimationDataContainer implements PoseCalculationDataContainer, OnT
     private final Map<AnimationDataKey<? extends Driver<?>>, Driver<?>> drivers;
     private final SavedCachedPoseContainer savedCachedPoseContainer;
     private final PoseFunction<LocalSpacePose> poseFunction;
-    private long currentTick;
 
     private final JointSkeleton jointSkeleton;
     private final AnimationDriverKey<LocalSpacePose> perTickCalculatedPoseDriverKey;
+    private final AnimationDriverKey<Long> gameTimeTicksDriverKey;
 
     private AnimationDataContainer(JointAnimator<?> jointAnimator){
         this.drivers = Maps.newHashMap();
         this.savedCachedPoseContainer = SavedCachedPoseContainer.of();
         this.poseFunction = jointAnimator.constructPoseFunction(savedCachedPoseContainer).wrapUnique();
-        this.currentTick = 0;
 
         this.jointSkeleton = jointAnimator.buildSkeleton();
         this.perTickCalculatedPoseDriverKey = AnimationDriverKey.driverKeyOf("per_tick_calculated_pose", () -> Driver.ofInterpolatable(() -> LocalSpacePose.of(jointSkeleton), Interpolator.LOCAL_SPACE_POSE));
+        this.gameTimeTicksDriverKey = AnimationDriverKey.driverKeyOf("game_time", () -> Driver.ofConstant(() -> 0L));
     }
 
     public static AnimationDataContainer of(JointAnimator<?> jointAnimator){
@@ -54,13 +47,17 @@ public class AnimationDataContainer implements PoseCalculationDataContainer, OnT
     }
 
     public void tick(){
-        this.poseFunction.tick(PoseFunction.FunctionEvaluationState.of(this, false, this.currentTick));
-        this.currentTick++;
+        this.loadValueIntoDriver(gameTimeTicksDriverKey, this.getDriverValue(gameTimeTicksDriverKey) + 1);
+        this.poseFunction.tick(PoseFunction.FunctionEvaluationState.of(this, false, this.getDriverValue(gameTimeTicksDriverKey)));
     }
 
     public LocalSpacePose computePose(float partialTicks){
         this.savedCachedPoseContainer.clearCaches();
-        return this.poseFunction.compute(PoseFunction.FunctionInterpolationContext.of(this, partialTicks));
+        return this.poseFunction.compute(PoseFunction.FunctionInterpolationContext.of(
+                this,
+                partialTicks,
+                (this.getDriverValueInterpolated(gameTimeTicksDriverKey, 1) - (1 - partialTicks)) / 20f
+        ));
     }
 
     @SuppressWarnings("unchecked")
@@ -94,6 +91,6 @@ public class AnimationDataContainer implements PoseCalculationDataContainer, OnT
     }
 
     public void pushDriverValuesToPrevious(){
-        this.drivers.values().forEach(Driver::pushValueToPrevious);
+        this.drivers.values().forEach(Driver::pushToPrevious);
     }
 }

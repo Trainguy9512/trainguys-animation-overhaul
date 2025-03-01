@@ -6,6 +6,7 @@ import com.trainguy9512.animationoverhaul.util.Timeline;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.*;
+import org.joml.Math;
 
 public final class JointTransform {
 
@@ -54,6 +55,10 @@ public final class JointTransform {
         return this.transform.getNormalizedRotation(new Quaternionf());
     }
 
+    public Vector3f getScale(){
+        return this.transform.getScale(new Vector3f());
+    }
+
     public Vector3f getEulerRotationZYX(){
         return this.transform.getEulerAnglesZYX(new Vector3f());
     }
@@ -61,14 +66,21 @@ public final class JointTransform {
     public PartPose asPartPose(){
         Vector3f rotation = this.getEulerRotationZYX();
         Vector3f translation = this.getTranslation();
-        return PartPose.offsetAndRotation(
-                translation.x(),
-                translation.y(),
-                translation.z(),
-                rotation.x(),
-                rotation.y(),
-                rotation.z()
-        );
+        Vector3f scale = this.getScale();
+        return PartPose
+                .offsetAndRotation(
+                        translation.x(),
+                        translation.y(),
+                        translation.z(),
+                        rotation.x(),
+                        rotation.y(),
+                        rotation.z()
+                )
+                .scaled(
+                        scale.x(),
+                        scale.y(),
+                        scale.z()
+                );
     }
 
     public void translate(Vector3f translation, TransformSpace transformSpace, TransformType transformType){
@@ -89,11 +101,16 @@ public final class JointTransform {
         switch (transformType){
             case ADD -> {
                 switch (transformSpace){
-                    case COMPONENT, PARENT -> this.transform.rotation(this.transform.getNormalizedRotation(new Quaternionf()).premul(rotation));
+                    //case COMPONENT, PARENT -> this.transform.rotation(this.transform.getNormalizedRotation(new Quaternionf()).premul(rotation));
                     case LOCAL -> this.transform.rotate(rotation);
+                    case COMPONENT, PARENT -> {
+                        Quaternionf currentRotation = this.transform.getUnnormalizedRotation(new Quaternionf());
+                        rotation.mul(currentRotation, currentRotation);
+                        this.transform.translationRotateScale(this.getTranslation(), currentRotation, this.getScale());
+                    }
                 }
             }
-            case REPLACE -> this.transform.rotation(rotation);
+            case REPLACE -> this.transform.translationRotateScale(this.getTranslation(), rotation, this.getScale());
         }
     }
 
@@ -126,7 +143,23 @@ public final class JointTransform {
     }
 
     public JointTransform interpolated(JointTransform other, float weight){
-        return JointTransform.of(this.transform.lerp(other.transform, weight, new Matrix4f()));
+        Vector3f translation = this.transform.getTranslation(new Vector3f());
+        Quaternionf rotation = this.transform.getNormalizedRotation(new Quaternionf());
+        Vector3f scale = this.transform.getScale(new Vector3f());
+
+        Vector3f otherTranslation = other.transform.getTranslation(new Vector3f());
+        Quaternionf otherRotation = other.transform.getNormalizedRotation(new Quaternionf());
+        Vector3f otherScale = other.transform.getScale(new Vector3f());
+
+        if(rotation.dot(otherRotation) < 0){
+            otherRotation.invert(otherRotation);
+        }
+
+        translation.lerp(otherTranslation, weight);
+        rotation.slerp(otherRotation, weight);
+        scale.lerp(otherScale, weight);
+
+        return JointTransform.of(new Matrix4f().translationRotateScale(translation, rotation, scale));
     }
 
     public void translateAndRotatePoseStack(PoseStack poseStack){

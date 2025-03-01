@@ -88,15 +88,15 @@ public final class Driver<D>{
      * If the new value is null, the default value is used instead.
      * @param newValue      Value to load for the current tick
      */
-    public void loadValueAndPush(D newValue){
-        this.pushValueToPrevious();
+    public void pushToPreviousAndLoadValue(D newValue){
+        this.pushToPrevious();
         this.loadValue(newValue);
     }
 
     /**
      * Pushes the current value to the previous tick's value.
      */
-    public void pushValueToPrevious(){
+    public void pushToPrevious(){
         this.valuePrevious = this.valueCurrent;
     }
 

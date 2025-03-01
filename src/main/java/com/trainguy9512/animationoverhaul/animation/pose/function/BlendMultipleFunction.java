@@ -39,7 +39,7 @@ public class BlendMultipleFunction implements PoseFunction<LocalSpacePose> {
     public void tick(FunctionEvaluationState evaluationState) {
         this.baseFunction.tick(evaluationState);
         this.inputs.forEach((blendInput, weightDriver) -> {
-            weightDriver.pushValueToPrevious();
+            weightDriver.pushToPrevious();
             float weight = blendInput.weightFunction.apply(evaluationState);
             weightDriver.loadValue(weight);
 

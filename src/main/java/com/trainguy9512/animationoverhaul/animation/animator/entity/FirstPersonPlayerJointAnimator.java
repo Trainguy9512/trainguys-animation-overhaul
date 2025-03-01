@@ -1,11 +1,12 @@
 package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
+import com.mojang.math.Axis;
+import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.data.*;
 import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDriverKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
-import com.trainguy9512.animationoverhaul.animation.pose.ComponentSpacePose;
 import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import com.trainguy9512.animationoverhaul.animation.pose.function.*;
 import com.trainguy9512.animationoverhaul.animation.pose.function.cache.SavedCachedPoseContainer;
@@ -112,23 +113,30 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         Random random = new Random();
         PoseFunction<LocalSpacePose> testSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE)
                 .setLooping(true)
-                .setPlayRate((context) -> random.nextFloat(3))
+                .setPlayRate((context) -> 1f)
                 .build();
         //cachedPoseContainer.register("TEST_SEQ_PLAYER", testSequencePlayer);
 
 
         PoseFunction<LocalSpacePose> testTransformer = LocalPoseConversionFunction.of(
                 JointTransformerFunction.componentSpaceBuilder(ComponentPoseConversionFunction.of(testSequencePlayer), LEFT_ARM_JOINT)
-                .setTranslationConfiguration(JointTransformerFunction.TransformChannelConfiguration.of(
-                        (context) -> new Vector3f((float) Math.sin(context.gameTime() * 8f) * 0.6f, 0, 0),
-                        JointTransform.TransformType.ADD,
-                        JointTransform.TransformSpace.COMPONENT))
-                .build());
+                        .setTranslation(
+                                (context) -> new Vector3f((float) Math.sin(context.gameTimeSeconds() * 8f) * 0f, 0, 0),
+                                JointTransform.TransformType.ADD,
+                                JointTransform.TransformSpace.COMPONENT
+                        )
+                        .setRotation(
+                                (context) -> Axis.XP.rotation((float) (Math.sin(context.gameTimeSeconds() * 0f) * Mth.PI * 0.3f)),
+                                JointTransform.TransformType.REPLACE,
+                                JointTransform.TransformSpace.COMPONENT
+                        )
+                        .setWeight(context -> Mth.sin(context.gameTimeSeconds() * 12f) * 0.5f + 0.5f)
+                        .build());
 
         //PoseFunction<LocalSpacePose> cached = cachedPoseContainer.getOrThrow("TEST_SEQ_PLAYER");
         PoseFunction<LocalSpacePose> blendMultipleFunction = BlendMultipleFunction.builder(testSequencePlayer).addBlendInput(testSequencePlayer, (evaluationState) -> 0.5f).build();
 
-        return blendMultipleFunction;
+        return testTransformer;
     }
 
 
@@ -171,7 +179,9 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         driverContainer.loadValueIntoDriver(CAMERA_ROTATION, targetRotation);
 
 
+
         Vector3f dampenedCameraRotation = new Vector3f(driverContainer.getPreviousDriverValue(DAMPENED_CAMERA_ROTATION));
+
 
         // If the dampened camera rotation is 0 (which is what it is upon initialization), set it to the target
         if(dampenedCameraRotation.x() == 0F && dampenedCameraRotation.y() == 0F){

@@ -1,6 +1,5 @@
 package com.trainguy9512.animationoverhaul.animation.pose.function;
 
-import com.mojang.blaze3d.Blaze3D;
 import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
 import com.trainguy9512.animationoverhaul.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
@@ -47,9 +46,9 @@ public interface PoseFunction<P extends AnimationPose> {
         }
     }
 
-    record FunctionInterpolationContext(PoseCalculationDataContainer dataContainer, float partialTicks, double gameTime) {
-        public static FunctionInterpolationContext of(PoseCalculationDataContainer dataContainer, float partialTicks){
-            return new FunctionInterpolationContext(dataContainer, partialTicks, Blaze3D.getTime());
+    record FunctionInterpolationContext(PoseCalculationDataContainer dataContainer, float partialTicks, float gameTimeSeconds) {
+        public static FunctionInterpolationContext of(PoseCalculationDataContainer dataContainer, float partialTicks, float gameTimeSeconds){
+            return new FunctionInterpolationContext(dataContainer, partialTicks, gameTimeSeconds);
         }
     }
 }
