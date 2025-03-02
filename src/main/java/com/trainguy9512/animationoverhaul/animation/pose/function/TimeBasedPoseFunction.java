@@ -1,10 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.pose.function;
 
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
-import com.trainguy9512.animationoverhaul.animation.pose.sampler.AnimationSequencePlayer;
-import com.trainguy9512.animationoverhaul.animation.pose.sampler.PoseSampler;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 

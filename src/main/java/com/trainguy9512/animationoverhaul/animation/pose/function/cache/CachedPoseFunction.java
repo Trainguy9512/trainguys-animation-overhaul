@@ -1,6 +1,5 @@
 package com.trainguy9512.animationoverhaul.animation.pose.function.cache;
 
-import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import com.trainguy9512.animationoverhaul.animation.pose.function.PoseFunction;
 import org.jetbrains.annotations.NotNull;
 

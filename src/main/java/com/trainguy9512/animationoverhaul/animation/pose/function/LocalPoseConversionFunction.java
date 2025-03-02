@@ -1,7 +1,5 @@
 package com.trainguy9512.animationoverhaul.animation.pose.function;
 
-import com.trainguy9512.animationoverhaul.animation.pose.ComponentSpacePose;
-import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import org.jetbrains.annotations.NotNull;
 
 public record LocalPoseConversionFunction(PoseFunction<ComponentSpacePose> input) implements PoseFunction<LocalSpacePose> {

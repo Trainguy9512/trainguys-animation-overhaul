@@ -5,6 +5,7 @@ import com.trainguy9512.animationoverhaul.animation.data.AnimationSequenceData;
 import com.trainguy9512.animationoverhaul.util.Timeline;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.joml.*;
 import org.joml.Math;
 
@@ -114,6 +115,13 @@ public final class JointTransform {
         }
     }
 
+    public void scale(Vector3f scale, TransformSpace transformSpace, TransformType transformType){
+        switch (transformType){
+            case ADD -> this.transform.scale(scale);
+            case REPLACE -> this.transform.translationRotateScale(this.getTranslation(), this.getRotation(), scale);
+        }
+    }
+
     public void rotate(Vector3f rotationEuler, TransformSpace transformSpace, TransformType transformType){
         this.rotate(new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), transformSpace, transformType);
     }
@@ -127,8 +135,9 @@ public final class JointTransform {
 
     //TODO: Why does this use translated and rotated?
     public void multiply(JointTransform jointTransform){
-        this.translate(jointTransform.getTranslation(), TransformSpace.COMPONENT, TransformType.ADD);
-        this.rotate(jointTransform.getRotation(), TransformSpace.COMPONENT, TransformType.ADD);
+        this.transform.mul(jointTransform.transform);
+        //this.translate(jointTransform.getTranslation(), TransformSpace.COMPONENT, TransformType.ADD);
+        //this.rotate(jointTransform.getRotation(), TransformSpace.COMPONENT, TransformType.ADD);
     }
 
     public void inverseMultiply(JointTransform jointTransform){
@@ -151,13 +160,10 @@ public final class JointTransform {
         Quaternionf otherRotation = other.transform.getNormalizedRotation(new Quaternionf());
         Vector3f otherScale = other.transform.getScale(new Vector3f());
 
-        if(rotation.dot(otherRotation) < 0){
-            otherRotation.invert(otherRotation);
-        }
-
         translation.lerp(otherTranslation, weight);
         rotation.slerp(otherRotation, weight);
         scale.lerp(otherScale, weight);
+
 
         return JointTransform.of(new Matrix4f().translationRotateScale(translation, rotation, scale));
     }

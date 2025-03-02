@@ -1,10 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.function;
 
-import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.ComponentSpacePose;
-import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -45,6 +42,7 @@ public class JointTransformerFunction<P extends AnimationPose> implements PoseFu
         JointTransform jointTransform = pose.getJointTransform(this.joint);
         this.transformJoint(jointTransform, context, this.translationConfiguration, JointTransform::translate);
         this.transformJoint(jointTransform, context, this.rotationConfiguration, JointTransform::rotate);
+        this.transformJoint(jointTransform, context, this.scaleConfiguration, JointTransform::scale);
 
         if(weight != 0){
             if(weight == 1){

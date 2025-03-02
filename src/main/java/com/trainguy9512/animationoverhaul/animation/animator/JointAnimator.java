@@ -1,10 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.animator;
 
 import com.trainguy9512.animationoverhaul.animation.data.OnTickDataContainer;
-import com.trainguy9512.animationoverhaul.animation.data.PoseCalculationDataContainer;
-import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
-import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import com.trainguy9512.animationoverhaul.animation.pose.function.PoseFunction;
 import com.trainguy9512.animationoverhaul.animation.pose.function.cache.SavedCachedPoseContainer;
 
