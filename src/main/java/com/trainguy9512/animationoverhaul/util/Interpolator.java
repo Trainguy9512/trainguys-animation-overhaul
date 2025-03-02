@@ -1,7 +1,11 @@
 package com.trainguy9512.animationoverhaul.util;
 
+import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
+import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+
+import java.util.Vector;
 
 /**
  * @author Marvin Schürz

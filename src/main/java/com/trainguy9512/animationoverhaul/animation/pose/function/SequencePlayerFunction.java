@@ -1,5 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.function;
 
+import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
+import com.trainguy9512.animationoverhaul.animation.pose.sampler.AnimationSequencePlayer;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 

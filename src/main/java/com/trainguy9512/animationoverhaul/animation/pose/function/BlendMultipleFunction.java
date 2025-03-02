@@ -2,6 +2,7 @@ package com.trainguy9512.animationoverhaul.animation.pose.function;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
+import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

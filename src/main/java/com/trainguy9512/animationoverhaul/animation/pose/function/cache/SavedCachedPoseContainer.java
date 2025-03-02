@@ -1,7 +1,9 @@
 package com.trainguy9512.animationoverhaul.animation.pose.function.cache;
 
 import com.google.common.collect.Maps;
+import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import com.trainguy9512.animationoverhaul.animation.pose.function.PoseFunction;
+import net.minecraft.core.HolderSet;
 
 import java.util.Map;
 import java.util.Optional;
