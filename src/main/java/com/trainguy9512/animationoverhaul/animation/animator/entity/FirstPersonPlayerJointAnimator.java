@@ -5,6 +5,7 @@ import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDriverKey;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
+import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import com.trainguy9512.animationoverhaul.animation.pose.function.*;
 import com.trainguy9512.animationoverhaul.animation.pose.function.cache.SavedCachedPoseContainer;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;

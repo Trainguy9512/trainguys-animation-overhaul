@@ -11,11 +11,13 @@ import java.util.*;
 public abstract class AnimationPose {
 
     protected final JointSkeleton jointSkeleton;
-    protected final HashMap<String, JointTransform> jointTransforms;
+    protected final Map<String, JointTransform> jointTransforms;
+    private final Map<String, Matrix4f> jointParentMatrices;
 
     protected AnimationPose(JointSkeleton jointSkeleton){
         this.jointSkeleton = jointSkeleton;
         this.jointTransforms = Maps.newHashMap();
+        this.jointParentMatrices = Maps.newHashMap();
 
         for(String joint : jointSkeleton.getJoints()){
             this.setJointTransform(joint, JointTransform.ZERO);
@@ -25,6 +27,7 @@ public abstract class AnimationPose {
     protected AnimationPose(AnimationPose animationPose){
         this.jointSkeleton = animationPose.jointSkeleton;
         this.jointTransforms = new HashMap<>(animationPose.jointTransforms);
+        this.jointParentMatrices = new HashMap<>(animationPose.jointParentMatrices);
     }
 
     /**
@@ -63,7 +66,9 @@ public abstract class AnimationPose {
 
         this.getJointSkeleton().getDirectChildrenOfJoint(parent).ifPresent(children -> children.forEach(child -> this.convertChildrenJointsToComponentSpace(child, poseStack)));
 
-        this.setJointTransform(parent, JointTransform.of(new Matrix4f(poseStack.last().pose())));
+        Matrix4f componentSpaceMatrix = new Matrix4f(poseStack.last().pose());
+        this.jointParentMatrices.put(parent, componentSpaceMatrix);
+        this.setJointTransform(parent, JointTransform.of(componentSpaceMatrix));
         poseStack.popPose();
     }
 

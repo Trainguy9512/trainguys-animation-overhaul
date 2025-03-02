@@ -2,6 +2,8 @@ package com.trainguy9512.animationoverhaul.animation.pose.function;
 
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
+import com.trainguy9512.animationoverhaul.animation.pose.ComponentSpacePose;
+import com.trainguy9512.animationoverhaul.animation.pose.LocalSpacePose;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
