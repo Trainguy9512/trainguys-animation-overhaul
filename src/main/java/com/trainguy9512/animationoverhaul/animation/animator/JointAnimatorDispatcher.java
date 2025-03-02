@@ -1,11 +1,10 @@
 package com.trainguy9512.animationoverhaul.animation.animator;
 
-import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.animator.entity.EntityJointAnimator;
-import com.trainguy9512.animationoverhaul.animation.animator.entity.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.animationoverhaul.animation.data.AnimationDataContainer;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
+import com.trainguy9512.animationoverhaul.animation.pose.ComponentSpacePose;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
@@ -21,7 +20,7 @@ public class JointAnimatorDispatcher {
     private final WeakHashMap<UUID, AnimationDataContainer> entityAnimationDataContainerStorage;
 
     private AnimationDataContainer firstPersonPlayerDataContainer;
-    private AnimationPose interpolatedFirstPersonPlayerPose;
+    private ComponentSpacePose interpolatedFirstPersonPlayerPose;
 
     public JointAnimatorDispatcher(){
         this.entityAnimationDataContainerStorage = new WeakHashMap<>();
@@ -86,7 +85,7 @@ public class JointAnimatorDispatcher {
         return Optional.ofNullable(this.firstPersonPlayerDataContainer);
     }
 
-    public Optional<AnimationPose> getInterpolatedFirstPersonPlayerPose(){
+    public Optional<ComponentSpacePose> getInterpolatedFirstPersonPlayerPose(){
         return Optional.ofNullable(this.interpolatedFirstPersonPlayerPose);
     }
 
@@ -98,7 +97,7 @@ public class JointAnimatorDispatcher {
         return AnimationDataContainer.of(jointAnimator);
     }
 
-    public AnimationPose getInterpolatedAnimationPose(JointAnimator<?> jointAnimator, AnimationDataContainer dataContainer, float partialTicks){
+    public ComponentSpacePose getInterpolatedAnimationPose(JointAnimator<?> jointAnimator, AnimationDataContainer dataContainer, float partialTicks){
         return switch (jointAnimator.getPoseCalulationFrequency()) {
             case CALCULATE_EVERY_FRAME -> dataContainer.computePose(partialTicks).convertedToComponentSpace();
             case CALCULATE_ONCE_PER_TICK -> dataContainer.getDriverValueInterpolated(dataContainer.getPerTickCalculatedPoseDriverKey(), partialTicks).convertedToComponentSpace();

@@ -19,8 +19,8 @@ public final class JointTransform {
         this.transform = transform;
     }
 
-    public static JointTransform of(Matrix4f matrix4f){
-        return new JointTransform(new Matrix4f(matrix4f));
+    public static JointTransform of(Matrix4f transform){
+        return new JointTransform(new Matrix4f(transform));
     }
 
     public static JointTransform of(JointTransform jointTransform){

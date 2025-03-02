@@ -1,5 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.pose;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.animationoverhaul.animation.joint.JointSkeleton;
 import com.trainguy9512.animationoverhaul.animation.joint.JointTransform;
 import org.joml.Matrix4f;
@@ -30,11 +31,20 @@ public class ComponentSpacePose extends AnimationPose {
     }
 
     /**
+     * Retrieves a copy of the transform for the supplied joint.
+     * @param joint                 Joint string identifier
+     * @return                      Joint transform
+     */
+    public JointTransform getComponentSpaceTransform(String joint){
+        return JointTransform.of(this.jointTransforms.getOrDefault(joint, JointTransform.ZERO));
+    }
+
+    /**
      * Creates a local space pose from this component space pose.
      */
     public LocalSpacePose convertedToLocalSpace(){
         LocalSpacePose pose = LocalSpacePose.of(this);
-        pose.convertChildrenJointsToLocalSpace(this.getJointSkeleton().getRootJoint(), new Matrix4f());
+        pose.convertChildrenJointsToLocalSpace(this.getJointSkeleton().getRootJoint(), new PoseStack());
         return pose;
     }
 }
