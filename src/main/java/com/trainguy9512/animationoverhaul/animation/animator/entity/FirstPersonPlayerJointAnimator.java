@@ -1,5 +1,6 @@
 package com.trainguy9512.animationoverhaul.animation.animator.entity;
 
+import com.mojang.math.Axis;
 import com.trainguy9512.animationoverhaul.animation.data.*;
 import com.trainguy9512.animationoverhaul.animation.data.driver.Driver;
 import com.trainguy9512.animationoverhaul.animation.data.key.AnimationDriverKey;
@@ -119,16 +120,21 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         PoseFunction<LocalSpacePose> testTransformer = LocalPoseConversionFunction.of(
                 JointTransformerFunction.componentSpaceBuilder(ComponentPoseConversionFunction.of(testSequencePlayer), RIGHT_ARM_JOINT)
                         .setTranslation(
-                                (context) -> new Vector3f(4, 0, 0),
+                                (context) -> new Vector3f(0, 0, 0),
                                 JointTransform.TransformType.ADD,
                                 JointTransform.TransformSpace.COMPONENT
                         )
-                        .setScale(
-                                (context) -> new Vector3f(1, 1, 1),
+                        .setRotation(
+                                context -> Axis.XP.rotationDegrees(0f),
                                 JointTransform.TransformType.ADD,
                                 JointTransform.TransformSpace.LOCAL
                         )
-                        .setWeight(context -> Mth.sin(context.gameTimeSeconds() * 4f) * 0.5f + 0.5f)
+                        .setScale(
+                                (context) -> new Vector3f(Mth.sin(context.gameTimeSeconds() * 8f) * 0.5f + 0.5f, 1, 1),
+                                JointTransform.TransformType.ADD,
+                                JointTransform.TransformSpace.LOCAL
+                        )
+                        .setWeight(context -> 1f)
                         .build());
 
         //PoseFunction<LocalSpacePose> cached = cachedPoseContainer.getOrThrow("TEST_SEQ_PLAYER");

@@ -72,20 +72,12 @@ public abstract class AnimationPose {
         poseStack.popPose();
     }
 
-    protected void convertChildrenJointsToLocalSpace(String parent, PoseStack poseStack){
+    protected void convertChildrenJointsToLocalSpace(String parent, Matrix4f parentMatrix){
 
-        Matrix4f offsetMatrix = this.getJointTransform(parent).getTransform().mul(this.jointParentMatrices.get(parent).invert());
-        poseStack.pushPose();
-        poseStack.mulPose(offsetMatrix);
+        this.getJointSkeleton().getDirectChildrenOfJoint(parent).ifPresent(children -> children.forEach(child -> this.convertChildrenJointsToLocalSpace(child, this.jointParentMatrices.get(parent))));
 
-        //Matrix4f childParentMatrix = offsetMatrix.mul(parentMatrix);
-
-        this.getJointSkeleton().getDirectChildrenOfJoint(parent).ifPresent(children -> children.forEach(child -> this.convertChildrenJointsToLocalSpace(child, poseStack)));
-
-        //parentJointPose
-        //parentJointPose.multiply(parentMatrix.invert(), JointTransform.TransformSpace.LOCAL);
-        //this.setJointTransform(parent, JointTransform.of(offsetMatrix.mul(this.jointParentMatrices.get(parent).invert())));
-        this.setJointTransform(parent, JointTransform.of(this.jointTransforms.get(parent).getTransform().invert().mul(poseStack.last().pose())));
-        poseStack.popPose();
+        JointTransform parentJointPose = this.getJointTransform(parent);
+        parentJointPose.multiply(parentMatrix.invert(new Matrix4f()), JointTransform.TransformSpace.LOCAL);
+        this.setJointTransform(parent, parentJointPose);
     }
 }

@@ -44,7 +44,7 @@ public class ComponentSpacePose extends AnimationPose {
      */
     public LocalSpacePose convertedToLocalSpace(){
         LocalSpacePose pose = LocalSpacePose.of(this);
-        pose.convertChildrenJointsToLocalSpace(this.getJointSkeleton().getRootJoint(), new PoseStack());
+        pose.convertChildrenJointsToLocalSpace(this.getJointSkeleton().getRootJoint(), new Matrix4f());
         return pose;
     }
 }

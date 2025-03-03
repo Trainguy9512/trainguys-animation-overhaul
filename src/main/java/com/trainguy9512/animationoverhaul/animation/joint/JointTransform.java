@@ -118,7 +118,11 @@ public final class JointTransform {
     public void scale(Vector3f scale, TransformSpace transformSpace, TransformType transformType){
         switch (transformType){
             case ADD -> this.transform.scale(scale);
-            case REPLACE -> this.transform.translationRotateScale(this.getTranslation(), this.getRotation(), scale);
+            case REPLACE -> {
+                Matrix4f scaleMatrix = new Matrix4f().scaling(scale);
+                scaleMatrix.mul(this.transform, this.transform);
+                //this.transform.translationRotateScale(this.getTranslation(), this.getRotation(), scale);
+            }
         }
     }
 
@@ -168,33 +172,18 @@ public final class JointTransform {
         return JointTransform.of(new Matrix4f().translationRotateScale(translation, rotation, scale));
     }
 
-    public void translateAndRotatePoseStack(PoseStack poseStack){
-        translatePoseStack(poseStack);
-        rotatePoseStack(poseStack);
-    }
-
-    public void translatePoseStack(PoseStack poseStack){
-        Vector3f translation = this.getTranslation();
-        poseStack.translate(translation.x() / 16.0F, (translation.y() / 16.0F), (translation.z() / 16.0F));
-    }
-
-    public void rotatePoseStack(PoseStack poseStack){
-        Vector3f rotation = this.getEulerRotationZYX();
-        poseStack.mulPose(new Quaternionf().rotationZYX(rotation.z(), rotation.y(), rotation.x()));
-    }
-
-    public void inverseTranslatePoseStack(PoseStack poseStack){
-        Vector3f translation = this.getTranslation().negate();
-        poseStack.translate(translation.x() / 16.0F, (translation.y() / 16.0F), (translation.z() / 16.0F));
-    }
-
-    public void inverseRotatePoseStack(PoseStack poseStack){
-        poseStack.mulPose(this.getRotation());
-    }
-
     public void transformPoseStack(PoseStack poseStack, float transformMultiplier){
         Matrix4f matrix4f = new Matrix4f(this.transform);
         poseStack.mulPose(matrix4f.setTranslation(this.getTranslation().div(new Vector3f(transformMultiplier))));
+
+        //Vector3f translation = this.getTranslation();
+        //poseStack.translate(translation.x() / transformMultiplier, (translation.y() / transformMultiplier), (translation.z() / transformMultiplier));
+
+        //Quaternionf rotation = this.getRotation();
+        //poseStack.mulPose(rotation);
+
+        //Vector3f scale = this.getScale();
+        //poseStack.scale(scale.x(), scale.y(), scale.z());
     }
 
     public void transformPoseStack(PoseStack poseStack){
