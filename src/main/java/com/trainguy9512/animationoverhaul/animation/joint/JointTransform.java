@@ -66,8 +66,8 @@ public final class JointTransform {
 
     public PartPose asPartPose(){
         Vector3f rotation = this.getEulerRotationZYX();
-        Vector3f translation = this.getTranslation();
         Vector3f scale = this.getScale();
+        Vector3f translation = this.getTranslation().div(scale);
         return PartPose
                 .offsetAndRotation(
                         translation.x(),
@@ -115,19 +115,24 @@ public final class JointTransform {
         }
     }
 
+    public void rotate(Vector3f rotationEuler, TransformSpace transformSpace, TransformType transformType){
+        this.rotate(new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), transformSpace, transformType);
+    }
+
     public void scale(Vector3f scale, TransformSpace transformSpace, TransformType transformType){
         switch (transformType){
             case ADD -> this.transform.scale(scale);
             case REPLACE -> {
-                Matrix4f scaleMatrix = new Matrix4f().scaling(scale);
-                scaleMatrix.mul(this.transform, this.transform);
+                Matrix4f scaleMatrix = new Matrix4f().identity().scale(scale);
+                //scaleMatrix.mulLocal(this.transform, this.transform);
+
+                Matrix4f matrix4f = new Matrix4f().identity();
+                matrix4f.translationRotateScale(this.getTranslation(), this.getRotation(), scale);
+
+                this.transform.set(matrix4f);
                 //this.transform.translationRotateScale(this.getTranslation(), this.getRotation(), scale);
             }
         }
-    }
-
-    public void rotate(Vector3f rotationEuler, TransformSpace transformSpace, TransformType transformType){
-        this.rotate(new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), transformSpace, transformType);
     }
 
     public void multiply(Matrix4f transform, TransformSpace transformSpace){
