@@ -118,10 +118,10 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
 
         PoseFunction<LocalSpacePose> testTransformer = LocalConversionFunction.of(
-                JointTransformerFunction.componentSpaceBuilder(ComponentConversionFunction.of(testSequencePlayer), RIGHT_ARM_JOINT)
+                JointTransformerFunction.componentSpaceBuilder(ComponentConversionFunction.of(testSequencePlayer), CAMERA_JOINT)
                         .setTranslation(
-                                (context) -> new Vector3f(0, 0, 0),
-                                JointTransform.TransformType.ADD,
+                                context -> new Vector3f(0, 0, 0),
+                                JointTransform.TransformType.REPLACE,
                                 JointTransform.TransformSpace.COMPONENT
                         )
                         .setRotation(
@@ -130,8 +130,8 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
                                 JointTransform.TransformSpace.COMPONENT
                         )
                         .setScale(
-                                context -> new Vector3f((Mth.sin(context.gameTimeSeconds() * 8f) * 0.5f + 0.5f), 1, 1),
-                                JointTransform.TransformType.REPLACE,
+                                context -> new Vector3f(1, 1, 1),
+                                JointTransform.TransformType.ADD,
                                 JointTransform.TransformSpace.COMPONENT
                         )
                         .setWeight(context -> 1f)

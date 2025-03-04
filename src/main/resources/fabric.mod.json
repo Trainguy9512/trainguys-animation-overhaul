@@ -4,7 +4,7 @@
   "version": "${version}",
 
   "name": "Locomotion",
-  "description": "better name pending",
+  "description": "Animation overhaul mod that aims to give Minecraft's entities and blocks dynamic gameplay-driven animations.",
   "authors": [
     "Trainguy9512"
   ],
