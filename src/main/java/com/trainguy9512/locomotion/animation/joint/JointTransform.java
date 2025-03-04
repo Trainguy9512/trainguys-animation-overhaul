@@ -58,6 +58,10 @@ public final class JointTransform {
         return this.transform.getEulerAnglesZYX(new Vector3f());
     }
 
+    public Vector3f getScale(){
+        return this.transform.getScale(new Vector3f());
+    }
+
     public PartPose asPartPose(){
         Vector3f rotation = this.getEulerRotationZYX();
         Vector3f translation = this.getTranslation();
@@ -77,8 +81,8 @@ public final class JointTransform {
             case ADD -> {
                 if(translation.x() != 0 || translation.y() != 0 || translation.z() != 0){
                     switch (transformSpace){
-                        case COMPONENT, PARENT -> this.transform.translateLocal(translation);
                         case LOCAL -> this.transform.translate(translation);
+                        case COMPONENT, PARENT -> this.transform.translateLocal(translation);
                     }
                 }
             }
@@ -95,11 +99,31 @@ public final class JointTransform {
                     case COMPONENT, PARENT -> {
                         Quaternionf currentRotation = this.transform.getUnnormalizedRotation(new Quaternionf());
                         rotation.mul(currentRotation, currentRotation);
-                        this.transform.translationRotate(this.getTranslation(), currentRotation);
+                        this.transform.translationRotateScale(this.getTranslation(), currentRotation, this.getScale());
                     }
                 }
             }
-            case REPLACE -> this.transform.translationRotate(this.getTranslation(), rotation);
+            case REPLACE -> this.transform.translationRotateScale(this.getTranslation(), rotation, this.getScale());
+        }
+    }
+
+    public void scale(Vector3f scale, TransformSpace transformSpace, TransformType transformType){
+        switch (transformType){
+            case ADD -> {
+                switch (transformSpace){
+                    //case COMPONENT, PARENT -> this.transform.rotation(this.transform.getNormalizedRotation(new Quaternionf()).premul(rotation));
+                    case LOCAL -> this.transform.scale(scale);
+                    case COMPONENT, PARENT -> this.transform.scaleLocal(scale.x, scale.y, scale.z);
+
+                }
+            }
+            case REPLACE -> {
+                Matrix4f matrix4f = new Matrix4f().identity();
+                matrix4f.translationRotateScale(this.getTranslation(), this.getRotation(), scale);
+
+                this.transform.set(matrix4f);
+                //this.transform.translationRotateScale(this.getTranslation(), this.getRotation(), scale);
+            }
         }
     }
 

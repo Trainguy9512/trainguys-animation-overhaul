@@ -4,7 +4,7 @@ import com.trainguy9512.locomotion.animation.pose.ComponentSpacePose;
 import com.trainguy9512.locomotion.animation.pose.LocalSpacePose;
 import org.jetbrains.annotations.NotNull;
 
-public record ComponentPoseConversionFunction(PoseFunction<LocalSpacePose> input) implements PoseFunction<ComponentSpacePose> {
+public record ComponentConversionFunction(PoseFunction<LocalSpacePose> input) implements PoseFunction<ComponentSpacePose> {
     @Override
     public @NotNull ComponentSpacePose compute(FunctionInterpolationContext context) {
         return this.input.compute(context).convertedToComponentSpace();
@@ -17,10 +17,10 @@ public record ComponentPoseConversionFunction(PoseFunction<LocalSpacePose> input
 
     @Override
     public PoseFunction<ComponentSpacePose> wrapUnique() {
-        return ComponentPoseConversionFunction.of(this.input.wrapUnique());
+        return ComponentConversionFunction.of(this.input.wrapUnique());
     }
 
-    public static ComponentPoseConversionFunction of(PoseFunction<LocalSpacePose> input){
-        return new ComponentPoseConversionFunction(input);
+    public static ComponentConversionFunction of(PoseFunction<LocalSpacePose> input){
+        return new ComponentConversionFunction(input);
     }
 }

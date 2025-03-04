@@ -117,16 +117,21 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         //cachedPoseContainer.register("TEST_SEQ_PLAYER", testSequencePlayer);
 
 
-        PoseFunction<LocalSpacePose> testTransformer = LocalPoseConversionFunction.of(
-                JointTransformerFunction.componentSpaceBuilder(ComponentPoseConversionFunction.of(testSequencePlayer), RIGHT_ARM_JOINT)
+        PoseFunction<LocalSpacePose> testTransformer = LocalConversionFunction.of(
+                JointTransformerFunction.componentSpaceBuilder(ComponentConversionFunction.of(testSequencePlayer), RIGHT_ARM_JOINT)
                         .setTranslation(
                                 (context) -> new Vector3f(0, 0, 0),
                                 JointTransform.TransformType.ADD,
                                 JointTransform.TransformSpace.COMPONENT
                         )
                         .setRotation(
-                                context -> Axis.XP.rotationDegrees((Mth.sin(context.gameTimeSeconds() * 3f) * 0.5f + 0.5f) * 360f),
+                                context -> Axis.XP.rotationDegrees(0f),
                                 JointTransform.TransformType.ADD,
+                                JointTransform.TransformSpace.COMPONENT
+                        )
+                        .setScale(
+                                context -> new Vector3f((Mth.sin(context.gameTimeSeconds() * 8f) * 0.5f + 0.5f), 1, 1),
+                                JointTransform.TransformType.REPLACE,
                                 JointTransform.TransformSpace.COMPONENT
                         )
                         .setWeight(context -> 1f)

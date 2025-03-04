@@ -1,5 +1,6 @@
 package com.trainguy9512.locomotion.animation.animator;
 
+import com.trainguy9512.locomotion.access.MatrixModelPart;
 import com.trainguy9512.locomotion.animation.animator.entity.EntityJointAnimator;
 import com.trainguy9512.locomotion.animation.data.AnimationDataContainer;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
@@ -105,12 +106,13 @@ public class JointAnimatorDispatcher {
     }
 
     public <S extends EntityRenderState> void setupAnimWithAnimationPose(EntityModel<S> entityModel, S entityRenderState, AnimationPose animationPose, EntityJointAnimator<?, S> entityJointAnimator){
+        entityModel.resetPose();
         JointSkeleton jointSkeleton = animationPose.getJointSkeleton();
         jointSkeleton.getJoints()
                 .forEach(joint -> {
                     if(jointSkeleton.getJointConfiguration(joint).usesModelPart()){
                         entityModel.getAnyDescendantWithName(jointSkeleton.getJointConfiguration(joint).modelPartIdentifier()).ifPresent(
-                                modelPart -> modelPart.loadPose(animationPose.getJointTransform(joint).asPartPose())
+                                modelPart -> ((MatrixModelPart)(Object) modelPart).locomotion$setMatrix(animationPose.getJointTransform(joint).getTransform())
                         );
                     }
                 });

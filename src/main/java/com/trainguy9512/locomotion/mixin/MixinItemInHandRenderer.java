@@ -2,6 +2,7 @@ package com.trainguy9512.locomotion.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.trainguy9512.locomotion.access.MatrixModelPart;
 import com.trainguy9512.locomotion.animation.animator.JointAnimatorDispatcher;
 import com.trainguy9512.locomotion.animation.animator.JointAnimatorRegistry;
 import com.trainguy9512.locomotion.animation.animator.entity.FirstPersonPlayerJointAnimator;
@@ -9,6 +10,7 @@ import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import com.trainguy9512.locomotion.animation.joint.JointTransform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
@@ -53,6 +55,7 @@ public abstract class MixinItemInHandRenderer {
                             jointAnimatorDispatcher.calculateInterpolatedFirstPersonPlayerPose(jointAnimator, dataContainer, partialTicks);
                             jointAnimatorDispatcher.getInterpolatedFirstPersonPlayerPose().ifPresent(
                                     animationPose -> {
+
                                         JointTransform rightArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_ARM_JOINT);
                                         JointTransform leftArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.LEFT_ARM_JOINT);
                                         JointTransform rightHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_HAND_JOINT);
@@ -63,17 +66,16 @@ public abstract class MixinItemInHandRenderer {
                                         //poseStack.pushPose();
 
 
-
                                         AbstractClientPlayer abstractClientPlayer = this.minecraft.player;
                                         //RenderSystem.setShaderTexture(0, abstractClientPlayer.getSkin().texture());
                                         PlayerRenderer playerRenderer = (PlayerRenderer)this.entityRenderDispatcher.getRenderer(abstractClientPlayer);
                                         PlayerModel playerModel = playerRenderer.getModel();
+                                        playerModel.resetPose();
 
-
-                                        playerModel.rightArm.loadPose(rightArmPose.asPartPose());
-                                        playerModel.leftArm.loadPose(leftArmPose.asPartPose());
-
-                                        ResourceLocation resourceLocation = abstractClientPlayer.getSkin().texture();
+                                        ((MatrixModelPart)(Object) playerModel.rightArm).locomotion$setMatrix(rightArmPose.getTransform());
+                                        ((MatrixModelPart)(Object) playerModel.leftArm).locomotion$setMatrix(leftArmPose.getTransform());
+                                        //playerModel.rightArm.loadPose(rightArmPose.asPartPose());
+                                        //playerModel.leftArm.loadPose(leftArmPose.asPartPose());
 
                                         playerModel.rightArm.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
                                         playerModel.leftArm.render(poseStack, bufferSource.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), i, OverlayTexture.NO_OVERLAY);
