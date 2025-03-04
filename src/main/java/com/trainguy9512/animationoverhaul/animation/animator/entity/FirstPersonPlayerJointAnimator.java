@@ -112,7 +112,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         Random random = new Random();
         PoseFunction<LocalSpacePose> testSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE)
                 .setLooping(true)
-                .setPlayRate((context) -> 0f)
+                .setPlayRate((context) -> 1f)
                 .build();
         //cachedPoseContainer.register("TEST_SEQ_PLAYER", testSequencePlayer);
 
@@ -125,14 +125,9 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
                                 JointTransform.TransformSpace.COMPONENT
                         )
                         .setRotation(
-                                context -> Axis.XP.rotationDegrees(0f),
+                                context -> Axis.XP.rotationDegrees((Mth.sin(context.gameTimeSeconds() * 3f) * 0.5f + 0.5f) * 360f),
                                 JointTransform.TransformType.ADD,
-                                JointTransform.TransformSpace.LOCAL
-                        )
-                        .setScale(
-                                (context) -> new Vector3f(Mth.sin(context.gameTimeSeconds() * 8f) * 0.5f + 0.5f, 1, 1),
-                                JointTransform.TransformType.REPLACE,
-                                JointTransform.TransformSpace.LOCAL
+                                JointTransform.TransformSpace.COMPONENT
                         )
                         .setWeight(context -> 1f)
                         .build());
