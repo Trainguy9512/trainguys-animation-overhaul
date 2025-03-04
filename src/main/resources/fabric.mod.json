@@ -14,12 +14,12 @@
   },
 
   "license": "LGPLv3",
-  "icon": "assets/animation_overhaul/icon.png",
+  "icon": "assets/locomotion/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.trainguy9512.animationoverhaul.AnimationOverhaulMain"
+      "com.trainguy9512.locomotion.LocomotionMain"
     ]
   },
   "mixins": [

@@ -1,6 +1,8 @@
-# 🏃 Trainguy's Animation Overhaul
+# 🚂 Locomotion: An Animation Overhaul
 
-Repository for a 1.21.4+ Minecraft mod centered around complex gameplay-driven character animations through a real-time animation system I'm building inspired by Unreal Engine's Animation Blueprints. Is currently included in the Moonflower suite of mods.
+(Formerly known as Trainguy's Animation Overhaul)
+
+Locomotion is a Minecraft mod centered around giving Minecraft complex gameplay-driven character and block animations through a real-time animation system inspired by Unreal Engine's Animation Blueprints. Currently included in the Moonflower suite of mods.
 
 > **Warning!**
 > This project is still in heavy development! You are free to compile yourself and try it out, but keep in mind that there will be missing animations, placeholders, and debugging visuals that will not look correct in a normal gameplay context.
@@ -57,9 +59,7 @@ Repository for a 1.21.4+ Minecraft mod centered around complex gameplay-driven c
 - What versions of the game will this mod support?
 > For right now, the mod is being worked on in the latest version of Java Minecraft. Upon release, the plan is to gear the project towards supporting multiple versions at once onwards. Whether or not there will be backports is TBD
 - What mod loaders will this mod be compatible with?
-> Initially, likely only Fabric, as this mod being built to be used in a vanilla-ish setting and to my knowledge, Fabric is generally more geared towards vanilla gameplay than Forge is.
-- Will the mod come to Forge/NeoForge?
-> Likely yes, as part of multi-version development I plan on gearing the project for closer to release.
+> Initially, likely only Fabric, but I would like to expand it to Quilt, NeoForge, and Forge further along in development.
 - What will the mod require as a dependency?
 > Right now, just the Fabric API.
 - What is this mod compatible with?
