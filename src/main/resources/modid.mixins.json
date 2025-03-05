@@ -10,7 +10,6 @@
     "MixinElytraLayer",
     "MixinGameRenderer",
     "MixinItemInHandLayer",
-    "MixinItemInHandRenderer",
     "MixinLivingEntityRenderer",
     "MixinLivingEntityRenderState",
     "MixinMinecraft",
