@@ -6,7 +6,7 @@ import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
 import com.trainguy9512.locomotion.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
-import com.trainguy9512.locomotion.animation.pose.sampler.notify.NotifyListener;
+import com.trainguy9512.locomotion.animation.pose.function.notify.NotifyListener;
 import com.trainguy9512.locomotion.util.Easing;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;

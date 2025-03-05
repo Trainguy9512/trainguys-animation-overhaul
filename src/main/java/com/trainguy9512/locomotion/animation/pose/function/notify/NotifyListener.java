@@ -1,11 +1,10 @@
-package com.trainguy9512.locomotion.animation.pose.sampler.notify;
+package com.trainguy9512.locomotion.animation.pose.function.notify;
 
 import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
 
 import java.util.EventListener;
 
 @FunctionalInterface
-@Deprecated
 public interface NotifyListener extends EventListener {
 
     void notify(OnTickDataContainer dataContainer);

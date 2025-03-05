@@ -6,7 +6,7 @@ import com.trainguy9512.locomotion.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
 import com.trainguy9512.locomotion.animation.data.AnimationSequenceData;
-import com.trainguy9512.locomotion.animation.pose.sampler.notify.NotifyListener;
+import com.trainguy9512.locomotion.animation.pose.function.notify.NotifyListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
