@@ -28,11 +28,15 @@ public abstract class TimeBasedPoseFunction<P extends AnimationPose> implements 
         this.playRate = this.isPlaying ? playRateFunction.apply(evaluationState) : 0;
 
         if(evaluationState.isResetting()){
-            this.timeTicksElapsed = this.resetStartTimeOffsetTicks;
+            this.resetTime();
         }
         if(this.isPlaying){
             this.timeTicksElapsed += this.playRate;
         }
+    }
+
+    protected void resetTime(){
+        this.timeTicksElapsed = this.resetStartTimeOffsetTicks;
     }
 
     protected float getInterpolatedTimeElapsed(FunctionInterpolationContext context){

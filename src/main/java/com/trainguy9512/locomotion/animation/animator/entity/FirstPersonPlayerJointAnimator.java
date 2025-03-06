@@ -10,6 +10,7 @@ import com.trainguy9512.locomotion.animation.pose.LocalSpacePose;
 import com.trainguy9512.locomotion.animation.pose.function.*;
 import com.trainguy9512.locomotion.animation.pose.function.cache.SavedCachedPoseContainer;
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
+import com.trainguy9512.locomotion.util.Easing;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;
@@ -110,18 +111,16 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     @Override
     public PoseFunction<LocalSpacePose> constructPoseFunction(SavedCachedPoseContainer cachedPoseContainer) {
         Random random = new Random();
-        PoseFunction<LocalSpacePose> testSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE)
-                .setLooping(true)
-                .setPlayRate((context) -> 1f)
-                .build();
+        PoseFunction<LocalSpacePose> testSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).setPlayRate((context) -> 0f).build();
+        PoseFunction<LocalSpacePose> movingSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).setPlayRate((context) -> 1f).setResetStartTimeOffsetTicks(30).build();
         //cachedPoseContainer.register("TEST_SEQ_PLAYER", testSequencePlayer);
 
 
         PoseFunction<LocalSpacePose> testTransformer = LocalConversionFunction.of(
-                JointTransformerFunction.componentSpaceBuilder(ComponentConversionFunction.of(testSequencePlayer), CAMERA_JOINT)
+                JointTransformerFunction.componentSpaceBuilder(ComponentConversionFunction.of(testSequencePlayer), RIGHT_ARM_JOINT)
                         .setTranslation(
-                                context -> new Vector3f(0, 0, 0),
-                                JointTransform.TransformType.REPLACE,
+                                context -> new Vector3f(Mth.sin(context.gameTimeSeconds() * 8f) * 2f, 0, 0),
+                                JointTransform.TransformType.ADD,
                                 JointTransform.TransformSpace.COMPONENT
                         )
                         .setRotation(
@@ -137,10 +136,19 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
                         .setWeight(context -> 1f)
                         .build());
 
+        PoseFunction<LocalSpacePose> testStateMachine = StateMachineFunction.builder(TestStates.values())
+                .addState(TestStates.IDLE, testTransformer, true,
+                        StateMachineFunction.StateTransition.builder(TestStates.MOVING, transitionContext -> transitionContext.dataContainer().getDriverValue(WALK_SPEED) >= 0.5f).setTransitionDuration(10).setEasing(Easing.CUBIC_IN).build()
+                )
+                .addState(TestStates.MOVING, movingSequencePlayer, true,
+                        StateMachineFunction.StateTransition.builder(TestStates.IDLE, transitionContext -> transitionContext.dataContainer().getDriverValue(WALK_SPEED) < 0.5f).setTransitionDuration(16).setEasing(Easing.ELASTIC_OUT).build()
+                )
+                .build();
+
         //PoseFunction<LocalSpacePose> cached = cachedPoseContainer.getOrThrow("TEST_SEQ_PLAYER");
         PoseFunction<LocalSpacePose> blendMultipleFunction = BlendMultipleFunction.builder(testSequencePlayer).addBlendInput(testSequencePlayer, (evaluationState) -> 0.5f).build();
 
-        return testTransformer;
+        return testStateMachine;
     }
 
 

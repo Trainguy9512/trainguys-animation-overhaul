@@ -1,137 +1,215 @@
 package com.trainguy9512.locomotion.animation.pose.function;
 
+import com.google.common.collect.Maps;
+import com.trainguy9512.locomotion.LocomotionMain;
 import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
-import com.trainguy9512.locomotion.animation.pose.AnimationPose;
+import com.trainguy9512.locomotion.animation.data.driver.Driver;
 import com.trainguy9512.locomotion.animation.pose.LocalSpacePose;
-import com.trainguy9512.locomotion.animation.pose.function.notify.NotifyListener;
 import com.trainguy9512.locomotion.util.Easing;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFunction<LocalSpacePose> {
 
     /**
      * The hashmap containing all the possible states, with the keys being enums.
      */
-    //private final HashMap<S, AnimationStateMachine.State<S>> states;
+    private final Map<S, State<S>> states;
 
     /**
      * The list of enum keys that point to states with a blend value greater than 0
      */
-    private final ArrayList<S> activeStates;
+    private final List<S> activeStates;
 
-    protected StateMachineFunction() {
-        super(isPlayingFunction, playRateFunction, resetStartTimeOffsetTicks);
+    protected StateMachineFunction(Map<S, State<S>> states, List<S> activeStates) {
+        super(evaluationState -> true, evaluationState -> 1f, 0);
         this.states = states;
         this.activeStates = activeStates;
     }
 
     @Override
     public @NotNull LocalSpacePose compute(FunctionInterpolationContext context) {
-        return null;
+        // Throw an error if the active states are empty, this should never happen but this should help with debugging.
+        if(this.activeStates.isEmpty()){
+            throw new IllegalStateException("State machine's active states list found to be empty.");
+        }
+
+        // Blend each active state's pose.
+        LocalSpacePose pose = this.states.get(this.activeStates.getFirst()).inputFunction.compute(context);
+        for(S stateIdentifier : this.activeStates){
+            // We already got the first active state's pose.
+            if(stateIdentifier != this.activeStates.getFirst()){
+                pose = pose.interpolated(
+                        this.states.get(stateIdentifier).inputFunction.compute(context),
+                        this.states.get(stateIdentifier).currentTransition.easing().ease(
+                                this.states.get(stateIdentifier).weight.getValueInterpolated(context.partialTicks())
+                        )
+                );
+            }
+        }
+        return pose;
     }
 
     @Override
     public void tick(FunctionEvaluationState evaluationState) {
+        // Don't evaluate if the state machine has no states
+        if(this.activeStates.isEmpty()){
+            throw new IllegalStateException("State machine's active states list found to be empty.");
+        }
 
+        // Add to the current elapsed ticks
+        super.tick(evaluationState);
+
+        // Get the current active state
+        S currentActiveStateIdentifier = this.activeStates.getLast();
+        State<S> currentActiveState = this.states.get(currentActiveStateIdentifier);
+
+        // Filter each potential state transition by whether it's valid, then filter by whether its condition predicate is true,
+        // then shuffle it in order to make equal priority transitions randomized and re-order the valid transitions by filter order.
+        Optional<StateTransition<S>> potentialStateTransition = currentActiveState.potentialStateTransitions.stream()
+                .filter(transition -> {
+                    if(this.states.containsKey(transition.target)){
+                        if(transition.target() != currentActiveStateIdentifier){
+                            return transition.conditionPredicate().test(StateTransition.TransitionContext.of(evaluationState.dataContainer(), this.timeTicksElapsed, this.states.get(this.activeStates.getLast()).weight.getValueCurrent()));
+                        }
+                    }
+                    return false;
+                })
+                .collect(Collectors.collectingAndThen(Collectors.toList(), collected -> {
+                    Collections.shuffle(collected);
+                    return collected;
+                }))
+                .stream()
+                .sorted()
+                .findFirst();
+
+        // Set all states to inactive except the new destination state. Also set the transition to all states for when they're ticked
+        potentialStateTransition.ifPresent(stateTransition -> {
+            this.resetTime();
+            this.states.forEach((stateIdentifier, state) -> {
+                state.currentTransition = stateTransition;
+                state.isActive = state == this.states.get(stateTransition.target());
+            });
+
+            // Update the active states array
+            // Make sure there already isn't this state present in active states
+            this.activeStates.remove(stateTransition.target());
+            this.activeStates.addLast(stateTransition.target());
+        });
+
+        // Tick each state
+        this.states.forEach((stateIdentifier, state) -> state.tick(evaluationState));
+
+        // Evaluated last, remove states from the active state list that have a weight of 0.
+        List<S> statesToRemove = this.activeStates.stream().filter((stateIdentifier) -> this.states.get(stateIdentifier).weight.getValuePrevious() == 0 && this.states.get(stateIdentifier).weight.getValueCurrent() == 0).toList();
+        this.activeStates.removeAll(statesToRemove);
     }
 
     @Override
     public PoseFunction<LocalSpacePose> wrapUnique() {
-        return null;
+        Builder<S> builder = this.builder();
+        this.states.forEach((stateIdentifier, state) -> builder.addState(stateIdentifier, state.inputFunction.wrapUnique(), state.resetUponEntry, state.potentialStateTransitions));
+        return builder.build();
     }
 
-    public static SequencePlayerFunction.Builder<?> builder(ResourceLocation animationSequence){
-        return new SequencePlayerFunction.Builder<>(animationSequence);
+    public static <S extends Enum<S>> Builder<S> builder(S[] values){
+        return new Builder<>();
     }
 
-    public static class Builder<B extends Builder<B>> extends TimeBasedPoseFunction.Builder<B>{
+    public Builder<S> builder(){
+        return new Builder<>();
+    }
 
-        private final ResourceLocation animationSequence;
-        private boolean looping;
+    public static class Builder<S extends Enum<S>> {
 
-        protected Builder(ResourceLocation animationSequence){
-            super();
-            this.animationSequence = animationSequence;
-            this.looping = false;
+        private final Map<S, State<S>> states;
+        private final List<S> activeStates;
+
+
+        protected Builder() {
+            this.states = Maps.newHashMap();
+            this.activeStates = new ArrayList<>();
         }
 
         /**
-         * Sets whether the animation sequence function will loop or not when the end of the animation is reached.
-         * @implNote                The animation sequence will always be looped in full, the reset start time only
-         *                          affects where the animation starts when reset.
+         * Adds a state to the state machine builder with its outgoing transitions.
+         *
+         * @param stateIdentifier       Enum identifier that is associated with the state machine's enum type
+         * @param inputFunction         Pose function for this state
+         * @param stateTransitions      Outbound transition paths from this state to other states
          */
-        @SuppressWarnings("unchecked")
-        public B setLooping(boolean looping){
-            this.looping = looping;
-            return (B) this;
+        @SafeVarargs
+        public final Builder<S> addState(S stateIdentifier, PoseFunction<LocalSpacePose> inputFunction, boolean resetUponEntry, StateTransition<S>... stateTransitions){
+            return this.addState(stateIdentifier, inputFunction, resetUponEntry, Set.of(stateTransitions));
         }
 
-        public SequencePlayerFunction build(){
-            return new SequencePlayerFunction(this.isPlayingFunction, this.playRateFunction, this.resetStartTimeOffsetTicks, this.animationSequence, this.looping);
+        /**
+         * Adds a state to the state machine builder with its outgoing transitions.
+         *
+         * @param stateIdentifier       Enum identifier that is associated with the state machine's enum type
+         * @param inputFunction         Pose function for this state
+         * @param stateTransitions      Outbound transition paths from this state to other states
+         */
+        public final Builder<S> addState(S stateIdentifier, PoseFunction<LocalSpacePose> inputFunction, boolean resetUponEntry, Set<StateTransition<S>> stateTransitions){
+            State<S> state = new State<>(inputFunction, stateTransitions, resetUponEntry, this.states.isEmpty());
+
+            // If the state machine already has this state defined, then throw an error.
+            if(this.states.containsKey(stateIdentifier)){
+                throw new IllegalStateException("Cannot add state " + stateIdentifier.toString() + " twice to the same state machine.");
+            }
+
+            // If this is the first state to be added, set it to be active.
+            if (this.activeStates.isEmpty()){
+                this.activeStates.add(stateIdentifier);
+            }
+            this.states.put(stateIdentifier, state);
+            return this;
+        }
+
+        public StateMachineFunction<S> build(){
+            return new StateMachineFunction<>(this.states, this.activeStates);
         }
     }
 
-    public static class State<S extends Enum<S>> {
+    private static class State<S extends Enum<S>> {
 
         private final PoseFunction<LocalSpacePose> inputFunction;
         private final Set<StateTransition<S>> potentialStateTransitions;
+        private final boolean resetUponEntry;
 
         private boolean isActive;
-        private float weight;
+        private final Driver<Float> weight;
         private StateTransition<S> currentTransition;
 
-        private State(PoseFunction<LocalSpacePose> inputFunction, Set<StateTransition<S>> potentialStateTransitions, boolean isActive){
+        private State(PoseFunction<LocalSpacePose> inputFunction, Set<StateTransition<S>> potentialStateTransitions, boolean resetUponEntry, boolean isActive){
             this.inputFunction = inputFunction;
             this.potentialStateTransitions = potentialStateTransitions;
+            this.resetUponEntry = resetUponEntry;
+
             this.isActive = isActive;
-            this.weight = isActive ? 1 : 0;
+            this.weight = isActive ? Driver.floatDriver(() -> 1f) : Driver.floatDriver(() -> 0f);
             this.currentTransition = null;
         }
 
-        private void tick(OnTickDataContainer dataContainer){
+        private void tick(FunctionEvaluationState evaluationState){
             if(this.currentTransition != null){
-                float increaseDecreaseMultiplier = this.getIsActive() ? 1 : -1;
-                float newWeight = Mth.clamp(this.getWeight() + ((1 / this.getCurrentTransition().transitionDurationTicks()) * increaseDecreaseMultiplier), 0, 1);
-                this.setWeight(newWeight);
+                this.weight.pushToPrevious();
+                float increaseDecreaseMultiplier = this.isActive ? 1 : -1;
+                float newWeight = Mth.clamp(this.weight.getValuePrevious() + ((1 / this.currentTransition.transitionDurationTicks()) * increaseDecreaseMultiplier), 0, 1);
+
+                if(this.resetUponEntry && newWeight > 0 && this.weight.getValuePrevious() == 0){
+                    evaluationState = evaluationState.markedForReset();
+                }
+
+                this.weight.loadValue(newWeight);
             }
-        }
-
-        private boolean getIsActive(){
-            return this.isActive;
-        }
-
-        private void setIsActive(boolean isActive){
-            this.isActive = isActive;
-        }
-
-        private StateTransition<S> getCurrentTransition(){
-            return this.currentTransition;
-        }
-
-        private void setCurrentTransition(StateTransition<S> stateTransition){
-            this.currentTransition = stateTransition;
-        }
-
-        private float getWeight(){
-            return this.weight;
-        }
-
-        private void setWeight(float weight){
-            this.weight = weight;
-        }
-
-        private Set<StateTransition<S>> getPotentialTransitions(){
-            return this.potentialStateTransitions;
-        }
-
-        private AnimationPose computeInput(FunctionInterpolationContext context){
-            return this.inputFunction.compute(context);
+            if(this.weight.getValueCurrent() > 0){
+                this.inputFunction.tick(evaluationState);
+            }
         }
 
     }
