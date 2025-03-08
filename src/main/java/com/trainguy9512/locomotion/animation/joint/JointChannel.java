@@ -55,6 +55,10 @@ public final class JointChannel {
         return new Matrix4f(this.transform);
     }
 
+    public boolean getVisibility(){
+        return this.visibility;
+    }
+
     public Vector3f getTranslation(){
         return this.transform.getTranslation(new Vector3f());
     }

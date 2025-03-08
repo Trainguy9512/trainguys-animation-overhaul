@@ -14,7 +14,7 @@ public class AnimationSequenceData {
 
     public static AnimationSequenceData INSTANCE = new AnimationSequenceData();
 
-    public static String FIRST_PERSON_PLAYER_KEY = "player/first_person/";
+    public static String FIRST_PERSON_PLAYER_PATH = "sequences/player/first_person/";
 
     //TODO: Set this as a class, (2025 update: ???)
 
@@ -38,11 +38,11 @@ public class AnimationSequenceData {
     }
 
     public static ResourceLocation getNativeResourceLocation(String path){
-        return ResourceLocation.fromNamespaceAndPath(LocomotionMain.MOD_ID, path);
+        return getNativeResourceLocation(LocomotionMain.MOD_ID, path);
     }
 
-    public static ResourceLocation getNativeResourceLocation(String key, String path){
-        return ResourceLocation.fromNamespaceAndPath(LocomotionMain.MOD_ID, key.concat(path));
+    public static ResourceLocation getNativeResourceLocation(String path, String name){
+        return ResourceLocation.fromNamespaceAndPath(LocomotionMain.MOD_ID, path.concat(name).concat(".json"));
     }
 
     public AnimationSequence getOrThrow(String namespace, String path){

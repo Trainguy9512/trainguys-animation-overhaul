@@ -59,16 +59,16 @@ public abstract class AnimationPose {
     }
 
     protected void convertChildrenJointsToComponentSpace(String parent, PoseStack poseStack){
-        JointChannel localParentJointPose = this.getJointTransform(parent);
+        JointChannel localParentJointChannel = this.getJointTransform(parent);
 
         poseStack.pushPose();
-        poseStack.mulPose(localParentJointPose.getTransform());
+        poseStack.mulPose(localParentJointChannel.getTransform());
 
         this.getJointSkeleton().getDirectChildrenOfJoint(parent).ifPresent(children -> children.forEach(child -> this.convertChildrenJointsToComponentSpace(child, poseStack)));
 
         Matrix4f componentSpaceMatrix = new Matrix4f(poseStack.last().pose());
         this.jointParentMatrices.put(parent, componentSpaceMatrix);
-        this.setJointTransform(parent, JointChannel.of(componentSpaceMatrix, ));
+        this.setJointTransform(parent, JointChannel.of(componentSpaceMatrix, localParentJointChannel.getVisibility()));
         poseStack.popPose();
     }
 
@@ -76,8 +76,8 @@ public abstract class AnimationPose {
 
         this.getJointSkeleton().getDirectChildrenOfJoint(parent).ifPresent(children -> children.forEach(child -> this.convertChildrenJointsToLocalSpace(child, this.jointParentMatrices.get(parent))));
 
-        JointChannel parentJointPose = this.getJointTransform(parent);
-        parentJointPose.multiply(parentMatrix.invert(new Matrix4f()), JointChannel.TransformSpace.LOCAL);
-        this.setJointTransform(parent, parentJointPose);
+        JointChannel parentJointChannel = this.getJointTransform(parent);
+        parentJointChannel.multiply(parentMatrix.invert(new Matrix4f()), JointChannel.TransformSpace.LOCAL);
+        this.setJointTransform(parent, parentJointChannel);
     }
 }

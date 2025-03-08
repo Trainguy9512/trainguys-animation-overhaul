@@ -47,8 +47,8 @@ public class FirstPersonPlayerRenderer {
 
                             JointChannel rightArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_ARM_JOINT);
                             JointChannel leftArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.LEFT_ARM_JOINT);
-                            JointChannel rightHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_HAND_JOINT);
-                            JointChannel leftHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.LEFT_HAND_JOINT);
+                            JointChannel rightItemPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_ITEM_JOINT);
+                            JointChannel leftItemPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.LEFT_ITEM_JOINT);
 
                             poseStack.pushPose();
                             poseStack.mulPose(Axis.ZP.rotationDegrees(180));
@@ -66,7 +66,7 @@ public class FirstPersonPlayerRenderer {
                             playerModel.rightArm.render(poseStack, buffer.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), combinedLight, OverlayTexture.NO_OVERLAY);
                             playerModel.leftArm.render(poseStack, buffer.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), combinedLight, OverlayTexture.NO_OVERLAY);
 
-                            this.renderItem(abstractClientPlayer, dataContainer.getDriverValueInterpolated(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM, partialTicks), ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, false, poseStack, rightHandPose, buffer, combinedLight);
+                            this.renderItem(abstractClientPlayer, dataContainer.getDriverValueInterpolated(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM, partialTicks), ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, false, poseStack, rightItemPose, buffer, combinedLight);
                             //this.renderItemInHand(abstractClientPlayer, ItemStack.EMPTY, poseStack, HumanoidArm.LEFT, animationPose, bufferSource, i);
 
 
@@ -102,9 +102,9 @@ public class FirstPersonPlayerRenderer {
             jointChannel.transformPoseStack(poseStack, 16f);
 
             //TODO: this code needs to be replaced with proper joint transforms
-            poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
-            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-            poseStack.translate((isLeftHand ? -0.5F : 0.5F) / 16.0F, 2F/16F, -10F/16F);
+            //poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+            //poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            //poseStack.translate((isLeftHand ? -0.5F : 0.5F) / 16.0F, 2F/16F, -10F/16F);
 
 
             this.itemRenderer.renderStatic(entity, itemStack, displayContext, isLeftHand, poseStack, buffer, entity.level(), combinedLight, OverlayTexture.NO_OVERLAY, entity.getId() + displayContext.ordinal());

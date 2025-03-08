@@ -78,7 +78,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     }
 
 
-    public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_KEY, "fp_player_idle");
+    public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_PATH, "rom_test");
 
 
     public JointSkeleton buildSkeleton() {

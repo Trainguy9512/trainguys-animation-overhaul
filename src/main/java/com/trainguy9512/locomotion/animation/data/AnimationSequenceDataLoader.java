@@ -120,9 +120,9 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
             jsonData.forEach((resourceLocation, sequenceElement) -> {
                 JsonObject sequenceJSON = sequenceElement.getAsJsonObject();
 
-                int sequenceFormatVersion = FORMAT_VERSION_1;
+                float sequenceFormatVersion = FORMAT_VERSION_1;
                 if(sequenceJSON.has("format_version")){
-                    sequenceFormatVersion = sequenceJSON.get("format_version").getAsInt();
+                    sequenceFormatVersion = Float.parseFloat(sequenceJSON.get("format_version").getAsString());
                 }
 
                 if(sequenceFormatVersion >= FORMAT_VERSION_4) {
@@ -137,7 +137,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                                 jointJSON.getAsJsonObject("translation").asMap(),
                                 Interpolator.VECTOR,
                                 sequenceLength,
-                                AnimationSequenceDataLoader::extractVectorKeyframeValue
+                                AnimationSequenceDataLoader::extractTranslationKeyframeValue
                         );
                         Timeline<Quaternionf> rotationTimeline = createTimelineFromJSONChannel(
                                 jointJSON.getAsJsonObject("rotation").asMap(),
@@ -149,7 +149,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                                 jointJSON.getAsJsonObject("scale").asMap(),
                                 Interpolator.VECTOR,
                                 sequenceLength,
-                                AnimationSequenceDataLoader::extractVectorKeyframeValue
+                                AnimationSequenceDataLoader::extractScaleKeyframeValue
                         );
                         Timeline<Boolean> visibilityTimeline = createTimelineFromJSONChannel(
                                 jointJSON.getAsJsonObject("visibility").asMap(),
@@ -162,6 +162,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                         sequenceBuilder.putJointRotationTimeline(joint, rotationTimeline);
                         sequenceBuilder.putJointScaleTimeline(joint, scaleTimeline);
                         sequenceBuilder.putJointVisibilityTimeline(joint, visibilityTimeline);
+                        //LocomotionMain.LOGGER.info("joint {} translate {}", joint, translationTimeline.getValueAtTime(0));
                     });
                     data.put(resourceLocation, sequenceBuilder.build());
                     LocomotionMain.LOGGER.info("Successfully loaded animation {}", resourceLocation);
@@ -182,7 +183,16 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
         return timeline;
     }
 
-    private static Vector3f extractVectorKeyframeValue(JsonElement keyframeElement){
+    private static Vector3f extractTranslationKeyframeValue(JsonElement keyframeElement){
+        JsonArray components = keyframeElement.getAsJsonArray();
+        return new Vector3f(
+                components.get(0).getAsFloat(),
+                -components.get(1).getAsFloat(),
+                -components.get(2).getAsFloat()
+        );
+    }
+
+    private static Vector3f extractScaleKeyframeValue(JsonElement keyframeElement){
         JsonArray components = keyframeElement.getAsJsonArray();
         return new Vector3f(
                 components.get(0).getAsFloat(),
@@ -194,8 +204,8 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
     private static Quaternionf extractQuaternionKeyframeValue(JsonElement keyframeElement){
         JsonArray components = keyframeElement.getAsJsonArray();
         return new Quaternionf().rotationZYX(
-                components.get(2).getAsFloat() * Mth.DEG_TO_RAD,
-                components.get(1).getAsFloat() * Mth.DEG_TO_RAD,
+                -components.get(2).getAsFloat() * Mth.DEG_TO_RAD,
+                -components.get(1).getAsFloat() * Mth.DEG_TO_RAD,
                 components.get(0).getAsFloat() * Mth.DEG_TO_RAD
         );
     }
