@@ -67,6 +67,7 @@ public class FirstPersonPlayerRenderer {
                             playerModel.leftArm.render(poseStack, buffer.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), combinedLight, OverlayTexture.NO_OVERLAY);
 
                             this.renderItem(abstractClientPlayer, dataContainer.getDriverValueInterpolated(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM, partialTicks), ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, false, poseStack, rightItemPose, buffer, combinedLight);
+                            this.renderItem(abstractClientPlayer, dataContainer.getDriverValueInterpolated(FirstPersonPlayerJointAnimator.OFF_HAND_ITEM, partialTicks), ItemDisplayContext.FIRST_PERSON_LEFT_HAND, true, poseStack, leftItemPose, buffer, combinedLight);
                             //this.renderItemInHand(abstractClientPlayer, ItemStack.EMPTY, poseStack, HumanoidArm.LEFT, animationPose, bufferSource, i);
 
 

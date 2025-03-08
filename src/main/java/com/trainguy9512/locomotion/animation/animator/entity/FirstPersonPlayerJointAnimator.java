@@ -65,6 +65,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     public static final AnimationDriverKey<Vector3f> CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("camera_rotation", () -> Driver.vectorDriver(() -> new Vector3f(0)));
     public static final AnimationDriverKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("dampened_camera_rotation", () -> Driver.vectorDriver(() -> new Vector3f(0)));
     public static final AnimationDriverKey<ItemStack> MAIN_HAND_ITEM = AnimationDriverKey.driverKeyOf("main_hand_item", () -> Driver.ofConstant(() -> ItemStack.EMPTY));
+    public static final AnimationDriverKey<ItemStack> OFF_HAND_ITEM = AnimationDriverKey.driverKeyOf("off_hand_item", () -> Driver.ofConstant(() -> ItemStack.EMPTY));
     public static final AnimationDriverKey<Boolean> IS_ATTACKING = AnimationDriverKey.driverKeyOf("is_attacking", () -> Driver.booleanDriver(() -> false));
     public static final AnimationDriverKey<Boolean> IS_USING_ITEM = AnimationDriverKey.driverKeyOf("is_using_item", () -> Driver.booleanDriver(() -> false));
     public static final AnimationDriverKey<Boolean> IS_MINING = AnimationDriverKey.driverKeyOf("is_mining", () -> Driver.booleanDriver(() -> false));
@@ -183,6 +184,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
         driverContainer.loadValueIntoDriver(WALK_SPEED, dataReference.walkAnimation.speed());
         driverContainer.loadValueIntoDriver(TIME_TEST, driverContainer.getPreviousDriverValue(TIME_TEST) + 1);
         driverContainer.loadValueIntoDriver(MAIN_HAND_ITEM, dataReference.getMainHandItem());
+        driverContainer.loadValueIntoDriver(OFF_HAND_ITEM, dataReference.getOffhandItem());
 
 
         //Tick the dampened camera rotation.

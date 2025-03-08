@@ -1,289 +1,390 @@
-import maya.cmds as cmds
-import math
+import sys
 import json
+import math
 
-WINDOW_TITLE = "Animation Overhaul Exporting"
-WINDOW_WIDTH = 400
+from PySide2 import QtCore
+from PySide2 import QtWidgets
+from PySide2 import QtGui
+from shiboken2 import wrapInstance
 
-ROW_SPACING = 2
-PADDING = 5
+import maya.OpenMayaUI as omui
+import maya.cmds as cmds
 
-# Utility methods
+from maya.plugin.timeSliderBookmark.timeSliderBookmark import getAllBookmarks
 
-def addColumnLayout():
-    cmds.columnLayout(adjustableColumn=True, columnAttach=('both', PADDING))
-    
-def addFrameColumnLayout(label, collapsable):
-    cmds.frameLayout(collapsable=collapsable, label=label)
-    addColumnLayout()
 
-def addInnerRowLayout(numberOfColumns):
-    cmds.rowLayout(
-        numberOfColumns=numberOfColumns,
-        bgc=[0,0,0]
-    )
+FORMAT_VERSION = 4
 
-def addDoubleRowLayout():
-    cmds.rowLayout(
-        numberOfColumns=2, 
-        adjustableColumn2=2, 
-        columnWidth2=[150, 20],
-        columnAlign2=['right', 'left'], 
-        columnAttach2=['right', 'left']
-    )
 
-def parentToLayout():
-    cmds.setParent('..')
+def maya_main_window():
+    main_window_ptr = omui.MQtUtil.mainWindow()
+    if sys.version_info.major >= 3:
+        return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
+    else:
+        return wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
 
-def addSpacer():
-    cmds.columnLayout(adjustableColumn=True)
-    cmds.separator(height=1, style="none")
-    parentToLayout()
-    
-def addHeader(windowTitle):
-    addColumnLayout()
-    cmds.text(label='<span style=\"color:#ccc;text-decoration:none;font-size:20px;font-family:courier new;font-weight:bold;\">' + windowTitle + '</span>', height=50)
-    parentToLayout()
-    
-def addText(label):
-    return cmds.text(label=label)
-    
-def addButton(label, command):
-    cmds.separator(height=ROW_SPACING, style="none")
-    controlButton = cmds.button(label=label, command=(command))
-    cmds.separator(height=ROW_SPACING, style="none")
-    return controlButton
-    
-def addButtonNoCommand(label):
-    cmds.separator(height=ROW_SPACING, style="none")
-    controlButton = cmds.button(label=label)
-    cmds.separator(height=ROW_SPACING, style="none")
-    return controlButton
-          
-def addIntField():
-    return cmds.intFieldGrp()
-          
-def addIntSlider():
-    return cmds.intFieldGrp()
-          
-# Int Slider
-def addIntSliderGroup(min, max, value):
-    return cmds.intSliderGrp(field=True, minValue=min, maxValue=max, fieldMinValue=min, fieldMaxValue=max, value=value)
-          
-# Float Slider
-def addFloatSliderGroup(min, max, value):
-    return cmds.floatSliderGrp(field=True, minValue=min, maxValue=max, fieldMinValue=min, fieldMaxValue=max, value=value)
-    
-# Checkbox
-def addCheckbox(label):
-    return cmds.checkBox(label=label)
-    
-# Radio Button
-def startRadioButtonCollection():
-    return cmds.radioCollection()
-    
-def addRadioButton(label):
-    return cmds.radioButton(label=label)
-    
-# Object Selection List
-def searchForJoints(listIdentifier):
-    selection = cmds.ls(selection=True)
-    currentList = cmds.textScrollList(listIdentifier, query=True, allItems=True)
-    
-    
-    allRigChildren = cmds.listRelatives(selection[0], children=True)
-    for obj in allRigChildren:
-        if 'export_joints_GRP' in obj:
-            exportJoints = cmds.listRelatives(obj, type='joint', allDescendents=True)
-            for jnt in exportJoints:
-                if not isinstance(currentList, list) or jnt not in currentList:
-                    cmds.textScrollList(listIdentifier, edit=True, append=jnt)
-    
-        
-def removeFromObjectSelectionList(listIdentifier):
-    listSelection = cmds.textScrollList(listIdentifier, query=True, selectItem=True)
-    
-    if listSelection != None:
-        for listObject in listSelection:
-            cmds.textScrollList(listIdentifier, edit=True, removeItem=listObject)
-    
-def addObjectSelectionList(listIdentifier, label):
-    cmds.columnLayout(adjustableColumn=True)
-    cmds.rowLayout(columnAttach3=['left', 'left', 'right'], numberOfColumns=3, adjustableColumn=3, columnWidth3=[10, 10, 100])
-    cmds.iconTextButton(style='iconOnly', image1='search.png', width=22, height=22, command='searchForJoints("'+listIdentifier+'")')
-    cmds.iconTextButton(style='iconOnly', image1='trash.png', width=22, height=22, command='removeFromObjectSelectionList("'+listIdentifier+'")')
-    cmds.text(label=label)
-    parentToLayout()
-    
-    scrollList = cmds.textScrollList(listIdentifier, allowMultiSelection=True, height=90)
-    parentToLayout()
-    return scrollList
-                 
-# File Browser
 
-# 0     Any file, whether it exists or not.
-# 1     A single existing file.
-# 2     The name of a directory. Both directories and files are displayed in the dialog.
-# 3     The name of a directory. Only directories are displayed in the dialog.
-# 4     Then names of one or more existing files.
 
-def browseForDirectory(identifier, mode):
-    mode = int(mode)
-    path = cmds.fileDialog2(fileMode=mode)
-    cmds.textField(identifier, edit=True, text=path[0])
 
-def addFileBrowser(identifier, mode, placeholderText, defaultText):
-    cmds.rowLayout(numberOfColumns=2, columnAttach=[(1, 'left', 0), (2, 'right', 0)], adjustableColumn=1, height=22)
-    textFieldControl = cmds.textField(identifier, placeholderText=placeholderText, text=defaultText)
-    cmds.iconTextButton(style='iconOnly', image1='browseFolder.png', label='spotlight', command='browseForDirectory("'+identifier+'", '+str(mode)+')')
-    cmds.setParent("..")
-    return textFieldControl;
-                       
-def deleteIfOpen():  
-    if cmds.window('windowObjectAOE', exists=True):
-        cmds.deleteUI('windowObjectAOE')
-        
-def getCloseCommand():
-    return('cmds.deleteUI(\"' + 'windowObjectAOE' + '\", window=True)')
 
-def createWindow():
-    cmds.window(
-        'windowObjectAOE', 
-        title=WINDOW_TITLE, 
-        width=WINDOW_WIDTH,
-        height=50,
-        maximizeButton=False
-    )
-    
-    addSpacer()
-    addHeader('Animation Overhaul Exporting')
-    addSpacer()
-    
-    addFrameColumnLayout('Settings', False)
-    
-    addDoubleRowLayout()
-    addText('Frame Start')
-    controlFrameStart = addIntField()
-    parentToLayout()
-    
-    addDoubleRowLayout()
-    addText('Frame End')
-    controlFrameEnd = addIntField()
-    parentToLayout()
-    
-    addDoubleRowLayout()
-    addText('Entity Key')
-    controlEntityKey = cmds.textField(text = 'player')
-    parentToLayout()
-    
-    controlExportJoints = addObjectSelectionList('jointSelector', 'Joints to Export')
-    
-    addDoubleRowLayout()
-    addText('Timeline Group Directory')
-    controlTimelineGroupDirectory = addFileBrowser('animationFileBrowser', 2, '', 'C:/Users/train/OneDrive/Desktop/Minecraft Modding/trainguys-animation-overhaul-1.19.x/src/main/resources/assets/animation_overhaul/timelinegroups')
-    parentToLayout()
-    
-    addButton('Export', 'executeScript("'+controlFrameStart+'", "'+controlFrameEnd+'", "'+controlEntityKey+'", "'+controlExportJoints+'", "'+controlTimelineGroupDirectory+'")')
-    addButton('Close', getCloseCommand())
-    
-    parentToLayout()
-    parentToLayout()
-    parentToLayout()
-    addSpacer()
-    
-    cmds.showWindow('windowObjectAOE')
-    
-def executeScript(controlFrameStart, controlFrameEnd, controlEntityKey, controlExportJoints, controlTimelineGroupDirectory):
-    frameStart = cmds.intFieldGrp(controlFrameStart, query=True, value=True)[0]
-    frameEnd = cmds.intFieldGrp(controlFrameEnd, query=True, value=True)[0]
-    entityKey = cmds.textField(controlEntityKey, query=True, text=True)
-    exportJoints = cmds.textScrollList(controlExportJoints, query=True, allItems=True)
-    directory = cmds.textField(controlTimelineGroupDirectory, query=True, text=True)
-    
-    if isinstance(exportJoints, list):
-        if frameEnd > frameStart:
-            exportAnimation(frameStart, frameEnd, entityKey, exportJoints, directory)
-    
-def getFrameRate():
-    value = str(cmds.currentUnit(q=True, time=True))
-    if "film" in value:
-        return 24
-    if "fps" in value:
-        return int(value.split('fps')[0])
-    return 0
+class AnimationModExportDialog(QtWidgets.QDialog):
 
-def exportAnimation(frameStart, frameEnd, entityKey, exportJoints, directory):
-    
-    fileName = cmds.file(query=True, sceneName=True, shortName=True)
-    splittedName = fileName.split('_')
-    finalName = '_'.join(splittedName[1:len(splittedName)])[0:-3]
-    animationKey = finalName
-   
-    
-    attributes = ['translateX', 'translateY', 'translateZ', 'rotateX', 'rotateY', 'rotateZ']
-    attributesJava = ['x', 'y', 'z', 'xRot', 'yRot', 'zRot']
-    
-    
-    # If the framerate is not valid (returns 0), end
-    if getFrameRate() is 0:
-        return
-    
-    masterDict = {
-        "format_version": '0.3', 
-        "frame_length": frameEnd - frameStart,
-        "frame_rate": getFrameRate()
+    INFO_PIXMAP = QtGui.QPixmap(":info.png")
+
+    def __init__(self, parent=maya_main_window()):
+        super(AnimationModExportDialog, self).__init__(parent)
+
+        self.setWindowTitle("Locomotion Animation Sequence Exporter")
+        self.setMinimumWidth(500)
+
+        # Remove the ? from the window
+        self.setWindowFlag(QtCore.Qt.WindowContextHelpButtonHint, False)
+
+        self.initial_directory = "C:/Users/train/Desktop/Minecraft Modding/trainguys-animation-overhaul-1.19.x/src/main/resources/assets/locomotion/sequences"
+
+        self.create_widgets()
+        self.create_layouts()
+        self.create_connections()
+
+    def get_rgb_from_hex(self, code):
+        code_hex = code.replace("#", "")
+        rgb = tuple(int(code_hex[i:i+2], 16) for i in (0, 2, 4))
+        return QtGui.QColor.fromRgb(rgb[0], rgb[1], rgb[2])
+
+    def create_widgets(self):
+        self.export_button = QtWidgets.QPushButton("Export")
+        self.cancel_button = QtWidgets.QPushButton("Cancel")
+
+        self.info_label_icon = QtWidgets.QLabel()
+        self.info_label_icon.setPixmap(self.INFO_PIXMAP)
+        self.info_label_text = QtWidgets.QLabel("JSON Format Version {0}".format(FORMAT_VERSION))
+        self.info_label_text.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.directory_line_edit = QtWidgets.QLineEdit()
+        self.directory_line_edit.setText(self.initial_directory)
+        self.directory_line_edit_button = QtWidgets.QPushButton()
+        self.directory_line_edit_button.setIcon(QtGui.QIcon(":fileOpen.png"))
+
+        self.sets_combo_box = QtWidgets.QComboBox()
+        self.sets_combo_box.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.update_combo_box()
+        self.sets_combo_box_refresh_button = QtWidgets.QPushButton()
+        self.sets_combo_box_refresh_button.setIcon(QtGui.QIcon(":refresh.png"))
+
+        self.export_animation_curves_checkbox = QtWidgets.QCheckBox()
+        self.export_animation_curves_checkbox.setChecked(True)
+
+
+
+        self.bookmark_list_layout = QtWidgets.QVBoxLayout()
+
+        # Bookmark Selector Widgets
+
+        self.info_conventions_label = QtWidgets.QLabel("Bookmark Naming:<br>Joint Set Naming:")
+        self.info_conventions_text = QtWidgets.QLabel("SEQ_[path/to/animation]<br>[rig_namespace]:exportSet_animation")
+
+        #self.info_conventions_label.setFont(QtGui.QFont('times', 10))
+        #self.info_conventions_text.setFont(QtGui.QFont('times', 10))
+
+        self.animation_bookmark_refresh_button = QtWidgets.QPushButton("Refresh Bookmarks")
+        self.animation_bookmark_refresh_button.setIcon(QtGui.QIcon(":refresh.png"))
+        self.animation_bookmark_refresh_button.setToolTip("Refresh Animation Bookmarks")
+
+
+
+    def create_layouts(self):
+        info_label_layout = QtWidgets.QHBoxLayout()
+        info_label_layout.addWidget(self.info_label_icon)
+        info_label_layout.addWidget(self.info_label_text)
+        info_label_layout.addStretch()
+
+        directory_select_layout = QtWidgets.QHBoxLayout()
+        directory_select_layout.addWidget(self.directory_line_edit)
+        directory_select_layout.addWidget(self.directory_line_edit_button)
+
+        sets_combo_box_layout = QtWidgets.QHBoxLayout()
+        sets_combo_box_layout.addWidget(self.sets_combo_box)
+        sets_combo_box_layout.addWidget(self.sets_combo_box_refresh_button)
+
+        settings_form_layout = QtWidgets.QFormLayout()
+        settings_form_layout.addRow("Resources Directory:", directory_select_layout)
+        settings_form_layout.addRow("Export Set:", sets_combo_box_layout)
+        settings_form_layout.addRow("Include Curves:", self.export_animation_curves_checkbox)
+
+        settings_layout = QtWidgets.QVBoxLayout()
+        settings_layout.addLayout(settings_form_layout)
+        settings_group_widget = QtWidgets.QGroupBox("Settings")
+        settings_group_widget.setLayout(settings_layout)
+
+        # Bookmark Selector Widgets
+
+        bookmark_list_buttons = QtWidgets.QHBoxLayout()
+        bookmark_list_buttons.addWidget(self.info_conventions_label)
+        bookmark_list_buttons.addWidget(self.info_conventions_text)
+        bookmark_list_buttons.addStretch()
+        bookmark_list_buttons.addWidget(self.animation_bookmark_refresh_button)
+
+        top_bookmark_divider = QtWidgets.QFrame()
+        top_bookmark_divider.setFrameShape(QtWidgets.QFrame.HLine)
+        top_bookmark_divider.setFrameShadow(QtWidgets.QFrame.Sunken)
+
+        self.update_bookmarks_list()
+
+        bookmarks_layout = QtWidgets.QVBoxLayout()
+        bookmarks_layout.addLayout(bookmark_list_buttons)
+        bookmarks_layout.addWidget(top_bookmark_divider)
+        bookmarks_layout.addLayout(self.bookmark_list_layout)
+        bookmarks_group_widget = QtWidgets.QGroupBox("Animation Sequences")
+        bookmarks_group_widget.setLayout(bookmarks_layout)
+
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addStretch()
+        button_layout.addWidget(self.export_button)
+        button_layout.addWidget(self.cancel_button)
+
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.addLayout(info_label_layout)
+        main_layout.addWidget(settings_group_widget)
+        main_layout.addWidget(bookmarks_group_widget)
+        main_layout.addStretch()
+        main_layout.addLayout(button_layout)
+
+    def create_connections(self):
+        self.animation_bookmark_refresh_button.clicked.connect(self.update_bookmarks_list)
+        self.export_button.pressed.connect(self.export)
+        self.sets_combo_box_refresh_button.clicked.connect(self.update_combo_box)
+        self.directory_line_edit_button.clicked.connect(self.show_folder_select)
+        pass
+
+    def show_folder_select(self):
+        new_directory = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Folder", self.initial_directory)
+        if new_directory:
+            self.directory_line_edit.setText(new_directory)
+            self.initial_directory = new_directory
+
+    def update_combo_box(self):
+        sets = cmds.ls(type="objectSet")
+        self.sets_combo_box.clear()
+        self.export_button.setEnabled(False)
+        self.export_button.setToolTip("Cannot export without a valid export set.")
+        for set in sets:
+            if "exportSet_animation" in set:
+                self.sets_combo_box.addItem(set)
+                self.export_button.setEnabled(True)
+                self.export_button.setToolTip("Export animation")
+
+    def clear_layout(self, layout):
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    self.clear_layout(item.layout())
+
+    def update_bookmarks_list(self):
+
+        self.bookmarks = []
+        self.sequenceNames = []
+
+        data = []
+        bookmarks = getAllBookmarks()
+        for bookmark in bookmarks:
+            if cmds.getAttr("{}.name".format(bookmark)).split("_")[0] == "SEQ":
+                color = cmds.getAttr("{}.color".format(bookmark))[0]
+                name = '_'.join(cmds.getAttr("{}.name".format(bookmark)).split("_")[1:])
+                data.append([
+                    name,
+                    '#%02x%02x%02x' % (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255)),
+                    str(int(cmds.getAttr("{}.timeRangeStart".format(bookmark)))).zfill(4),
+                    str(int(cmds.getAttr("{}.timeRangeStop".format(bookmark)))).zfill(4)
+                ])
+                self.bookmarks.append(bookmark)
+                self.sequenceNames.append(name)
+
+
+        self.clear_layout(self.bookmark_list_layout)
+
+        tempLayout = QtWidgets.QVBoxLayout()
+        self.bookmark_checkbox_widgets = []
+
+        for i, (name, code, start, end) in enumerate(data):
+            row_layout = QtWidgets.QHBoxLayout()
+
+            bookmark_label_widget = QtWidgets.QLabel(name)
+            bookmark_checkbox_widget = QtWidgets.QCheckBox()
+            bookmark_color_widget = QtWidgets.QPushButton()
+            bookmark_range_widget = QtWidgets.QLabel("{} - {}".format(start, end))
+
+            self.bookmark_checkbox_widgets.append(bookmark_checkbox_widget)
+
+            bookmark_color_widget.setFixedWidth(24)
+            bookmark_color_widget.setEnabled(False)
+            bookmark_color_widget.setStyleSheet("background-color : {}".format(code))
+            #bookmark_color_widget.set(self.get_rgb_from_hex(code))
+
+            bookmark_checkbox_widget.setChecked(True)
+
+            row_layout.addWidget(bookmark_label_widget)
+            row_layout.addStretch()
+            row_layout.addWidget(bookmark_checkbox_widget)
+            row_layout.addWidget(bookmark_range_widget)
+            row_layout.addWidget(bookmark_color_widget)
+
+            tempLayout.addLayout(row_layout)
+        self.bookmark_list_layout.addLayout(tempLayout)
+
+    def get_frame_rate(self):
+        #return 20
+        value = str(cmds.currentUnit(q=True, time=True))
+        if "film" in value:
+            return 24
+        if "fps" in value:
+            return int(value.split('fps')[0])
+        return 0
+
+    def export(self):
+        directory = self.directory_line_edit.text()
+        exportSet = self.sets_combo_box.currentText()
+
+        numberOfJointsInSet = cmds.sets(exportSet, size=True, query=True)
+        numberOfBookmarks = len(self.bookmarks)
+
+        frameRate = self.get_frame_rate()
+        exportedSequences = []
+        for i in range(numberOfBookmarks):
+
+            sequencePathAndName = self.sequenceNames[i]
+            filePath = f"{directory}/{sequencePathAndName}.json"
+            timelineBookmark = self.bookmarks[i]
+            markedForExport = self.bookmark_checkbox_widgets[i].isChecked()
+
+            exportedSequences.append(sequencePathAndName.split('/')[-1])
+
+            if markedForExport:
+                self.export_sequence(timelineBookmark, filePath, exportSet, frameRate)
+                print(timelineBookmark)
+                print(filePath)
+                print(exportSet)
+                print(frameRate)
+
+        #QtWidgets.QMessageBox.information(self, "Export Complete", f"Successfully exported the following animation sequences: \n\n{', '.join(exportedSequences)}")
+        pass
+
+    def export_sequence(self, timelineBookmark, filePath, exportSet, frameRate):
+        if frameRate == 0:
+            QtWidgets.QMessageBox.critical(self, "Export Failure", "The scene's frame rate is invalid.")
+            return
+
+        frameRateConversionMultiplier = 1 / frameRate
+        startTime = round(cmds.getAttr(f"{timelineBookmark}.timeRangeStart"))
+        endTime = round(cmds.getAttr(f"{timelineBookmark}.timeRangeStop"))
+        length = round((endTime - startTime) * frameRateConversionMultiplier,3)
+
+        cmds.select(exportSet)
+        joints = cmds.ls(selection=True)
+
+        jsonDict = {
+            "format_version": FORMAT_VERSION,
+            "length": length
         }
-    partsList = []
-    
-    for joint in exportJoints:
-        partName = joint.split(':')[1].split('_')[0]
-        #partName = joint.split('_')[0]
-        partDict = {"name": partName}
-        keyframesDict = {}
-        for i in range((frameEnd * 1) + 1):
-            keyframeDict = {}
-            currentTime = i / 1
-            cmds.currentTime(currentTime)
-            
-            keyframeDict['translate'] = [0,0,0]
-            keyframeDict['rotate'] = [0,0,0]
-                
-            for j in range(len(attributes)):
-                attributeDict = {}
-                value = cmds.getAttr(joint + '.' + attributes[j])
-                if(j >= 3):
-                    value = math.radians(value)
-                    value = round(value, 5)
-                else:
-                    value = round(value, 3)
-                if j == 1 or j == 2 or j == 4 or j == 5:
-                    value = -value
-                
-                
-                if(j >= 3):
-                    #rotate
-                    keyframeDict['rotate'][j-3] = value
-                else:
-                    #translate
-                    keyframeDict['translate'][j] = value
-                    
-            keyframesDict[i] = keyframeDict
-        partDict["keyframes"] = keyframesDict
-        partsList.append(partDict)
-    masterDict["parts"] = partsList
-    masterDictJSON = json.dumps(masterDict)
+        jsonDict["joints"] = {}
+        for joint in joints:
+            jointWithoutNamespace = joint.split(':')[-1]
+            jsonDict["joints"][jointWithoutNamespace] = {}
+            jsonDict["joints"][jointWithoutNamespace]["translation"] = {}
+            jsonDict["joints"][jointWithoutNamespace]["rotation"] = {}
+            jsonDict["joints"][jointWithoutNamespace]["scale"] = {}
+            jsonDict["joints"][jointWithoutNamespace]["visibility"] = {}
 
-    directory += '/' + entityKey
+            previousTranslation = []
+            previousRotation = []
+            previousScale = []
+            previousVisibility = None
+            previousConvertedTime = 0
 
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-        
-    directory += '/' + animationKey + '.json'
-    
-    with open(directory, 'w') as outfile:
-        json.dump(masterDict, outfile)
-    
-    print("Saved animation " + animationKey + " for entity " + entityKey + " with " + str(len(exportJoints)) + " parts")
-    
-deleteIfOpen()
-createWindow()
+            for time in range(startTime, endTime + 1):
+                cmds.currentTime(time)
+                convertedTime = round((time - startTime) * frameRateConversionMultiplier, 3)
+
+                translateX = round(cmds.getAttr(f"{joint}.translateX"), 3)
+                translateY = -round(cmds.getAttr(f"{joint}.translateY"), 3)
+                translateZ = -round(cmds.getAttr(f"{joint}.translateZ"), 3)
+                translation = [translateX, translateY, translateZ]
+
+                rotateX = round(cmds.getAttr(f"{joint}.rotateX"), 3)
+                rotateY = -round(cmds.getAttr(f"{joint}.rotateY"), 3)
+                rotateZ = -round(cmds.getAttr(f"{joint}.rotateZ"), 3)
+                rotation = [rotateX, rotateY, rotateZ]
+
+                scaleX = round(cmds.getAttr(f"{joint}.scaleX"), 3)
+                scaleY = round(cmds.getAttr(f"{joint}.scaleY"), 3)
+                scaleZ = round(cmds.getAttr(f"{joint}.scaleZ"), 3)
+                scale = [scaleX, scaleY, scaleZ]
+
+                visibility = True
+                hasVisibilityAttribute = cmds.attributeQuery('elementVisibility', node=joint, exists=True)
+                if hasVisibilityAttribute:
+                    visibilityAttributeIsOfCorrectType = cmds.attributeQuery('elementVisibility', node=joint, attributeType=True) == 'bool'
+                    if visibilityAttributeIsOfCorrectType:
+                        visibility = cmds.getAttr(f"{joint}.elementVisibility")
+
+                if previousVisibility == None:
+                    jsonDict["joints"][jointWithoutNamespace]["visibility"][convertedTime] = visibility
+                    previousVisibility = visibility
+                if visibility != previousVisibility:
+                    jsonDict["joints"][jointWithoutNamespace]["visibility"][previousConvertedTime] = previousVisibility
+                    jsonDict["joints"][jointWithoutNamespace]["visibility"][convertedTime] = visibility
+                    previousVisibility = visibility
+
+                if previousTranslation == []:
+                    jsonDict["joints"][jointWithoutNamespace]["translation"][convertedTime] = translation
+                    previousTranslation = translation
+                if translation != previousTranslation:
+                    jsonDict["joints"][jointWithoutNamespace]["translation"][previousConvertedTime] = previousTranslation
+                    jsonDict["joints"][jointWithoutNamespace]["translation"][convertedTime] = translation
+                    previousTranslation = translation
+
+                if previousRotation == []:
+                    jsonDict["joints"][jointWithoutNamespace]["rotation"][convertedTime] = rotation
+                    previousRotation = rotation
+                if rotation != previousRotation:
+                    jsonDict["joints"][jointWithoutNamespace]["rotation"][previousConvertedTime] = previousRotation
+                    jsonDict["joints"][jointWithoutNamespace]["rotation"][convertedTime] = rotation
+                    previousRotation = rotation
+
+                if previousScale == []:
+                    jsonDict["joints"][jointWithoutNamespace]["scale"][convertedTime] = scale
+                    previousScale = scale
+                if scale != previousScale:
+                    jsonDict["joints"][jointWithoutNamespace]["scale"][previousConvertedTime] = previousScale
+                    jsonDict["joints"][jointWithoutNamespace]["scale"][convertedTime] = scale
+                    previousScale = scale
+
+                #jsonDict["joints"][joint]["translation"][convertedTime] = translation
+                previousConvertedTime = convertedTime
+                pass
+
+        jsonDict["notifies"] = {}
+        jsonDict["curves"] = {}
+
+        debug = False
+        if debug:
+            print(json.dumps(jsonDict, indent=4, sort_keys=True))
+        else:
+            with open(filePath, 'w') as outfile:
+                json.dump(jsonDict, outfile, indent=4, sort_keys=True)
+        pass
+
+
+if __name__ == "__main__":
+
+    try:
+        animation_mod_export_dialog.close() # pylint: disable=E0601
+        animation_mod_export_dialog.deleteLater()
+    except:
+        pass
+
+    animation_mod_export_dialog = AnimationModExportDialog()
+    animation_mod_export_dialog.show()

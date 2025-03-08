@@ -116,6 +116,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
     @Override
     public CompletableFuture<Void> apply(Map<ResourceLocation, JsonElement> jsonData, ResourceManager resourceManager, Executor executor) {
         return CompletableFuture.runAsync(() -> {
+            LocomotionMain.LOGGER.info("Loading {} animation sequences...", jsonData.size());
             AnimationSequenceData data = new AnimationSequenceData();
             jsonData.forEach((resourceLocation, sequenceElement) -> {
                 JsonObject sequenceJSON = sequenceElement.getAsJsonObject();
@@ -137,7 +138,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                                 jointJSON.getAsJsonObject("translation").asMap(),
                                 Interpolator.VECTOR,
                                 sequenceLength,
-                                AnimationSequenceDataLoader::extractTranslationKeyframeValue
+                                AnimationSequenceDataLoader::extractVectorKeyframeValue
                         );
                         Timeline<Quaternionf> rotationTimeline = createTimelineFromJSONChannel(
                                 jointJSON.getAsJsonObject("rotation").asMap(),
@@ -149,7 +150,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                                 jointJSON.getAsJsonObject("scale").asMap(),
                                 Interpolator.VECTOR,
                                 sequenceLength,
-                                AnimationSequenceDataLoader::extractScaleKeyframeValue
+                                AnimationSequenceDataLoader::extractVectorKeyframeValue
                         );
                         Timeline<Boolean> visibilityTimeline = createTimelineFromJSONChannel(
                                 jointJSON.getAsJsonObject("visibility").asMap(),
@@ -170,6 +171,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                     LocomotionMain.LOGGER.warn("Skipping the loading of animation {} (Animation format version was {}, not up to date with {})", resourceLocation, sequenceFormatVersion, FORMAT_VERSION_4);
                 }
             });
+            LocomotionMain.LOGGER.info("Finished loading animations!");
             AnimationSequenceData.INSTANCE.clearAndReplace(data);
         });
     }
@@ -183,16 +185,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
         return timeline;
     }
 
-    private static Vector3f extractTranslationKeyframeValue(JsonElement keyframeElement){
-        JsonArray components = keyframeElement.getAsJsonArray();
-        return new Vector3f(
-                components.get(0).getAsFloat(),
-                -components.get(1).getAsFloat(),
-                -components.get(2).getAsFloat()
-        );
-    }
-
-    private static Vector3f extractScaleKeyframeValue(JsonElement keyframeElement){
+    private static Vector3f extractVectorKeyframeValue(JsonElement keyframeElement){
         JsonArray components = keyframeElement.getAsJsonArray();
         return new Vector3f(
                 components.get(0).getAsFloat(),
@@ -204,98 +197,11 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
     private static Quaternionf extractQuaternionKeyframeValue(JsonElement keyframeElement){
         JsonArray components = keyframeElement.getAsJsonArray();
         return new Quaternionf().rotationZYX(
-                -components.get(2).getAsFloat() * Mth.DEG_TO_RAD,
-                -components.get(1).getAsFloat() * Mth.DEG_TO_RAD,
+                components.get(2).getAsFloat() * Mth.DEG_TO_RAD,
+                components.get(1).getAsFloat() * Mth.DEG_TO_RAD,
                 components.get(0).getAsFloat() * Mth.DEG_TO_RAD
         );
     }
-
-    /*
-    //@Override
-    public CompletableFuture<Void> applyyy(Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, ResourceManager resourceManager, Executor executor) {
-        return CompletableFuture.runAsync(() -> {
-            AnimationSequenceData newData = new AnimationSequenceData();
-            for(ResourceLocation resourceLocationKey : resourceLocationJsonElementMap.keySet()){
-                JsonElement animationJSON = resourceLocationJsonElementMap.get(resourceLocationKey);
-
-
-                String resourceNamespace = resourceLocationKey.toString().split(":")[0];
-                String resourceBody = resourceLocationKey.toString().split(":")[1].split("\\.")[0].replace("sequences/", "");
-                ResourceLocation finalResourceLocation = ResourceLocation.fromNamespaceAndPath(resourceNamespace, resourceBody);
-
-                //String entityKey = resourceLocationKey.toString().split("/")[1];
-                //String animationKey = resourceLocationKey.toString().split("/")[2].split("\\.")[0];
-                String formatVersion;
-                if(animationJSON.getAsJsonObject().has("format_version")){
-                    formatVersion = animationJSON.getAsJsonObject().get("format_version").getAsString();
-                } else {
-                    formatVersion = "0.1";
-                }
-
-                if(Objects.equals(formatVersion, FORMAT_VERSION_4)){
-                    float frameRate = animationJSON.getAsJsonObject().get("frame_rate").getAsFloat();
-                    float frameToTickDivisor = frameRate / 20f;
-                    float frameLengthInTicks = animationJSON.getAsJsonObject().get("frame_length").getAsFloat() / frameToTickDivisor;
-
-                    AnimationSequenceData.AnimationSequence.Builder animationSequenceBuilder = AnimationSequenceData.AnimationSequence.builder(frameLengthInTicks);
-
-                    JsonArray partArrayJSON = animationJSON.getAsJsonObject().get("parts").getAsJsonArray();
-
-                    // Get the lowest keyframe in the animation. I can reasonably expect no animation will have a higher keyframe than 10,000,000 right? lol
-                    float startKeyframe = 10000000;
-                    for(int partIndex = 0; partIndex < partArrayJSON.size(); partIndex++){
-                        JsonObject partKeyframesJSON = partArrayJSON.get(partIndex).getAsJsonObject().get("keyframes").getAsJsonObject();
-                        for(String keyframe : partKeyframesJSON.keySet()){
-                            startKeyframe = Math.min(Integer.parseInt(keyframe), startKeyframe);
-                        }
-                    }
-
-                    for(int partIndex = 0; partIndex < partArrayJSON.size(); partIndex++){
-                        JsonObject partJSON = partArrayJSON.get(partIndex).getAsJsonObject();
-                        String partName = partJSON.get("name").getAsString();
-                        //AnimationOverhaul.LOGGER.info(partName);
-
-                        Timeline<JointChannel> timeline = Timeline.ofJointTransform(frameLengthInTicks);
-
-                        JsonObject partKeyframesJSON = partJSON.get("keyframes").getAsJsonObject();
-                        for(Map.Entry<String, JsonElement> keyframeEntry : partKeyframesJSON.entrySet()) {
-                            int keyframeNumber = Integer.parseInt(keyframeEntry.getKey());
-                            float keyframeInTicks = (keyframeNumber - startKeyframe) / frameToTickDivisor;
-                            JsonElement keyframeJSON = keyframeEntry.getValue();
-                            //AnimationOverhaul.LOGGER.info(keyframeNumber);
-                            Vector3f translation = new Vector3f(
-                                    keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(0).getAsFloat(),
-                                    keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(1).getAsFloat(),
-                                    keyframeJSON.getAsJsonObject().get("translate").getAsJsonArray().get(2).getAsFloat()
-                            );
-                            Quaternionf rotation = new Quaternionf().rotationZYX(
-                                    keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(2).getAsFloat(),
-                                    keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(1).getAsFloat(),
-                                    keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(0).getAsFloat()
-                            );
-                            Vector3f scale = new Vector3f(1);
-                            timeline.addKeyframe(keyframeInTicks, JointChannel.ofTranslationRotationScaleQuaternion(translation, rotation, scale));
-                        }
-                        animationSequenceBuilder.addTimelineForJoint(partName, timeline);
-                    }
-
-
-                    newData.put(finalResourceLocation, animationSequenceBuilder.build());
-                    //AnimationOverhaul.LOGGER.info(frameLengthInTicks);
-                    //AnimationOverhaul.LOGGER.info("Entity key: {} Animation key: {}", entityKey, animationKey);
-
-
-                    LocomotionMain.LOGGER.info("Successfully loaded animation {}", resourceLocationKey);
-                } else {
-                    LocomotionMain.LOGGER.error("Failed to load animation {} (Animation format version was {}, not up to date with {})", resourceLocationKey, formatVersion, FORMAT_VERSION_4);
-                }
-            }
-
-            AnimationSequenceData.INSTANCE.clearAndReplace(newData);
-        });
-    }
-
-     */
 
     @Override
     public ResourceLocation getFabricId() {
