@@ -49,7 +49,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
         protected Builder(ResourceLocation resourceLocation) {
             super();
             this.resourceLocation = resourceLocation;
-            this.frameLength = AnimationSequenceData.INSTANCE.getOrThrow(this.resourceLocation).frameLength();
+            this.frameLength = AnimationSequenceData.INSTANCE.getOrThrow(this.resourceLocation).length();
             this.endTime = frameLength;
         }
 

@@ -5,14 +5,13 @@ import com.trainguy9512.locomotion.animation.data.*;
 import com.trainguy9512.locomotion.animation.data.driver.Driver;
 import com.trainguy9512.locomotion.animation.data.key.AnimationDriverKey;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
-import com.trainguy9512.locomotion.animation.joint.JointTransform;
+import com.trainguy9512.locomotion.animation.joint.JointChannel;
 import com.trainguy9512.locomotion.animation.pose.LocalSpacePose;
 import com.trainguy9512.locomotion.animation.pose.function.*;
 import com.trainguy9512.locomotion.animation.pose.function.cache.SavedCachedPoseContainer;
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
 import com.trainguy9512.locomotion.util.Easing;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.resources.ResourceLocation;
@@ -25,15 +24,17 @@ import java.util.Set;
 
 public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator<LocalPlayer, PlayerRenderState> {
 
-    public static final String ROOT_JOINT = "root";
-    public static final String CAMERA_JOINT = "camera";
-    public static final String ARM_BUFFER_JOINT = "armBuffer";
-    public static final String RIGHT_ARM_BUFFER_JOINT = "rightArmBuffer";
-    public static final String LEFT_ARM_BUFFER_JOINT = "leftArmBuffer";
-    public static final String RIGHT_ARM_JOINT = "rightArm";
-    public static final String LEFT_ARM_JOINT = "leftArm";
-    public static final String RIGHT_HAND_JOINT = "rightHand";
-    public static final String LEFT_HAND_JOINT = "leftHand";
+    public static final String ROOT_JOINT = "root_jnt";
+    public static final String CAMERA_JOINT = "camera_jnt";
+    public static final String ARM_BUFFER_JOINT = "arm_buffer_jnt";
+    public static final String RIGHT_ARM_BUFFER_JOINT = "arm_R_buffer_jnt";
+    public static final String RIGHT_ARM_JOINT = "arm_R_jnt";
+    public static final String RIGHT_HAND_JOINT = "hand_R_jnt";
+    public static final String RIGHT_ITEM_JOINT = "item_R_jnt";
+    public static final String LEFT_ARM_BUFFER_JOINT = "arm_L_buffer_jnt";
+    public static final String LEFT_ARM_JOINT = "arm_L_jnt";
+    public static final String LEFT_HAND_JOINT = "hand_L_jnt";
+    public static final String LEFT_ITEM_JOINT = "item_L_jnt";
 
     public static final Set<String> ARM_BUFFER_JOINTS = Set.of(
             RIGHT_ARM_BUFFER_JOINT,
@@ -90,11 +91,12 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
                 .addJointUnderParent(RIGHT_ARM_JOINT, RIGHT_ARM_BUFFER_JOINT)
                 .addJointUnderParent(LEFT_HAND_JOINT, LEFT_ARM_JOINT)
                 .addJointUnderParent(RIGHT_HAND_JOINT, RIGHT_ARM_JOINT)
-                .setModelPartOffset(LEFT_HAND_JOINT, PartPose.offsetAndRotation(1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
-                .setModelPartOffset(RIGHT_HAND_JOINT, PartPose.offsetAndRotation(-1, 10, -2, -Mth.HALF_PI, 0, Mth.PI))
+                .addJointUnderParent(LEFT_ITEM_JOINT, LEFT_HAND_JOINT)
+                .addJointUnderParent(RIGHT_ITEM_JOINT, RIGHT_HAND_JOINT)
                 .setMirrorJoint(RIGHT_ARM_BUFFER_JOINT, LEFT_ARM_BUFFER_JOINT)
                 .setMirrorJoint(RIGHT_ARM_JOINT, LEFT_ARM_JOINT)
                 .setMirrorJoint(RIGHT_HAND_JOINT, LEFT_HAND_JOINT)
+                .setMirrorJoint(RIGHT_ITEM_JOINT, LEFT_ITEM_JOINT)
                 .build();
     }
 
@@ -120,18 +122,18 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
                 JointTransformerFunction.componentSpaceBuilder(ComponentConversionFunction.of(testSequencePlayer), RIGHT_ARM_JOINT)
                         .setTranslation(
                                 context -> new Vector3f(Mth.sin(context.gameTimeSeconds() * 8f) * 2f, 0, 0),
-                                JointTransform.TransformType.ADD,
-                                JointTransform.TransformSpace.COMPONENT
+                                JointChannel.TransformType.ADD,
+                                JointChannel.TransformSpace.COMPONENT
                         )
                         .setRotation(
                                 context -> Axis.XP.rotationDegrees(0f),
-                                JointTransform.TransformType.ADD,
-                                JointTransform.TransformSpace.COMPONENT
+                                JointChannel.TransformType.ADD,
+                                JointChannel.TransformSpace.COMPONENT
                         )
                         .setScale(
                                 context -> new Vector3f(1, 1, 1),
-                                JointTransform.TransformType.ADD,
-                                JointTransform.TransformSpace.COMPONENT
+                                JointChannel.TransformType.ADD,
+                                JointChannel.TransformSpace.COMPONENT
                         )
                         .setWeight(context -> 1f)
                         .build());
@@ -162,16 +164,16 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
         Vector3f cameraDampWeight = new Vector3f(0.6F, 0.3F, 0.1F);
 
-        JointTransform jointTransform = pose.getJointTransform(ARM_BUFFER_JOINT);
-        jointTransform.rotate(
+        JointChannel jointChannel = pose.getJointTransform(ARM_BUFFER_JOINT);
+        jointChannel.rotate(
                 new Vector3f(
                         (dampenedCameraRotation.x() - cameraRotation.x()) * (cameraDampWeight.x() * 0.01F),
                         (dampenedCameraRotation.y() - cameraRotation.y()) * (cameraDampWeight.y() * 0.01F),
                         (dampenedCameraRotation.z() - cameraRotation.z()) * (cameraDampWeight.z() * 0.01F)
                 ),
-                JointTransform.TransformSpace.COMPONENT, JointTransform.TransformType.ADD
+                JointChannel.TransformSpace.COMPONENT, JointChannel.TransformType.ADD
         );
-        pose.setJointTransform(ARM_BUFFER_JOINT, jointTransform);
+        pose.setJointTransform(ARM_BUFFER_JOINT, jointChannel);
     }
 
 

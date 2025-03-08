@@ -2,7 +2,8 @@ package com.trainguy9512.locomotion.animation.pose;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
-import com.trainguy9512.locomotion.animation.joint.JointTransform;
+import com.trainguy9512.locomotion.animation.joint.JointChannel;
+import com.trainguy9512.locomotion.util.TimeSpan;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Set;
@@ -44,15 +45,15 @@ public class LocalSpacePose extends AnimationPose {
     /**
      * Creates an animation pose from a point in time within the provided animation sequence
      * @param jointSkeleton         Template joint skeleton
-     * @param resourceLocation      Animation sequence resource location
-     * @param timeInTicks           Point of time in the animation to get.
+     * @param sequenceLocation      Animation sequence resource location
+     * @param time                  Point of time in the animation to get.
      * @param looping               Whether the animation should be looped or not.
      * @return                      New animation pose
      */
-    public static LocalSpacePose fromAnimationSequence(JointSkeleton jointSkeleton, ResourceLocation resourceLocation, float timeInTicks, boolean looping){
+    public static LocalSpacePose fromAnimationSequence(JointSkeleton jointSkeleton, ResourceLocation sequenceLocation, TimeSpan time, boolean looping){
         LocalSpacePose pose = LocalSpacePose.of(jointSkeleton);
         for(String joint : jointSkeleton.getJoints()){
-            pose.setJointTransform(joint, JointTransform.ofAnimationSequenceJoint(resourceLocation, joint, timeInTicks, looping));
+            pose.setJointTransform(joint, JointChannel.ofJointFromAnimationSequence(sequenceLocation, joint, time, looping));
         }
         return pose;
     }
@@ -63,7 +64,7 @@ public class LocalSpacePose extends AnimationPose {
 
     public void mirrorWeighted(float weight){
         this.jointTransforms.forEach((joint, transform) -> {
-            JointTransform mirroredTransform = this.getJointTransform(this.getJointSkeleton().getJointConfiguration(joint).mirrorJoint()).mirrored();
+            JointChannel mirroredTransform = this.getJointTransform(this.getJointSkeleton().getJointConfiguration(joint).mirrorJoint()).mirrored();
             this.setJointTransform(joint, transform.interpolated(mirroredTransform, weight));
         });
     }

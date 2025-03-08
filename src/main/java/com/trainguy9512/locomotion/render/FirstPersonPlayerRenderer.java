@@ -4,9 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.trainguy9512.locomotion.access.MatrixModelPart;
 import com.trainguy9512.locomotion.animation.animator.JointAnimatorDispatcher;
-import com.trainguy9512.locomotion.animation.animator.JointAnimatorRegistry;
 import com.trainguy9512.locomotion.animation.animator.entity.FirstPersonPlayerJointAnimator;
-import com.trainguy9512.locomotion.animation.joint.JointTransform;
+import com.trainguy9512.locomotion.animation.joint.JointChannel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -18,12 +17,10 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 public class FirstPersonPlayerRenderer {
 
@@ -48,10 +45,10 @@ public class FirstPersonPlayerRenderer {
                 dataContainer -> jointAnimatorDispatcher.getInterpolatedFirstPersonPlayerPose().ifPresent(
                         animationPose -> {
 
-                            JointTransform rightArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_ARM_JOINT);
-                            JointTransform leftArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.LEFT_ARM_JOINT);
-                            JointTransform rightHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_HAND_JOINT);
-                            JointTransform leftHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.LEFT_HAND_JOINT);
+                            JointChannel rightArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_ARM_JOINT);
+                            JointChannel leftArmPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.LEFT_ARM_JOINT);
+                            JointChannel rightHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_HAND_JOINT);
+                            JointChannel leftHandPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.LEFT_HAND_JOINT);
 
                             poseStack.pushPose();
                             poseStack.mulPose(Axis.ZP.rotationDegrees(180));
@@ -86,11 +83,11 @@ public class FirstPersonPlayerRenderer {
     public void transformCamera(PoseStack poseStack){
         if(this.minecraft.options.getCameraType().isFirstPerson()){
             this.jointAnimatorDispatcher.getInterpolatedFirstPersonPlayerPose().ifPresent(animationPose -> {
-                JointTransform cameraPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.CAMERA_JOINT);
+                JointChannel cameraPose = animationPose.getJointTransform(FirstPersonPlayerJointAnimator.CAMERA_JOINT);
 
                 Vector3f cameraRot = cameraPose.getEulerRotationZYX();
                 cameraRot.z *= -1;
-                cameraPose.rotate(cameraRot, JointTransform.TransformSpace.LOCAL, JointTransform.TransformType.REPLACE);
+                cameraPose.rotate(cameraRot, JointChannel.TransformSpace.LOCAL, JointChannel.TransformType.REPLACE);
 
                 poseStack.mulPose(cameraPose.getTransform().setTranslation(cameraPose.getTransform().getTranslation(new Vector3f().div(16f))));
             });
@@ -99,10 +96,10 @@ public class FirstPersonPlayerRenderer {
 
 
 
-    public void renderItem(LivingEntity entity, ItemStack itemStack, ItemDisplayContext displayContext, boolean isLeftHand, PoseStack poseStack, JointTransform jointTransform, MultiBufferSource buffer, int combinedLight) {
+    public void renderItem(LivingEntity entity, ItemStack itemStack, ItemDisplayContext displayContext, boolean isLeftHand, PoseStack poseStack, JointChannel jointChannel, MultiBufferSource buffer, int combinedLight) {
         if (!itemStack.isEmpty()) {
             poseStack.pushPose();
-            jointTransform.transformPoseStack(poseStack, 16f);
+            jointChannel.transformPoseStack(poseStack, 16f);
 
             //TODO: this code needs to be replaced with proper joint transforms
             poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));

@@ -1,6 +1,6 @@
 package com.trainguy9512.locomotion.animation.pose.function;
 
-import com.trainguy9512.locomotion.animation.joint.JointTransform;
+import com.trainguy9512.locomotion.animation.joint.JointChannel;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import com.trainguy9512.locomotion.animation.pose.ComponentSpacePose;
 import com.trainguy9512.locomotion.animation.pose.LocalSpacePose;
@@ -41,23 +41,23 @@ public class JointTransformerFunction<P extends AnimationPose> implements PoseFu
         P pose = this.input.compute(context);
         float weight = this.weightFunction.apply(context);
 
-        JointTransform jointTransform = pose.getJointTransform(this.joint);
-        this.transformJoint(jointTransform, context, this.translationConfiguration, JointTransform::translate);
-        this.transformJoint(jointTransform, context, this.rotationConfiguration, JointTransform::rotate);
-        this.transformJoint(jointTransform, context, this.scaleConfiguration, JointTransform::scale);
+        JointChannel jointChannel = pose.getJointTransform(this.joint);
+        this.transformJoint(jointChannel, context, this.translationConfiguration, JointChannel::translate);
+        this.transformJoint(jointChannel, context, this.rotationConfiguration, JointChannel::rotate);
+        this.transformJoint(jointChannel, context, this.scaleConfiguration, JointChannel::scale);
 
         if(weight != 0){
             if(weight == 1){
-                pose.setJointTransform(this.joint, jointTransform);
+                pose.setJointTransform(this.joint, jointChannel);
             } else {
-                pose.setJointTransform(this.joint, pose.getJointTransform(this.joint).interpolated(jointTransform, weight));
+                pose.setJointTransform(this.joint, pose.getJointTransform(this.joint).interpolated(jointChannel, weight));
             }
         }
         return pose;
     }
 
-    private <X> void transformJoint(JointTransform jointTransform, FunctionInterpolationContext context, TransformChannelConfiguration<X> configuration, Transformer<X> transformer){
-        transformer.transform(jointTransform, configuration.transformFunction.apply(context), configuration.transformSpace, configuration.transformType);
+    private <X> void transformJoint(JointChannel jointChannel, FunctionInterpolationContext context, TransformChannelConfiguration<X> configuration, Transformer<X> transformer){
+        transformer.transform(jointChannel, configuration.transformFunction.apply(context), configuration.transformSpace, configuration.transformType);
     }
 
     @Override
@@ -90,23 +90,23 @@ public class JointTransformerFunction<P extends AnimationPose> implements PoseFu
         private Builder(PoseFunction<P> poseFunction, String joint){
             this.joint = joint;
             this.input = poseFunction;
-            this.translationConfiguration = TransformChannelConfiguration.of((context) -> new Vector3f(0), JointTransform.TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);
-            this.rotationConfiguration = TransformChannelConfiguration.of((context) -> new Quaternionf().identity(), JointTransform.TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);
-            this.scaleConfiguration = TransformChannelConfiguration.of((context) -> new Vector3f(0), JointTransform.TransformType.IGNORE, JointTransform.TransformSpace.LOCAL);
+            this.translationConfiguration = TransformChannelConfiguration.of((context) -> new Vector3f(0), JointChannel.TransformType.IGNORE, JointChannel.TransformSpace.LOCAL);
+            this.rotationConfiguration = TransformChannelConfiguration.of((context) -> new Quaternionf().identity(), JointChannel.TransformType.IGNORE, JointChannel.TransformSpace.LOCAL);
+            this.scaleConfiguration = TransformChannelConfiguration.of((context) -> new Vector3f(0), JointChannel.TransformType.IGNORE, JointChannel.TransformSpace.LOCAL);
             this.weightFunction = evaluationState -> 1f;
         }
 
-        public Builder<P> setTranslation(Function<FunctionInterpolationContext, Vector3f> transformFunction, JointTransform.TransformType transformType, JointTransform.TransformSpace transformSpace){
+        public Builder<P> setTranslation(Function<FunctionInterpolationContext, Vector3f> transformFunction, JointChannel.TransformType transformType, JointChannel.TransformSpace transformSpace){
             this.translationConfiguration = TransformChannelConfiguration.of(transformFunction, transformType, transformSpace);
             return this;
         }
 
-        public Builder<P> setRotation(Function<FunctionInterpolationContext, Quaternionf> transformFunction, JointTransform.TransformType transformType, JointTransform.TransformSpace transformSpace){
+        public Builder<P> setRotation(Function<FunctionInterpolationContext, Quaternionf> transformFunction, JointChannel.TransformType transformType, JointChannel.TransformSpace transformSpace){
             this.rotationConfiguration = TransformChannelConfiguration.of(transformFunction, transformType, transformSpace);
             return this;
         }
 
-        public Builder<P> setScale(Function<FunctionInterpolationContext, Vector3f> transformFunction, JointTransform.TransformType transformType, JointTransform.TransformSpace transformSpace){
+        public Builder<P> setScale(Function<FunctionInterpolationContext, Vector3f> transformFunction, JointChannel.TransformType transformType, JointChannel.TransformSpace transformSpace){
             this.scaleConfiguration = TransformChannelConfiguration.of(transformFunction, transformType, transformSpace);
             return this;
         }
@@ -121,15 +121,15 @@ public class JointTransformerFunction<P extends AnimationPose> implements PoseFu
         }
     }
 
-    private record TransformChannelConfiguration<X>(Function<FunctionInterpolationContext, X> transformFunction, JointTransform.TransformType transformType, JointTransform.TransformSpace transformSpace){
+    private record TransformChannelConfiguration<X>(Function<FunctionInterpolationContext, X> transformFunction, JointChannel.TransformType transformType, JointChannel.TransformSpace transformSpace){
 
-        private static <X> TransformChannelConfiguration<X> of(Function<FunctionInterpolationContext, X> transformFunction, JointTransform.TransformType transformType, JointTransform.TransformSpace transformSpace){
+        private static <X> TransformChannelConfiguration<X> of(Function<FunctionInterpolationContext, X> transformFunction, JointChannel.TransformType transformType, JointChannel.TransformSpace transformSpace){
             return new TransformChannelConfiguration<>(transformFunction, transformType, transformSpace);
         }
     }
 
     @FunctionalInterface
     private interface Transformer<X> {
-        void transform(JointTransform jointTransform, X value, JointTransform.TransformSpace transformSpace, JointTransform.TransformType transformType);
+        void transform(JointChannel jointChannel, X value, JointChannel.TransformSpace transformSpace, JointChannel.TransformType transformType);
     }
 }

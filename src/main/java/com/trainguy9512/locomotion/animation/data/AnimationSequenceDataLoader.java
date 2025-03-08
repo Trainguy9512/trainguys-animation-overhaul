@@ -6,41 +6,55 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.trainguy9512.locomotion.LocomotionMain;
-import com.trainguy9512.locomotion.animation.joint.JointTransform;
+import com.trainguy9512.locomotion.animation.joint.JointChannel;
+import com.trainguy9512.locomotion.util.Interpolator;
 import com.trainguy9512.locomotion.util.Timeline;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 
 public class AnimationSequenceDataLoader implements SimpleResourceReloadListener<Map<ResourceLocation, JsonElement>> {
 
     //<Map<ResourceLocation, JsonElement>>
 
-    private static final String FORMAT_VERSION = "0.3";
+    private static final Integer FORMAT_VERSION_1 = 1;
+    private static final Integer FORMAT_VERSION_4 = 4;
 
     @Override
     public CompletableFuture<Map<ResourceLocation, JsonElement>> load(ResourceManager resourceManager, Executor executor) {
         Gson gson = new Gson();
 
-        Map<ResourceLocation, Resource> passedFiles = resourceManager.listResources("sequences", (string) -> {
-            return string.toString().endsWith(".json");
-        });
+        Map<ResourceLocation, Resource> passedFiles = resourceManager.listResources("sequences", (string) -> string.toString().endsWith(".json"));
 
+        return CompletableFuture.supplyAsync(() -> {
+            Map<ResourceLocation, JsonElement> jsonData = Maps.newHashMap();
+            passedFiles.forEach((resourceLocation, resource) -> {
+                try {
+                    BufferedReader reader = resource.openAsReader();
+                    JsonElement jsonElement = GsonHelper.fromJson(gson, reader, JsonElement.class);
+                    jsonData.put(resourceLocation, jsonElement);
+                    reader.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            return jsonData;
+        }, executor);
+
+        /*
         return CompletableFuture.supplyAsync(() -> {
             Map<ResourceLocation, JsonElement> map = Maps.newHashMap();
             for(ResourceLocation resourceLocation : passedFiles.keySet()){
@@ -96,10 +110,99 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
             }
             return map;
         }, executor);
+         */
     }
 
     @Override
-    public CompletableFuture<Void> apply(Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, ResourceManager resourceManager, Executor executor) {
+    public CompletableFuture<Void> apply(Map<ResourceLocation, JsonElement> jsonData, ResourceManager resourceManager, Executor executor) {
+        return CompletableFuture.runAsync(() -> {
+            AnimationSequenceData data = new AnimationSequenceData();
+            jsonData.forEach((resourceLocation, sequenceElement) -> {
+                JsonObject sequenceJSON = sequenceElement.getAsJsonObject();
+
+                int sequenceFormatVersion = FORMAT_VERSION_1;
+                if(sequenceJSON.has("format_version")){
+                    sequenceFormatVersion = sequenceJSON.get("format_version").getAsInt();
+                }
+
+                if(sequenceFormatVersion >= FORMAT_VERSION_4) {
+                    float sequenceLength = sequenceJSON.get("length").getAsFloat();
+                    Map<String, JsonElement> joints = sequenceJSON.getAsJsonObject("joints").asMap();
+
+                    AnimationSequenceData.AnimationSequence.Builder sequenceBuilder = AnimationSequenceData.AnimationSequence.builder(sequenceLength);
+                    joints.forEach((joint, jointElement) -> {
+                        JsonObject jointJSON = jointElement.getAsJsonObject();
+
+                        Timeline<Vector3f> translationTimeline = createTimelineFromJSONChannel(
+                                jointJSON.getAsJsonObject("translation").asMap(),
+                                Interpolator.VECTOR,
+                                sequenceLength,
+                                AnimationSequenceDataLoader::extractVectorKeyframeValue
+                        );
+                        Timeline<Quaternionf> rotationTimeline = createTimelineFromJSONChannel(
+                                jointJSON.getAsJsonObject("rotation").asMap(),
+                                Interpolator.QUATERNION,
+                                sequenceLength,
+                                AnimationSequenceDataLoader::extractQuaternionKeyframeValue
+                        );
+                        Timeline<Vector3f> scaleTimeline = createTimelineFromJSONChannel(
+                                jointJSON.getAsJsonObject("scale").asMap(),
+                                Interpolator.VECTOR,
+                                sequenceLength,
+                                AnimationSequenceDataLoader::extractVectorKeyframeValue
+                        );
+                        Timeline<Boolean> visibilityTimeline = createTimelineFromJSONChannel(
+                                jointJSON.getAsJsonObject("visibility").asMap(),
+                                Interpolator.BOOLEAN_KEYFRAME,
+                                sequenceLength,
+                                JsonElement::getAsBoolean
+                        );
+
+                        sequenceBuilder.putJointTranslationTimeline(joint, translationTimeline);
+                        sequenceBuilder.putJointRotationTimeline(joint, rotationTimeline);
+                        sequenceBuilder.putJointScaleTimeline(joint, scaleTimeline);
+                        sequenceBuilder.putJointVisibilityTimeline(joint, visibilityTimeline);
+                    });
+                    data.put(resourceLocation, sequenceBuilder.build());
+                    LocomotionMain.LOGGER.info("Successfully loaded animation {}", resourceLocation);
+                } else {
+                    LocomotionMain.LOGGER.warn("Skipping the loading of animation {} (Animation format version was {}, not up to date with {})", resourceLocation, sequenceFormatVersion, FORMAT_VERSION_4);
+                }
+            });
+            AnimationSequenceData.INSTANCE.clearAndReplace(data);
+        });
+    }
+
+    private static <X> Timeline<X> createTimelineFromJSONChannel(Map<String, JsonElement> keyframes, Interpolator<X> interpolator, float sequenceLength, Function<JsonElement, X> jsonKeyframeValueExtractor){
+        Timeline<X> timeline = Timeline.of(interpolator, sequenceLength);
+        keyframes.forEach((keyframeString, keyframeValueElement) -> {
+            float keyframe = Float.parseFloat(keyframeString);
+            timeline.addKeyframe(keyframe, jsonKeyframeValueExtractor.apply(keyframeValueElement));
+        });
+        return timeline;
+    }
+
+    private static Vector3f extractVectorKeyframeValue(JsonElement keyframeElement){
+        JsonArray components = keyframeElement.getAsJsonArray();
+        return new Vector3f(
+                components.get(0).getAsFloat(),
+                components.get(1).getAsFloat(),
+                components.get(2).getAsFloat()
+        );
+    }
+
+    private static Quaternionf extractQuaternionKeyframeValue(JsonElement keyframeElement){
+        JsonArray components = keyframeElement.getAsJsonArray();
+        return new Quaternionf().rotationZYX(
+                components.get(2).getAsFloat() * Mth.DEG_TO_RAD,
+                components.get(1).getAsFloat() * Mth.DEG_TO_RAD,
+                components.get(0).getAsFloat() * Mth.DEG_TO_RAD
+        );
+    }
+
+    /*
+    //@Override
+    public CompletableFuture<Void> applyyy(Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, ResourceManager resourceManager, Executor executor) {
         return CompletableFuture.runAsync(() -> {
             AnimationSequenceData newData = new AnimationSequenceData();
             for(ResourceLocation resourceLocationKey : resourceLocationJsonElementMap.keySet()){
@@ -119,7 +222,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                     formatVersion = "0.1";
                 }
 
-                if(Objects.equals(formatVersion, FORMAT_VERSION)){
+                if(Objects.equals(formatVersion, FORMAT_VERSION_4)){
                     float frameRate = animationJSON.getAsJsonObject().get("frame_rate").getAsFloat();
                     float frameToTickDivisor = frameRate / 20f;
                     float frameLengthInTicks = animationJSON.getAsJsonObject().get("frame_length").getAsFloat() / frameToTickDivisor;
@@ -142,7 +245,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                         String partName = partJSON.get("name").getAsString();
                         //AnimationOverhaul.LOGGER.info(partName);
 
-                        Timeline<JointTransform> timeline = Timeline.ofJointTransform(frameLengthInTicks);
+                        Timeline<JointChannel> timeline = Timeline.ofJointTransform(frameLengthInTicks);
 
                         JsonObject partKeyframesJSON = partJSON.get("keyframes").getAsJsonObject();
                         for(Map.Entry<String, JsonElement> keyframeEntry : partKeyframesJSON.entrySet()) {
@@ -161,7 +264,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                                     keyframeJSON.getAsJsonObject().get("rotate").getAsJsonArray().get(0).getAsFloat()
                             );
                             Vector3f scale = new Vector3f(1);
-                            timeline.addKeyframe(keyframeInTicks, JointTransform.ofTranslationRotationScaleQuaternion(translation, rotation, scale));
+                            timeline.addKeyframe(keyframeInTicks, JointChannel.ofTranslationRotationScaleQuaternion(translation, rotation, scale));
                         }
                         animationSequenceBuilder.addTimelineForJoint(partName, timeline);
                     }
@@ -174,7 +277,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
 
                     LocomotionMain.LOGGER.info("Successfully loaded animation {}", resourceLocationKey);
                 } else {
-                    LocomotionMain.LOGGER.error("Failed to load animation {} (Animation format version was {}, not up to date with {})", resourceLocationKey, formatVersion, FORMAT_VERSION);
+                    LocomotionMain.LOGGER.error("Failed to load animation {} (Animation format version was {}, not up to date with {})", resourceLocationKey, formatVersion, FORMAT_VERSION_4);
                 }
             }
 
@@ -182,8 +285,10 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
         });
     }
 
+     */
+
     @Override
     public ResourceLocation getFabricId() {
-        return ResourceLocation.fromNamespaceAndPath(LocomotionMain.MOD_ID, "timeline_group_loader");
+        return ResourceLocation.fromNamespaceAndPath(LocomotionMain.MOD_ID, "animation_sequence_loader");
     }
 }

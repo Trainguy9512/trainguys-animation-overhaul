@@ -2,9 +2,10 @@ package com.trainguy9512.locomotion.animation.data;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.locomotion.LocomotionMain;
-import com.trainguy9512.locomotion.animation.joint.JointTransform;
 import com.trainguy9512.locomotion.util.Timeline;
 import net.minecraft.resources.ResourceLocation;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,31 +60,51 @@ public class AnimationSequenceData {
         return animationSequences;
     }
 
-    public record AnimationSequence(Map<String, Timeline<JointTransform>> jointTimelines, float frameLength) {
+    public record AnimationSequence(
+            Map<String, Timeline<Vector3f>> translationTimelines,
+            Map<String, Timeline<Quaternionf>> rotationTimelines,
+            Map<String, Timeline<Vector3f>> scaleTimelines,
+            Map<String, Timeline<Boolean>> visibilityTimelines,
+            float length
+    ) {
 
         public AnimationSequence(Builder builder){
-            this(builder.jointTimelines, builder.frameLength);
+            this(builder.translationTimelines, builder.rotationTimelines, builder.scaleTimelines, builder.visibilityTimelines, builder.length);
         }
 
         public static AnimationSequence.Builder builder(float frameLength){
             return new AnimationSequence.Builder(frameLength);
         }
 
-        public Timeline<JointTransform> getJointTransformTimeline(String joint){
-            return this.jointTimelines.getOrDefault(joint, Timeline.ofJointTransform(0));
-        }
-
         public static class Builder{
-            private final Map<String, Timeline<JointTransform>> jointTimelines;
-            private final float frameLength;
+            private final Map<String, Timeline<Vector3f>> translationTimelines;
+            private final Map<String, Timeline<Quaternionf>> rotationTimelines;
+            private final Map<String, Timeline<Vector3f>> scaleTimelines;
+            private final Map<String, Timeline<Boolean>> visibilityTimelines;
+            private final float length;
 
-            protected Builder(float frameLength){
-                this.jointTimelines = Maps.newHashMap();
-                this.frameLength = frameLength;
+            protected Builder(float length){
+                this.translationTimelines = Maps.newHashMap();
+                this.rotationTimelines = Maps.newHashMap();
+                this.scaleTimelines = Maps.newHashMap();
+                this.visibilityTimelines = Maps.newHashMap();
+                this.length = length;
             }
 
-            public void addTimelineForJoint(String jointName, Timeline<JointTransform> timeline){
-                this.jointTimelines.put(jointName, timeline);
+            public void putJointTranslationTimeline(String jointName, Timeline<Vector3f> timeline){
+                this.translationTimelines.put(jointName, timeline);
+            }
+
+            public void putJointRotationTimeline(String jointName, Timeline<Quaternionf> timeline){
+                this.rotationTimelines.put(jointName, timeline);
+            }
+
+            public void putJointScaleTimeline(String jointName, Timeline<Vector3f> timeline){
+                this.scaleTimelines.put(jointName, timeline);
+            }
+
+            public void putJointVisibilityTimeline(String jointName, Timeline<Boolean> timeline){
+                this.visibilityTimelines.put(jointName, timeline);
             }
 
             public AnimationSequence build(){

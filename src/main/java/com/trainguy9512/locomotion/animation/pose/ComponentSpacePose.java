@@ -1,7 +1,7 @@
 package com.trainguy9512.locomotion.animation.pose;
 
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
-import com.trainguy9512.locomotion.animation.joint.JointTransform;
+import com.trainguy9512.locomotion.animation.joint.JointChannel;
 import org.joml.Matrix4f;
 
 public class ComponentSpacePose extends AnimationPose {
@@ -34,8 +34,8 @@ public class ComponentSpacePose extends AnimationPose {
      * @param joint                 Joint string identifier
      * @return                      Joint transform
      */
-    public JointTransform getComponentSpaceTransform(String joint){
-        return JointTransform.of(this.jointTransforms.getOrDefault(joint, JointTransform.ZERO));
+    public JointChannel getComponentSpaceTransform(String joint){
+        return JointChannel.of(this.jointTransforms.getOrDefault(joint, JointChannel.ZERO));
     }
 
     /**

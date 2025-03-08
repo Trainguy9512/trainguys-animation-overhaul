@@ -56,7 +56,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
                 float timeElapsed = entry.getValue();
                 float weight = configuration.getWeight(timeElapsed);
                 if(weight > 0){
-                    pose = null; // pose.interpolated(AnimationPose.fromAnimationSequence(jointSkeleton, configuration.animationSequence, (timeElapsed + configuration.startTime) / AnimationSequenceData.INSTANCE.getOrThrow(configuration.animationSequence).frameLength()), weight);
+                    pose = null; // pose.interpolated(AnimationPose.fromAnimationSequence(jointSkeleton, configuration.animationSequence, (timeElapsed + configuration.startTime) / AnimationSequenceData.INSTANCE.getOrThrow(configuration.animationSequence).length()), weight);
                 }
             }
             return pose;
@@ -117,7 +117,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
 
             private Builder(ResourceLocation animationSequence){
                 this.animationSequence = animationSequence;
-                this.endTime = AnimationSequenceData.INSTANCE.getOrThrow(this.animationSequence).frameLength();
+                this.endTime = AnimationSequenceData.INSTANCE.getOrThrow(this.animationSequence).length();
             }
 
             /**

@@ -1,6 +1,7 @@
 package com.trainguy9512.locomotion.animation.pose.function;
 
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
+import com.trainguy9512.locomotion.util.TimeSpan;
 
 import java.util.function.Function;
 
@@ -39,8 +40,8 @@ public abstract class TimeBasedPoseFunction<P extends AnimationPose> implements 
         this.timeTicksElapsed = this.resetStartTimeOffsetTicks;
     }
 
-    protected float getInterpolatedTimeElapsed(FunctionInterpolationContext context){
-        return this.timeTicksElapsed - (1 - context.partialTicks()) * this.playRate;
+    protected TimeSpan getInterpolatedTimeElapsed(FunctionInterpolationContext context){
+        return TimeSpan.ofTicks(this.timeTicksElapsed - (1 - context.partialTicks()) * this.playRate);
     }
 
     public static class Builder<B> {

@@ -136,7 +136,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements S
         }
 
         private float getTimeFromTicks(float time) {
-            float frameLength = AnimationSequenceData.INSTANCE.getOrThrow(this.resourceLocation).frameLength();
+            float frameLength = AnimationSequenceData.INSTANCE.getOrThrow(this.resourceLocation).length();
             return (time % frameLength) / frameLength;
         }
 

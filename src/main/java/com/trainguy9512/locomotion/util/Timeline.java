@@ -1,6 +1,6 @@
 package com.trainguy9512.locomotion.util;
 
-import com.trainguy9512.locomotion.animation.joint.JointTransform;
+import com.trainguy9512.locomotion.animation.joint.JointChannel;
 
 import java.util.TreeMap;
 
@@ -24,10 +24,19 @@ public class Timeline<T> {
     }
 
     /**
-     * Returns the value at the given frame.
-     * @param time      Time in ticks.
+     * Returns the value at the given time, looped or not.
+     * @param time      Time in seconds.
+     * @param looping   Whether the time should be looped or not.
      */
-    public T getValueAtFrame(float time) {
+    public T getValueAtTime(float time, boolean looping){
+        return looping ? this.getValueAtTimeLooped(time) : this.getValueAtTime(time);
+    }
+
+    /**
+     * Returns the value at the given time.
+     * @param time      Time in seconds.
+     */
+    public T getValueAtTime(float time) {
         var firstKeyframe = keyframes.floorEntry(time);
         var secondKeyframe = keyframes.ceilingEntry(time);
 
@@ -53,19 +62,11 @@ public class Timeline<T> {
     }
 
     /**
-     * Returns the value at the given time from 0 to 1, with 0 being the beginning and 1 being the end
-     * @param time  Time from 0 to 1
-     */
-    public T getValueAtPercentage(float time) {
-        return getValueAtFrame(time * this.keyframes.lastKey() + this.keyframes.firstKey());
-    }
-
-    /**
      * Returns the value at the looped given time.
      * @param time      Time in ticks.
      */
-    public T getValueAtFrameLooped(float time) {
-        return this.getValueAtFrame(time % this.length);
+    public T getValueAtTimeLooped(float time) {
+        return this.getValueAtTime(time % this.length);
     }
 
     public Timeline<T> addKeyframe(float time, T value) {
@@ -100,7 +101,7 @@ public class Timeline<T> {
         return Timeline.of(Interpolator.FLOAT, length);
     }
 
-    public static Timeline<JointTransform> ofJointTransform(float length) {
-        return Timeline.of(JointTransform::interpolated, length);
+    public static Timeline<JointChannel> ofJointTransform(float length) {
+        return Timeline.of(JointChannel::interpolated, length);
     }
 }

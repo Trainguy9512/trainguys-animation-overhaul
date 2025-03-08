@@ -2,44 +2,53 @@ package com.trainguy9512.locomotion.animation.joint;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.trainguy9512.locomotion.animation.data.AnimationSequenceData;
+import com.trainguy9512.locomotion.util.Interpolator;
 import com.trainguy9512.locomotion.util.Timeline;
+import com.trainguy9512.locomotion.util.TimeSpan;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.*;
 
-public final class JointTransform {
+public final class JointChannel {
 
     private final Matrix4f transform;
+    private boolean visibility;
 
-    public static final JointTransform ZERO = JointTransform.ofPartPose(PartPose.ZERO);
+    public static final JointChannel ZERO = JointChannel.ofPartPose(PartPose.ZERO);
 
-    private JointTransform(Matrix4f transform) {
+    private JointChannel(Matrix4f transform, boolean visibility) {
         this.transform = transform;
+        this.visibility = visibility;
     }
 
-    public static JointTransform of(Matrix4f transform){
-        return new JointTransform(new Matrix4f(transform));
+    public static JointChannel of(Matrix4f transform, boolean visibility){
+        return new JointChannel(new Matrix4f(transform), visibility);
     }
 
-    public static JointTransform of(JointTransform jointTransform){
-        return JointTransform.of(jointTransform.transform);
+    public static JointChannel of(JointChannel jointChannel){
+        return JointChannel.of(jointChannel.transform, jointChannel.visibility);
     }
 
-    public static JointTransform ofPartPose(PartPose partPose){
-        return ofTranslationRotationScaleEuler(new Vector3f(partPose.x(), partPose.y(), partPose.z()), new Vector3f(partPose.xRot(), partPose.yRot(), partPose.zRot()), new Vector3f(partPose.xScale(), partPose.yScale(), partPose.zScale()));
+    public static JointChannel ofPartPose(PartPose partPose){
+        return ofTranslationRotationScaleEuler(new Vector3f(partPose.x(), partPose.y(), partPose.z()), new Vector3f(partPose.xRot(), partPose.yRot(), partPose.zRot()), new Vector3f(partPose.xScale(), partPose.yScale(), partPose.zScale()), true);
     }
 
-    public static JointTransform ofTranslationRotationScaleEuler(Vector3f translation, Vector3f rotationEuler, Vector3f scale){
-        return ofTranslationRotationScaleQuaternion(translation, new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), scale);
+    public static JointChannel ofTranslationRotationScaleEuler(Vector3f translation, Vector3f rotationEuler, Vector3f scale, boolean visibility){
+        return ofTranslationRotationScaleQuaternion(translation, new Quaternionf().rotationXYZ(rotationEuler.x(), rotationEuler.y(), rotationEuler.z()), scale, visibility);
     }
 
-    public static JointTransform ofTranslationRotationScaleQuaternion(Vector3f translation, Quaternionf rotation, Vector3f scale){
-        return of(new Matrix4f().translate(translation).rotate(rotation).scale(scale));
+    public static JointChannel ofTranslationRotationScaleQuaternion(Vector3f translation, Quaternionf rotation, Vector3f scale, boolean visibility){
+        return of(new Matrix4f().translate(translation).rotate(rotation).scale(scale), visibility);
     }
 
-    public static JointTransform ofAnimationSequenceJoint(ResourceLocation animationSequence, String jointIdentifier, float timeInTicks, boolean looping){
-        Timeline<JointTransform> timeline = AnimationSequenceData.INSTANCE.getOrThrow(animationSequence).getJointTransformTimeline(jointIdentifier);
-        return looping ? timeline.getValueAtFrameLooped(timeInTicks) : timeline.getValueAtFrame(timeInTicks);
+    public static JointChannel ofJointFromAnimationSequence(ResourceLocation sequenceLocation, String jointIdentifier, TimeSpan time, boolean looping){
+        AnimationSequenceData.AnimationSequence animationSequence = AnimationSequenceData.INSTANCE.getOrThrow(sequenceLocation);
+        return JointChannel.ofTranslationRotationScaleQuaternion(
+                animationSequence.translationTimelines().getOrDefault(jointIdentifier, Timeline.of(Interpolator.VECTOR, 0)).getValueAtTime(time.inSeconds(), looping),
+                animationSequence.rotationTimelines().getOrDefault(jointIdentifier, Timeline.of(Interpolator.QUATERNION, 0)).getValueAtTime(time.inSeconds(), looping),
+                animationSequence.scaleTimelines().getOrDefault(jointIdentifier, Timeline.of(Interpolator.VECTOR, 0)).getValueAtTime(time.inSeconds(), looping),
+                animationSequence.visibilityTimelines().getOrDefault(jointIdentifier, Timeline.of(Interpolator.BOOLEAN_KEYFRAME, 0)).getValueAtTime(time.inSeconds(), looping)
+        );
     }
 
     public Matrix4f getTransform(){
@@ -133,30 +142,30 @@ public final class JointTransform {
 
     public void multiply(Matrix4f transform, TransformSpace transformSpace){
         switch (transformSpace){
-            case COMPONENT, PARENT -> JointTransform.of(this.transform.mul(transform));
-            case LOCAL -> JointTransform.of(this.transform.mulLocal(transform));
+            case COMPONENT, PARENT -> JointChannel.of(this.transform.mul(transform), this.visibility);
+            case LOCAL -> JointChannel.of(this.transform.mulLocal(transform), this.visibility);
         }
     }
 
     //TODO: Why does this use translated and rotated?
-    public void multiply(JointTransform jointTransform){
-        this.transform.mul(jointTransform.transform);
+    public void multiply(JointChannel jointChannel){
+        this.transform.mul(jointChannel.transform);
         //this.translate(jointTransform.getTranslation(), TransformSpace.COMPONENT, TransformType.ADD);
         //this.rotate(jointTransform.getRotation(), TransformSpace.COMPONENT, TransformType.ADD);
     }
 
-    public void inverseMultiply(JointTransform jointTransform){
-        this.translate(jointTransform.getTranslation().negate(), TransformSpace.COMPONENT, TransformType.ADD);
-        this.rotate(jointTransform.getRotation().invert(), TransformSpace.COMPONENT, TransformType.ADD);
+    public void inverseMultiply(JointChannel jointChannel){
+        this.translate(jointChannel.getTranslation().negate(), TransformSpace.COMPONENT, TransformType.ADD);
+        this.rotate(jointChannel.getRotation().invert(), TransformSpace.COMPONENT, TransformType.ADD);
     }
 
-    public JointTransform mirrored(){
+    public JointChannel mirrored(){
         Vector3f mirroredTranslation = this.getTranslation().mul(-1, 1, 1);
         Vector3f mirroredRotation = this.getEulerRotationZYX().mul(1, -1, -1);
-        return JointTransform.ofTranslationRotationScaleEuler(mirroredTranslation, mirroredRotation, new Vector3f(1));
+        return JointChannel.ofTranslationRotationScaleEuler(mirroredTranslation, mirroredRotation, new Vector3f(1), this.visibility);
     }
 
-    public JointTransform interpolated(JointTransform other, float weight){
+    public JointChannel interpolated(JointChannel other, float weight){
         Vector3f translation = this.transform.getTranslation(new Vector3f());
         Quaternionf rotation = this.transform.getNormalizedRotation(new Quaternionf());
         Vector3f scale = this.transform.getScale(new Vector3f());
@@ -169,8 +178,9 @@ public final class JointTransform {
         rotation.slerp(otherRotation, weight);
         scale.lerp(otherScale, weight);
 
+        boolean visibility = Interpolator.BOOLEAN_BLEND.interpolate(this.visibility, other.visibility, weight);
 
-        return JointTransform.of(new Matrix4f().translationRotateScale(translation, rotation, scale));
+        return JointChannel.of(new Matrix4f().translationRotateScale(translation, rotation, scale), visibility);
     }
 
     public void transformPoseStack(PoseStack poseStack, float transformMultiplier){
