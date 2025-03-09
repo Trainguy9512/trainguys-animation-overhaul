@@ -2,18 +2,23 @@ package com.trainguy9512.locomotion.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.trainguy9512.locomotion.access.FirstPersonPlayerRendererGetter;
 import com.trainguy9512.locomotion.animation.animator.JointAnimatorDispatcher;
 import com.trainguy9512.locomotion.animation.animator.JointAnimatorRegistry;
 import com.trainguy9512.locomotion.render.FirstPersonPlayerRenderer;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.server.packs.resources.ResourceManager;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -23,17 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
 
-
-    @Unique
-    private FirstPersonPlayerRenderer locomotion$firstPersonPlayerRenderer;
-
-    @Inject(
-            method = "<init>",
-            at = @At("TAIL")
-    )
-    public void constructFirstPersonPlayerRenderer(Minecraft minecraft, ItemInHandRenderer itemInHandRenderer, ResourceManager resourceManager, RenderBuffers renderBuffers, CallbackInfo ci){
-        this.locomotion$firstPersonPlayerRenderer = new FirstPersonPlayerRenderer(minecraft, minecraft.getEntityRenderDispatcher(), minecraft.getItemRenderer(), minecraft.getItemModelResolver());
-    }
+    @Shadow @Final private Minecraft minecraft;
 
     /**
      * Computes and saves the interpolated animation pose prior to rendering.
@@ -60,7 +55,7 @@ public abstract class MixinGameRenderer {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;bobHurt(Lcom/mojang/blaze3d/vertex/PoseStack;F)V")
     )
     private void addCameraRotation(DeltaTracker deltaTracker, CallbackInfo ci, @Local PoseStack poseStack){
-        this.locomotion$firstPersonPlayerRenderer.transformCamera(poseStack);
+        ((FirstPersonPlayerRendererGetter)this.minecraft.getEntityRenderDispatcher()).locomotion$getFirstPersonPlayerRenderer().ifPresent(firstPersonPlayerRenderer -> firstPersonPlayerRenderer.transformCamera(poseStack));
     }
 
     /**
@@ -71,7 +66,7 @@ public abstract class MixinGameRenderer {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderHandsWithItems(FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;Lnet/minecraft/client/player/LocalPlayer;I)V")
     )
     private void renderLocomotionFirstPersonPlayer(ItemInHandRenderer instance, float partialTicks, PoseStack poseStack, MultiBufferSource.BufferSource buffer, LocalPlayer playerEntity, int combinedLight){
-        this.locomotion$firstPersonPlayerRenderer.render(partialTicks, poseStack, buffer, playerEntity, combinedLight);
+        ((FirstPersonPlayerRendererGetter)this.minecraft.getEntityRenderDispatcher()).locomotion$getFirstPersonPlayerRenderer().ifPresent(firstPersonPlayerRenderer -> firstPersonPlayerRenderer.render(partialTicks, poseStack, buffer, playerEntity, combinedLight));
     }
 
     /**

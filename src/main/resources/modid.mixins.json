@@ -8,13 +8,13 @@
   "client": [
     "MixinCapeLayer",
     "MixinElytraLayer",
+    "MixinEntityRenderDispatcher",
     "MixinGameRenderer",
     "MixinItemInHandLayer",
     "MixinLivingEntityRenderer",
     "MixinLivingEntityRenderState",
     "MixinMinecraft",
     "MixinModelPart",
-    "debug.MixinItemTransform",
     "debug.MixinPlayerSkin"
   ],
   "injectors": {

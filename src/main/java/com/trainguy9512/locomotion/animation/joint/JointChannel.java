@@ -1,6 +1,7 @@
 package com.trainguy9512.locomotion.animation.joint;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.trainguy9512.locomotion.LocomotionMain;
 import com.trainguy9512.locomotion.animation.data.AnimationSequenceData;
 import com.trainguy9512.locomotion.util.Interpolator;
 import com.trainguy9512.locomotion.util.Timeline;
@@ -43,12 +44,16 @@ public final class JointChannel {
 
     public static JointChannel ofJointFromAnimationSequence(ResourceLocation sequenceLocation, String jointIdentifier, TimeSpan time, boolean looping){
         AnimationSequenceData.AnimationSequence animationSequence = AnimationSequenceData.INSTANCE.getOrThrow(sequenceLocation);
-        return JointChannel.ofTranslationRotationScaleQuaternion(
-                animationSequence.translationTimelines().getOrDefault(jointIdentifier, Timeline.of(Interpolator.VECTOR, 0)).getValueAtTime(time.inSeconds(), looping),
-                animationSequence.rotationTimelines().getOrDefault(jointIdentifier, Timeline.of(Interpolator.QUATERNION, 0)).getValueAtTime(time.inSeconds(), looping),
-                animationSequence.scaleTimelines().getOrDefault(jointIdentifier, Timeline.of(Interpolator.VECTOR, 0)).getValueAtTime(time.inSeconds(), looping),
-                animationSequence.visibilityTimelines().getOrDefault(jointIdentifier, Timeline.of(Interpolator.BOOLEAN_KEYFRAME, 0)).getValueAtTime(time.inSeconds(), looping)
-        );
+        if(animationSequence.containsTimelinesForJoint(jointIdentifier)){
+            return JointChannel.ofTranslationRotationScaleQuaternion(
+                    animationSequence.translationTimelines().get(jointIdentifier).getValueAtTime(time.inSeconds(), looping),
+                    animationSequence.rotationTimelines().get(jointIdentifier).getValueAtTime(time.inSeconds(), looping),
+                    animationSequence.scaleTimelines().get(jointIdentifier).getValueAtTime(time.inSeconds(), looping),
+                    animationSequence.visibilityTimelines().get(jointIdentifier).getValueAtTime(time.inSeconds(), looping)
+            );
+        } else {
+            return JointChannel.ZERO;
+        }
     }
 
     public Matrix4f getTransform(){

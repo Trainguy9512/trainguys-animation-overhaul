@@ -114,15 +114,15 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     @Override
     public PoseFunction<LocalSpacePose> constructPoseFunction(SavedCachedPoseContainer cachedPoseContainer) {
         Random random = new Random();
-        PoseFunction<LocalSpacePose> testSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).setPlayRate((context) -> 0f).build();
-        PoseFunction<LocalSpacePose> movingSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).setPlayRate((context) -> 1f).setResetStartTimeOffsetTicks(30).build();
+        PoseFunction<LocalSpacePose> testSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).setPlayRate((context) -> 1f).build();
+        PoseFunction<LocalSpacePose> movingSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).setPlayRate((context) -> 0f).setResetStartTimeOffsetTicks(30).build();
         //cachedPoseContainer.register("TEST_SEQ_PLAYER", testSequencePlayer);
 
 
         PoseFunction<LocalSpacePose> testTransformer = LocalConversionFunction.of(
                 JointTransformerFunction.componentSpaceBuilder(ComponentConversionFunction.of(testSequencePlayer), RIGHT_ARM_JOINT)
                         .setTranslation(
-                                context -> new Vector3f(Mth.sin(context.gameTimeSeconds() * 8f) * 2f, 0, 0),
+                                context -> new Vector3f(Mth.sin(context.gameTimeSeconds() * 8f) * 0f, 0, 0),
                                 JointChannel.TransformType.ADD,
                                 JointChannel.TransformSpace.COMPONENT
                         )

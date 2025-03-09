@@ -40,7 +40,10 @@ class AnimationModExportDialog(QtWidgets.QDialog):
         # Remove the ? from the window
         self.setWindowFlag(QtCore.Qt.WindowContextHelpButtonHint, False)
 
-        self.initial_directory = "C:/Users/train/Desktop/Minecraft Modding/trainguys-animation-overhaul-1.19.x/src/main/resources/assets/locomotion/sequences"
+
+        directory_a = "C:/Users/train/Desktop/Minecraft Modding/Animation Overhaul/src/main/resources/assets/locomotion/sequences"
+        directory_b = "C:/Users/train/Desktop/Minecraft Modding/trainguys-animation-overhaul-1.19.x/src/main/resources/assets/locomotion/sequences"
+        self.initial_directory = directory_a
 
         self.create_widgets()
         self.create_layouts()
@@ -279,11 +282,10 @@ class AnimationModExportDialog(QtWidgets.QDialog):
 
         frameRateConversionMultiplier = 1 / frameRate
         startTime = round(cmds.getAttr(f"{timelineBookmark}.timeRangeStart"))
-        endTime = round(cmds.getAttr(f"{timelineBookmark}.timeRangeStop"))
+        endTime = round(cmds.getAttr(f"{timelineBookmark}.timeRangeStop")) + 1
         length = round((endTime - startTime) * frameRateConversionMultiplier,3)
 
-        cmds.select(exportSet)
-        joints = cmds.ls(selection=True)
+        joints = cmds.sets(exportSet, query=True)
 
         jsonDict = {
             "format_version": FORMAT_VERSION,

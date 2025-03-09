@@ -1,5 +1,6 @@
 package com.trainguy9512.locomotion.render;
 
+import com.google.common.collect.Lists;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.trainguy9512.locomotion.access.MatrixModelPart;
@@ -7,22 +8,36 @@ import com.trainguy9512.locomotion.animation.animator.JointAnimatorDispatcher;
 import com.trainguy9512.locomotion.animation.animator.entity.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.locomotion.animation.joint.JointChannel;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.HumanoidArmorModel;
 import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.client.resources.model.EquipmentAssetManager;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
-public class FirstPersonPlayerRenderer {
+import java.util.List;
+
+public class FirstPersonPlayerRenderer implements RenderLayerParent<PlayerRenderState, PlayerModel> {
 
     private final Minecraft minecraft;
     private final EntityRenderDispatcher entityRenderDispatcher;
@@ -30,11 +45,11 @@ public class FirstPersonPlayerRenderer {
     private final ItemModelResolver itemModelResolver;
     private final JointAnimatorDispatcher jointAnimatorDispatcher;
 
-    public FirstPersonPlayerRenderer(Minecraft minecraft, EntityRenderDispatcher entityRenderDispatcher, ItemRenderer itemRenderer, ItemModelResolver itemModelResolver) {
-        this.minecraft = minecraft;
-        this.entityRenderDispatcher = entityRenderDispatcher;
-        this.itemRenderer = itemRenderer;
-        this.itemModelResolver = itemModelResolver;
+    public FirstPersonPlayerRenderer(EntityRendererProvider.Context context) {
+        this.minecraft = Minecraft.getInstance();
+        this.entityRenderDispatcher = context.getEntityRenderDispatcher();
+        this.itemRenderer = minecraft.getItemRenderer();
+        this.itemModelResolver = context.getItemModelResolver();
         this.jointAnimatorDispatcher = JointAnimatorDispatcher.getInstance();
     }
 
@@ -62,12 +77,15 @@ public class FirstPersonPlayerRenderer {
                             ((MatrixModelPart)(Object) playerModel.rightArm).locomotion$setMatrix(rightArmPose.getTransform());
                             ((MatrixModelPart)(Object) playerModel.leftArm).locomotion$setMatrix(leftArmPose.getTransform());
 
+                            playerModel.body.visible = false;
 
-                            playerModel.rightArm.render(poseStack, buffer.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), combinedLight, OverlayTexture.NO_OVERLAY);
-                            playerModel.leftArm.render(poseStack, buffer.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), combinedLight, OverlayTexture.NO_OVERLAY);
+                            this.renderArm(abstractClientPlayer, playerModel, HumanoidArm.LEFT, poseStack, buffer, combinedLight);
+                            this.renderArm(abstractClientPlayer, playerModel, HumanoidArm.RIGHT, poseStack, buffer, combinedLight);
 
-                            this.renderItem(abstractClientPlayer, dataContainer.getDriverValueInterpolated(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM, partialTicks), ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, false, poseStack, rightItemPose, buffer, combinedLight);
-                            this.renderItem(abstractClientPlayer, dataContainer.getDriverValueInterpolated(FirstPersonPlayerJointAnimator.OFF_HAND_ITEM, partialTicks), ItemDisplayContext.FIRST_PERSON_LEFT_HAND, true, poseStack, leftItemPose, buffer, combinedLight);
+                            //this.entityRenderDispatcher.render(abstractClientPlayer, 0, 0, 0, partialTicks, poseStack, buffer, combinedLight);
+
+                            this.renderItem(abstractClientPlayer, dataContainer.getDriverValueInterpolated(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM, partialTicks), ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, rightItemPose, buffer, combinedLight);
+                            this.renderItem(abstractClientPlayer, dataContainer.getDriverValueInterpolated(FirstPersonPlayerJointAnimator.OFF_HAND_ITEM, partialTicks), ItemDisplayContext.THIRD_PERSON_LEFT_HAND, true, poseStack, leftItemPose, buffer, combinedLight);
                             //this.renderItemInHand(abstractClientPlayer, ItemStack.EMPTY, poseStack, HumanoidArm.LEFT, animationPose, bufferSource, i);
 
 
@@ -79,6 +97,44 @@ public class FirstPersonPlayerRenderer {
         );
 
         buffer.endBatch();
+    }
+
+    private void renderArm(AbstractClientPlayer abstractClientPlayer, PlayerModel playerModel, HumanoidArm arm, PoseStack poseStack, MultiBufferSource buffer, int combinedLight) {
+        switch(arm){
+            case LEFT -> {
+                playerModel.leftSleeve.visible = abstractClientPlayer.isModelPartShown(PlayerModelPart.LEFT_SLEEVE);
+                playerModel.leftArm.render(poseStack, buffer.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), combinedLight, OverlayTexture.NO_OVERLAY);
+            }
+            case RIGHT -> {
+                playerModel.rightSleeve.visible = abstractClientPlayer.isModelPartShown(PlayerModelPart.RIGHT_SLEEVE);
+                playerModel.rightArm.render(poseStack, buffer.getBuffer(RenderType.entityTranslucent(abstractClientPlayer.getSkin().texture())), combinedLight, OverlayTexture.NO_OVERLAY);
+            }
+        }
+    }
+
+    public void renderItem(
+            LivingEntity entity,
+            ItemStack itemStack,
+            ItemDisplayContext displayContext,
+            boolean isLeftHand,
+            PoseStack poseStack,
+            JointChannel jointChannel,
+            MultiBufferSource buffer,
+            int combinedLight)
+    {
+        if (!itemStack.isEmpty()) {
+            poseStack.pushPose();
+            jointChannel.transformPoseStack(poseStack, 16f);
+
+            //TODO: this code needs to be replaced with proper joint transforms
+            //poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+            //poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            //poseStack.translate((isLeftHand ? -0.5F : 0.5F) / 16.0F, 2F/16F, -10F/16F);
+
+
+            this.itemRenderer.renderStatic(entity, itemStack, displayContext, isLeftHand, poseStack, buffer, entity.level(), combinedLight, OverlayTexture.NO_OVERLAY, entity.getId() + displayContext.ordinal());
+            poseStack.popPose();
+        }
     }
 
     public void transformCamera(PoseStack poseStack){
@@ -95,21 +151,8 @@ public class FirstPersonPlayerRenderer {
         }
     }
 
-
-
-    public void renderItem(LivingEntity entity, ItemStack itemStack, ItemDisplayContext displayContext, boolean isLeftHand, PoseStack poseStack, JointChannel jointChannel, MultiBufferSource buffer, int combinedLight) {
-        if (!itemStack.isEmpty()) {
-            poseStack.pushPose();
-            jointChannel.transformPoseStack(poseStack, 16f);
-
-            //TODO: this code needs to be replaced with proper joint transforms
-            //poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
-            //poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-            //poseStack.translate((isLeftHand ? -0.5F : 0.5F) / 16.0F, 2F/16F, -10F/16F);
-
-
-            this.itemRenderer.renderStatic(entity, itemStack, displayContext, isLeftHand, poseStack, buffer, entity.level(), combinedLight, OverlayTexture.NO_OVERLAY, entity.getId() + displayContext.ordinal());
-            poseStack.popPose();
-        }
+    @Override
+    public @NotNull PlayerModel getModel() {
+        return ((PlayerRenderer)entityRenderDispatcher.getRenderer(minecraft.player)).getModel();
     }
 }

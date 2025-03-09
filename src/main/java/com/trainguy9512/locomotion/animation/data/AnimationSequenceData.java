@@ -72,6 +72,10 @@ public class AnimationSequenceData {
             this(builder.translationTimelines, builder.rotationTimelines, builder.scaleTimelines, builder.visibilityTimelines, builder.length);
         }
 
+        public boolean containsTimelinesForJoint(String joint){
+            return this.translationTimelines().containsKey(joint) && this.rotationTimelines().containsKey(joint) && this.scaleTimelines().containsKey(joint) && this.visibilityTimelines().containsKey(joint);
+        }
+
         public static AnimationSequence.Builder builder(float frameLength){
             return new AnimationSequence.Builder(frameLength);
         }

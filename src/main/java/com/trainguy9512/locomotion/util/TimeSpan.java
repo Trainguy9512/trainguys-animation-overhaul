@@ -27,7 +27,7 @@ public class TimeSpan {
      * @return      Timespan
      */
     public static TimeSpan ofSeconds(float timeInSeconds){
-        return new TimeSpan(timeInSeconds * 20);
+        return new TimeSpan(timeInSeconds * 20f);
     }
 
     /**
@@ -59,6 +59,6 @@ public class TimeSpan {
      * @return      Float time measured in seconds.
      */
     public float inSeconds(){
-        return this.timeInTicks * 20f;
+        return this.timeInTicks / 20f;
     }
 }
