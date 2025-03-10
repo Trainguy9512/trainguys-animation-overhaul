@@ -2,6 +2,7 @@ package com.trainguy9512.locomotion.animation.data;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.locomotion.LocomotionMain;
+import com.trainguy9512.locomotion.util.TimeSpan;
 import com.trainguy9512.locomotion.util.Timeline;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Quaternionf;
@@ -65,7 +66,7 @@ public class AnimationSequenceData {
             Map<String, Timeline<Quaternionf>> rotationTimelines,
             Map<String, Timeline<Vector3f>> scaleTimelines,
             Map<String, Timeline<Boolean>> visibilityTimelines,
-            float length
+            TimeSpan length
     ) {
 
         public AnimationSequence(Builder builder){
@@ -76,7 +77,7 @@ public class AnimationSequenceData {
             return this.translationTimelines().containsKey(joint) && this.rotationTimelines().containsKey(joint) && this.scaleTimelines().containsKey(joint) && this.visibilityTimelines().containsKey(joint);
         }
 
-        public static AnimationSequence.Builder builder(float frameLength){
+        public static AnimationSequence.Builder builder(TimeSpan frameLength){
             return new AnimationSequence.Builder(frameLength);
         }
 
@@ -85,9 +86,9 @@ public class AnimationSequenceData {
             private final Map<String, Timeline<Quaternionf>> rotationTimelines;
             private final Map<String, Timeline<Vector3f>> scaleTimelines;
             private final Map<String, Timeline<Boolean>> visibilityTimelines;
-            private final float length;
+            private final TimeSpan length;
 
-            protected Builder(float length){
+            protected Builder(TimeSpan length){
                 this.translationTimelines = Maps.newHashMap();
                 this.rotationTimelines = Maps.newHashMap();
                 this.scaleTimelines = Maps.newHashMap();

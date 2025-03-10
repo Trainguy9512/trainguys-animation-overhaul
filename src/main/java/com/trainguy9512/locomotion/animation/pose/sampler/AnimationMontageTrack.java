@@ -1,9 +1,8 @@
 package com.trainguy9512.locomotion.animation.pose.sampler;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.locomotion.animation.data.key.AnimationDataKey;
 import com.trainguy9512.locomotion.animation.data.AnimationSequenceData;
-import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
+import com.trainguy9512.locomotion.animation.data.OnTickDriverContainer;
 import com.trainguy9512.locomotion.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
@@ -40,7 +39,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
     }
 
     @Override
-    public void tick(OnTickDataContainer dataContainer){
+    public void tick(OnTickDriverContainer dataContainer){
         // Increment the elapsed time of each active montage
         this.montages.forEach((configuration, timeElapsed) -> this.montages.put(configuration, (timeElapsed == null ? 0 : timeElapsed) + configuration.playRate()));
         // Remove any montage that has an elapsed time greater than the montage's length
@@ -69,7 +68,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
      *
      * @param montageConfigurationKey   Data key for a montage configuration
      */
-    public void playMontage(AnimationDataKey<MontageConfiguration> montageConfigurationKey){
+    public void playMontage(/*AnimationDataKey<MontageConfiguration> montageConfigurationKey*/){
         // If the length of the montage is 2, remove entry 0 (the back layer)
         if(this.montages.size() == 2){
             this.montages.remove(this.montages.firstEntry().getKey());
@@ -117,7 +116,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
 
             private Builder(ResourceLocation animationSequence){
                 this.animationSequence = animationSequence;
-                this.endTime = AnimationSequenceData.INSTANCE.getOrThrow(this.animationSequence).length();
+                this.endTime = AnimationSequenceData.INSTANCE.getOrThrow(this.animationSequence).length().inTicks();
             }
 
             /**

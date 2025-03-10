@@ -1,6 +1,6 @@
 package com.trainguy9512.locomotion.animation.pose.sampler;
 
-import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
+import com.trainguy9512.locomotion.animation.data.OnTickDriverContainer;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,7 +72,7 @@ public class PoseSampler implements Comparable<PoseSampler> {
     /**
      * Updates the pose sampler using information from the data container. Called once per tick after animation data is extracted by the joint animator but prior to pose calculation.
      */
-    public void tick(OnTickDataContainer dataContainer){
+    public void tick(OnTickDriverContainer dataContainer){
     }
 
     public String getIdentifier(){

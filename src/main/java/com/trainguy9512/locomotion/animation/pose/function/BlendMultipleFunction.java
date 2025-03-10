@@ -1,7 +1,7 @@
 package com.trainguy9512.locomotion.animation.pose.function;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.locomotion.animation.data.driver.VariableDriver;
+import com.trainguy9512.locomotion.animation.driver.VariableDriver;
 import com.trainguy9512.locomotion.animation.pose.LocalSpacePose;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,9 +39,9 @@ public class BlendMultipleFunction implements PoseFunction<LocalSpacePose> {
     public void tick(FunctionEvaluationState evaluationState) {
         this.baseFunction.tick(evaluationState);
         this.inputs.forEach((blendInput, weightDriver) -> {
-            weightDriver.pushToPrevious();
+            weightDriver.prepareForNextTick();
             float weight = blendInput.weightFunction.apply(evaluationState);
-            weightDriver.loadValue(weight);
+            weightDriver.setValue(weight);
 
             if(weight != 0f) {
                 blendInput.inputFunction.tick(evaluationState);
@@ -73,7 +73,7 @@ public class BlendMultipleFunction implements PoseFunction<LocalSpacePose> {
         }
 
         public Builder addBlendInput(PoseFunction<LocalSpacePose> inputFunction, Function<FunctionEvaluationState, Float> weightFunction, @Nullable Set<String> jointMask){
-            this.inputs.put(new BlendInput(inputFunction, weightFunction, Optional.ofNullable(jointMask)), VariableDriver.floatDriver(() -> 0f));
+            this.inputs.put(new BlendInput(inputFunction, weightFunction, Optional.ofNullable(jointMask)), VariableDriver.ofFloat(() -> 0f));
             return this;
         }
 

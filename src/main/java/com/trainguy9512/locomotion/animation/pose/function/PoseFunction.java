@@ -1,6 +1,6 @@
 package com.trainguy9512.locomotion.animation.pose.function;
 
-import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
+import com.trainguy9512.locomotion.animation.data.OnTickDriverContainer;
 import com.trainguy9512.locomotion.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import org.jetbrains.annotations.NotNull;
@@ -31,9 +31,9 @@ public interface PoseFunction<P extends AnimationPose> {
      */
     PoseFunction<P> wrapUnique();
 
-    record FunctionEvaluationState(OnTickDataContainer dataContainer, boolean isResetting, long currentTick){
+    record FunctionEvaluationState(OnTickDriverContainer dataContainer, boolean isResetting, long currentTick){
 
-        public static FunctionEvaluationState of(OnTickDataContainer dataContainer, boolean isResetting, long currentTick){
+        public static FunctionEvaluationState of(OnTickDriverContainer dataContainer, boolean isResetting, long currentTick){
             return new FunctionEvaluationState(dataContainer, isResetting, currentTick);
         }
 

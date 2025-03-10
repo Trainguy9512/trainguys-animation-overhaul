@@ -1,13 +1,13 @@
 package com.trainguy9512.locomotion.animation.pose.function.notify;
 
-import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
+import com.trainguy9512.locomotion.animation.data.OnTickDriverContainer;
 
 import java.util.EventListener;
 
 @FunctionalInterface
 public interface NotifyListener extends EventListener {
 
-    void notify(OnTickDataContainer dataContainer);
+    void notify(OnTickDriverContainer dataContainer);
 
     public class Multi implements NotifyListener {
 
@@ -20,7 +20,7 @@ public interface NotifyListener extends EventListener {
         }
 
         @Override
-        public void notify(OnTickDataContainer dataContainer) {
+        public void notify(OnTickDriverContainer dataContainer) {
             this.a.notify(dataContainer);
             this.b.notify(dataContainer);
         }

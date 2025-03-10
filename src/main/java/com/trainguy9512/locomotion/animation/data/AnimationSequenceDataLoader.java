@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.trainguy9512.locomotion.LocomotionMain;
 import com.trainguy9512.locomotion.animation.joint.JointChannel;
 import com.trainguy9512.locomotion.util.Interpolator;
+import com.trainguy9512.locomotion.util.TimeSpan;
 import com.trainguy9512.locomotion.util.Timeline;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
@@ -130,7 +131,7 @@ public class AnimationSequenceDataLoader implements SimpleResourceReloadListener
                     float sequenceLength = sequenceJSON.get("length").getAsFloat();
                     Map<String, JsonElement> joints = sequenceJSON.getAsJsonObject("joints").asMap();
 
-                    AnimationSequenceData.AnimationSequence.Builder sequenceBuilder = AnimationSequenceData.AnimationSequence.builder(sequenceLength);
+                    AnimationSequenceData.AnimationSequence.Builder sequenceBuilder = AnimationSequenceData.AnimationSequence.builder(TimeSpan.ofSeconds(sequenceLength));
                     joints.forEach((joint, jointElement) -> {
                         JsonObject jointJSON = jointElement.getAsJsonObject();
 

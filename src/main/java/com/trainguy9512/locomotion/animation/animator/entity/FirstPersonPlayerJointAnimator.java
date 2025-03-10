@@ -2,8 +2,8 @@ package com.trainguy9512.locomotion.animation.animator.entity;
 
 import com.mojang.math.Axis;
 import com.trainguy9512.locomotion.animation.data.*;
-import com.trainguy9512.locomotion.animation.data.driver.VariableDriver;
-import com.trainguy9512.locomotion.animation.data.key.AnimationDriverKey;
+import com.trainguy9512.locomotion.animation.driver.VariableDriver;
+import com.trainguy9512.locomotion.animation.driver.DriverKey;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import com.trainguy9512.locomotion.animation.joint.JointChannel;
 import com.trainguy9512.locomotion.animation.pose.LocalSpacePose;
@@ -61,29 +61,23 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
             LEFT_HAND_JOINT
     );
 
-    public static final AnimationDriverKey<Float> TIME_TEST = AnimationDriverKey.driverKeyOf("time_test", () -> VariableDriver.floatDriver(() -> 0f));
-    public static final AnimationDriverKey<Float> BLEND_TEST = AnimationDriverKey.driverKeyOf("time_test", () -> VariableDriver.floatDriver(() -> 0f));
+    public static final DriverKey<VariableDriver<Float>> TIME_TEST = DriverKey.of("time_test", () -> VariableDriver.ofFloat(() -> 0f));
+    public static final DriverKey<VariableDriver<Float>> BLEND_TEST = DriverKey.of("time_test", () -> VariableDriver.ofFloat(() -> 0f));
 
-    public static final AnimationDriverKey<Vector3f> CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("camera_rotation", () -> VariableDriver.vectorDriver(() -> new Vector3f(0)));
-    public static final AnimationDriverKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("dampened_camera_rotation", () -> VariableDriver.vectorDriver(() -> new Vector3f(0)));
-    public static final AnimationDriverKey<ItemStack> MAIN_HAND_ITEM = AnimationDriverKey.driverKeyOf("main_hand_item", () -> VariableDriver.ofConstant(() -> ItemStack.EMPTY));
-    public static final AnimationDriverKey<ItemStack> OFF_HAND_ITEM = AnimationDriverKey.driverKeyOf("off_hand_item", () -> VariableDriver.ofConstant(() -> ItemStack.EMPTY));
-    public static final AnimationDriverKey<Boolean> IS_ATTACKING = AnimationDriverKey.driverKeyOf("is_attacking", () -> VariableDriver.booleanDriver(() -> false));
-    public static final AnimationDriverKey<Boolean> IS_USING_ITEM = AnimationDriverKey.driverKeyOf("is_using_item", () -> VariableDriver.booleanDriver(() -> false));
-    public static final AnimationDriverKey<Boolean> IS_MINING = AnimationDriverKey.driverKeyOf("is_mining", () -> VariableDriver.booleanDriver(() -> false));
-    public static final AnimationDriverKey<Boolean> IS_FALLING = AnimationDriverKey.driverKeyOf("is_falling", () -> VariableDriver.booleanDriver(() -> false));
-    public static final AnimationDriverKey<Boolean> IS_JUMPING = AnimationDriverKey.driverKeyOf("is_jumping", () -> VariableDriver.booleanDriver(() -> false));
-    public static final AnimationDriverKey<Float> WALK_SPEED = AnimationDriverKey.driverKeyOf("walk_speed", () -> VariableDriver.floatDriver(() -> 0f));
+    public static final DriverKey<VariableDriver<Vector3f>> CAMERA_ROTATION = DriverKey.of("camera_rotation", () -> VariableDriver.ofVector(() -> new Vector3f(0)));
+    public static final DriverKey<VariableDriver<Vector3f>> DAMPENED_CAMERA_ROTATION = DriverKey.of("dampened_camera_rotation", () -> VariableDriver.ofVector(() -> new Vector3f(0)));
+    public static final DriverKey<VariableDriver<ItemStack>> MAIN_HAND_ITEM = DriverKey.of("main_hand_item", () -> VariableDriver.ofConstant(() -> ItemStack.EMPTY));
+    public static final DriverKey<VariableDriver<ItemStack>> OFF_HAND_ITEM = DriverKey.of("off_hand_item", () -> VariableDriver.ofConstant(() -> ItemStack.EMPTY));
+    public static final DriverKey<VariableDriver<Boolean>> IS_ATTACKING = DriverKey.of("is_attacking", () -> VariableDriver.ofBoolean(() -> false));
+    public static final DriverKey<VariableDriver<Boolean>> IS_USING_ITEM = DriverKey.of("is_using_item", () -> VariableDriver.ofBoolean(() -> false));
+    public static final DriverKey<VariableDriver<Boolean>> IS_MINING = DriverKey.of("is_mining", () -> VariableDriver.ofBoolean(() -> false));
+    public static final DriverKey<VariableDriver<Boolean>> IS_FALLING = DriverKey.of("is_falling", () -> VariableDriver.ofBoolean(() -> false));
+    public static final DriverKey<VariableDriver<Boolean>> IS_JUMPING = DriverKey.of("is_jumping", () -> VariableDriver.ofBoolean(() -> false));
+    public static final DriverKey<VariableDriver<Float>> WALK_SPEED = DriverKey.of("walk_speed", () -> VariableDriver.ofFloat(() -> 0f));
 
     @Override
     public void postProcessModelParts(EntityModel<PlayerRenderState> entityModel, PlayerRenderState entityRenderState) {
-
     }
-
-
-    public static final ResourceLocation ROM_TEST = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_PATH, "rom_test");
-    public static final ResourceLocation POSE_TEST = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_PATH, "pose_test");
-
 
     public JointSkeleton buildSkeleton() {
         return JointSkeleton.of(ROOT_JOINT)
@@ -108,6 +102,9 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     public PoseCalculationFrequency getPoseCalulationFrequency() {
         return PoseCalculationFrequency.CALCULATE_EVERY_FRAME;
     }
+
+    public static final ResourceLocation ROM_TEST = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_PATH, "rom_test");
+    public static final ResourceLocation POSE_TEST = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_PATH, "pose_test");
 
     public enum TestStates {
         IDLE,
@@ -144,17 +141,26 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
         PoseFunction<LocalSpacePose> testStateMachine = StateMachineFunction.builder(TestStates.values())
                 .addState(TestStates.IDLE, testTransformer, true,
-                        StateMachineFunction.StateTransition.builder(TestStates.MOVING, transitionContext -> transitionContext.dataContainer().getDriverValue(WALK_SPEED) >= 0.5f).setTransitionDuration(TimeSpan.of24FramesPerSecond(6)).setEasing(Easing.SINE_IN_OUT).build()
+                        StateMachineFunction.StateTransition.builder(TestStates.MOVING,
+                                        transitionContext -> transitionContext.dataContainer().getDriverValue(WALK_SPEED) >= 0.5f,
+                                        StateMachineFunction.CURRENT_TRANSITION_FINISHED)
+                                .setTransitionDuration(TimeSpan.ofSeconds(1))
+                                .setEasing(Easing.SINE_IN_OUT)
+                                .build()
                 )
                 .addState(TestStates.MOVING, movingSequencePlayer, true,
-                        StateMachineFunction.StateTransition.builder(TestStates.IDLE, transitionContext -> transitionContext.dataContainer().getDriverValue(WALK_SPEED) < 0.5f).setTransitionDuration(TimeSpan.of24FramesPerSecond(10)).setEasing(Easing.easeOut(Easing.Elastic.easeInOf(6, 3))).build()
+                        StateMachineFunction.StateTransition.builder(TestStates.IDLE, context -> false)
+                                .makeAutomaticTransitionBasedOnActiveSequencePlayer()
+                                .setTransitionDuration(TimeSpan.ofSeconds(0.5f))
+                                .setEasing(Easing.easeOut(Easing.Elastic.easeInOf(6, 3)))
+                                .build()
                 )
                 .build();
 
         //PoseFunction<LocalSpacePose> cached = cachedPoseContainer.getOrThrow("TEST_SEQ_PLAYER");
         PoseFunction<LocalSpacePose> blendMultipleFunction = BlendMultipleFunction.builder(testSequencePlayer).addBlendInput(testSequencePlayer, (evaluationState) -> 0.5f).build();
 
-        return blendMultipleFunction;
+        return testStateMachine;
     }
 
 
@@ -163,8 +169,8 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     Get the pose with the added dampened camera rotation
      */
     private void dampenArmRotation(AnimationPose pose, PoseCalculationDataContainer dataContainer, float partialTicks){
-        Vector3f cameraRotation = dataContainer.getDriverValueInterpolated(CAMERA_ROTATION, partialTicks);
-        Vector3f dampenedCameraRotation = dataContainer.getDriverValueInterpolated(DAMPENED_CAMERA_ROTATION, partialTicks);
+        Vector3f cameraRotation = dataContainer.getDriverValue(CAMERA_ROTATION, partialTicks);
+        Vector3f dampenedCameraRotation = dataContainer.getDriverValue(DAMPENED_CAMERA_ROTATION, partialTicks);
 
         Vector3f cameraDampWeight = new Vector3f(0.6F, 0.3F, 0.1F);
 
@@ -182,12 +188,12 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
 
     @Override
-    public void extractAnimationData(LocalPlayer dataReference, OnTickDataContainer driverContainer){
+    public void extractAnimationData(LocalPlayer dataReference, OnTickDriverContainer driverContainer){
 
-        driverContainer.loadValueIntoDriver(WALK_SPEED, dataReference.walkAnimation.speed());
-        driverContainer.loadValueIntoDriver(TIME_TEST, driverContainer.getPreviousDriverValue(TIME_TEST) + 1);
-        driverContainer.loadValueIntoDriver(MAIN_HAND_ITEM, dataReference.getMainHandItem());
-        driverContainer.loadValueIntoDriver(OFF_HAND_ITEM, dataReference.getOffhandItem());
+        driverContainer.getDriver(WALK_SPEED).setValue(dataReference.walkAnimation.speed());
+        driverContainer.getDriver(TIME_TEST).setValue(driverContainer.getDriver(TIME_TEST).getValuePrevious() + 1);
+        driverContainer.getDriver(MAIN_HAND_ITEM).setValue(dataReference.getMainHandItem());
+        driverContainer.getDriver(OFF_HAND_ITEM).setValue(dataReference.getOffhandItem());
 
 
         //Tick the dampened camera rotation.
@@ -195,11 +201,10 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
         // First, set the target camera rotation from the living entity.
         Vector3f targetRotation = new Vector3f(dataReference.getXRot(), dataReference.getYRot(), dataReference.getYRot());
-        driverContainer.loadValueIntoDriver(CAMERA_ROTATION, targetRotation);
+        driverContainer.getDriver(CAMERA_ROTATION).setValue(targetRotation);
 
 
-
-        Vector3f dampenedCameraRotation = new Vector3f(driverContainer.getPreviousDriverValue(DAMPENED_CAMERA_ROTATION));
+        Vector3f dampenedCameraRotation = new Vector3f(driverContainer.getDriver(DAMPENED_CAMERA_ROTATION).getValuePrevious());
 
 
         // If the dampened camera rotation is 0 (which is what it is upon initialization), set it to the target
@@ -214,7 +219,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
             );
             //dampenedCameraRotation.lerp(targetRotation, 0.5F);
         }
-        driverContainer.loadValueIntoDriver(DAMPENED_CAMERA_ROTATION, dampenedCameraRotation);
+        driverContainer.getDriver(DAMPENED_CAMERA_ROTATION).setValue(dampenedCameraRotation);
 
     }
 }

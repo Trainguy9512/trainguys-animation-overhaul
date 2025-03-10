@@ -1,7 +1,7 @@
 package com.trainguy9512.locomotion.animation.pose.sampler;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
+import com.trainguy9512.locomotion.animation.data.OnTickDriverContainer;
 import com.trainguy9512.locomotion.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
@@ -49,7 +49,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
         protected Builder(ResourceLocation resourceLocation) {
             super();
             this.resourceLocation = resourceLocation;
-            this.frameLength = AnimationSequenceData.INSTANCE.getOrThrow(this.resourceLocation).length();
+            this.frameLength = AnimationSequenceData.INSTANCE.getOrThrow(this.resourceLocation).length().inTicks();
             this.endTime = frameLength;
         }
 
@@ -89,7 +89,7 @@ public class AnimationSequencePlayer extends TimeBasedPoseSampler implements Sam
     }
 
     @Override
-    public void tick(OnTickDataContainer dataContainer){
+    public void tick(OnTickDriverContainer dataContainer){
         for(float tick : this.animationTickNotifyListeners.keySet()){
             if(this.looping){
                 if(((this.getTimeElapsed() % this.frameLength) + this.getPlayRate()) > tick && (this.getTimeElapsed() % this.frameLength) < tick){

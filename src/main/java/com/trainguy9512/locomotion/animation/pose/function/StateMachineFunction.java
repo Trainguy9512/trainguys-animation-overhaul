@@ -1,8 +1,9 @@
 package com.trainguy9512.locomotion.animation.pose.function;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
-import com.trainguy9512.locomotion.animation.data.driver.VariableDriver;
+import com.trainguy9512.locomotion.LocomotionMain;
+import com.trainguy9512.locomotion.animation.data.OnTickDriverContainer;
+import com.trainguy9512.locomotion.animation.driver.VariableDriver;
 import com.trainguy9512.locomotion.animation.pose.LocalSpacePose;
 import com.trainguy9512.locomotion.util.Easing;
 import com.trainguy9512.locomotion.util.TimeSpan;
@@ -15,15 +16,16 @@ import java.util.stream.Collectors;
 
 public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFunction<LocalSpacePose> {
 
-    /**
-     * The hashmap containing all the possible states, with the keys being enums.
-     */
     private final Map<S, State<S>> states;
-
-    /**
-     * The list of enum keys that point to states with a blend value greater than 0
-     */
     private final List<S> activeStates;
+
+    public static final Predicate<StateTransition.TransitionContext> CURRENT_TRANSITION_FINISHED = transitionContext -> transitionContext.currentStateWeight() == 1;
+    public static final Predicate<StateTransition.TransitionContext> SEQUENCE_PLAYER_IN_ACTIVE_STATE_HAS_FINISHED = transitionContext -> {
+        if (transitionContext.currentStateInput instanceof SequencePlayerFunction)
+            return ((SequencePlayerFunction) transitionContext.currentStateInput).hasJustLoopedOrFinished();
+        return false;
+    };
+
 
     protected StateMachineFunction(Map<S, State<S>> states, List<S> activeStates) {
         super(evaluationState -> true, evaluationState -> 1f, 0);
@@ -58,7 +60,7 @@ public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFuncti
     public void tick(FunctionEvaluationState evaluationState) {
         // Don't evaluate if the state machine has no states
         if(this.activeStates.isEmpty()){
-            throw new IllegalStateException("State machine's active states list found to be empty.");
+            throw new IllegalStateException("State machine's active states list found to be empty. This should never happen, so something went very wrong!");
         }
 
         // Add to the current elapsed ticks
@@ -68,14 +70,20 @@ public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFuncti
         S currentActiveStateIdentifier = this.activeStates.getLast();
         State<S> currentActiveState = this.states.get(currentActiveStateIdentifier);
 
+        StateTransition.TransitionContext transitionContext = StateTransition.TransitionContext.of(
+                evaluationState.dataContainer(),
+                this.timeTicksElapsed,
+                this.states.get(currentActiveStateIdentifier).weight.getValueCurrent(),
+                this.states.get(currentActiveStateIdentifier).inputFunction);
+
         // Filter each potential state transition by whether it's valid, then filter by whether its condition predicate is true,
         // then shuffle it in order to make equal priority transitions randomized and re-order the valid transitions by filter order.
         Optional<StateTransition<S>> potentialStateTransition = currentActiveState.potentialStateTransitions.stream()
                 .filter(transition -> {
-                    if(this.states.containsKey(transition.target)){
-                        if(transition.target() != currentActiveStateIdentifier){
-                            return transition.conditionPredicate().test(StateTransition.TransitionContext.of(evaluationState.dataContainer(), this.timeTicksElapsed, this.states.get(this.activeStates.getLast()).weight.getValueCurrent()));
-                        }
+                    boolean transitionTargetIncludedInThisMachine = this.states.containsKey(transition.target);
+                    boolean targetIsNotCurrentActiveState = transition.target() != currentActiveStateIdentifier;
+                    if(transitionTargetIncludedInThisMachine && targetIsNotCurrentActiveState){
+                        return transition.conditionPredicate().test(transitionContext);
                     }
                     return false;
                 })
@@ -191,13 +199,21 @@ public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFuncti
             this.resetUponEntry = resetUponEntry;
 
             this.isActive = isActive;
-            this.weight = isActive ? VariableDriver.floatDriver(() -> 1f) : VariableDriver.floatDriver(() -> 0f);
+            this.weight = isActive ? VariableDriver.ofFloat(() -> 1f) : VariableDriver.ofFloat(() -> 0f);
             this.currentTransition = null;
+
+            if(!resetUponEntry){
+                for(StateTransition<S> transition : potentialStateTransitions){
+                    if(transition.isAutomaticTransition()){
+                        LocomotionMain.LOGGER.warn("State transition to state {} in a state machine is set to be automatic based on the input sequence player, but the origin state is not set to reset upon entry. Automatic transitions are intended to be used with reset-upon-entry states, beware of unexpected behavior!", transition.target);
+                    }
+                }
+            }
         }
 
         private void tick(FunctionEvaluationState evaluationState){
             if(this.currentTransition != null){
-                this.weight.pushToPrevious();
+                this.weight.prepareForNextTick();
                 float increaseDecreaseMultiplier = this.isActive ? 1 : -1;
                 float newWeight = Mth.clamp(this.weight.getValuePrevious() + ((1 / this.currentTransition.transitionDurationTicks()) * increaseDecreaseMultiplier), 0, 1);
 
@@ -205,7 +221,7 @@ public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFuncti
                     evaluationState = evaluationState.markedForReset();
                 }
 
-                this.weight.loadValue(newWeight);
+                this.weight.setValue(newWeight);
             }
             if(this.weight.getValueCurrent() > 0){
                 this.inputFunction.tick(evaluationState);
@@ -214,10 +230,11 @@ public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFuncti
 
     }
 
-    public record StateTransition<S extends Enum<S>> (S target, Predicate<TransitionContext> conditionPredicate, float transitionDurationTicks, Easing easing, int priority) implements Comparable<StateTransition<S>> {
+    public record StateTransition<S extends Enum<S>> (S target, Predicate<TransitionContext> conditionPredicate, float transitionDurationTicks, Easing easing, int priority, boolean isAutomaticTransition) implements Comparable<StateTransition<S>> {
 
-        public static <S extends Enum<S>> Builder<S> builder(S target, Predicate<TransitionContext> conditionPredicate){
-            return new Builder<>(target, conditionPredicate);
+        @SafeVarargs
+        public static <S extends Enum<S>> Builder<S> builder(S target, Predicate<TransitionContext>... conditionPredicates){
+            return new Builder<>(target, conditionPredicates);
         }
 
         @Override
@@ -226,18 +243,39 @@ public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFuncti
         }
 
         public static class Builder<S extends Enum<S>> {
+            private Predicate<TransitionContext> conditionPredicate;
             private final S target;
-            private final Predicate<TransitionContext> conditionPredicate;
             private float transitionDurationTicks;
             private Easing easing;
             private int priority;
+            private boolean automaticTransition;
 
-            private Builder(S target, Predicate<TransitionContext> conditionPredicate){
+            @SafeVarargs
+            private Builder(S target, Predicate<TransitionContext>... conditionPredicates){
+                Predicate<TransitionContext> compiledPredicates = context -> true;
+                for(Predicate<TransitionContext> predicate : conditionPredicates){
+                    compiledPredicates = compiledPredicates.and(predicate);
+                }
+                this.conditionPredicate = compiledPredicates;
                 this.target = target;
-                this.conditionPredicate = conditionPredicate;
                 this.transitionDurationTicks = 1;
                 this.easing = Easing.LINEAR;
                 this.priority = 50;
+                this.automaticTransition = false;
+            }
+
+            /**
+             * Sets the transition to be passable as an OR condition if the direct pose function
+             * input of the current active state is a sequence player, and that sequence player
+             * has finished or looped.
+             * <p>
+             * In other words, if the sequence player in the current active state loops or ends,
+             * this becomes true.
+             */
+            public Builder<S> makeAutomaticTransitionBasedOnActiveSequencePlayer(){
+                this.conditionPredicate = this.conditionPredicate.or(SEQUENCE_PLAYER_IN_ACTIVE_STATE_HAS_FINISHED);
+                this.automaticTransition = true;
+                return this;
             }
 
             /**
@@ -275,13 +313,13 @@ public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFuncti
             }
 
             public StateTransition<S> build(){
-                return new StateTransition<>(this.target, this.conditionPredicate, this.transitionDurationTicks, this.easing, this.priority);
+                return new StateTransition<>(this.target, this.conditionPredicate, this.transitionDurationTicks, this.easing, this.priority, this.automaticTransition);
             }
         }
 
-        public record TransitionContext(OnTickDataContainer dataContainer, float ticksElapsedInCurrentState, float currentStateWeight){
-            public static TransitionContext of(OnTickDataContainer dataContainer, float ticksElapsedInCurrentState, float currentStateWeight){
-                return new TransitionContext(dataContainer, ticksElapsedInCurrentState, currentStateWeight);
+        public record TransitionContext(OnTickDriverContainer dataContainer, float ticksElapsedInCurrentState, float currentStateWeight, PoseFunction<LocalSpacePose> currentStateInput){
+            public static TransitionContext of(OnTickDriverContainer dataContainer, float ticksElapsedInCurrentState, float currentStateWeight, PoseFunction<LocalSpacePose> currentStateInput){
+                return new TransitionContext(dataContainer, ticksElapsedInCurrentState, currentStateWeight, currentStateInput);
             }
         }
     }

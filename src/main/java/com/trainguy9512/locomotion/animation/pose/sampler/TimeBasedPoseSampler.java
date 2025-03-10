@@ -1,6 +1,6 @@
 package com.trainguy9512.locomotion.animation.pose.sampler;
 
-import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
+import com.trainguy9512.locomotion.animation.data.OnTickDriverContainer;
 
 @Deprecated
 public class TimeBasedPoseSampler extends PoseSampler {
@@ -81,7 +81,7 @@ public class TimeBasedPoseSampler extends PoseSampler {
 
 
     @Override
-    public void tick(OnTickDataContainer dataContainer){
+    public void tick(OnTickDriverContainer dataContainer){
         if(this.getPlaying() && !this.resetting){
             this.timeElapsed += this.playRate;
         }

@@ -2,7 +2,7 @@ package com.trainguy9512.locomotion.animation.pose.sampler;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.locomotion.LocomotionMain;
-import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
+import com.trainguy9512.locomotion.animation.data.OnTickDriverContainer;
 import com.trainguy9512.locomotion.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
@@ -152,7 +152,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
     }
 
     @Override
-    public void tick(OnTickDataContainer dataContainer){
+    public void tick(OnTickDriverContainer dataContainer){
         // Don't evaluate if the state machine has no states
         if(this.activeStates.isEmpty()){
             LocomotionMain.LOGGER.warn("State machine {} not evaluated due to no active states", this.getIdentifier());
@@ -236,7 +236,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
             this.weight = isActive ? 1 : 0;
         }
 
-        private void tick(OnTickDataContainer dataContainer){
+        private void tick(OnTickDriverContainer dataContainer){
             if(this.currentTransition != null){
                 float increaseDecreaseMultiplier = this.getIsActive() ? 1 : -1;
                 float newWeight = Mth.clamp(this.getWeight() + ((1 / this.getCurrentTransition().transitionDuration()) * increaseDecreaseMultiplier), 0, 1);
@@ -363,7 +363,7 @@ public class AnimationStateMachine<S extends Enum<S>> extends TimeBasedPoseSampl
 
         @FunctionalInterface
         public interface ConditionPredicate {
-            boolean test(OnTickDataContainer dataContainer, float ticksElapsedInCurrentState, float currentStateWeight);
+            boolean test(OnTickDriverContainer dataContainer, float ticksElapsedInCurrentState, float currentStateWeight);
         }
     }
 }

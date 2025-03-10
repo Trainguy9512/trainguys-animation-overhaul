@@ -1,6 +1,5 @@
 package com.trainguy9512.locomotion.render;
 
-import com.google.common.collect.Lists;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.trainguy9512.locomotion.access.MatrixModelPart;
@@ -8,9 +7,7 @@ import com.trainguy9512.locomotion.animation.animator.JointAnimatorDispatcher;
 import com.trainguy9512.locomotion.animation.animator.entity.FirstPersonPlayerJointAnimator;
 import com.trainguy9512.locomotion.animation.joint.JointChannel;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidArmorModel;
 import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -19,14 +16,10 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
-import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.PlayerSkin;
-import net.minecraft.client.resources.model.EquipmentAssetManager;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.PlayerModelPart;
@@ -34,8 +27,6 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
-
-import java.util.List;
 
 public class FirstPersonPlayerRenderer implements RenderLayerParent<PlayerRenderState, PlayerModel> {
 
@@ -84,8 +75,8 @@ public class FirstPersonPlayerRenderer implements RenderLayerParent<PlayerRender
 
                             //this.entityRenderDispatcher.render(abstractClientPlayer, 0, 0, 0, partialTicks, poseStack, buffer, combinedLight);
 
-                            this.renderItem(abstractClientPlayer, dataContainer.getDriverValueInterpolated(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM, partialTicks), ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, rightItemPose, buffer, combinedLight);
-                            this.renderItem(abstractClientPlayer, dataContainer.getDriverValueInterpolated(FirstPersonPlayerJointAnimator.OFF_HAND_ITEM, partialTicks), ItemDisplayContext.THIRD_PERSON_LEFT_HAND, true, poseStack, leftItemPose, buffer, combinedLight);
+                            this.renderItem(abstractClientPlayer, dataContainer.getDriverValue(FirstPersonPlayerJointAnimator.MAIN_HAND_ITEM, partialTicks), ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, rightItemPose, buffer, combinedLight);
+                            this.renderItem(abstractClientPlayer, dataContainer.getDriverValue(FirstPersonPlayerJointAnimator.OFF_HAND_ITEM, partialTicks), ItemDisplayContext.THIRD_PERSON_LEFT_HAND, true, poseStack, leftItemPose, buffer, combinedLight);
                             //this.renderItemInHand(abstractClientPlayer, ItemStack.EMPTY, poseStack, HumanoidArm.LEFT, animationPose, bufferSource, i);
 
 

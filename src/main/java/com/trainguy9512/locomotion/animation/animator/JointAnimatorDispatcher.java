@@ -56,14 +56,14 @@ public class JointAnimatorDispatcher {
      * @param dataContainer         Animation data container
      */
     private <T> void tickJointAnimator(JointAnimator<T> jointAnimator, T dataReference, AnimationDataContainer dataContainer){
-        dataContainer.pushDriverValuesToPrevious();
+        dataContainer.prepareForNextTick();
         jointAnimator.extractAnimationData(dataReference, dataContainer);
         dataContainer.tick();
         if(jointAnimator.getPoseCalulationFrequency() == JointAnimator.PoseCalculationFrequency.CALCULATE_ONCE_PER_TICK){
             //AnimationPose animationPose = jointAnimator.calculatePose(dataContainer, dataContainer.getJointSkeleton(), 1);
             //AnimationOverhaulMain.LOGGER.info("{}", animationPose.getJointTransform(FirstPersonPlayerJointAnimator.RIGHT_ARM_JOINT).getRotation());
 
-            dataContainer.loadValueIntoDriver(dataContainer.getPerTickCalculatedPoseDriverKey(), dataContainer.computePose(1));
+            dataContainer.getDriver(dataContainer.getPerTickCalculatedPoseDriverKey()).setValue(dataContainer.computePose(1));
         }
     }
 
@@ -101,7 +101,7 @@ public class JointAnimatorDispatcher {
     public ComponentSpacePose getInterpolatedAnimationPose(JointAnimator<?> jointAnimator, AnimationDataContainer dataContainer, float partialTicks){
         return switch (jointAnimator.getPoseCalulationFrequency()) {
             case CALCULATE_EVERY_FRAME -> dataContainer.computePose(partialTicks).convertedToComponentSpace();
-            case CALCULATE_ONCE_PER_TICK -> dataContainer.getDriverValueInterpolated(dataContainer.getPerTickCalculatedPoseDriverKey(), partialTicks).convertedToComponentSpace();
+            case CALCULATE_ONCE_PER_TICK -> dataContainer.getDriverValue(dataContainer.getPerTickCalculatedPoseDriverKey(), partialTicks).convertedToComponentSpace();
         };
     }
 

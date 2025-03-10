@@ -1,6 +1,6 @@
 package com.trainguy9512.locomotion.animation.pose.sampler;
 
-import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
+import com.trainguy9512.locomotion.animation.data.OnTickDriverContainer;
 import com.trainguy9512.locomotion.animation.data.PoseCalculationDataContainer;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
@@ -121,7 +121,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements S
     }
 
     @Override
-    public void tick(OnTickDataContainer dataContainer){
+    public void tick(OnTickDriverContainer dataContainer){
         // Update current value
 
         // Advance time
@@ -136,7 +136,7 @@ public class AnimationBlendSpacePlayer extends TimeBasedPoseSampler implements S
         }
 
         private float getTimeFromTicks(float time) {
-            float frameLength = AnimationSequenceData.INSTANCE.getOrThrow(this.resourceLocation).length();
+            float frameLength = AnimationSequenceData.INSTANCE.getOrThrow(this.resourceLocation).length().inTicks();
             return (time % frameLength) / frameLength;
         }
 
