@@ -11,6 +11,7 @@ import com.trainguy9512.locomotion.animation.pose.function.*;
 import com.trainguy9512.locomotion.animation.pose.function.cache.SavedCachedPoseContainer;
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
 import com.trainguy9512.locomotion.util.Easing;
+import com.trainguy9512.locomotion.util.TimeSpan;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.entity.state.PlayerRenderState;
@@ -61,6 +62,7 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     );
 
     public static final AnimationDriverKey<Float> TIME_TEST = AnimationDriverKey.driverKeyOf("time_test", () -> Driver.floatDriver(() -> 0f));
+    public static final AnimationDriverKey<Float> BLEND_TEST = AnimationDriverKey.driverKeyOf("time_test", () -> Driver.floatDriver(() -> 0f));
 
     public static final AnimationDriverKey<Vector3f> CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("camera_rotation", () -> Driver.vectorDriver(() -> new Vector3f(0)));
     public static final AnimationDriverKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("dampened_camera_rotation", () -> Driver.vectorDriver(() -> new Vector3f(0)));
@@ -79,7 +81,8 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     }
 
 
-    public static final ResourceLocation ANIMATION_FP_PLAYER_IDLE = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_PATH, "rom_test");
+    public static final ResourceLocation ROM_TEST = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_PATH, "rom_test");
+    public static final ResourceLocation POSE_TEST = AnimationSequenceData.getNativeResourceLocation(AnimationSequenceData.FIRST_PERSON_PLAYER_PATH, "pose_test");
 
 
     public JointSkeleton buildSkeleton() {
@@ -114,8 +117,8 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
     @Override
     public PoseFunction<LocalSpacePose> constructPoseFunction(SavedCachedPoseContainer cachedPoseContainer) {
         Random random = new Random();
-        PoseFunction<LocalSpacePose> testSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).setPlayRate((context) -> 1f).build();
-        PoseFunction<LocalSpacePose> movingSequencePlayer = SequencePlayerFunction.builder(ANIMATION_FP_PLAYER_IDLE).setLooping(true).setPlayRate((context) -> 0f).setResetStartTimeOffsetTicks(30).build();
+        PoseFunction<LocalSpacePose> testSequencePlayer = SequencePlayerFunction.builder(POSE_TEST).setLooping(true).setPlayRate((context) -> 1f).build();
+        PoseFunction<LocalSpacePose> movingSequencePlayer = SequencePlayerFunction.builder(ROM_TEST).setLooping(true).setPlayRate((context) -> 1f).build();
         //cachedPoseContainer.register("TEST_SEQ_PLAYER", testSequencePlayer);
 
 
@@ -141,17 +144,17 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
 
         PoseFunction<LocalSpacePose> testStateMachine = StateMachineFunction.builder(TestStates.values())
                 .addState(TestStates.IDLE, testTransformer, true,
-                        StateMachineFunction.StateTransition.builder(TestStates.MOVING, transitionContext -> transitionContext.dataContainer().getDriverValue(WALK_SPEED) >= 0.5f).setTransitionDuration(10).setEasing(Easing.CUBIC_IN).build()
+                        StateMachineFunction.StateTransition.builder(TestStates.MOVING, transitionContext -> transitionContext.dataContainer().getDriverValue(WALK_SPEED) >= 0.5f).setTransitionDuration(TimeSpan.of24FramesPerSecond(6)).setEasing(Easing.SINE_IN_OUT).build()
                 )
                 .addState(TestStates.MOVING, movingSequencePlayer, true,
-                        StateMachineFunction.StateTransition.builder(TestStates.IDLE, transitionContext -> transitionContext.dataContainer().getDriverValue(WALK_SPEED) < 0.5f).setTransitionDuration(16).setEasing(Easing.ELASTIC_OUT).build()
+                        StateMachineFunction.StateTransition.builder(TestStates.IDLE, transitionContext -> transitionContext.dataContainer().getDriverValue(WALK_SPEED) < 0.5f).setTransitionDuration(TimeSpan.of24FramesPerSecond(10)).setEasing(Easing.easeOut(Easing.Elastic.easeInOf(6, 3))).build()
                 )
                 .build();
 
         //PoseFunction<LocalSpacePose> cached = cachedPoseContainer.getOrThrow("TEST_SEQ_PLAYER");
         PoseFunction<LocalSpacePose> blendMultipleFunction = BlendMultipleFunction.builder(testSequencePlayer).addBlendInput(testSequencePlayer, (evaluationState) -> 0.5f).build();
 
-        return testStateMachine;
+        return blendMultipleFunction;
     }
 
 

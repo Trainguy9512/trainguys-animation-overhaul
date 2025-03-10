@@ -286,12 +286,17 @@ class AnimationModExportDialog(QtWidgets.QDialog):
         length = round((endTime - startTime) * frameRateConversionMultiplier,3)
 
         joints = cmds.sets(exportSet, query=True)
+        joints.sort()
 
         jsonDict = {
             "format_version": FORMAT_VERSION,
             "length": length
         }
+
+        jsonDict["notifies"] = {}
+        jsonDict["curves"] = {}
         jsonDict["joints"] = {}
+
         for joint in joints:
             jointWithoutNamespace = joint.split(':')[-1]
             jsonDict["joints"][jointWithoutNamespace] = {}
@@ -368,15 +373,12 @@ class AnimationModExportDialog(QtWidgets.QDialog):
                 previousConvertedTime = convertedTime
                 pass
 
-        jsonDict["notifies"] = {}
-        jsonDict["curves"] = {}
-
         debug = False
         if debug:
-            print(json.dumps(jsonDict, indent=4, sort_keys=True))
+            print(json.dumps(jsonDict, indent=4))
         else:
             with open(filePath, 'w') as outfile:
-                json.dump(jsonDict, outfile, indent=4, sort_keys=True)
+                json.dump(jsonDict, outfile, indent=4)
         pass
 
 

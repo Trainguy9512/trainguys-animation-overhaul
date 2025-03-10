@@ -6,6 +6,7 @@ import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
 import com.trainguy9512.locomotion.animation.data.driver.Driver;
 import com.trainguy9512.locomotion.animation.pose.LocalSpacePose;
 import com.trainguy9512.locomotion.util.Easing;
+import com.trainguy9512.locomotion.util.TimeSpan;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
@@ -243,10 +244,10 @@ public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFuncti
             /**
              * Sets the transition time for the state transition.
              *
-             * @param transitionDurationTicks   Transition duration, in ticks
+             * @param transitionDuration        Transition duration time.
              */
-            public Builder<S> setTransitionDuration(float transitionDurationTicks){
-                this.transitionDurationTicks = transitionDurationTicks;
+            public Builder<S> setTransitionDuration(TimeSpan transitionDuration){
+                this.transitionDurationTicks = transitionDuration.inTicks();
                 return this;
             }
 

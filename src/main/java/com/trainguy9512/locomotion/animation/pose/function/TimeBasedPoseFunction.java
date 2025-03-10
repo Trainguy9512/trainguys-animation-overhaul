@@ -78,11 +78,11 @@ public abstract class TimeBasedPoseFunction<P extends AnimationPose> implements 
 
         /**
          * Sets the reset start time offset, which is used to offset the start time when the function is reset. Default is 0.
-         * @param offsetTimeInTicks         Offset time in ticks.
+         * @param startTimeOffset           Offset time.
          */
         @SuppressWarnings("unchecked")
-        public B setResetStartTimeOffsetTicks(float offsetTimeInTicks) {
-            this.resetStartTimeOffsetTicks = offsetTimeInTicks;
+        public B setResetStartTimeOffsetTicks(TimeSpan startTimeOffset) {
+            this.resetStartTimeOffsetTicks = startTimeOffset.inTicks();
             return (B) this;
         }
     }
