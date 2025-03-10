@@ -2,7 +2,7 @@ package com.trainguy9512.locomotion.animation.data;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.locomotion.animation.animator.JointAnimator;
-import com.trainguy9512.locomotion.animation.data.driver.Driver;
+import com.trainguy9512.locomotion.animation.data.driver.VariableDriver;
 import com.trainguy9512.locomotion.animation.data.key.AnimationDataKey;
 import com.trainguy9512.locomotion.animation.data.key.AnimationDriverKey;
 import com.trainguy9512.locomotion.animation.joint.JointSkeleton;
@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class AnimationDataContainer implements PoseCalculationDataContainer, OnTickDataContainer {
 
-    private final Map<AnimationDataKey<? extends Driver<?>>, Driver<?>> drivers;
+    private final Map<AnimationDataKey<? extends VariableDriver<?>>, VariableDriver<?>> drivers;
     private final SavedCachedPoseContainer savedCachedPoseContainer;
     private final PoseFunction<LocalSpacePose> poseFunction;
 
@@ -29,8 +29,8 @@ public class AnimationDataContainer implements PoseCalculationDataContainer, OnT
         this.poseFunction = jointAnimator.constructPoseFunction(savedCachedPoseContainer).wrapUnique();
 
         this.jointSkeleton = jointAnimator.buildSkeleton();
-        this.perTickCalculatedPoseDriverKey = AnimationDriverKey.driverKeyOf("per_tick_calculated_pose", () -> Driver.ofInterpolatable(() -> LocalSpacePose.of(jointSkeleton), Interpolator.LOCAL_SPACE_POSE));
-        this.gameTimeTicksDriverKey = AnimationDriverKey.driverKeyOf("game_time", () -> Driver.ofConstant(() -> 0L));
+        this.perTickCalculatedPoseDriverKey = AnimationDriverKey.driverKeyOf("per_tick_calculated_pose", () -> VariableDriver.ofInterpolatable(() -> LocalSpacePose.of(jointSkeleton), Interpolator.LOCAL_SPACE_POSE));
+        this.gameTimeTicksDriverKey = AnimationDriverKey.driverKeyOf("game_time", () -> VariableDriver.ofConstant(() -> 0L));
     }
 
     public static AnimationDataContainer of(JointAnimator<?> jointAnimator){
@@ -61,8 +61,8 @@ public class AnimationDataContainer implements PoseCalculationDataContainer, OnT
     }
 
     @SuppressWarnings("unchecked")
-    private <D> Driver<D> getOrCreateDriver(AnimationDriverKey<D> driverKey){
-        return (Driver<D>) this.drivers.computeIfAbsent(driverKey, AnimationDataKey::createInstance);
+    private <D> VariableDriver<D> getOrCreateDriver(AnimationDriverKey<D> driverKey){
+        return (VariableDriver<D>) this.drivers.computeIfAbsent(driverKey, AnimationDataKey::createInstance);
     }
 
     @Override
@@ -91,6 +91,6 @@ public class AnimationDataContainer implements PoseCalculationDataContainer, OnT
     }
 
     public void pushDriverValuesToPrevious(){
-        this.drivers.values().forEach(Driver::pushToPrevious);
+        this.drivers.values().forEach(VariableDriver::pushToPrevious);
     }
 }

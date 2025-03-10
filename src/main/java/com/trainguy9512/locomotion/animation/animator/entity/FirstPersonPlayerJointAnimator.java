@@ -2,7 +2,7 @@ package com.trainguy9512.locomotion.animation.animator.entity;
 
 import com.mojang.math.Axis;
 import com.trainguy9512.locomotion.animation.data.*;
-import com.trainguy9512.locomotion.animation.data.driver.Driver;
+import com.trainguy9512.locomotion.animation.data.driver.VariableDriver;
 import com.trainguy9512.locomotion.animation.data.key.AnimationDriverKey;
 import com.trainguy9512.locomotion.animation.pose.AnimationPose;
 import com.trainguy9512.locomotion.animation.joint.JointChannel;
@@ -61,19 +61,19 @@ public class FirstPersonPlayerJointAnimator implements LivingEntityJointAnimator
             LEFT_HAND_JOINT
     );
 
-    public static final AnimationDriverKey<Float> TIME_TEST = AnimationDriverKey.driverKeyOf("time_test", () -> Driver.floatDriver(() -> 0f));
-    public static final AnimationDriverKey<Float> BLEND_TEST = AnimationDriverKey.driverKeyOf("time_test", () -> Driver.floatDriver(() -> 0f));
+    public static final AnimationDriverKey<Float> TIME_TEST = AnimationDriverKey.driverKeyOf("time_test", () -> VariableDriver.floatDriver(() -> 0f));
+    public static final AnimationDriverKey<Float> BLEND_TEST = AnimationDriverKey.driverKeyOf("time_test", () -> VariableDriver.floatDriver(() -> 0f));
 
-    public static final AnimationDriverKey<Vector3f> CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("camera_rotation", () -> Driver.vectorDriver(() -> new Vector3f(0)));
-    public static final AnimationDriverKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("dampened_camera_rotation", () -> Driver.vectorDriver(() -> new Vector3f(0)));
-    public static final AnimationDriverKey<ItemStack> MAIN_HAND_ITEM = AnimationDriverKey.driverKeyOf("main_hand_item", () -> Driver.ofConstant(() -> ItemStack.EMPTY));
-    public static final AnimationDriverKey<ItemStack> OFF_HAND_ITEM = AnimationDriverKey.driverKeyOf("off_hand_item", () -> Driver.ofConstant(() -> ItemStack.EMPTY));
-    public static final AnimationDriverKey<Boolean> IS_ATTACKING = AnimationDriverKey.driverKeyOf("is_attacking", () -> Driver.booleanDriver(() -> false));
-    public static final AnimationDriverKey<Boolean> IS_USING_ITEM = AnimationDriverKey.driverKeyOf("is_using_item", () -> Driver.booleanDriver(() -> false));
-    public static final AnimationDriverKey<Boolean> IS_MINING = AnimationDriverKey.driverKeyOf("is_mining", () -> Driver.booleanDriver(() -> false));
-    public static final AnimationDriverKey<Boolean> IS_FALLING = AnimationDriverKey.driverKeyOf("is_falling", () -> Driver.booleanDriver(() -> false));
-    public static final AnimationDriverKey<Boolean> IS_JUMPING = AnimationDriverKey.driverKeyOf("is_jumping", () -> Driver.booleanDriver(() -> false));
-    public static final AnimationDriverKey<Float> WALK_SPEED = AnimationDriverKey.driverKeyOf("walk_speed", () -> Driver.floatDriver(() -> 0f));
+    public static final AnimationDriverKey<Vector3f> CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("camera_rotation", () -> VariableDriver.vectorDriver(() -> new Vector3f(0)));
+    public static final AnimationDriverKey<Vector3f> DAMPENED_CAMERA_ROTATION = AnimationDriverKey.driverKeyOf("dampened_camera_rotation", () -> VariableDriver.vectorDriver(() -> new Vector3f(0)));
+    public static final AnimationDriverKey<ItemStack> MAIN_HAND_ITEM = AnimationDriverKey.driverKeyOf("main_hand_item", () -> VariableDriver.ofConstant(() -> ItemStack.EMPTY));
+    public static final AnimationDriverKey<ItemStack> OFF_HAND_ITEM = AnimationDriverKey.driverKeyOf("off_hand_item", () -> VariableDriver.ofConstant(() -> ItemStack.EMPTY));
+    public static final AnimationDriverKey<Boolean> IS_ATTACKING = AnimationDriverKey.driverKeyOf("is_attacking", () -> VariableDriver.booleanDriver(() -> false));
+    public static final AnimationDriverKey<Boolean> IS_USING_ITEM = AnimationDriverKey.driverKeyOf("is_using_item", () -> VariableDriver.booleanDriver(() -> false));
+    public static final AnimationDriverKey<Boolean> IS_MINING = AnimationDriverKey.driverKeyOf("is_mining", () -> VariableDriver.booleanDriver(() -> false));
+    public static final AnimationDriverKey<Boolean> IS_FALLING = AnimationDriverKey.driverKeyOf("is_falling", () -> VariableDriver.booleanDriver(() -> false));
+    public static final AnimationDriverKey<Boolean> IS_JUMPING = AnimationDriverKey.driverKeyOf("is_jumping", () -> VariableDriver.booleanDriver(() -> false));
+    public static final AnimationDriverKey<Float> WALK_SPEED = AnimationDriverKey.driverKeyOf("walk_speed", () -> VariableDriver.floatDriver(() -> 0f));
 
     @Override
     public void postProcessModelParts(EntityModel<PlayerRenderState> entityModel, PlayerRenderState entityRenderState) {

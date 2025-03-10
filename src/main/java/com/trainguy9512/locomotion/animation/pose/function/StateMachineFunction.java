@@ -1,9 +1,8 @@
 package com.trainguy9512.locomotion.animation.pose.function;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.locomotion.LocomotionMain;
 import com.trainguy9512.locomotion.animation.data.OnTickDataContainer;
-import com.trainguy9512.locomotion.animation.data.driver.Driver;
+import com.trainguy9512.locomotion.animation.data.driver.VariableDriver;
 import com.trainguy9512.locomotion.animation.pose.LocalSpacePose;
 import com.trainguy9512.locomotion.util.Easing;
 import com.trainguy9512.locomotion.util.TimeSpan;
@@ -183,7 +182,7 @@ public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFuncti
         private final boolean resetUponEntry;
 
         private boolean isActive;
-        private final Driver<Float> weight;
+        private final VariableDriver<Float> weight;
         private StateTransition<S> currentTransition;
 
         private State(PoseFunction<LocalSpacePose> inputFunction, Set<StateTransition<S>> potentialStateTransitions, boolean resetUponEntry, boolean isActive){
@@ -192,7 +191,7 @@ public class StateMachineFunction<S extends Enum<S>> extends TimeBasedPoseFuncti
             this.resetUponEntry = resetUponEntry;
 
             this.isActive = isActive;
-            this.weight = isActive ? Driver.floatDriver(() -> 1f) : Driver.floatDriver(() -> 0f);
+            this.weight = isActive ? VariableDriver.floatDriver(() -> 1f) : VariableDriver.floatDriver(() -> 0f);
             this.currentTransition = null;
         }
 

@@ -1,7 +1,7 @@
 package com.trainguy9512.locomotion.animation.pose.function;
 
 import com.google.common.collect.Maps;
-import com.trainguy9512.locomotion.animation.data.driver.Driver;
+import com.trainguy9512.locomotion.animation.data.driver.VariableDriver;
 import com.trainguy9512.locomotion.animation.pose.LocalSpacePose;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,9 +12,9 @@ import java.util.function.Function;
 public class BlendMultipleFunction implements PoseFunction<LocalSpacePose> {
 
     private final PoseFunction<LocalSpacePose> baseFunction;
-    private final Map<BlendInput, Driver<Float>> inputs;
+    private final Map<BlendInput, VariableDriver<Float>> inputs;
 
-    public BlendMultipleFunction(PoseFunction<LocalSpacePose> baseFunction, Map<BlendInput, Driver<Float>> inputs){
+    public BlendMultipleFunction(PoseFunction<LocalSpacePose> baseFunction, Map<BlendInput, VariableDriver<Float>> inputs){
         this.baseFunction = baseFunction;
         this.inputs = inputs;
     }
@@ -65,7 +65,7 @@ public class BlendMultipleFunction implements PoseFunction<LocalSpacePose> {
     public static class Builder {
 
         private final PoseFunction<LocalSpacePose> baseFunction;
-        private final Map<BlendInput, Driver<Float>> inputs;
+        private final Map<BlendInput, VariableDriver<Float>> inputs;
 
         private Builder(PoseFunction<LocalSpacePose> baseFunction){
             this.baseFunction = baseFunction;
@@ -73,7 +73,7 @@ public class BlendMultipleFunction implements PoseFunction<LocalSpacePose> {
         }
 
         public Builder addBlendInput(PoseFunction<LocalSpacePose> inputFunction, Function<FunctionEvaluationState, Float> weightFunction, @Nullable Set<String> jointMask){
-            this.inputs.put(new BlendInput(inputFunction, weightFunction, Optional.ofNullable(jointMask)), Driver.floatDriver(() -> 0f));
+            this.inputs.put(new BlendInput(inputFunction, weightFunction, Optional.ofNullable(jointMask)), VariableDriver.floatDriver(() -> 0f));
             return this;
         }
 
