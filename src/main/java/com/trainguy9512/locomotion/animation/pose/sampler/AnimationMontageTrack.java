@@ -66,7 +66,6 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
     /**
      * Plays the given montage. Should be accessed within the tick phase for intended functionality
      *
-     * @param montageConfigurationKey   Data key for a montage configuration
      */
     public void playMontage(/*AnimationDataKey<MontageConfiguration> montageConfigurationKey*/){
         // If the length of the montage is 2, remove entry 0 (the back layer)
@@ -75,7 +74,7 @@ public class AnimationMontageTrack extends PoseSampler implements SampleableFrom
         }
 
         // Add the montage to the front layer
-        this.montages.putLast(montageConfigurationKey.createInstance(), 0f);
+        //this.montages.putLast(montageConfigurationKey.createInstance(), 0f);
     }
 
     public record MontageConfiguration(ResourceLocation animationSequence, float startTime, float endTime, float playRate, float transitionInDuration, float transitionOutDuration, Easing transitionInEasing, Easing transitionOutEasing, float transitionOutStartTime){
